@@ -4,8 +4,8 @@ This document defines the recommended agent workflow and MCP/skill setup for `AI
 
 ## Repo Structure Note (2026-02-26)
 
-- Actual grouped data/docs/report directories now live under `workspace/`.
-- Legacy root paths (`Config`, `CodeReview_Data`, `CodeReview_Report`, `docs`) remain available as compatibility junctions.
+- Canonical project paths are root directories: `Config`, `CodeReview_Data`, `docs`.
+- `workspace/` is reserved for runtime/support data (for example `workspace/runtime/CodeReview_Report`).
 - Legacy tool entrypoints in `tools/` remain valid via wrappers, while implementations are grouped under:
   - `tools/perf/`
   - `tools/ctrlpp/`

@@ -22,6 +22,7 @@ backend/_pit_debug_timing.log
 .DS_Store
 Thumbs.db
 .vscode/
+.idea/
 node_modules/
 
 # Local tool install artifacts

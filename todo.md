@@ -265,6 +265,10 @@
   - 공식 코드리뷰 기준을 `P1(규칙) + P2(CtrlppCheck) + P3(AI)` 중심으로 확정
   - GoldenTime 기준 workbook 비교 / `goldentime_compare_result.json` 생성은 공식 품질 기준에서 제외
   - GoldenTime 기반 `run_quality_gate.py`, `run_release_checklist.py` 제거 결정
+- [x] 2026-02-26 Git 친화 구조 정리
+  - canonical 경로를 root(`Config`, `CodeReview_Data`, `docs`)로 확정
+  - 중복 추적 경로 `workspace/resources/{Config,CodeReview_Data}`, `workspace/documentation/docs` 제거
+  - `workspace/`는 runtime/support 영역으로 역할 재정의 (`workspace/runtime/CodeReview_Report` 중심)
 - [x] 회귀 재검증(좁은 범위)
   - `python -m unittest backend.tests.test_api_and_reports.ApiIntegrationTests.test_post_api_analyze_defer_excel_reports_and_flush_endpoint -v` 통과
   - `python -m unittest backend.system_verification.SystemVerification.test_ctrlpp_missing_binary_fail_soft -v` 통과
