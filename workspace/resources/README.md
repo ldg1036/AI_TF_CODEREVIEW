@@ -1,4 +1,4 @@
-﻿# Workspace Resources
+﻿﻿# Workspace Resources
 
 Canonical resource paths are at repository root:
 - `Config/`

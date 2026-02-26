@@ -1,4 +1,4 @@
-﻿# Workspace Documentation
+﻿﻿# Workspace Documentation
 
 Canonical documentation path is at repository root:
 - `docs/`

@@ -1,4 +1,4 @@
-# Tools Folder Guide
+﻿# Tools Folder Guide
 
 `tools/` is organized by feature while keeping legacy entrypoints for compatibility.
 

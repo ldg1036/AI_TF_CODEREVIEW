@@ -1,4 +1,4 @@
-# Baseline Files
+﻿# Baseline Files
 
 Last Updated: 2026-02-25 (real UI/HTTP baselines collected)
 

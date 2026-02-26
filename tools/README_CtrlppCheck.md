@@ -1,4 +1,4 @@
-# CtrlppCheck Tools (Compatibility Entry)
+﻿# CtrlppCheck Tools (Compatibility Entry)
 
 Actual Ctrlpp helper docs were moved to `tools/ctrlpp/README_CtrlppCheck.md`.
 

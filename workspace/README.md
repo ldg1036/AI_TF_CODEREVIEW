@@ -1,4 +1,4 @@
-﻿# Workspace Layout (Runtime/Support Area)
+﻿﻿# Workspace Layout (Runtime/Support Area)
 
 Canonical repository paths are root directories:
 - Config
