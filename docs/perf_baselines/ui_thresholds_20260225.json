@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-02-25T11:34:00",
+  "source": "baseline-adjusted-thresholds",
+  "notes": [
+    "Adjusted using real Playwright baseline: tools/benchmark_results/ui_benchmark_baseline_20260225_1119.json",
+    "Thresholds target p95 with headroom for local/CI variance (roughly +20% to +60% depending on metric).",
+    "Tighten or loosen after collecting additional baselines on CI hardware."
+  ],
+  "baseline_p95": {
+    "analyzeUiMs": 93,
+    "resultTableScrollMs": 831,
+    "codeJumpMs": 48,
+    "codeViewerScrollMs": 364
+  },
+  "thresholds": {
+    "analyzeUiMs": {
+      "p95_max": 180
+    },
+    "resultTableScrollMs": {
+      "p95_max": 1050
+    },
+    "codeJumpMs": {
+      "p95_max": 100
+    },
+    "codeViewerScrollMs": {
+      "p95_max": 500
+    }
+  }
+}

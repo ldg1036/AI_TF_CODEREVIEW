@@ -1,0 +1,92 @@
+{
+  "paths": {
+    "rules_file": "Config/rules.json",
+    "report_base_dir": "CodeReview_Report",
+    "converter_dir": "CodeReview_Converter_Data",
+    "client_template": "Config/(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "server_template": "Config/(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx"
+  },
+  "ai": {
+    "provider": "ollama",
+    "enabled_default": false,
+    "fail_soft": true,
+    "timeout_sec": 600,
+    "model_name": "qwen2.5-coder:3b",
+    "ollama_url": "http://localhost:11434/api/generate",
+    "timeout": 600,
+    "system_prompt": "Config/prompt.txt",
+    "focus_snippet_window_lines": 8,
+    "focus_snippet_max_lines": 80,
+    "batch_groups_per_file": 1,
+    "options": {
+      "temperature": 0.0,
+      "num_ctx": 4096,
+      "top_p": 0.8,
+      "num_predict": 1536,
+      "num_thread": 8,
+      "top_k": 20,
+      "stop": [
+        "<|im_start|>",
+        "<|im_end|>",
+        "<|im_thought_end|>"
+      ],
+      "num_gpu_layers": 25,
+      "low_vram": true,
+      "flash_attn": true
+    }
+  },
+  "analysis": {
+    "valid_extensions": [
+      ".ctl",
+      ".txt",
+      ".cpp"
+    ],
+    "encoding_attempts": [
+      "utf-8",
+      "cp949",
+      "euc-kr"
+    ]
+  },
+  "mcp": {
+    "enabled_default": false,
+    "url": "http://localhost:3000",
+    "timeout_sec": 2,
+    "max_drivers_in_prompt": 20
+  },
+  "ctrlppcheck": {
+    "enabled_default": false,
+    "binary_path": "",
+    "timeout_sec": 30,
+    "enable_levels": "style,information",
+    "winccoa_project_name": "CodeReviewProject",
+    "version": "v1.0.2",
+    "auto_install_on_missing": true,
+    "install_dir": "tools/CtrlppCheck",
+    "github_repo": "siemens/CtrlppCheck",
+    "asset_pattern": "WinCCOA_QualityChecks_*.zip",
+    "rule_file": "tools/CtrlppCheck/v1.0.2/extract/WinCCOA_QualityChecks/data/ctrlPpCheck/rule/ctrl.xml",
+    "naming_rule_file": "tools/CtrlppCheck/v1.0.2/extract/WinCCOA_QualityChecks/data/ctrlPpCheck/rule/variableNaming.xml",
+    "library": "tools/CtrlppCheck/v1.0.2/extract/WinCCOA_QualityChecks/data/ctrlPpCheck/cfg/ctrl.xml",
+    "suppressions_list": "",
+    "installed_version": "v1.0.2",
+    "installed_at": "2026-02-19T04:01:52Z"
+  },
+  "performance": {
+    "analysis_max_workers": 4,
+    "ctrlpp_max_workers": 1,
+    "live_ai_max_workers": 1,
+    "report_max_workers": 1,
+    "excel_report_max_workers": 1,
+    "defer_excel_reports_default": false
+  },
+  "autofix": {
+    "enabled_default": true,
+    "prepare_generator_default": "auto",
+    "allow_fallback_default": true,
+    "block_on_regression_default": true,
+    "ctrlpp_regression_check_default": false,
+    "session_ttl_sec": 3600,
+    "session_max_entries": 32,
+    "proposal_limit_per_session": 50
+  }
+}

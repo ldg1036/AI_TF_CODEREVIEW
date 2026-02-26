@@ -1,0 +1,160 @@
+# Performance Baselines and Quality Gates
+
+Last Updated: 2026-02-25 (current implementation baseline reflected)
+
+Structure note (2026-02-26):
+- Benchmark scripts are now organized by feature under `tools/perf/` (actual implementation path).
+- Existing commands documented here (`tools/playwright_ui_benchmark.js`, `tools/http_perf_baseline.py`) still work via compatibility wrappers.
+- Benchmark outputs remain in legacy result paths (`tools/benchmark_results/`, `docs/perf_baselines/`) for backward compatibility.
+
+This project now exposes runtime metrics on `POST /api/analyze` and includes two benchmark drivers:
+
+- UI rendering benchmark (Playwright): `tools/playwright_ui_benchmark.js`
+- Backend HTTP/matrix benchmark (server metrics): `tools/http_perf_baseline.py`
+
+The goal is to make "performance is acceptable" a measurable statement instead of a subjective impression.
+
+## 1. What To Measure
+
+### UI (frontend responsiveness)
+- `analyzeUiMs`
+- `resultTableScrollMs`
+- `codeJumpMs`
+- `codeViewerScrollMs`
+
+These come from `tools/playwright_ui_benchmark.js` using mocked API responses so backend variability does not hide rendering regressions.
+
+### Backend (`/api/analyze`)
+- `metrics.timings_ms.*` (especially `collect`, `convert`, `analyze`, `report`, `ai`, `ctrlpp`, `server_total`)
+- `metrics.llm_calls`
+- `metrics.ctrlpp_calls`
+- `metrics.convert_cache.{hits,misses}`
+- `report_jobs.excel.pending_count` (when `defer_excel_reports=true`)
+
+These come from the real backend and reflect actual file I/O, reporting, LLM, and Ctrlpp behavior.
+
+## 2. Recommended Baseline Process
+
+### A. UI baseline (Playwright)
+Prerequisites:
+
+```powershell
+npm i -D playwright
+npx playwright install chromium
+```
+
+Run baseline:
+
+```powershell
+node tools/playwright_ui_benchmark.js `
+  --iterations 5 `
+  --files 20 `
+  --violations-per-file 120 `
+  --code-lines 6000 `
+  --output tools/benchmark_results/ui_benchmark_baseline_20260225.json
+```
+
+Recommended initial thresholds (before real baseline tuning):
+- `analyzeUiMs.p95 <= 1500`
+- `resultTableScrollMs.p95 <= 1200`
+- `codeJumpMs.p95 <= 800`
+- `codeViewerScrollMs.p95 <= 800`
+
+Current tuned thresholds (based on local real baseline):
+- See `docs/perf_baselines/ui_thresholds_20260225.json`
+- Current p95 limits:
+  - `analyzeUiMs <= 180`
+  - `resultTableScrollMs <= 1050`
+  - `codeJumpMs <= 100`
+  - `codeViewerScrollMs <= 500`
+
+Threshold check example:
+
+```powershell
+node tools/playwright_ui_benchmark.js `
+  --iterations 5 `
+  --files 20 `
+  --violations-per-file 120 `
+  --code-lines 6000 `
+  --max-analyze-ms 1500 `
+  --max-table-scroll-ms 1200 `
+  --max-code-jump-ms 800 `
+  --max-code-scroll-ms 800
+```
+
+### B. Backend baseline (`/api/analyze`)
+Start server:
+
+```powershell
+python backend/server.py
+```
+
+In another terminal, run the HTTP matrix baseline:
+
+```powershell
+python tools/http_perf_baseline.py `
+  --dataset-name local-sample `
+  --discover-count 1 `
+  --ctrlpp off,on `
+  --live-ai off `
+  --defer-excel off,on `
+  --iterations 3 `
+  --flush-excel
+```
+
+Output is written to `docs/perf_baselines/` by default.
+
+Example generated backend baseline (local sample):
+- `docs/perf_baselines/http_perf_baseline_local_code_review_data_20260225_111410.json`
+
+## 3. Regression Decision Rules (Recommended)
+
+Use the same machine/profile when comparing results.
+
+- Compare against a saved baseline using the same benchmark parameters.
+- Prefer `p95` over single-run values.
+- Treat these as regressions unless there is an explained change:
+  - UI: `p95` increases by more than `20%`
+  - Backend: `server_total` or stage timings increase by more than `20%`
+  - LLM/Ctrlpp: unexpected call count increases
+  - Deferred Excel: pending jobs not draining after flush
+
+## 4. Noise / Variance Handling
+
+Performance measurements on developer PCs are noisy. Use these rules:
+
+- Run at least `3` iterations (prefer `5`)
+- Close heavy background processes during UI benchmarks
+- Compare with same `Ctrlpp`/`Live AI`/`defer_excel_reports` settings
+- For LLM-enabled runs, note provider status (local model warm/cold start changes results)
+- If a spike occurs once, rerun before declaring regression
+
+## 5. Baseline Storage Convention
+
+Store outputs in `docs/perf_baselines/`.
+
+Suggested naming:
+- `http_perf_baseline_<dataset>_<YYYYMMDD_HHMMSS>.json`
+- `ui_benchmark_baseline_<YYYYMMDD_HHMMSS>.json`
+- `ui_thresholds_<YYYYMMDD>.json`
+
+Keep a short note beside each baseline:
+- machine / CPU / RAM
+- Python version
+- Node version
+- Ctrlpp version
+- LLM provider/model (if enabled)
+
+## 6. Current Baseline Snapshot (2026-02-25)
+
+UI Playwright baseline (`tools/benchmark_results/ui_benchmark_baseline_20260225_1119.json`)
+- `analyzeUiMs p95 = 93`
+- `resultTableScrollMs p95 = 831`
+- `codeJumpMs p95 = 48`
+- `codeViewerScrollMs p95 = 364`
+
+Threshold check validation run
+- `analyzeUiMs p95 = 114` (<= 180)
+- `resultTableScrollMs p95 = 831` (<= 1050)
+- `codeJumpMs p95 = 62` (<= 100)
+- `codeViewerScrollMs p95 = 364` (<= 500)

@@ -1,0 +1,5860 @@
+V 14
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+PANEL,-1 -1 1256 259 N "STD_valve_open" 1
+"$SetDP"
+"main()
+{
+
+  windowStyle(myModuleName(),myPanelName(),0,0);  // popup ini ÏµúÏÜåÌôî ÏÇ≠Ï†ú
+  POP_DIFF_COL_MODE = true;
+
+
+  dyn_errClass err;
+  string a;
+
+  MAPP(dyn_dp);
+
+  string dp_press_set1 = MAP_EDITABLE_VALUE[OBJ_PRESS_SET1];
+
+  string dp_press_set1_max = MAP_EDITABLE_VALUE[OBJ_PRESS_SET1_MAX];
+  string dp_press_set1_min = MAP_EDITABLE_VALUE[OBJ_PRESS_SET1_MIN];
+
+//   string dp_auto_sel1 = MAP_CHECK[OBJ_AUTO_SEL1];
+//   string dp_auto_sel2 = MAP_CHECK[OBJ_AUTO_SEL2];
+//   string dp_auto_sel3 = MAP_CHECK[OBJ_AUTO_SEL3];
+//   string dp_auto_sel4 = MAP_CHECK[OBJ_AUTO_SEL4];
+//   string dp_auto_sel5 = MAP_CHECK[OBJ_AUTO_SEL5];
+
+//   dyn_string dpL_hang1_cx = MAP_VALUE_BOOL[OBJ_HANG1_CX];
+//   dyn_string dpL_hang2_cx = MAP_VALUE_BOOL[OBJ_HANG2_CX];
+//   dyn_string dpL_hang3_cx = MAP_VALUE_BOOL[OBJ_HANG3_CX];
+//   dyn_string dpL_hang4_cx = MAP_VALUE_BOOL[OBJ_HANG4_CX];
+//   dyn_string dpL_hang5_cx = MAP_VALUE_BOOL[OBJ_HANG5_CX];
+
+  string dp_hz_set1 = MAP_EDITABLE_VALUE[OBJ_HZ_SET1];
+
+  string dp_fan_vib_hilm = MAP_EDITABLE_VALUE[OBJ_FAN_VIB_HILM];
+
+  string dp_ad_open_tm_set = MAP_EDITABLE_VALUE[OBJ_AD_OPEN_TM_SET];
+  string dp_ad_open_tmlm = MAP_READONLY_VALUE[OBJ_AD_OPEN_TMLM];
+
+  string dp_ad_open_lm = MAP_EDITABLE_VALUE[OBJ_AD_OPEN_LM];
+
+//   string dp_obj_fan_check_dly_tm_set = MAP_READONLY_VALUE[OBJ_FAN_CHECK_DLY_TM_SET];
+//   string dp_obj_fan_check_dly_tm = MAP_READONLY_VALUE[OBJ_FAN_CHECK_DLY_TM];
+
+  string dp_fan_vib_invalidity = MAP_CHECK[OBJ_FAN_VIB_INVALIDITY];
+
+///////////////////////////////////////////////////////////////////
+
+  dpConnect(\"CB_value_textfield\",dp_press_set1);
+
+  dpConnect(\"CB_value_textfield\",dp_press_set1_max);
+  dpConnect(\"CB_value_textfield\",dp_press_set1_min);
+
+  dpConnect(\"CB_check_box\",$SetDP + \".cmd.AUTOSEL.SEL1\",$SetDP + \".cmd.AUTOSEL.SEL2\",$SetDP + \".cmd.AUTOSEL.SEL3\",$SetDP + \".cmd.AUTOSEL.SEL4\",$SetDP + \".cmd.AUTOSEL.SEL5\");
+//   dpConnect(\"CB_check_box\",$SetDP + \".cmd.AUTOSEL.SEL2\");
+//   dpConnect(\"CB_check_box\",$SetDP + \".cmd.AUTOSEL.SEL3\");
+//   dpConnect(\"CB_check_box\",$SetDP + \".cmd.AUTOSEL.SEL4\");
+//   dpConnect(\"CB_check_box\",$SetDP + \".cmd.AUTOSEL.SEL5\");
+
+//   dpConnect(\"CB_value_ractangle_sp\",dpL_hang1_cx);
+//   dpConnect(\"CB_value_ractangle_sp\",dpL_hang2_cx);
+//   dpConnect(\"CB_value_ractangle_sp\",dpL_hang3_cx);
+//   dpConnect(\"CB_value_ractangle_sp\",dpL_hang4_cx);
+//   dpConnect(\"CB_value_ractangle_sp\",dpL_hang5_cx);
+
+  dpConnect(\"CB_value_textfield\",dp_hz_set1);
+
+  dpConnect(\"CB_value_textfield\",dp_fan_vib_hilm);
+
+  dpConnect(\"CB_value_textfield\",dp_ad_open_tm_set);
+  dpConnect(\"CB_value_textfield\",dp_ad_open_tmlm);
+  dpConnect(\"CB_value_textfield\",dp_ad_open_lm);
+
+//   dpConnect(\"CB_value_textfield\",dp_obj_fan_check_dly_tm_set);
+//   dpConnect(\"CB_value_textfield\",dp_obj_fan_check_dly_tm);
+
+  dpConnect(\"CB_value_check_box\",dp_fan_vib_invalidity);
+
+
+///////////////////////////////////////////////////////////////////
+
+  err = getLastError();
+  if (dynlen(err) > 0)
+    DebugN(\"Erro:\",err);
+
+
+  PARAMETER_WINDOW_INITIAL(myModuleName(),myPanelName(),DYN_ALL_MAP_EDITABLE_KEYS,
+                          DYN_ALL_MAP_EDITABLE_VALUES,mappingKeys(MAP_ALERT_PRIO),
+                          DYN_ALL_INIT_INVISIBLE);
+
+
+
+}
+
+
+" 0
+ "main()
+{
+  POP_DIFF_COL_MODE = false;
+}" 0
+ E E E 1 -1 -1 0  0 0
+""0  1
+E "bool endOfMapp = false;
+dyn_string dyn_dp = makeDynString($SetDP);
+dyn_bool dp_value;
+
+////////////////////////////////////////////////////////////////////
+
+string OBJ_PRESS_SET1 = \"obj_press_set1\";
+
+string OBJ_PRESS_SET1_MAX = \"obj_press_set1_max\";
+string OBJ_PRESS_SET1_MIN = \"obj_press_set1_min\";
+
+
+string OBJ_HZ_SET1 = \"obj_hz_set1\";
+
+string OBJ_FAN_VIB_HILM = \"obj_fan_vib_hilm\";
+
+string OBJ_AD_OPEN_TM_SET = \"obj_ad_open_tm_set\";
+string OBJ_AD_OPEN_TMLM = \"obj_ad_open_tmlm\";
+
+
+string OBJ_AD_OPEN_LM = \"obj_ad_open_lm\";
+
+string OBJ_FAN_VIB_INVALIDITY = \"obj_fan_vib_invalidity\";
+
+
+//ÌïÑÏöîÏóê ÏùòÌï¥ Ìé∏ÏßëÍ∞ÄÎä•Ìïú text Í∞ùÏ≤¥Ïùò valueÎ•º Ï†ÄÏû•ÌïúÎã§.
+
+dyn_string DYN_ALL_MAP_EDITABLE_VALUES; // DP ELEMENT Í∞í EX: TI_001A.PVSOURCE -  EDIT Í∞ÄÎä• ÏÜçÏÑ± - Î∞∞Ïó¥Ï†ÄÏû•
+dyn_string DYN_ALL_MAP_EDITABLE_KEYS;  // DPE Object Name - Î∞∞Ïó¥Ï†ÄÏû•
+dyn_string DYN_ALL_MAP_EDITABLE_DESC;  // MSG BOX DESCRIPTION - TEXT OBJ - Î∞∞Ïó¥Ï†ÄÏû•
+dyn_string DYN_ALL_INIT_INVISIBLE;  // COMBO BOX INVISIBLE - Î∞∞Ïó¥Ï†ÄÏû•
+
+mapping MAP_SHAPE_TYPE;  // ÌôîÎ©¥  object type Î™ÖÍ∏∞ (ex : text, combo box, radio box .... Îì±Îì±)
+mapping MAP_EDITABLE_ALM;  // ALARM VALUE DPE ÏßÄÏ†ï
+mapping MAP_EDITABLE_VALUE;  // TEXT OBJ  DPE ÏßÄÏ†ï
+mapping MAP_ALERT_BOOL;  // BIT TYPE ALARM DPE ÏßÄÏ†ï
+mapping MAP_READONLY_VALUE;  // READ ONLY DPE ÏßÄÏ†ï
+mapping MAP_ALERT_PRIO;  // CASCADE OBJ - ALARM PRIO DPE ÏßÄÏ†ï
+mapping MAP_ALERT_COMBO_PRIO;  // COMBO BOX OBJ - ALARM PRIO DPE ÏßÄÏ†ï
+mapping MAP_EDITABLE_DESC;  // DPE Object Name ÏßÄÏ†ï
+mapping MAP_RADIO; // ÏûÖÎ†• / ÏÑºÏÑúÍµ¨Î∂Ñ DPE ÏßÄÏ†ï
+mapping MAP_CHECK; // CHECK BOX OBJECT DPE ÏßÄÏ†ï
+mapping MAP_DEPEND_VALUE;  //ÏùòÏ°¥ÏÑ±Ïù¥ ÏûàÎäî Í≤ΩÏö∞ : ÏàòÎèô Î™®Îìú ÏùºÎïå ÏàòÎèôÍ∞í ÌïÑÎìúÍ∞Ä ONÎêòÎäî Í≤ΩÏö∞
+mapping MAP_VALUE_BOOL;        // BIT TYPE VALUE DPE ÏßÄÏ†ï
+
+void MAPP(dyn_string dyn_dp)
+{
+  //MAPP Ìï®ÏàòÏóêÏÑú initialÏóêÏÑú Ï†ïÏùòÎêú dpÎ•º mappingÌïúÎã§.
+  //dpÍ∞Ä nÍ∞úÏù¥Î©¥ dp1,dp2,.....,dpn
+  //dpÍ∞Ä 1Í∞úÏù¥Î©¥ dp ÏúºÎ°ú Ï†ïÏùòÌïúÎã§.
+  //ÌååÎùºÎØ∏ÌÑ∞ Ïû•Ïùò ÏàúÏÑúÎåÄÎ°ú Ï†ÑÏ≤¥ Î∞∞Ïó¥ÏùÑ Ï†ÄÏû•ÌïúÎã§. ÏàúÏÑú Ï£ºÏùò!!
+  // mappingÏùÄ Î¨¥ÏûëÏúÑÏàúÏÑúÏù¥Îã§.ÏûÖÎ†•ÌïúÎåÄÎ°ú Îì§Ïñ¥Í∞ÄÍ±∞ÎÇò Ï°∞ÌöåÎêòÏßÄ ÏïäÏùå.
+
+  string dp,caption;
+  dp = dyn_dp[1];
+
+  //shape type map  - SWICH CASE Î¨∏ ÏÇ¨Ïö© / Ï†ÅÏö©Î≤ÑÌäº
+  MAP_SHAPE_TYPE[\"TEXT_FIELD\"] = 1;
+  MAP_SHAPE_TYPE[\"COMBO_BOX\"] = 2;
+  MAP_SHAPE_TYPE[\"RADIO_BOX\"] = 3;
+  MAP_SHAPE_TYPE[\"CASCADE_BOX\"] = 4;
+  MAP_SHAPE_TYPE[\"CHECK_BOX\"] = 5;
+
+  MAP_READONLY_VALUE[OBJ_AD_OPEN_TMLM] = dp + \".value.AD_OPEN_TMLM\";
+//   MAP_READONLY_VALUE[OBJ_FAN_CHECK_DLY_TM_SET] = dp + \".cmd.FAN_CHECK_DLY_TM_SET\";
+//   MAP_READONLY_VALUE[OBJ_FAN_CHECK_DLY_TM] = dp + \".value.FAN_CHECK_DLY_TM\";
+
+  MAP_EDITABLE_VALUE[OBJ_PRESS_SET1] = dp + \".cmd.PRESS_SP\";
+  MAP_EDITABLE_DESC[OBJ_PRESS_SET1] = \"ÏÑ§Ï†ïÏïïÎ†•\";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_PRESS_SET1);
+
+  MAP_EDITABLE_VALUE[OBJ_PRESS_SET1_MAX] = dp + \".cmd.PRESS_MAX\";
+  MAP_EDITABLE_DESC[OBJ_PRESS_SET1_MAX] = \"ÏÑ§Ï†ïÏïïÎ†• Max\";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_PRESS_SET1_MAX);
+
+  MAP_EDITABLE_VALUE[OBJ_PRESS_SET1_MIN] = dp + \".cmd.PRESS_MIN\";
+  MAP_EDITABLE_DESC[OBJ_PRESS_SET1_MIN] = \"ÏÑ§Ï†ïÏïïÎ†• Min\";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_PRESS_SET1_MIN);
+
+  MAP_EDITABLE_VALUE[OBJ_HZ_SET1] = dp + \".cmd.HZ_SP\";
+  MAP_EDITABLE_DESC[OBJ_HZ_SET1] = \"ÏÑ§Ï†ïHz\";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_HZ_SET1);
+
+  MAP_EDITABLE_VALUE[OBJ_FAN_VIB_HILM] = dp + \".cmd.FAN_VIB_HILM\";
+  MAP_EDITABLE_DESC[OBJ_FAN_VIB_HILM] = \"Fan vibration high limit\";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_FAN_VIB_HILM);
+
+  MAP_EDITABLE_VALUE[OBJ_AD_OPEN_TM_SET] = dp + \".cmd.AD_OPEN_SETTM\";
+  MAP_EDITABLE_DESC[OBJ_AD_OPEN_TM_SET] = \"Auto Damper Open Time Set\";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AD_OPEN_TM_SET);
+
+  MAP_EDITABLE_VALUE[OBJ_AD_OPEN_LM] = dp + \".cmd.AD_OPEN_LM\";
+  MAP_EDITABLE_DESC[OBJ_AD_OPEN_LM] = \"Auto Damper Open Limit\";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AD_OPEN_LM);
+
+    /* check box */
+//   MAP_CHECK[OBJ_AUTO_SEL1] = dp + \".cmd.AUTOSEL.SEL1\";
+//   MAP_EDITABLE_DESC[OBJ_AUTO_SEL1] = \"1Ìò∏Í∏∞ PRESS AUTO BACKUP\";
+//   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AUTO_SEL1);
+//
+//   MAP_CHECK[OBJ_AUTO_SEL2] = dp + \".cmd.AUTOSEL.SEL2\";
+//   MAP_EDITABLE_DESC[OBJ_AUTO_SEL2] = \"2Ìò∏Í∏∞ PRESS AUTO BACKUP\";
+//   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AUTO_SEL2);
+//
+//   MAP_CHECK[OBJ_AUTO_SEL3] = dp + \".cmd.AUTOSEL.SEL3\";
+//   MAP_EDITABLE_DESC[OBJ_AUTO_SEL3] = \"3Ìò∏Í∏∞ PRESS AUTO BACKUP\";
+//   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AUTO_SEL3);
+//
+//   MAP_CHECK[OBJ_AUTO_SEL4] = dp + \".cmd.AUTOSEL.SEL4\";
+//   MAP_EDITABLE_DESC[OBJ_AUTO_SEL4] = \"4Ìò∏Í∏∞ PRESS AUTO BACKUP\";
+//   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AUTO_SEL4);
+//
+//   MAP_CHECK[OBJ_AUTO_SEL5] = dp + \".cmd.AUTOSEL.SEL5\";
+//   MAP_EDITABLE_DESC[OBJ_AUTO_SEL5] = \"5Ìò∏Í∏∞ PRESS AUTO BACKUP\";
+//   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AUTO_SEL5);
+
+
+  MAP_CHECK[OBJ_FAN_VIB_INVALIDITY] = dp + \".cmd.FAN_VIB_INVALIDITY\";
+  MAP_EDITABLE_DESC[OBJ_FAN_VIB_INVALIDITY] = \"FAN Invalidity\";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_FAN_VIB_INVALIDITY);
+
+
+   /* Î∞∞Ïó¥Ïùò keyÍ∞íÏùÑ Í∏∞Ï§ÄÏúºÎ°ú dyn value/desc Î∞∞Ïó¥ ÏûëÏÑ± */
+  string map_value;
+  string map_key;
+  bool bool_haskey;
+  for(int i=1;i<=dynlen(DYN_ALL_MAP_EDITABLE_KEYS);i++)
+  {
+    map_key = DYN_ALL_MAP_EDITABLE_KEYS[i];
+
+
+    //ÏïåÎûå PrioÏÑ§Ï†ï
+    bool_haskey = mappingHasKey(MAP_ALERT_COMBO_PRIO,map_key);
+    if(bool_haskey)
+    {
+      map_value = MAP_ALERT_COMBO_PRIO[map_key];
+      dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+      dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+      continue;
+    }
+
+    //Í∏∞ÌÉÄ ÏÑ§Ï†ïÍ∞í
+    bool_haskey = mappingHasKey(MAP_EDITABLE_VALUE,map_key);
+    if(bool_haskey)
+    {
+      map_value = MAP_EDITABLE_VALUE[map_key];
+      dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+      dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+      continue;
+    }
+
+    // cascade ÏïåÎûå prio
+    bool_haskey = mappingHasKey(MAP_ALERT_PRIO,map_key);
+    if(bool_haskey)
+    {
+      map_value = MAP_ALERT_PRIO[map_key];
+      dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+      dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+      continue;
+    }
+
+    // check box
+    bool_haskey = mappingHasKey(MAP_CHECK,map_key);
+    if(bool_haskey)
+    {
+      map_value = MAP_CHECK[map_key];
+      dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+      dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+      continue;
+    }
+
+    // radio button
+    bool_haskey = mappingHasKey(MAP_RADIO,map_key);
+    if(bool_haskey)
+    {
+      map_value = MAP_RADIO[map_key];
+      dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+      dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+      continue;
+    }
+  }
+  endOfMapp = true;//Mapping ÏôÑÎ£å Ï≤¥ÌÅ¨
+}
+
+
+Func_MODE_INI()
+{
+  setValue(\"obj_auto_sel1\",\"enabled\",false);
+  setValue(\"obj_auto_sel2\",\"enabled\",false);
+  setValue(\"obj_auto_sel3\",\"enabled\",false);
+  setValue(\"obj_auto_sel4\",\"enabled\",false);
+  setValue(\"obj_auto_sel5\",\"enabled\",false);
+
+  setValue(\"obj_auto_sel1\",\"state\",0,dp_value[1]);
+  setValue(\"obj_auto_sel2\",\"state\",0,dp_value[2]);
+  setValue(\"obj_auto_sel3\",\"state\",0,dp_value[3]);
+  setValue(\"obj_auto_sel4\",\"state\",0,dp_value[4]);
+  setValue(\"obj_auto_sel5\",\"state\",0,dp_value[5]);
+
+//   setValue(\"BOX_B1\",\"backCol\",\"black\");
+//   setValue(\"BOX_B2\",\"backCol\",\"black\");
+}
+
+CB_check_box(string dp1, bool mode1, string dp2, bool mode2, string dp3, bool mode3, string dp4, bool mode4, string dp5, bool mode5)
+{
+  if(mode1 == 1)
+  {
+      dp_value[1] = 1;
+      dp_value[2] = 0;
+      dp_value[3] = 0;
+      dp_value[4] = 0;
+      dp_value[5] = 0;
+  }
+  else if(mode2 == 1)
+  {
+      dp_value[1] = 0;
+      dp_value[2] = 1;
+      dp_value[3] = 0;
+      dp_value[4] = 0;
+      dp_value[5] = 0;
+  }
+  else if(mode3 == 1)
+  {
+      dp_value[1] = 0;
+      dp_value[2] = 0;
+      dp_value[3] = 1;
+      dp_value[4] = 0;
+      dp_value[5] = 0;
+  }
+  else if(mode4 == 1)
+  {
+      dp_value[1] = 0;
+      dp_value[2] = 0;
+      dp_value[3] = 0;
+      dp_value[4] = 1;
+      dp_value[5] = 0;
+  }
+  else if(mode5 == 1)
+  {
+      dp_value[1] = 0;
+      dp_value[2] = 0;
+      dp_value[3] = 0;
+      dp_value[4] = 0;
+      dp_value[5] = 1;
+  }
+  else
+  {
+      dp_value[1] = 0;
+      dp_value[2] = 0;
+      dp_value[3] = 0;
+      dp_value[4] = 0;
+      dp_value[5] = 0;
+  }
+  setValue(\"obj_auto_sel1\",\"state\",0,dp_value[1]);
+  setValue(\"obj_auto_sel2\",\"state\",0,dp_value[2]);
+  setValue(\"obj_auto_sel3\",\"state\",0,dp_value[3]);
+  setValue(\"obj_auto_sel4\",\"state\",0,dp_value[4]);
+  setValue(\"obj_auto_sel5\",\"state\",0,dp_value[5]);
+}" 0
+ 3
+"CBRef" "1"
+"EClose" E
+"dpi" "96"
+0 0 0
+"BrownUI/background/main_bg.png" -1 -1 3840 1080
+-1
+NC
+DISPLAY_LAYER, 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0
+LAYER, 0 
+1
+LANG:10031 0 
+6 340
+"RECTANGLE7751"
+""
+1 659 269 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+199 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 23.06623007823135 0 4.253278188460084 -9059.60250514956 -654.6659304996108 1 E 393 155 447 204
+6 341
+"RECTANGLE7752"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+200 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.010454707843759 0 1.570731707317074 -25.91544714371424 -243.2837398373984 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 342
+"PRIMITIVE_TEXT2601"
+""
+1 93.65774581270054 21.18053101410888 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+201 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 93.65774581270054 21.18053101410888 121 37
+0 2 2 "0s" 0 0 0 192 0 0  93.65774581270054 21.18053101410888 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 6 Ìò∏Í∏∞
+LANG:31 4 »£±‚
+LANG:1 9 øÓ¿¸∞™ : 
+6 343
+"RECTANGLE7753"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+202 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.011150932928042 0 1.536585365853658 40.49034023679722 -237.3655632984903 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 345
+"PRIMITIVE_TEXT2602"
+""
+1 149.6297391114541 21.32226318417379 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+204 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 149.6297391114541 21.32226318417379 200 37
+0 2 2 "0s" 0 0 0 192 0 0  149.6297391114541 21.32226318417379 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 6 STATUS
+LANG:31 6 STATUS
+LANG:1 9 øÓ¿¸∞™ : 
+6 348
+"RECTANGLE7755"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+207 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.011383114542951 0 1.570731707317072 -93.13831145429505 -243.2837398373982 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+6 349
+"RECTANGLE7756"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+208 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 2.093857450804061 0 1.536585365853658 485.6142549195939 -237.3655632984903 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 350
+"PRIMITIVE_TEXT2605"
+""
+1 13.36425966537447 20.90428762786576 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+209 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 13.36425966537447 20.90428762786576 67 37
+0 2 2 "0s" 0 0 0 192 0 0  13.36425966537447 20.90428762786576 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 12 Í∏∞Ï§ÄÏïïÎ†•
+LANG:31 8 ±‚¡ÿæ–∑¬
+LANG:1 9 øÓ¿¸∞™ : 
+2 351
+"text_set_press"
+""
+1 735.1801050923989 22.01738286596074 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+210 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 735.1801050923989 22.01738286596074 789 38
+0 2 2 "0s" 0 0 0 192 0 0  735.1801050923989 22.01738286596074 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 12 ÏÑ§Ï†ïÏïïÎ†•
+LANG:31 8 º≥¡§æ–∑¬
+LANG:1 9 øÓ¿¸∞™ : 
+6 367
+"RECTANGLE7763"
+""
+1 8 16 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+226 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.8834765726983671 0 6.584427809146058 -104.0678125815869 -145.5591016938872 1 E 127 30 200 54
+6 390
+"edit_button"
+""
+1 330 260 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ E E
+232 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Preferred Preferred"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 1 1 2 1 E 1.469387755102041 0 1.5 950.4399357336385 -67 2  1 0  "pictures/BrownUI/screen/pop_btn_normal.PNG" 4294967295 E 41 190 90 214
+6 391
+"app_button"
+""
+1 330 260 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ E E
+233 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 1 1 2 1 E 1.469387755102041 0 1.5 888.4399357336381 -67 2  1 0  "pictures/BrownUI/screen/pop_btn_normal.PNG" 4294967295 E 141 190 190 214
+6 392
+"close_btn"
+""
+1 330 260 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ E E
+234 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 1 1 2 1 E 1.469387755102041 0 1.5 824.5716611510779 -67 2  1 0  "pictures/BrownUI/screen/pop_btn_normal.PNG" 4294967295 E 241 190 290 214
+2 393
+"PRIMITIVE_TEXT3"
+""
+1 621.0542871638766 91.99999999999984 E E E 1 E 1 E N "white" E N "_Window" E E
+ E E
+235 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E 1 0 0.9999999999999999 609.8564134358302 69.49999999999989 0 E 592 159 618 175
+0 2 2 "0s" 0 0 0 193 0 0  605.0542871638766 159 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 6 Îã´Í∏∞
+LANG:31 4 ¥›±‚
+LANG:1 4 ºˆ¡§
+6 394
+"edit_button_press"
+""
+1 330 260 E E E 1 E 0 E N "_Transparent" E N "_Transparent" E E
+ E E
+236 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Preferred Preferred"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 1 1 2 1 E 1.469387755102041 0 1.5 950.8226517830205 -185.1190476190477 2  1 0  "pictures/BrownUI/screen/pop_btn_select.PNG" 4294967295 E 41 269 90 293
+2 395
+"mod_text"
+""
+1 448.152878713172 89.99999999999984 E E E 1 E 1 E N "white" E N "_Window" E E
+ E E
+237 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E 1 0 0.9999999999999999 608.8564134358302 69.49999999999989 0 E 425 159 451 175
+0 2 2 "0s" 0 0 0 193 0 0  438.152878713172 159 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 6 ÏàòÏ†ï
+LANG:31 4 ºˆ¡§
+LANG:1 4 ºˆ¡§
+2 396
+"app_text"
+""
+1 535.7495235170607 91.99999999999984 E E E 1 E 1 E N "white" E N "_Window" E E
+ E E
+238 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E 1 0 0.9999999999999999 607.8564134358302 69.49999999999989 0 E 511 159 537 175
+0 2 2 "0s" 0 0 0 193 0 0  523.7495235170607 159 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 6 Ï†ÅÏö©
+LANG:31 4 ¿˚øÎ
+LANG:1 4 ºˆ¡§
+6 397
+"RECTANGLE3"
+""
+1 330 260 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ E E
+239 0 0 0 0 0
+E E "main(bool enter)
+{
+  if(enter)
+    edit_button.fill(\"[pattern,[fit,png,BrownUI/screen/pop_btn_focus.png]]\");
+  else
+    edit_button.fill(\"[pattern,[fit,png,BrownUI/screen/pop_btn_normal.png]]\");
+}" 0
+
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E "main()
+{
+  bool bIsEdit;
+  getValue(\"edit_button_press\",\"visible\",bIsEdit);
+  if(!bIsEdit)
+  {
+    int EndInit = 2;     //Ïù¥ÏÉÅÏ¢ÖÎ£åÏóê ÎåÄÎπÑÌï¥ Ï¥àÍ∏∞Í∞íÏùÑ errorÎ°ú ÏÑ†Ïñ∏
+    if(endOfMapp)     //MAPP Ìï®ÏàòÍ∞Ä ÎÅùÎÇú Í≤ΩÏö∞ Ï†ïÌï©ÏÑ± check
+    {
+      EndInit = checkEndOfInitial(DYN_ALL_MAP_EDITABLE_VALUES,
+      MAP_EDITABLE_VALUE, MAP_EDITABLE_ALM, MAP_ALERT_COMBO_PRIO,
+      MAP_RADIO, MAP_CHECK, MAP_READONLY_VALUE);
+        if(EndInit == 1)     //InitailÏù¥ ÎÅùÎÇòÏßÄ ÏïäÏúºÎ©¥ PopupÏ∞Ω ÌõÑ return
+      {
+        ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+        makeDynString(\"$text:\"+\"Í∞íÏùÑ ÏùΩÎäî Ï§ëÏûÖÎãàÎã§. Ïû†ÏãúÌõÑ Îã§Ïãú ÏãúÎèÑÌïòÏÑ∏Ïöî.\"));
+        return;
+      }else if(EndInit == 2)     //ServerÏôÄ ÌÜµÏã†Îã®Ï†à. PopupÏ∞Ω ÌõÑ return
+      {
+        ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+        makeDynString(\"$text:\"+\"ÏÑúÎ≤ÑÏôÄ Ïó∞Í≤∞Ïù¥ Îã®Ï†àÎêú ÏÉÅÌÉúÏûÖÎãàÎã§.\\nÍ≥ÑÏÜç Ïó∞Í≤∞ÎêòÏßÄ ÏïäÏúºÎ©¥ ClientÎ•º Îã§Ïãú ÏãúÏûëÌï¥ Ï£ºÏÑ∏Ïöî.\"));
+        return;
+      }
+    }else{      //MAPP Ìï®ÏàòÍ∞Ä ÎÅùÎÇòÏßÄ ÏïäÏùÄ Í≤ΩÏö∞ PopupÏ∞Ω ÌõÑ return
+      ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+      makeDynString(\"$text:\"+\"Í∞íÏùÑ ÏùΩÎäî Ï§ëÏûÖÎãàÎã§. Ïû†ÏãúÌõÑ Îã§Ïãú ÏãúÎèÑÌïòÏÑ∏Ïöî.\"));
+      return;
+    }
+ }
+
+
+
+  if (user_permission < 5)
+  {
+
+    if(mod_text.text==\"ÏàòÏ†ï\")
+    {
+//       getValue(\"edit_button_press\",\"visible\",bIsEdit);
+      setValue(\"edit_button_press\",\"visible\",!bIsEdit);
+      MODIFY_ACTION_BTN(myModuleName(),myPanelName(),
+                    MAP_DEPEND_VALUE,DYN_ALL_MAP_EDITABLE_KEYS,
+                    DYN_ALL_MAP_EDITABLE_VALUES,mappingKeys(MAP_ALERT_PRIO),
+                    DYN_ALL_INIT_INVISIBLE,!bIsEdit);
+
+
+      exception_modify();
+     dpSet($SetDP + \".cmd.CANCEL_BIT\",false);
+     dpSet($SetDP + \".cmd.ALMRESET_BIT\",false);
+     dpSet($SetDP + \".cmd.HOLD_BIT\",false);
+    }
+  }
+  else if (user_permission == 5)
+  {
+    ChildPanelOnCentral(\"general/popup/login/POP_LOGIN.pnl\",\"\",makeDynString());
+  }
+}
+
+void exception_modify()
+{
+
+  bool bool_enabled;
+
+//     check box enabled ÏÉÅÌÉú trueÎ°ú Î≥ÄÍ≤Ω
+    getValue(\"obj_auto_sel1\",\"enabled\",bool_enabled);
+    setValue(\"obj_auto_sel1\",\"enabled\",!bool_enabled);
+    getValue(\"obj_auto_sel2\",\"enabled\",bool_enabled);
+    setValue(\"obj_auto_sel2\",\"enabled\",!bool_enabled);
+    getValue(\"obj_auto_sel3\",\"enabled\",bool_enabled);
+    setValue(\"obj_auto_sel3\",\"enabled\",!bool_enabled);
+    getValue(\"obj_auto_sel4\",\"enabled\",bool_enabled);
+    setValue(\"obj_auto_sel4\",\"enabled\",!bool_enabled);
+    getValue(\"obj_auto_sel5\",\"enabled\",bool_enabled);
+    setValue(\"obj_auto_sel5\",\"enabled\",!bool_enabled);
+
+    if (!bool_enabled)
+    {
+      setValue(\"obj_auto_sel1\",\"foreCol\",\"White\");
+      setValue(\"obj_auto_sel2\",\"foreCol\",\"White\");
+      setValue(\"obj_auto_sel3\",\"foreCol\",\"White\");
+      setValue(\"obj_auto_sel4\",\"foreCol\",\"White\");
+      setValue(\"obj_auto_sel5\",\"foreCol\",\"White\");
+    }
+    else
+    {
+      Func_MODE_INI();
+    }
+ }
+" 0
+ 0 1 1 2 1 E 1.469387755102041 0 1.491935483870967 952.1707999311695 -136.1413210445469 1 E 40 238 89 262
+6 398
+"RECTANGLE5"
+""
+1 330 260 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ E E
+240 0 0 0 0 0
+E E "main(bool enter)
+{
+  if(enter)
+    app_button.fill(\"[pattern,[fit,png,BrownUI/screen/pop_btn_focus.png]]\");
+  else
+    app_button.fill(\"[pattern,[fit,png,BrownUI/screen/pop_btn_normal.png]]\");
+}" 0
+
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E "main()
+{
+  dyn_float dreturnf;
+  dyn_string dreturns;
+  string euhi,eulo,err_msg,all_err_msg;
+  float dp_hh,dp_hi,dp_lo,dp_ll,alm_value,alm_chg_value;
+  dyn_float dyn_dp_alm_value,dyn_cur_alm_value,dyn_chg_alm_value;
+  dyn_string dyn_sort_cur_alm_value,dyn_obj,dyn_error_msg;
+  int error_idx;
+  mapping map_sort_alm_value;
+  bool bitstart, bithold, bitalmreset, bitcancel;
+  bool abstart, errsel, selstat, dpstat;
+  string obj_name;
+
+
+/////////////////////////////hz set
+
+  float hz_val1;
+
+  getValue(OBJ_HZ_SET1,\"text\",hz_val1);
+
+  if(0 > hz_val1 || hz_val1 > 60)
+  {
+    err_msg = \"Ï†úÏïΩÏ°∞Í±¥ÏúÑÎ∞ò: Set Hz Î≤îÏúÑ (0~60). \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+
+/////////////////////////////vibration set
+
+  float vib_hilm_val1;
+
+  getValue(OBJ_FAN_VIB_HILM,\"text\",vib_hilm_val1);
+
+  if(-99999 > vib_hilm_val1 || vib_hilm_val1 > 99999)
+  {
+    err_msg = \"Ï†úÏïΩÏ°∞Í±¥ÏúÑÎ∞ò: Vibration Limit Î≤îÏúÑ (-99999~99999). \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+
+/////////////////////////////Damper open time set
+
+  float opentimeset_val1;
+
+  getValue(OBJ_AD_OPEN_TM_SET,\"text\",opentimeset_val1);
+
+  if(0 > opentimeset_val1 || opentimeset_val1 > 99999)
+  {
+    err_msg = \"Ï†úÏïΩÏ°∞Í±¥ÏúÑÎ∞ò: Damper Open Time Î≤îÏúÑ (0~99999). \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+
+/////////////////////////////Damper open Limit
+
+  float open_val1;
+
+  getValue(OBJ_AD_OPEN_LM,\"text\",open_val1);
+
+  if(0 > open_val1 || open_val1 > 100)
+  {
+    err_msg = \"Ï†úÏïΩÏ°∞Í±¥ÏúÑÎ∞ò: Damper Open Limet Î≤îÏúÑ (0~100). \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+
+/////////////////////////////MIN & MAX
+
+  float pressset_val1, get_max_val1, get_min_val1;
+
+  getValue(OBJ_PRESS_SET1,\"text\",pressset_val1);
+
+  getValue(OBJ_PRESS_SET1_MAX,\"text\",get_max_val1);
+  getValue(OBJ_PRESS_SET1_MIN,\"text\",get_min_val1);
+
+  if(get_max_val1<get_min_val1)
+  {
+    err_msg = \"Ï†úÏïΩÏ°∞Í±¥ÏúÑÎ∞ò: Min Í∞íÏù¥ Max Í∞íÎ≥¥Îã§ ÌÅΩÎãàÎã§. \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+
+   if(pressset_val1 > get_max_val1)
+  {
+    err_msg = \"Ï†úÏïΩÏ°∞Í±¥ÏúÑÎ∞ò: ÏÑ§Ï†ïÏïïÎ†• Í∞íÏù¥ Max Í∞íÎ≥¥Îã§ ÌÅΩÎãàÎã§. \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+
+   if(pressset_val1 < get_min_val1)
+  {
+    err_msg = \"Ï†úÏïΩÏ°∞Í±¥ÏúÑÎ∞ò: ÏÑ§Ï†ïÏïïÎ†• Í∞íÏù¥ Min Í∞íÎ≥¥Îã§ ÏûëÏäµÎãàÎã§. \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+
+  if(get_max_val1==get_min_val1)
+  {
+    err_msg = \"Ï†úÏïΩÏ°∞Í±¥ÏúÑÎ∞ò: Min Í∞íÍ≥º Max Í∞íÏù¥ Í∞ôÏäµÎãàÎã§. \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+
+
+  if(-99999 > get_max_val1 || get_max_val1 > 99999)
+  {
+    err_msg = \"Ï†úÏïΩÏ°∞Í±¥ÏúÑÎ∞ò: Max Í∞í Î≤îÏúÑ (-99999~99999). \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+
+
+  if(-99999 > get_min_val1 || get_min_val1 > 99999)
+  {
+    err_msg = \"Ï†úÏïΩÏ°∞Í±¥ÏúÑÎ∞ò: Min Í∞í Î≤îÏúÑ (-99999~99999). \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+
+
+  if(-99999 > pressset_val1 || pressset_val1 > 99999)
+  {
+    err_msg = \"Ï†úÏïΩÏ°∞Í±¥ÏúÑÎ∞ò: ÏÑ§Ï†ïÏïïÎ†• Î≤îÏúÑ (-99999~99999). \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+    dpGet($SetDP + \".cmd.START_BIT\",bitstart);
+    dpGet($SetDP + \".cmd.HOLD_BIT\",bithold);
+    dpGet($SetDP + \".cmd.ALMRESET_BIT\",bitalmreset);
+    dpGet($SetDP + \".cmd.CANCEL_BIT\",bitcancel);
+    dpGet($SetDP + \".cmd.AB_START\",abstart);
+
+    if(bitstart != abstart)
+    {
+      string textmsg;
+
+      if(abstart)
+        textmsg = \"AutoBackup LogicÏùÑ Ï†ïÏßÄÌïòÏãúÍ≤†ÏäµÎãàÍπå?\";
+      else
+        textmsg = \"AutoBackup LogicÏùÑ ÏãúÏûëÌïòÏãúÍ≤†ÏäµÎãàÍπå?\";
+
+      ChildPanelOnCentralModalReturn(\"general/popup/message/POP_MESSAGE_A.pnl\",\"Control\",
+                               makeDynString(\"$text:\"+textmsg),dreturnf,dreturns);
+
+      if(dreturns==\"TRUE\")
+      {
+        if(abstart)
+          dpSet($SetDP + \".cmd.AB_START\",false);
+        else
+          dpSet($SetDP + \".cmd.AB_START\",true);
+      }
+
+       dpSet($SetDP + \".cmd.START_BIT\",0);
+    }
+
+    if(bithold)
+    {
+      ChildPanelOnCentralModalReturn(\"general/popup/message/POP_MESSAGE_A.pnl\",\"Control\",
+                               makeDynString(\"$text:\"+\"AutoBackup ÏÉÅÌÉúÍ∞Ä Ïú†ÏßÄÎê©ÎãàÎã§. \\nAutoBackup HoldÎ•º reset ÌïòÏãúÍ≤†ÏäµÎãàÍπå?\"),dreturnf,dreturns);
+
+      if(dreturns==\"TRUE\")
+        dpSet($SetDP + \".cmd.HOLD_RESET\",1);
+
+      dpSet($SetDP + \".cmd.HOLD_BIT\",0);
+    }
+
+    if(bitalmreset)
+    {
+      ChildPanelOnCentralModalReturn(\"general/popup/message/POP_MESSAGE_A.pnl\",\"Control\",
+                               makeDynString(\"$text:\"+\"AutoBackup AlarmÏùÑ reset ÌïòÏãúÍ≤†ÏäµÎãàÍπå?\"),dreturnf,dreturns);
+
+      if(dreturns==\"TRUE\")
+        dpSet($SetDP + \".cmd.AL_RESET\",1);
+
+      dpSet($SetDP + \".cmd.ALMRESET_BIT\",0);
+    }
+
+    if(bitcancel)
+    {
+      ChildPanelOnCentralModalReturn(\"general/popup/message/POP_MESSAGE_A.pnl\",\"Control\",
+                               makeDynString(\"$text:\"+\"AutoBackup LogicÏùÑ Ï∑®ÏÜåÌïòÍ≤†ÏäµÎãàÍπå?\"),dreturnf,dreturns);
+
+      if(dreturns==\"TRUE\")
+        dpSet($SetDP + \".cmd.CANCEL\",1);
+
+      dpSet($SetDP + \".cmd.CANCEL_BIT\",0);
+    }
+
+
+//////////////////////////////////////
+
+
+
+    // Ï†ïÏÉÅÏÉÅÌÉú Î≥ÄÍ≤ΩÍ∞í Ï†ÅÏö©
+    if(dynlen(dyn_error_msg) == 0)
+    {
+      APPLY_ACTION_BTN(POPUP_MSG_FILENAME,DYN_ALL_MAP_EDITABLE_DESC,
+                     DYN_ALL_MAP_EDITABLE_KEYS,DYN_ALL_MAP_EDITABLE_VALUES,
+                     mappingKeys(MAP_ALERT_PRIO),DYN_ALL_INIT_INVISIBLE);
+
+      exception_apply();
+    }
+
+
+////////////////////////////////////////////////
+//      Ï†úÏïΩÏ°∞Í±¥ ÏúÑÎ∞òÏùò Í≤ΩÏö∞
+    else
+    {
+      for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+      {
+        all_err_msg += dyn_error_msg[i];
+      }
+
+        ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+               makeDynString(\"$text:\"+all_err_msg));
+        PARAMETER_WINDOW_INITIAL(myModuleName(),myPanelName(),
+                                 DYN_ALL_MAP_EDITABLE_KEYS,DYN_ALL_MAP_EDITABLE_VALUES,
+                                 mappingKeys(MAP_ALERT_PRIO),DYN_ALL_INIT_INVISIBLE);
+    }
+}
+
+void exception_apply()
+{
+  dyn_bool cur_value;
+  dyn_int cur_intvalue, result;
+  dyn_float dreturnf;
+  dyn_string dreturns,mode_string;
+  int auto_val,man_val,result_tot;
+
+  getValue(\"obj_auto_sel1\",\"state\",0,cur_value[1]);
+  getValue(\"obj_auto_sel2\",\"state\",0,cur_value[2]);
+  getValue(\"obj_auto_sel3\",\"state\",0,cur_value[3]);
+  getValue(\"obj_auto_sel4\",\"state\",0,cur_value[4]);
+  getValue(\"obj_auto_sel5\",\"state\",0,cur_value[5]);
+
+  for( int i=1;i<=5;i++)
+  {
+    if(dp_value[i] !=  cur_value[i])
+    {
+      result[i] = 1;
+    }
+    else
+    {
+      result[i] = 0;
+    }
+  }
+
+    result_tot = result[1] + result[2] + result[3] + result[4] + result[5];
+
+    if(result_tot==1)
+    {
+      for( int i=1;i<=5;i++)
+      {
+      if(dp_value[i]==0 && cur_value[i]==1)
+      {
+        ChildPanelOnCentralModalReturn(POPUP_MSG_FILENAME,\"Chang Value\",
+        makeDynString(\"$tagname:\"+ $SetDP ,\"$node_desc:\"+ i +\"Ìò∏Í∏∞ PRESS AUTO BACKUP\",\"$dp_value:\"+ dp_value[i],
+                       \"$modified_value:\"+ cur_value[i]),dreturnf,dreturns);
+
+         if(dreturns == \"TRUE\")
+         {
+            dpSet($SetDP  + \".cmd.AUTOSEL.SEL\"+i,TRUE);
+
+            USERTRAIL_APP($SetDP,\"SELECT\"+i,dp_value[i],TRUE);
+         }
+        }
+         else  if(dp_value[i]==1 && cur_value[i]==0)
+        {
+           ChildPanelOnCentralModalReturn(POPUP_MSG_FILENAME,\"Chang Value\",
+        makeDynString(\"$tagname:\"+ $SetDP ,\"$node_desc:\"+ i +\"Ìò∏Í∏∞ PRESS AUTO BACKUP\",\"$dp_value:\"+ dp_value[i],
+                       \"$modified_value:\"+ cur_value[i]),dreturnf,dreturns);
+
+         if(dreturns == \"TRUE\")
+         {
+            dpSet($SetDP  + \".cmd.AUTOSEL.SEL\"+i,false);
+
+            USERTRAIL_APP($SetDP,\"SELECT\"+i,dp_value[i],false);
+         }
+         }
+      }
+    }
+     else if(result_tot==2)
+     {
+       for( int i=1;i<=5;i++)
+       {
+         if(dp_value[i]==0 && cur_value[i]==1)
+        {
+        ChildPanelOnCentralModalReturn(POPUP_MSG_FILENAME,\"Chang Value\",
+        makeDynString(\"$tagname:\"+ $SetDP ,\"$node_desc:\"+ i +\"Ìò∏Í∏∞ PRESS AUTO BACKUP\",\"$dp_value:\"+ dp_value[i],
+                       \"$modified_value:\"+ cur_value[i]),dreturnf,dreturns);
+
+         if(dreturns == \"TRUE\")
+         {
+            dpSet($SetDP  + \".cmd.AUTOSEL.SEL1\",cur_value[1]);
+            dpSet($SetDP  + \".cmd.AUTOSEL.SEL2\",cur_value[2]);
+            dpSet($SetDP  + \".cmd.AUTOSEL.SEL3\",cur_value[3]);
+            dpSet($SetDP  + \".cmd.AUTOSEL.SEL4\",cur_value[4]);
+            dpSet($SetDP  + \".cmd.AUTOSEL.SEL5\",cur_value[5]);
+
+            USERTRAIL_APP($SetDP,\"SELECT\"+i,dp_value[i],TRUE);
+         }
+        }
+       }
+     }
+    Func_MODE_INI();
+
+}
+" 0
+ 0 1 1 2 1 E 1.487755102040817 0 1.491935483870967 883.3787112438425 -135.9032258064514 1 E 142 238 191 262
+6 399
+"RECTANGLE7"
+""
+1 330 260 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ E E
+241 0 0 0 0 0
+E E "main(bool enter)
+{
+  if(enter)
+    close_btn.fill(\"[pattern,[fit,png,BrownUI/screen/pop_btn_focus.png]]\");
+  else
+    close_btn.fill(\"[pattern,[fit,png,BrownUI/screen/pop_btn_normal.png]]\");
+}" 0
+
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E "main()
+{
+  PanelOffReturn(makeDynFloat(0),makeDynString(\"FALSE\"));  
+}" 0
+ 0 1 1 2 1 E 1.469387755102041 0 1.491935483870967 824.8798908402601 -136.737788018433 1 E 241 238 290 262
+6 400
+"viewbtn"
+""
+1 700 70 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ E E
+242 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Preferred Preferred"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 1 1 2 1 E 1.379412857673727 0 1.136886102403344 -960.5890003716089 140.4090425147709 2  1 0  "pictures/BrownUI/btn/btn_normal.png" 4294967295 E 700 70 769 99
+2 402
+"PRIMITIVE_TEXT2598"
+""
+1 23.17149758454218 228.5422891952001 E E E 1 E 1 E N "White" E N "_Transparent" E E
+ E E
+244 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 23.17149758454218 228.5422891952001 82 245
+0 2 2 "0s" 0 0 0 192 0 0  23.17149758454218 228.5422891952001 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 25 Arial,9,-1,5,75,0,0,0,0,0
+0 3
+LANG:10031 13 Ï°∞Ïûë Ïù¥Î†•
+LANG:31 9 ¡∂¿€ ¿Ã∑¬
+LANG:1 6 Search
+6 439
+"RECTANGLE7747"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+264 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.010454707843759 0 1.098404936600003 -25.91544714371424 -123.7447898560005 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 440
+"PRIMITIVE_TEXT2586"
+""
+1 102.6543611240434 58.80210882689568 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+265 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 102.6543611240434 58.80210882689568 112 75
+0 2 2 "0s" 0 0 0 192 0 0  102.6543611240434 58.80210882689568 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 1 1
+LANG:31 1 1
+LANG:1 9 øÓ¿¸∞™ : 
+6 452
+"RECTANGLE7784"
+""
+1 126.9402315865225 29.82602325605388 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+289 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.8827963305554707 0 1.223914837015087 29.93762935555624 15.49548760775861 1 E 127 30 200 54
+6 460
+"RECTANGLE7816"
+""
+1 126.9402315865225 29.82602325605388 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+291 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.8827963305554707 0 1.223914837015087 29.93762935555624 47.49548760775861 1 E 127 30 200 54
+6 462
+"RECTANGLE7818"
+""
+1 126.9402315865225 29.82602325605388 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+293 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.8827963305554707 0 1.223914837015087 29.93762935555624 79.49548760775861 1 E 127 30 200 54
+6 499
+"RECTANGLE7785"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+300 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.01045470784376 0 1.098404936600003 -25.91544714371431 -91.74478985600049 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 500
+"PRIMITIVE_TEXT2624"
+""
+1 102.5893493037126 90.80210882689568 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+301 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 102.5893493037126 90.80210882689568 112 107
+0 2 2 "0s" 0 0 0 192 0 0  102.5893493037126 90.80210882689568 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 1 2
+LANG:31 1 2
+LANG:1 9 øÓ¿¸∞™ : 
+6 501
+"RECTANGLE7786"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+302 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.01045470784376 0 1.098404936600003 -25.91544714371431 -59.74478985600049 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 502
+"PRIMITIVE_TEXT2625"
+""
+1 102.5893493037126 122.8021088268957 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+303 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 102.5893493037126 122.8021088268957 112 139
+0 2 2 "0s" 0 0 0 192 0 0  102.5893493037126 122.8021088268957 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 1 3
+LANG:31 1 3
+LANG:1 9 øÓ¿¸∞™ : 
+6 568
+"RECTANGLE7826"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+323 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 6.572735305250912 579.481502096622 -144.9480770492103 1 E 127 30 200 54
+14 4
+"obj_press_set1"
+""
+1 840.0105102324305 25.98452242775305 E E E 1 E 1 E N "White" E N "White" E E
+ E E
+4 0 0 0 0 0
+E E E
+1
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  699.1925566892844 119.106805771328 757.1925566892844 143.106805771328
+2 "0.1f" 2 0 0 2 0 -1  "main()
+{
+  this.select(0,strlen(this.text()));
+}" 0
+ E "main()
+{
+    string all_err_msg;
+    bool chk_err = 0;
+    float newText;
+    
+    getValue(\"\",\"text\",newText);
+  
+    if (EDITMODE)
+    {    
+      if (newText < -99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÏûëÏäµÎãàÎã§.  (ÏµúÏÜå Í∞í : -99999)\";
+        chk_err = 1;
+      }
+      else if (newText > 99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÌÅΩÎãàÎã§.  (ÏµúÎåÄ Í∞í : 99999)\";
+        chk_err = 1;
+      }
+      if(chk_err)
+      {
+        ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                                 makeDynString(\"$text:\"+all_err_msg));
+        this.text(newText);
+      }
+    }
+}" 0
+
+14 578
+"obj_press_set1_max"
+""
+1 907.8179535431461 -2.058740669493769 E E E 1 E 1 E N "White" E N "White" E E
+ E E
+331 0 0 0 0 0
+E E E
+1
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  767 91.06354267408119 825 115.0635426740812
+2 "0.1f" 2 0 0 2 0 -1  "main()
+{
+  this.select(0,strlen(this.text()));
+}" 0
+ E "main()
+{
+    string all_err_msg;
+    bool chk_err = 0;
+    float newText;
+    
+    getValue(\"\",\"text\",newText);
+  
+    if (EDITMODE)
+    {    
+      if (newText < -99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÏûëÏäµÎãàÎã§.  (ÏµúÏÜå Í∞í : -99999)\";
+        chk_err = 1;
+      }
+      else if (newText > 99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÌÅΩÎãàÎã§.  (ÏµúÎåÄ Í∞í : 99999)\";
+        chk_err = 1;
+      }
+      if(chk_err)
+      {
+        ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                                 makeDynString(\"$text:\"+all_err_msg));
+        this.text(newText);
+      }
+    }
+}" 0
+
+14 579
+"obj_press_set1_min"
+""
+1 907.8179535431461 53.94125933050623 E E E 1 E 1 E N "White" E N "White" E E
+ E E
+332 0 0 0 0 0
+E E E
+1
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  767 147.0635426740812 825 171.0635426740812
+2 "0.1f" 2 0 0 2 0 -1  "main()
+{
+  this.select(0,strlen(this.text()));
+}" 0
+ E "main()
+{
+    string all_err_msg;
+    bool chk_err = 0;
+    float newText;
+    
+    getValue(\"\",\"text\",newText);
+  
+    if (EDITMODE)
+    {    
+      if (newText < -99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÏûëÏäµÎãàÎã§.  (ÏµúÏÜå Í∞í : -99999)\";
+        chk_err = 1;
+      }
+      else if (newText > 99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÌÅΩÎãàÎã§.  (ÏµúÎåÄ Í∞í : 99999)\";
+        chk_err = 1;
+      }
+      if(chk_err)
+      {
+        ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                                 makeDynString(\"$text:\"+all_err_msg));
+        this.text(newText);
+      }
+    }
+}" 0
+
+6 401
+"RECTANGLE7534"
+""
+1 700 70 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ E E
+243 0 0 0 0 0
+E E "main(bool enter)
+{
+  
+  if(enter)
+    viewbtn.fill(\"[pattern,[fit,png,BrownUI/btn/btn_normal_.png]]\");
+  else
+    viewbtn.fill(\"[pattern,[fit,png,BrownUI/btn/btn_normal.png]]\");
+    
+}" 0
+
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E "main()
+{
+//    dyn_string dps = makeDynString($ConDP,$ConDP2,$MainDP,$MainDP2,$SelDP,$TargetDP1,$TargetDP1CX,$TargetDP2,$TargetDP2CX);
+   dyn_string dps = makeDynString(\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\");
+
+    for(int i=1; i<= dynlen(dyn_dp);i++){
+      dps[i] = dyn_dp[i];
+    }
+
+    ChildPanelOnCentral(\"general/popup/screen/POP_SCR_CTL_CONREC.pnl\",
+                       \"CONTROL OPERATION HISTORY\",
+                       makeDynString(\"$DP:\"  + dps[1],
+                                     \"$DP2:\" + dps[2],
+                                     \"$DP3:\" + dps[3],
+                                     \"$DP4:\" + dps[4],
+                                     \"$DP5:\" + dps[5],
+                                     \"$DP6:\" + dps[6],
+                                     \"$DP7:\" + dps[7],
+                                     \"$DP8:\" + dps[8],
+                                     \"$DP9:\" + dps[9]));
+
+}" 0
+ 0 1 1 2 1 E 1.379412857673727 0 1.136886102403344 -960.5890003716089 140.2029819087103 1 E 700 70 769 99
+6 889
+"RECTANGLE8354"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+469 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 6.572735305250912 647.4815020966221 -144.9480770492103 1 E 127 30 200 54
+2 890
+"PRIMITIVE_TEXT2638"
+""
+1 779.6925566892844 73.06354267408119 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+470 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 779.6925566892844 73.06354267408119 812 89
+0 2 2 "0s" 0 0 0 192 0 0  779.6925566892844 73.06354267408119 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 3 MAX
+LANG:31 3 MAX
+LANG:1 9 øÓ¿¸∞™ : 
+2 891
+"PRIMITIVE_TEXT2639"
+""
+1 781.6925566892844 129.0635426740812 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+471 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 781.6925566892844 129.0635426740812 810 145
+0 2 2 "0s" 0 0 0 192 0 0  781.6925566892844 129.0635426740812 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 3 MIN
+LANG:31 3 MIN
+LANG:1 9 øÓ¿¸∞™ : 
+6 910
+"RECTANGLE8371"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+490 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 0.7655129480792909 0 1.536585365853658 197.4558765149963 -237.3655632984903 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+6 913
+"RECTANGLE8372"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+493 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.6711346394119819 0 1.2668822625175 188.7730721176036 13.69085573665727 1 E 127 30 200 54
+6 987
+"RECTANGLE8402"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+564 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.026707101126935 0 1.536585365853659 222.3292898873065 -237.3655632984905 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+6 990
+"RECTANGLE8404"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+567 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 209.4928488931373 13.69437121392818 1 E 127 30 200 54
+6 991
+"RECTANGLE8405"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+568 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 209.4928488931373 45.6943712139282 1 E 127 30 200 54
+6 992
+"RECTANGLE8406"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+569 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 209.4928488931373 77.69437121392818 1 E 127 30 200 54
+1 2452 123 "" 1
+0
+1 2453 123 "" 0
+20 "primitiveText" 0 0 1
+3
+LANG:10031 3 XXX
+LANG:31 3 XXX
+LANG:1 6 XXX.XX
+
+0
+1 2456 127 "" 1
+0
+1 2457 127 "" 0
+20 "primitiveText" 0 0 1
+3
+LANG:10031 3 XXX
+LANG:31 3 XXX
+LANG:1 6 XXX.XX
+
+0
+2 1003
+"PRIMITIVE_TEXT2675"
+""
+1 333.3546272360619 12.73199767711932 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+576 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 333.3546272360619 12.73199767711932 384 29
+0 2 2 "0s" 0 0 0 192 0 0  333.3546272360619 12.73199767711932 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 6 Damper
+LANG:31 6 Damper
+LANG:1 9 øÓ¿¸∞™ : 
+2 1004
+"PRIMITIVE_TEXT2676"
+""
+1 348.8546272360619 29.73199767711935 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+577 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 348.8546272360619 29.73199767711935 368 46
+0 2 2 "0s" 0 0 0 192 0 0  348.8546272360619 29.73199767711935 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 2 OP
+LANG:31 2 OP
+LANG:1 9 øÓ¿¸∞™ : 
+1 2460 132 "" 1
+0
+1 2461 132 "" 0
+20 "primitiveText" 0 0 1
+3
+LANG:10031 3 XXX
+LANG:31 3 XXX
+LANG:1 6 XXX.XX
+
+0
+6 1009
+"RECTANGLE8409"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+585 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.026707101126935 0 1.536585365853659 290.3292898873065 -237.3655632984905 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+6 1010
+"RECTANGLE8410"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+586 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 277.4928488931373 13.69437121392818 1 E 127 30 200 54
+6 1011
+"RECTANGLE8411"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+587 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 277.4928488931373 45.69437121392821 1 E 127 30 200 54
+6 1012
+"RECTANGLE8412"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+588 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 277.4928488931373 77.69437121392818 1 E 127 30 200 54
+2 1021
+"PRIMITIVE_TEXT2677"
+""
+1 401.3546272360619 12.73199767711932 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+591 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 401.3546272360619 12.73199767711932 452 29
+0 2 2 "0s" 0 0 0 192 0 0  401.3546272360619 12.73199767711932 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 6 Damper
+LANG:31 6 Damper
+LANG:1 9 øÓ¿¸∞™ : 
+2 1022
+"PRIMITIVE_TEXT2678"
+""
+1 416.8546272360619 29.73199767711935 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+592 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 416.8546272360619 29.73199767711935 435 46
+0 2 2 "0s" 0 0 0 192 0 0  416.8546272360619 29.73199767711935 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 2 PV
+LANG:31 2 PV
+LANG:1 9 øÓ¿¸∞™ : 
+1 2464 142 "" 10
+0
+1 2470 143 "" 10
+0
+1 2476 144 "" 10
+0
+6 1117
+"RECTANGLE8465"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+688 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.026707101126935 0 1.536585365853659 358.3292898873065 -237.3655632984905 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+6 1118
+"RECTANGLE8466"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+689 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 345.4928488931373 13.69437121392818 1 E 127 30 200 54
+6 1119
+"RECTANGLE8467"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+690 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 345.4928488931373 45.69437121392821 1 E 127 30 200 54
+6 1120
+"RECTANGLE8468"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+691 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 345.4928488931373 77.69437121392818 1 E 127 30 200 54
+1 2482 159 "" 1
+0
+1 2483 159 "" 0
+20 "primitiveText" 0 0 1
+3
+LANG:10031 3 XXX
+LANG:31 3 XXX
+LANG:1 6 XXX.XX
+
+0
+1 2486 160 "" 1
+0
+1 2487 160 "" 0
+20 "primitiveText" 0 0 1
+3
+LANG:10031 3 XXX
+LANG:31 3 XXX
+LANG:1 6 XXX.XX
+
+0
+2 1129
+"PRIMITIVE_TEXT2693"
+""
+1 469.3546272360619 12.73199767711932 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+694 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 469.3546272360619 12.73199767711932 519 29
+0 2 2 "0s" 0 0 0 192 0 0  469.3546272360619 12.73199767711932 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 8 Inverter
+LANG:31 8 Inverter
+LANG:1 9 øÓ¿¸∞™ : 
+2 1130
+"PRIMITIVE_TEXT2694"
+""
+1 474.7819408540929 29.73199767711935 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+695 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 474.7819408540929 29.73199767711935 515 46
+0 2 2 "0s" 0 0 0 192 0 0  474.7819408540929 29.73199767711935 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 5 Hz OP
+LANG:31 5 Hz OP
+LANG:1 9 øÓ¿¸∞™ : 
+1 2490 164 "" 1
+0
+1 2491 164 "" 0
+20 "primitiveText" 0 0 1
+3
+LANG:10031 3 XXX
+LANG:31 3 XXX
+LANG:1 6 XXX.XX
+
+0
+6 1135
+"RECTANGLE8471"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+696 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.026707101126935 0 1.536585365853659 426.3292898873065 -237.3655632984905 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+6 1136
+"RECTANGLE8472"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+697 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 413.4928488931373 13.69437121392818 1 E 127 30 200 54
+6 1137
+"RECTANGLE8473"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+698 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 413.4928488931373 45.69437121392821 1 E 127 30 200 54
+6 1138
+"RECTANGLE8474"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+699 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 413.4928488931373 77.69437121392818 1 E 127 30 200 54
+2 1141
+"PRIMITIVE_TEXT2695"
+""
+1 537.3546272360619 12.73199767711932 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+702 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 537.3546272360619 12.73199767711932 587 29
+0 2 2 "0s" 0 0 0 192 0 0  537.3546272360619 12.73199767711932 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 8 Inverter
+LANG:31 8 Inverter
+LANG:1 9 øÓ¿¸∞™ : 
+2 1142
+"PRIMITIVE_TEXT2696"
+""
+1 543.2819408540929 29.73199767711935 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+703 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 543.2819408540929 29.73199767711935 583 46
+0 2 2 "0s" 0 0 0 192 0 0  543.2819408540929 29.73199767711935 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 5 Hz PV
+LANG:31 5 Hz PV
+LANG:1 9 øÓ¿¸∞™ : 
+1 2494 167 "" 10
+0
+1 2500 168 "" 10
+0
+1 2506 169 "" 10
+0
+6 1153
+"RECTANGLE8477"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+704 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 6.60197460402452 715.5808653728322 -146.5196124127687 1 E 127 30 200 54
+14 1154
+"obj_hz_set1"
+""
+1 975.9173168193565 25.57142431615235 E E E 1 E 1 E N "White" E N "White" E E
+ E E
+705 0 0 0 0 0
+E E E
+1
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  835 119.106805771328 893 143.106805771328
+2 "0.1f" 2 0 0 2 0 -1  "main()
+{
+  this.select(0,strlen(this.text()));
+}" 0
+ E "main()
+{
+    string all_err_msg;
+    bool chk_err = 0;
+    float newText;
+    
+    getValue(\"\",\"text\",newText);
+  
+    if (EDITMODE)
+    {    
+      if (newText < -99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÏûëÏäµÎãàÎã§.  (ÏµúÏÜå Í∞í : -99999)\";
+        chk_err = 1;
+      }
+      else if (newText > 99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÌÅΩÎãàÎã§.  (ÏµúÎåÄ Í∞í : 99999)\";
+        chk_err = 1;
+      }
+      if(chk_err)
+      {
+        ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                                 makeDynString(\"$text:\"+all_err_msg));
+        this.text(newText);
+      }
+    }
+}" 0
+
+6 1156
+"RECTANGLE8479"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+707 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.026707101126935 0 1.570731707317074 728.4173063670014 -243.2837398373984 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 1157
+"PRIMITIVE_TEXT2697"
+""
+1 842.942643715757 21.23821138211383 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+708 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 842.942643715757 21.23821138211383 884 37
+0 2 2 "0s" 0 0 0 192 0 0  842.942643715757 21.23821138211383 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 6 Set Hz
+LANG:31 6 Set Hz
+LANG:1 9 øÓ¿¸∞™ : 
+6 1158
+"RECTANGLE8480"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+709 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 6.577533143939397 783.5808653728322 -145.5998878843282 1 E 127 30 200 54
+14 1159
+"obj_fan_vib_hilm"
+""
+1 1043.917316819357 25.57142431615235 E E E 1 E 1 E N "White" E N "White" E E
+ E E
+710 0 0 0 0 0
+E E E
+1
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  903 119.106805771328 961 143.106805771328
+2 "0.1f" 2 0 0 2 0 -1  "main()
+{
+  this.select(0,strlen(this.text()));
+}" 0
+ E "main()
+{
+    string all_err_msg;
+    bool chk_err = 0;
+    float newText;
+    
+    getValue(\"\",\"text\",newText);
+  
+    if (EDITMODE)
+    {    
+      if (newText < -99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÏûëÏäµÎãàÎã§.  (ÏµúÏÜå Í∞í : -99999)\";
+        chk_err = 1;
+      }
+      else if (newText > 99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÌÅΩÎãàÎã§.  (ÏµúÎåÄ Í∞í : 99999)\";
+        chk_err = 1;
+      }
+      if(chk_err)
+      {
+        ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                                 makeDynString(\"$text:\"+all_err_msg));
+        this.text(newText);
+      }
+    }
+}" 0
+
+6 1160
+"RECTANGLE8481"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+711 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.026707101126935 0 1.570731707317074 796.4173063670014 -243.2837398373984 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 1162
+"PRIMITIVE_TEXT2699"
+""
+1 902.942643715757 12.73821138211383 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+713 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 902.942643715757 12.73821138211383 962 29
+0 2 2 "0s" 0 0 0 192 0 0  902.942643715757 12.73821138211383 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 9 Vibration
+LANG:31 9 Vibration
+LANG:1 9 øÓ¿¸∞™ : 
+2 1163
+"PRIMITIVE_TEXT2700"
+""
+1 916.2757747837181 29.7382113821138 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+714 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 916.2757747837181 29.7382113821138 950 46
+0 2 2 "0s" 0 0 0 192 0 0  916.2757747837181 29.7382113821138 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 5 Limit
+LANG:31 5 Limit
+LANG:1 9 øÓ¿¸∞™ : 
+6 1164
+"RECTANGLE8482"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+715 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 6.577533143939397 851.5808653728322 -145.5998878843282 1 E 127 30 200 54
+6 1166
+"RECTANGLE8483"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+717 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.026707101126935 0 1.570731707317074 864.4173063670014 -243.2837398373984 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 1167
+"PRIMITIVE_TEXT2701"
+""
+1 970.9426437157576 12.73821138211383 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+718 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 970.9426437157576 12.73821138211383 1030 29
+0 2 2 "0s" 0 0 0 192 0 0  970.9426437157576 12.73821138211383 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 9 Vibration
+LANG:31 9 Vibration
+LANG:1 9 øÓ¿¸∞™ : 
+2 1168
+"PRIMITIVE_TEXT2702"
+""
+1 971.0365228677686 29.7382113821138 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+719 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 971.0365228677686 29.7382113821138 1031 46
+0 2 2 "0s" 0 0 0 192 0 0  971.0365228677686 29.7382113821138 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 10 Invalidity
+LANG:31 10 Invalidity
+LANG:1 9 øÓ¿¸∞™ : 
+20 1169
+"obj_fan_vib_invalidity"
+""
+1 993.2919199654955 120.0939668372045 E E E 1 E 1 E N "White" E N "_Transparent" E E
+ E E
+720 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  991 118.6565041611265 1009 142.6565041611265
+1
+T 
+3
+LANG:10031 3 ???
+LANG:31 0 
+LANG:1 3 ???
+
+0 
+1
+LANG:10031 0 
+E E
+0 0 0 0 0
+0
+EE6 1170
+"RECTANGLE8484"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+721 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 1.109514915395579 0 6.577533143939397 894.1850334005794 -145.5998878843282 1 E 127 30 200 54
+6 1172
+"RECTANGLE8485"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+723 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.265625000000001 0 1.570731707317074 908.5255164796949 -243.2837398373985 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 1177
+"PRIMITIVE_TEXT2704"
+""
+1 1050.515330097726 12.60731707317073 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+728 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 1050.515330097726 12.60731707317073 1101 29
+0 2 2 "0s" 0 0 0 192 0 0  1050.515330097726 12.60731707317073 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 6 Damper
+LANG:31 6 Damper
+LANG:1 9 øÓ¿¸∞™ : 
+2 1178
+"PRIMITIVE_TEXT2705"
+""
+1 1040.181895631707 29.6073170731707 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+729 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 1040.181895631707 29.6073170731707 1111 46
+0 2 2 "0s" 0 0 0 192 0 0  1040.181895631707 29.6073170731707 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 9 Open Time
+LANG:31 9 Open Time
+LANG:1 9 øÓ¿¸∞™ : 
+6 1179
+"RECTANGLE8488"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+730 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 1.109514915395579 0 6.577533143939397 977.1862230661604 -145.5998878843282 1 E 127 30 200 54
+14 1180
+"obj_ad_open_lm"
+""
+1 1270.2173085872 25.57142431615236 E E E 1 E 1 E N "White" E N "White" E E
+ E E
+731 0 0 0 0 0
+E E E
+1
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  1130 119.106805771328 1188 143.106805771328
+2 "0d" 0 0 0 2 0 -1  "main()
+{
+  this.select(0,strlen(this.text()));
+}" 0
+ E "main()
+{
+    string all_err_msg;
+    bool chk_err = 0;
+    float newText;
+    
+    getValue(\"\",\"text\",newText);
+  
+    if (EDITMODE)
+    {    
+      if (newText < -99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÏûëÏäµÎãàÎã§.  (ÏµúÏÜå Í∞í : -99999)\";
+        chk_err = 1;
+      }
+      else if (newText > 99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÌÅΩÎãàÎã§.  (ÏµúÎåÄ Í∞í : 99999)\";
+        chk_err = 1;
+      }
+      if(chk_err)
+      {
+        ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                                 makeDynString(\"$text:\"+all_err_msg));
+        this.text(newText);
+      }
+    }
+}" 0
+
+6 1181
+"RECTANGLE8489"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+732 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.265625000000001 0 1.570731707317074 991.5267061452766 -243.2837398373985 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 1182
+"PRIMITIVE_TEXT2706"
+""
+1 1133.516519763306 12.60731707317073 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+733 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 1133.516519763306 12.60731707317073 1184 29
+0 2 2 "0s" 0 0 0 192 0 0  1133.516519763306 12.60731707317073 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 6 Damper
+LANG:31 6 Damper
+LANG:1 9 øÓ¿¸∞™ : 
+2 1183
+"PRIMITIVE_TEXT2707"
+""
+1 1122.636740554074 29.6073170731707 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+734 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 1122.636740554074 29.6073170731707 1194 46
+0 2 2 "0s" 0 0 0 192 0 0  1122.636740554074 29.6073170731707 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 10 Open Limit
+LANG:31 10 Open Limit
+LANG:1 9 øÓ¿¸∞™ : 
+2 1184
+"PRIMITIVE_TEXT2708"
+""
+1 1045.092074861787 73 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+735 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 1045.092074861787 73 1106 89
+0 2 2 "0s" 0 0 0 192 0 0  1045.092074861787 73 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 8 TIME SET
+LANG:31 8 TIME SET
+LANG:1 9 øÓ¿¸∞™ : 
+2 1185
+"PRIMITIVE_TEXT2709"
+""
+1 1058.590722067756 129 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+736 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 1058.590722067756 129 1092 145
+0 2 2 "0s" 0 0 0 192 0 0  1058.590722067756 129 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 4 TIME
+LANG:31 4 TIME
+LANG:1 9 øÓ¿¸∞™ : 
+2 1186
+"PRIMITIVE_TEXT2710"
+""
+1 1098.088016479695 154.2848011363636 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+737 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 1098.088016479695 154.2848011363636 1106 170
+0 2 2 "0s" 0 0 0 192 0 0  1098.088016479695 154.2848011363636 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 1 s
+LANG:31 1 s
+LANG:1 9 øÓ¿¸∞™ : 
+2 1187
+"PRIMITIVE_TEXT2711"
+""
+1 1102.883377513572 98.2566399174581 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+738 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 1102.883377513572 98.2566399174581 1110 114
+0 2 2 "0s" 0 0 0 192 0 0  1102.883377513572 98.2566399174581 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 1 s
+LANG:31 1 s
+LANG:1 9 øÓ¿¸∞™ : 
+2 1189
+"obj_ad_open_tmlm"
+""
+1 1075.590722067756 149.7848011363636 E E E 1 E 1 E N "white" E N "white" E E
+ E E
+740 0 0 0 0 0
+E E E
+0
+2
+LANG:10031 0 
+LANG:31 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 1061 149.7848011363636 1091 169
+0 2 0 "0s" 0 0 0 193 0 0  1075.590722067756 149.7848011363636 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,15,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,15,5,75,0,0,0,0,0
+LANG:1 26 Arial,10,-1,5,75,0,0,0,0,0
+0 2
+LANG:10031 3 XXX
+LANG:31 3 XXX
+6 1192
+"RECTANGLE8492"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+743 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 0.7343750000000004 0 1.536585365853659 1127.650516479695 -237.3655632984903 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+6 1195
+"RECTANGLE8493"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+746 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.6463906718026827 0 1.261003165409484 1118.874147173875 14.30910958316997 1 E 127 30 200 54
+6 1196
+"RECTANGLE8494"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+747 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.6463906718026832 0 1.261003165409484 1118.874147173875 46.30910958316999 1 E 127 30 200 54
+6 1197
+"RECTANGLE8495"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+748 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.6463906718026832 0 1.261003165409484 1118.874147173875 78.30910958316996 1 E 127 30 200 54
+6 1205
+"obj_range1"
+""
+1 90 220 E E E 1 E 1 E N {65,65,65} E N "lightgrey" E E
+ E E
+756 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+"// SimpleCtrlScriptStart {invalid}
+main()
+{
+  EP_setBackColor();
+}
+
+EP_setBackColor()
+{
+dyn_errClass err;
+
+  if( !dpExists(  $SetDP + \".alert.SET_AL_1\"))
+  {
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+    return;
+  }
+    
+  dpConnect(\"EP_setBackColorCB\", 
+             $SetDP + \".alert.SET_AL_1\");
+  err = getLastError();
+  if (dynlen(err) > 0)
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+
+}
+
+EP_setBackColorCB(string dp1, bool ALMVALUE)
+{
+  if (ALMVALUE)
+    setValue(\"\", \"backCol\", \"red\");
+  else
+    setValue(\"\", \"backCol\", \"COR_SYM_STATUS_OFF\");
+}" 0
+ E 0 2 1 2 1 E 0.2002039089557028 0 0.7871093750000001 1186.320075403074 -165.7131324696317 1 E 150 286 232 306
+6 1206
+"obj_range2"
+""
+1 90 220 E E E 1 E 1 E N {65,65,65} E N "lightgrey" E E
+ E E
+757 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+"// SimpleCtrlScriptStart {invalid}
+main()
+{
+  EP_setBackColor();
+}
+
+EP_setBackColor()
+{
+dyn_errClass err;
+
+  if( !dpExists(  $SetDP + \".alert.SET_AL_2\"))
+  {
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+    return;
+  }
+    
+  dpConnect(\"EP_setBackColorCB\", 
+             $SetDP + \".alert.SET_AL_2\");
+  err = getLastError();
+  if (dynlen(err) > 0)
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+
+}
+
+EP_setBackColorCB(string dp1, bool ALMVALUE)
+{
+  if (ALMVALUE)
+    setValue(\"\", \"backCol\", \"red\");
+  else
+    setValue(\"\", \"backCol\", \"COR_SYM_STATUS_OFF\");
+}" 0
+ E 0 2 1 2 1 E 0.2002039089557028 0 0.7871093750000001 1186.320075403074 -133.7131324696317 1 E 150 286 232 306
+6 1207
+"obj_range3"
+""
+1 90 220 E E E 1 E 1 E N {65,65,65} E N "lightgrey" E E
+ E E
+758 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+"// SimpleCtrlScriptStart {invalid}
+main()
+{
+  EP_setBackColor();
+}
+
+EP_setBackColor()
+{
+dyn_errClass err;
+
+  if( !dpExists(  $SetDP + \".alert.SET_AL_3\"))
+  {
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+    return;
+  }
+    
+  dpConnect(\"EP_setBackColorCB\", 
+             $SetDP + \".alert.SET_AL_3\");
+  err = getLastError();
+  if (dynlen(err) > 0)
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+
+}
+
+EP_setBackColorCB(string dp1, bool ALMVALUE)
+{
+  if (ALMVALUE)
+    setValue(\"\", \"backCol\", \"red\");
+  else
+    setValue(\"\", \"backCol\", \"COR_SYM_STATUS_OFF\");
+}" 0
+ E 0 2 1 2 1 E 0.2002039089557028 0 0.7871093750000001 1186.320075403074 -101.7131324696317 1 E 150 286 232 306
+6 1443
+"RECTANGLE9557"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+874 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.5 0 1.56998939554613 447.2499999999999 -243.4095970307532 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 1444
+"PRIMITIVE_TEXT3109"
+""
+1 608 11.99999999999994 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+875 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 608 11.99999999999994 683 28
+0 2 2 "0s" 0 0 0 192 0 0  608 11.99999999999994 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 12 Select Press
+LANG:31 12 Select Press
+LANG:1 9 øÓ¿¸∞™ : 
+2 1445
+"PRIMITIVE_TEXT3110"
+""
+1 601.25 29 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+876 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 601.25 29 689 45
+0 2 2 "0s" 0 0 0 192 0 0  601.25 29 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 12 Auto Back Up
+LANG:31 12 Auto Back Up
+LANG:1 9 øÓ¿¸∞™ : 
+6 1446
+"RECTANGLE9558"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+877 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 1.315537621373623 0 1.223914837015087 430.1845486189964 15.64564411082355 1 E 127 30 200 54
+6 1447
+"RECTANGLE9559"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+878 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 1.315537621373623 0 1.261003165409484 430.1845486189964 45.96237353680876 1 E 127 30 200 54
+6 1448
+"RECTANGLE9560"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+879 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 1.315537621373623 0 1.261003165409484 430.1845486189964 77.96237353680877 1 E 127 30 200 54
+20 1452
+"obj_auto_sel1"
+""
+1 637.3496809403096 56.59144589856857 E E E 0 E 1 E N "White" E N "_Transparent" E E
+ E E
+883 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  636 54 655 78
+1
+T 
+3
+LANG:10031 3 ???
+LANG:31 0 
+LANG:1 3 ???
+
+0 
+1
+LANG:10031 0 
+E E
+0 0 0 0 0
+0
+E"main()
+{
+  string err_msg,all_err_msg;
+  bool ST1,LOOP1,TOT1;
+  float PV1;
+  dyn_string dyn_error_msg;
+
+  dpGet(\"C1_HVAC:T1_HGB_C2701A_ZV.PVLAST\",ST1);
+  dpGet(\"C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR\",LOOP1);
+  dpGet(\"C1_HVAC:T1_HGB_C2701A_MVD_I.PVLAST\",PV1);
+  dpGet(\"C1_HVAC:T1_HGB_C2701A_MVD_TOT.PVLAST\",TOT1);
+
+  if(ST1 == 1 || LOOP1 == 1 || PV1 > 1 || TOT1== 1 )
+  {
+    err_msg = \"1Ìò∏Í∏∞ Ready Ï°∞Í±¥Ïù¥ ÎêòÏñ¥Ïïº Ìï©ÎãàÎã§  \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+    setValue(\"obj_auto_sel1\",\"state\",0,false);
+  }
+  else
+  {
+    setValue(\"obj_auto_sel2\",\"state\",0,false);
+    setValue(\"obj_auto_sel3\",\"state\",0,false);
+    setValue(\"obj_auto_sel4\",\"state\",0,false);
+    setValue(\"obj_auto_sel5\",\"state\",0,false);
+  }
+  if(dynlen(dyn_error_msg) > 0)
+  {
+    for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+        {
+          all_err_msg += dyn_error_msg[i];
+        }
+
+    ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                             makeDynString(\"$text:\"+all_err_msg));
+  }
+}" 0
+20 1453
+"obj_auto_sel2"
+""
+1 637.7749497135837 88.92450648400711 E E E 0 E 1 E N "White" E N "_Transparent" E E
+ E E
+884 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  636 87 655 111
+1
+T 
+3
+LANG:10031 3 ???
+LANG:31 0 
+LANG:1 3 ???
+
+0 
+1
+LANG:10031 0 
+E E
+0 0 0 0 0
+0
+E"main()
+{
+  string err_msg,all_err_msg;
+  bool ST1,LOOP1,TOT1;
+  float PV1;
+  dyn_string dyn_error_msg;
+
+  dpGet(\"C1_HVAC:T1_HGB_C2701B_ZV.PVLAST\",ST1);
+  dpGet(\"C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR\",LOOP1);
+  dpGet(\"C1_HVAC:T1_HGB_C2701B_MVD_I.PVLAST\",PV1);
+  dpGet(\"C1_HVAC:T1_HGB_C2701B_MVD_TOT.PVLAST\",TOT1);
+
+  if(ST1 == 1 || LOOP1 == 1 || PV1 > 1 || TOT1== 1 )
+  {
+    err_msg = \"2Ìò∏Í∏∞ Ready Ï°∞Í±¥Ïù¥ ÎêòÏñ¥Ïïº Ìï©ÎãàÎã§  \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+    setValue(\"obj_auto_sel2\",\"state\",0,false);
+  }
+  else
+  {
+    setValue(\"obj_auto_sel1\",\"state\",0,false);
+    setValue(\"obj_auto_sel3\",\"state\",0,false);
+    setValue(\"obj_auto_sel4\",\"state\",0,false);
+    setValue(\"obj_auto_sel5\",\"state\",0,false);
+  }
+  if(dynlen(dyn_error_msg) > 0)
+  {
+    for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+        {
+          all_err_msg += dyn_error_msg[i];
+        }
+
+    ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                             makeDynString(\"$text:\"+all_err_msg));
+  }
+}
+" 0
+20 1454
+"obj_auto_sel3"
+""
+1 637.3496809403096 120.9767075293268 E E E 0 E 1 E N "White" E N "_Transparent" E E
+ E E
+885 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  636 119 655 143
+1
+T 
+3
+LANG:10031 3 ???
+LANG:31 0 
+LANG:1 3 ???
+
+0 
+1
+LANG:10031 0 
+E E
+0 0 0 0 0
+0
+E"main()
+{
+  string err_msg,all_err_msg;
+  bool ST1,LOOP1,TOT1;
+  float PV1;
+  dyn_string dyn_error_msg;
+
+  dpGet(\"C1_HVAC:T1_HGB_C2701C_ZV.PVLAST\",ST1);
+  dpGet(\"C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR\",LOOP1);
+  dpGet(\"C1_HVAC:T1_HGB_C2701C_MVD_I.PVLAST\",PV1);
+  dpGet(\"C1_HVAC:T1_HGB_C2701C_MVD_TOT.PVLAST\",TOT1);
+
+  if(ST1 == 1 || LOOP1 == 1 || PV1 > 1 || TOT1== 1 )
+  {
+    err_msg = \"3Ìò∏Í∏∞ Ready Ï°∞Í±¥Ïù¥ ÎêòÏñ¥Ïïº Ìï©ÎãàÎã§  \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+    setValue(\"obj_auto_sel3\",\"state\",0,false);
+  }
+  else
+  {
+    setValue(\"obj_auto_sel1\",\"state\",0,false);
+    setValue(\"obj_auto_sel2\",\"state\",0,false);
+    setValue(\"obj_auto_sel4\",\"state\",0,false);
+    setValue(\"obj_auto_sel5\",\"state\",0,false);
+  }
+  if(dynlen(dyn_error_msg) > 0)
+  {
+    for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+        {
+          all_err_msg += dyn_error_msg[i];
+        }
+
+    ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                             makeDynString(\"$text:\"+all_err_msg));
+  }
+}
+" 0
+14 1531
+"obj_ad_open_tm_set"
+""
+1 1184.303399920992 -2.063542674081191 E E E 1 E 1 E N "White" E N "White" E E
+ E E
+904 0 0 0 0 0
+E E E
+1
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  1043 91.18703764473089 1101 115.1870376447309
+2 "0d" 0 0 0 2 0 -1  "main()
+{
+  this.select(0,strlen(this.text()));
+}" 0
+ E "main()
+{
+    string all_err_msg;
+    bool chk_err = 0;
+    float newText;
+    
+    getValue(\"\",\"text\",newText);
+  
+    if (EDITMODE)
+    {    
+      if (newText < -99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÏûëÏäµÎãàÎã§.  (ÏµúÏÜå Í∞í : -99999)\";
+        chk_err = 1;
+      }
+      else if (newText > 99999)
+      {
+        all_err_msg = \"ÏÑ§Ï†ï Í∞íÏù¥ ÌÅΩÎãàÎã§.  (ÏµúÎåÄ Í∞í : 99999)\";
+        chk_err = 1;
+      }
+      if(chk_err)
+      {
+        ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                                 makeDynString(\"$text:\"+all_err_msg));
+        this.text(newText);
+      }
+    }
+}" 0
+
+1 2518 228 "" 46
+0
+1 2525 229 "" 46
+0
+1 2532 230 "" 46
+0
+6 1705
+"obj_sel_errorBX"
+""
+1 33 124 E E E 1 E 0 E N {0,0,0} E N "stoerKamUnq" E E
+ E E
+950 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+"main()
+{
+  dpConnect(\"CB_check_autoAB\",$SetDP + \".cmd.AUTOSEL.SEL1\");
+  dpConnect(\"CB_check_autoAB\",$SetDP + \".cmd.AUTOSEL.SEL2\");
+  dpConnect(\"CB_check_autoAB\",$SetDP + \".cmd.AUTOSEL.SEL3\");
+  dpConnect(\"CB_check_autoAB\",$SetDP + \".cmd.AUTOSEL.SEL4\");
+  dpConnect(\"CB_check_autoAB\",$SetDP + \".cmd.AUTOSEL.SEL5\");
+
+}
+CB_check_autoAB(string dp, bool value)
+{
+
+  bool value1,value2,value3,value4,value5;
+  dyn_int tot_val;
+
+  dpGet($SetDP + \".cmd.AUTOSEL.SEL1\",value1);
+  dpGet($SetDP + \".cmd.AUTOSEL.SEL2\",value2);
+  dpGet($SetDP + \".cmd.AUTOSEL.SEL3\",value3);
+  dpGet($SetDP + \".cmd.AUTOSEL.SEL4\",value4);
+  dpGet($SetDP + \".cmd.AUTOSEL.SEL5\",value5);
+
+  tot_val=makeDynInt(value1,value2,value3,value4,value5);
+
+//   tot_vol = value1+value2+value3+value4+value5;
+//
+//   DebugTN(\"11111111\",tot_val);
+
+
+    if(dynSum(tot_val) != 0)
+    {
+      setValue(\"obj_sel_errorBX\",\"visible\",false);
+      setValue(\"obj_sel_errorTX\",\"visible\",false);
+      setValue(\"obj_sel_errorPB\",\"visible\",false);
+    }
+    else
+    {
+      setValue(\"obj_sel_errorBX\",\"visible\",true);
+      setValue(\"obj_sel_errorTX\",\"visible\",true);
+      setValue(\"obj_sel_errorPB\",\"visible\",true);
+    }
+
+}
+
+
+" 0
+ E 0 1 1 2 1 E 0.7403846153846153 0 0.7441860465116282 572.5673076923076 127.7209302325581 1 E 33 124 137 167
+2 1706
+"obj_sel_errorTX"
+""
+1 635.5 218.5 E E E 1 E 0 E N "white" E N "_Window" E E
+ E E
+951 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 618 218.5 654 252
+0 2 0 "0s" 0 0 0 193 0 0  635.5 218.5 2
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 25 Arial,9,-1,5,75,0,0,0,0,0
+0 3
+LANG:10031 4 None
+LANG:31 4 None
+LANG:1 4 Stop
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 25 Arial,9,-1,5,75,0,0,0,0,0
+0 2
+LANG:10031 6 Select
+LANG:31 6 Select
+2 1788
+"PRIMITIVE_TEXT3112"
+""
+1 282.5035856614627 12.73199767711935 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+965 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 282.5035856614627 12.73199767711935 316 29
+0 2 2 "0s" 0 0 0 192 0 0  282.5035856614627 12.73199767711935 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 5 Total
+LANG:31 5 Total
+LANG:1 9 øÓ¿¸∞™ : 
+2 1789
+"PRIMITIVE_TEXT3113"
+""
+1 279.2535856614627 29.73199767711938 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+966 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 279.2535856614627 29.73199767711938 318 46
+0 2 2 "0s" 0 0 0 192 0 0  279.2535856614627 29.73199767711938 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 5 Alarm
+LANG:31 5 Alarm
+LANG:1 9 øÓ¿¸∞™ : 
+6 1790
+"RECTANGLE9565"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+967 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.6711346394119819 0 1.2668822625175 188.7730721176036 45.69085573665727 1 E 127 30 200 54
+6 1791
+"RECTANGLE9566"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+968 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.6711346394119819 0 1.2668822625175 188.7730721176036 77.69085573665728 1 E 127 30 200 54
+1 2539 235 "" 11
+0
+1 2546 236 "" 11
+0
+1 2553 237 "" 11
+0
+6 2028
+"RECTANGLE9629"
+""
+1 126.9402315865225 29.82602325605388 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1101 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.8827963305554707 0 1.223914837015087 95.9376293555563 15.49548760775862 1 E 127 30 200 54
+6 2029
+"RECTANGLE9630"
+""
+1 126.9402315865225 29.82602325605388 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1102 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.8827963305554707 0 1.223914837015087 95.9376293555563 47.49548760775862 1 E 127 30 200 54
+6 2030
+"RECTANGLE9631"
+""
+1 126.9402315865225 29.82602325605388 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1103 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.8827963305554707 0 1.223914837015087 95.9376293555563 79.49548760775861 1 E 127 30 200 54
+1 2560 242 "" 10
+0
+1 2566 243 "" 10
+0
+1 2572 244 "" 10
+0
+6 2042
+"RECTANGLE9635"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+1111 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 0.9962810662673355 0 1.570731707317072 108.3498345497371 -243.2837398373983 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 2043
+"PRIMITIVE_TEXT3145"
+""
+1 225.8589352970253 21.2382113821138 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+1112 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 225.8589352970253 21.2382113821138 253 37
+0 2 2 "0s" 0 0 0 192 0 0  225.8589352970253 21.2382113821138 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 6 ÏßÑÎèô
+LANG:31 4 ¡¯µø
+LANG:1 9 øÓ¿¸∞™ : 
+6 1709
+"obj_sel_errorPB"
+""
+1 80 90 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ E E
+954 0 0 0 0 0
+E E E
+4
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"hoverfclr" "N {0,0,0,0}"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E "// main()
+// {
+//   string all_err_msg;
+//   dyn_float dreturnf;
+//   dyn_string dreturns;
+//   bool chkbit;
+// 
+//   if (EDITMODE)
+//   {
+//       dpSet($SetDP + \".cmd.AUTOSEL.SEL1\",false);
+//       dpSet($SetDP + \".cmd.AUTOSEL.SEL2\",false);
+//       dpSet($SetDP + \".cmd.AUTOSEL.SEL3\",false);
+//       dpSet($SetDP + \".cmd.AUTOSEL.SEL4\",false);
+//       dpSet($SetDP + \".cmd.AUTOSEL.SEL5\",false);
+//   }
+//   else
+//   {
+//     all_err_msg = \"ÏàòÏ†ïÎ≤ÑÌäºÏùÑ click ÌïòÏã≠ÏãúÏò§\";
+//     
+//     ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+//                              makeDynString(\"$text:\"+all_err_msg));
+//   }
+// 
+// }
+// 
+
+" 0
+ 0 1 1 2 1 E 1.762256548605407 0 1.96875 496.2817326601727 133.625 1 E 57 44 101 60
+1 2578 248 "" 1
+0
+1 2512 200 "" 10
+0
+6 2149
+"RECTANGLE9657"
+""
+1 33 124 E E E 1 E 1 E N {0,0,0} E N {255,207,48} E E
+ E E
+1115 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+"main()
+{
+  EP_setBackColor();
+}
+
+EP_setBackColor()
+{
+dyn_errClass err;
+
+  if( !dpExists($SetDP + \".cmd.CANCEL_BIT\"))
+  {
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+    return;
+  }
+
+  dpSet($SetDP + \".cmd.CANCEL_BIT\",false);
+
+  dpConnect(\"EP_setBackColorCB\", 
+            $SetDP + \".cmd.CANCEL_BIT\");
+  err = getLastError();
+  if (dynlen(err) > 0)
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+
+}
+
+EP_setBackColorCB(string dp1, bool value1)
+{
+  if (!value1)
+    setValue(\"\", \"backCol\", \"{255,207,48}\");
+  else
+    setValue(\"\", \"backCol\", \"<{0,255,0},4,{0,127,0},4>\");
+}
+
+" 0
+ E 0 1 1 2 1 E 0.7403846153846153 0 0.7441860465116282 832.5673076923076 128.0938180973814 1 E 33 124 137 167
+2 2150
+"PRIMITIVE_TEXT3149"
+""
+1 874.8310525413438 228.1446954222715 E E E 1 E 1 E N "_WindowText" E N "_Window" E E
+ E E
+1116 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 874.8310525413438 228.1446954222715 916 244
+0 2 2 "0s" 0 0 0 192 0 0  874.8310525413438 228.1446954222715 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 25 Arial,9,-1,5,75,0,0,0,0,0
+0 3
+LANG:10031 6 Cancel
+LANG:31 8 Complete
+LANG:1 4 Stop
+6 2151
+"RECTANGLE9658"
+""
+1 33 124 E E E 1 E 1 E N {0,0,0} E N {255,207,48} E E
+ E E
+1117 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+"main()
+{
+  EP_setBackColor();
+}
+
+EP_setBackColor()
+{
+dyn_errClass err;
+
+  if(!dpExists($SetDP + \".alert.AB_TOTAL_ALARM_1\") ||
+     !dpExists($SetDP + \".alert.AB_TOTAL_ALARM_2\") ||
+     !dpExists($SetDP + \".alert.AB_TOTAL_ALARM_3\") ||
+     !dpExists($SetDP + \".alert.AB_TOTAL_ALARM_4\") ||
+     !dpExists($SetDP + \".alert.AB_TOTAL_ALARM_5\") ||
+     !dpExists($SetDP + \".cmd.ALMRESET_BIT\"))
+  {
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+    return;
+  }
+
+  dpSet($SetDP + \".cmd.ALMRESET_BIT\",false);
+
+  dpConnect(\"EP_setBackColorCB\",
+            $SetDP + \".alert.AB_TOTAL_ALARM_1\",
+            $SetDP + \".alert.AB_TOTAL_ALARM_2\",
+            $SetDP + \".alert.AB_TOTAL_ALARM_3\",
+            $SetDP + \".alert.AB_TOTAL_ALARM_4\",
+            $SetDP + \".alert.AB_TOTAL_ALARM_5\",
+            $SetDP + \".cmd.ALMRESET_BIT\");
+
+  err = getLastError();
+  if (dynlen(err) > 0)
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+
+}
+
+EP_setBackColorCB(string dp1, bool alarm1, string dp2, bool alarm2, string dp3, bool alarm3, string dp4, bool alarm4, string dp5, bool alarm5, string dp6, bool alarmbit)
+{
+  int total = 0;
+
+  if(alarm1)
+    total += 1;
+
+  if(alarm2)
+    total += 1;
+
+  if(alarm3)
+    total += 1;
+
+  if(alarm4)
+    total += 1;
+
+  if(alarm5)
+    total += 1;
+
+  if (total == 0 && !alarmbit)
+    setValue(\"\", \"backCol\", \"{255,207,48}\");
+  else if (alarmbit)
+    setValue(\"\", \"backCol\", \"<{0,255,0},4,{0,127,0},4>\");
+  else
+    setValue(\"\", \"backCol\", \"COR_ALM_EMER_UNACK\");
+}
+
+
+
+
+
+
+
+" 0
+ E 0 1 1 2 1 E 0.7403846153846153 0 0.7441860465116282 745.5673076923076 128.0938180973814 1 E 33 124 137 167
+6 2152
+"RECTANGLE9659"
+""
+1 33 124 E E E 1 E 1 E N {0,0,0} E N {255,207,48} E E
+ E E
+1118 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+"main()
+{
+  EP_setBackColor();
+}
+
+EP_setBackColor()
+{
+dyn_errClass err;
+
+  if( !dpExists($SetDP + \".alert.PROCESS_HOLD:_online.._value\") ||
+      !dpExists($SetDP + \".cmd.HOLD_BIT\"))
+  {
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+    return;
+  }
+
+  dpSet($SetDP + \".cmd.HOLD_BIT\",false);
+
+  dpConnect(\"EP_setBackColorCB\", 
+            $SetDP + \".alert.PROCESS_HOLD:_online.._value\",
+            $SetDP + \".cmd.HOLD_BIT\");
+  err = getLastError();
+  if (dynlen(err) > 0)
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+
+}
+
+EP_setBackColorCB(string dpSource, bool boNewValue, string dp, bool holdbit)
+{
+  if (!boNewValue && !holdbit)
+    setValue(\"\", \"backCol\", \"{255,207,48}\");
+  else if(holdbit)
+    setValue(\"\", \"backCol\", \"<{0,255,0},4,{0,127,0},4>\");
+  else
+    setValue(\"\", \"backCol\", \"COR_ALM_BLOCK_SAFE\");
+}
+
+
+" 0
+ E 0 1 1 2 1 E 0.7403846153846153 0 0.7441860465116282 658.5673076923076 128.0938180973814 1 E 33 124 137 167
+2 2153
+"PRIMITIVE_TEXT3150"
+""
+1 685.75 228.4339650678817 E E E 1 E 1 E N "_WindowText" E N "_Window" E E
+ E E
+1119 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 685.75 228.4339650678817 756 244
+0 2 2 "0s" 0 0 0 192 0 0  685.75 228.4339650678817 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 25 Arial,9,-1,5,75,0,0,0,0,0
+0 3
+LANG:10031 10 Hold/Reset
+LANG:31 10 Hold/Reset
+LANG:1 4 Stop
+2 2154
+"PRIMITIVE_TEXT3151"
+""
+1 808.4999999999998 219.76218175022 E E E 1 E 1 E N {0,0,0} E N "_Window" E E
+ E E
+1120 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 789 219.76218175022 827 253
+0 2 0 "0s" 0 0 0 193 0 0  808.4999999999998 219.76218175022 2
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 25 Arial,9,-1,5,75,0,0,0,0,0
+0 3
+LANG:10031 5 Alarm
+LANG:31 5 Alarm
+LANG:1 4 Stop
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 25 Arial,9,-1,5,75,0,0,0,0,0
+0 2
+LANG:10031 5 Reset
+LANG:31 5 Reset
+6 2155
+"RECTANGLE9660"
+""
+1 80 90 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ E E
+1121 0 0 0 0 0
+E E E
+4
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"hoverfclr" "N {0,0,0,0}"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E "main()
+{
+  string all_err_msg;
+  dyn_float dreturnf;
+  dyn_string dreturns;
+  bool proc_hold;
+  bool chkbit;
+
+  dpGet($SetDP + \".cmd.HOLD_BIT\",chkbit);
+  dpGet($SetDP + \".alert.PROCESS_HOLD\",proc_hold);
+
+  if (EDITMODE && proc_hold)
+  {
+    if(chkbit)
+    {
+      dpSet($SetDP + \".cmd.HOLD_BIT\",false);
+      USERTRAIL_APP($SetDP,\"HOLD_BIT\",chkbit,false);
+    }
+    else
+    {
+      dpSet($SetDP + \".cmd.HOLD_BIT\",true);
+      USERTRAIL_APP($SetDP,\"HOLD_BIT\",chkbit,true);
+    }
+  }
+  else if (!proc_hold)
+  {
+    all_err_msg = \"Process holding ÏÉÅÌÉúÍ∞Ä ÏïÑÎãôÎãàÎã§\";
+
+    ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                             makeDynString(\"$text:\"+all_err_msg));
+  }
+  else
+  {
+    all_err_msg = \"ÏàòÏ†ïÎ≤ÑÌäºÏùÑ click ÌïòÏã≠ÏãúÏò§\";
+
+    ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                             makeDynString(\"$text:\"+all_err_msg));
+  }
+
+}
+
+" 0
+ 0 1 1 2 1 E 1.740765615085829 0 1.96875 584.4710669456504 133.9978878648233 1 E 57 44 101 60
+6 2156
+"RECTANGLE9661"
+""
+1 80 90 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ E E
+1122 0 0 0 0 0
+E E E
+4
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"hoverfclr" "N {0,0,0,0}"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E "main()
+{
+  string all_err_msg;
+  dyn_float dreturnf;
+  dyn_string dreturns;
+  bool chkbit;
+
+  dpGet($SetDP + \".cmd.CANCEL_BIT\",chkbit);
+
+  if (EDITMODE)
+  {
+    if(chkbit)
+    {
+      dpSet($SetDP + \".cmd.CANCEL_BIT\",false);
+      USERTRAIL_APP($SetDP,\"CANCEL_BIT\",chkbit,false);
+    }
+    else
+    {
+      dpSet($SetDP + \".cmd.CANCEL_BIT\",true);
+      USERTRAIL_APP($SetDP,\"CANCEL_BIT\",chkbit,true);
+    }
+  }
+  else
+  {
+    all_err_msg = \"ÏàòÏ†ïÎ≤ÑÌäºÏùÑ click ÌïòÏã≠ÏãúÏò§\";
+
+    ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                             makeDynString(\"$text:\"+all_err_msg));
+  }
+
+}
+
+" 0
+ 0 1 1 2 1 E 1.740765615085829 0 1.96875 757.9795164082195 133.9978878648233 1 E 57 44 101 60
+6 2157
+"RECTANGLE9662"
+""
+1 80 90 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ E E
+1123 0 0 0 0 0
+E E E
+4
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"hoverfclr" "N {0,0,0,0}"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E "main()
+{
+  string all_err_msg;
+  dyn_float dreturnf;
+  dyn_string dreturns;
+  bool chkbit;
+
+  dpGet($SetDP + \".cmd.ALMRESET_BIT\",chkbit);
+
+  if (EDITMODE)
+  {
+    if(chkbit)
+    {
+      dpSet($SetDP + \".cmd.ALMRESET_BIT\",false);
+      USERTRAIL_APP($SetDP,\"ALMRESET_BIT\",chkbit,false);
+    }
+    else
+    {
+      dpSet($SetDP + \".cmd.ALMRESET_BIT\",true);
+      USERTRAIL_APP($SetDP,\"ALMRESET_BIT\",chkbit,true);
+    }
+  }
+  else
+  {
+    all_err_msg = \"ÏàòÏ†ïÎ≤ÑÌäºÏùÑ click ÌïòÏã≠ÏãúÏò§\";
+
+    ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                             makeDynString(\"$text:\"+all_err_msg));
+  }
+
+}
+
+" 0
+ 0 1 1 2 1 E 1.740765615085829 0 1.96875 670.9795164082195 133.9978878648233 1 E 57 44 101 60
+2 2263
+"PRIMITIVE_TEXT3152"
+""
+1 1202.345523366578 12.4966414910524 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+1124 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 1202.345523366578 12.4966414910524 1248 28
+0 2 2 "0s" 0 0 0 192 0 0  1202.345523366578 12.4966414910524 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 7 Setting
+LANG:31 6 Select
+LANG:1 9 øÓ¿¸∞™ : 
+2 2264
+"PRIMITIVE_TEXT3153"
+""
+1 1209.580509592812 29.49664149105246 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+1125 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 1209.580509592812 29.49664149105246 1241 45
+0 2 2 "0s" 0 0 0 192 0 0  1209.580509592812 29.49664149105246 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 5 Error
+LANG:31 5 Error
+LANG:1 9 øÓ¿¸∞™ : 
+6 2370
+"RECTANGLE9663"
+""
+1 126.9402315865225 29.82602325605388 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1140 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.8827963305554707 0 1.223914837015087 29.93762935555617 111.4954876077586 1 E 127 30 200 54
+6 2371
+"RECTANGLE9664"
+""
+1 126.9402315865225 29.82602325605388 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1141 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.8827963305554707 0 1.223914837015087 29.93762935555617 143.4954876077586 1 E 127 30 200 54
+6 2372
+"RECTANGLE9665"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+1142 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.01045470784376 0 1.098404936600003 -25.91544714371437 -27.74478985600048 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 2373
+"PRIMITIVE_TEXT3154"
+""
+1 102.5893493037125 154.8021088268957 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+1143 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 102.5893493037125 154.8021088268957 112 171
+0 2 2 "0s" 0 0 0 192 0 0  102.5893493037125 154.8021088268957 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 1 4
+LANG:31 1 2
+LANG:1 9 øÓ¿¸∞™ : 
+6 2374
+"RECTANGLE9666"
+""
+1 100 160 E E E 1 E 1 E N "COR_BW_OUTLINE" E N {255,255,255} E E
+ E E
+1144 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 1 2 1 E 1.01045470784376 0 1.098404936600003 -25.91544714371437 4.255210143999527 2  1 0  "pictures/BrownUI/screen/textFiled.PNG" 4294967295 E 100 160 164 187
+2 2375
+"PRIMITIVE_TEXT3155"
+""
+1 102.5893493037125 186.8021088268957 E E E 1 E 1 E N "COR_BW_TEXT" E N "_Window" E E
+ E E
+1145 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+4
+"sizePolicy" "Fixed Fixed"
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "1"
+E E 0 1 1 2 1 E U  0 E 102.5893493037125 186.8021088268957 112 203
+0 2 2 "0s" 0 0 0 192 0 0  102.5893493037125 186.8021088268957 1
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,13,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,13,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0 3
+LANG:10031 1 5
+LANG:31 1 3
+LANG:1 9 øÓ¿¸∞™ : 
+6 2376
+"RECTANGLE9667"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1146 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 209.4928488931372 109.6943712139282 1 E 127 30 200 54
+6 2377
+"RECTANGLE9668"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1147 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 209.4928488931372 141.6943712139282 1 E 127 30 200 54
+1 2579 253 "" 1
+0
+1 2580 253 "" 0
+20 "primitiveText" 0 0 1
+3
+LANG:10031 3 XXX
+LANG:31 3 XXX
+LANG:1 6 XXX.XX
+
+0
+1 2583 254 "" 1
+0
+1 2584 254 "" 0
+20 "primitiveText" 0 0 1
+3
+LANG:10031 3 XXX
+LANG:31 3 XXX
+LANG:1 6 XXX.XX
+
+0
+6 2384
+"RECTANGLE9669"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1148 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 277.4928488931372 109.6943712139282 1 E 127 30 200 54
+6 2385
+"RECTANGLE9670"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1149 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 277.4928488931372 141.6943712139282 1 E 127 30 200 54
+1 2587 255 "" 10
+0
+1 2593 256 "" 10
+0
+6 2396
+"RECTANGLE9671"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1150 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 345.4928488931372 109.6943712139282 1 E 127 30 200 54
+6 2397
+"RECTANGLE9672"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1151 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 345.4928488931372 141.6943712139282 1 E 127 30 200 54
+1 2599 257 "" 1
+0
+1 2600 257 "" 0
+20 "primitiveText" 0 0 1
+3
+LANG:10031 3 XXX
+LANG:31 3 XXX
+LANG:1 6 XXX.XX
+
+0
+1 2603 258 "" 1
+0
+1 2604 258 "" 0
+20 "primitiveText" 0 0 1
+3
+LANG:10031 3 XXX
+LANG:31 3 XXX
+LANG:1 6 XXX.XX
+
+0
+6 2404
+"RECTANGLE9673"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1152 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 413.4928488931372 109.6943712139282 1 E 127 30 200 54
+6 2405
+"RECTANGLE9674"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1153 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.909547734511697 0 1.261003165409484 413.4928488931372 141.6943712139282 1 E 127 30 200 54
+1 2607 259 "" 10
+0
+1 2613 260 "" 10
+0
+6 2416
+"RECTANGLE9675"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1154 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.6463906718026832 0 1.261003165409484 1118.874147173875 110.30910958317 1 E 127 30 200 54
+6 2417
+"RECTANGLE9676"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1155 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.6463906718026832 0 1.261003165409484 1118.874147173875 142.30910958317 1 E 127 30 200 54
+6 2418
+"obj_range4"
+""
+1 90 220 E E E 1 E 1 E N {65,65,65} E N "lightgrey" E E
+ E E
+1156 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+"// SimpleCtrlScriptStart {invalid}
+main()
+{
+  EP_setBackColor();
+}
+
+EP_setBackColor()
+{
+dyn_errClass err;
+
+  if( !dpExists(  $SetDP + \".alert.SET_AL_4\"))
+  {
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+    return;
+  }
+
+  dpConnect(\"EP_setBackColorCB\",
+             $SetDP + \".alert.SET_AL_4\");
+  err = getLastError();
+  if (dynlen(err) > 0)
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+
+}
+
+EP_setBackColorCB(string dp1, bool ALMVALUE)
+{
+  if (ALMVALUE)
+    setValue(\"\", \"backCol\", \"red\");
+  else
+    setValue(\"\", \"backCol\", \"COR_SYM_STATUS_OFF\");
+}" 0
+ E 0 2 1 2 1 E 0.2002039089557028 0 0.7871093750000001 1186.320075403074 -69.71313246963167 1 E 150 286 232 306
+6 2419
+"obj_range5"
+""
+1 90 220 E E E 1 E 1 E N {65,65,65} E N "lightgrey" E E
+ E E
+1157 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+"// SimpleCtrlScriptStart {invalid}
+main()
+{
+  EP_setBackColor();
+}
+
+EP_setBackColor()
+{
+dyn_errClass err;
+
+  if( !dpExists(  $SetDP + \".alert.SET_AL_5\"))
+  {
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+    return;
+  }
+
+  dpConnect(\"EP_setBackColorCB\",
+             $SetDP + \".alert.SET_AL_5\");
+  err = getLastError();
+  if (dynlen(err) > 0)
+    setValue(\"\", \"color\", \"_dpdoesnotexist\");
+
+}
+
+EP_setBackColorCB(string dp1, bool ALMVALUE)
+{
+  if (ALMVALUE)
+    setValue(\"\", \"backCol\", \"red\");
+  else
+    setValue(\"\", \"backCol\", \"COR_SYM_STATUS_OFF\");
+}" 0
+ E 0 2 1 2 1 E 0.2002039089557028 0 0.7871093750000001 1186.320075403074 -37.71313246963169 1 E 150 286 232 306
+6 2420
+"RECTANGLE9679"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1158 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 1.315537621373623 0 1.261003165409484 430.1845486189962 109.9623735368088 1 E 127 30 200 54
+6 2421
+"RECTANGLE9680"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1159 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 1.315537621373623 0 1.261003165409484 430.1845486189962 141.9623735368088 1 E 127 30 200 54
+20 2422
+"obj_auto_sel4"
+""
+1 637.7749497135837 152.9245064840071 E E E 0 E 1 E N "White" E N "_Transparent" E E
+ E E
+1160 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  636 151 655 175
+1
+T 
+3
+LANG:10031 3 ???
+LANG:31 0 
+LANG:1 3 ???
+
+0 
+1
+LANG:10031 0 
+E E
+0 0 0 0 0
+0
+E"main()
+{
+  string err_msg,all_err_msg;
+  bool ST1,LOOP1,TOT1;
+  float PV1;
+  dyn_string dyn_error_msg;
+
+  dpGet(\"C1_HVAC:T1_HGB_C2701D_ZV.PVLAST\",ST1);
+  dpGet(\"C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR\",LOOP1);
+  dpGet(\"C1_HVAC:T1_HGB_C2701D_MVD_I.PVLAST\",PV1);
+  dpGet(\"C1_HVAC:T1_HGB_C2701D_MVD_TOT.PVLAST\",TOT1);
+
+  if(ST1 == 1 || LOOP1 == 1 || PV1 > 1 || TOT1== 1 )
+  {
+    err_msg = \"4Ìò∏Í∏∞ Ready Ï°∞Í±¥Ïù¥ ÎêòÏñ¥Ïïº Ìï©ÎãàÎã§  \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+    setValue(\"obj_auto_sel4\",\"state\",0,false);
+  }
+  else
+  {
+    setValue(\"obj_auto_sel1\",\"state\",0,false);
+    setValue(\"obj_auto_sel2\",\"state\",0,false);
+    setValue(\"obj_auto_sel3\",\"state\",0,false);
+    setValue(\"obj_auto_sel5\",\"state\",0,false);
+  }
+  if(dynlen(dyn_error_msg) > 0)
+  {
+    for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+        {
+          all_err_msg += dyn_error_msg[i];
+        }
+
+    ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                             makeDynString(\"$text:\"+all_err_msg));
+  }
+}
+" 0
+20 2423
+"obj_auto_sel5"
+""
+1 637.3496809403096 184.9767075293268 E E E 0 E 1 E N "White" E N "_Transparent" E E
+ E E
+1161 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+1
+"layoutAlignment" "AlignCenter"
+3
+LANG:10031 34 ÎßëÏùÄ Í≥†Îîï,-1,12,5,75,0,0,0,0,0
+LANG:31 30 ∏º¿∫ ∞ÌµÒ,-1,12,5,75,0,0,0,0,0
+LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+0  636 183 655 207
+1
+T 
+3
+LANG:10031 3 ???
+LANG:31 0 
+LANG:1 3 ???
+
+0 
+1
+LANG:10031 0 
+E E
+0 0 0 0 0
+0
+E"main()
+{
+  string err_msg,all_err_msg;
+  bool ST1,LOOP1,TOT1;
+  float PV1;
+  dyn_string dyn_error_msg;
+
+  dpGet(\"C1_HVAC:T1_HGB_C2701E_ZV.PVLAST\",ST1);
+  dpGet(\"C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR\",LOOP1);
+  dpGet(\"C1_HVAC:T1_HGB_C2701E_MVD_I.PVLAST\",PV1);
+  dpGet(\"C1_HVAC:T1_HGB_C2701E_MVD_TOT.PVLAST\",TOT1);
+
+  if(ST1 == 1 || LOOP1 == 1 || PV1 > 1 || TOT1== 1 )
+  {
+    err_msg = \"5Ìò∏Í∏∞ Ready Ï°∞Í±¥Ïù¥ ÎêòÏñ¥Ïïº Ìï©ÎãàÎã§  \\n\";
+    dynAppend(dyn_error_msg,err_msg);
+    setValue(\"obj_auto_sel5\",\"state\",0,false);
+  }
+  else
+  {
+    setValue(\"obj_auto_sel1\",\"state\",0,false);
+    setValue(\"obj_auto_sel2\",\"state\",0,false);
+    setValue(\"obj_auto_sel3\",\"state\",0,false);
+    setValue(\"obj_auto_sel4\",\"state\",0,false);
+  }
+  if(dynlen(dyn_error_msg) > 0)
+  {
+    for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+        {
+          all_err_msg += dyn_error_msg[i];
+        }
+
+    ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+                             makeDynString(\"$text:\"+all_err_msg));
+  }
+}
+" 0
+1 2619 261 "" 46
+0
+1 2626 262 "" 46
+0
+6 2436
+"RECTANGLE9681"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1162 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.6711346394119819 0 1.2668822625175 188.7730721176035 109.6908557366573 1 E 127 30 200 54
+6 2437
+"RECTANGLE9682"
+""
+1 126.9940506958377 29.88960809197552 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1163 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.6711346394119819 0 1.2668822625175 188.7730721176035 141.6908557366573 1 E 127 30 200 54
+1 2633 263 "" 11
+0
+1 2640 264 "" 11
+0
+6 2450
+"RECTANGLE9683"
+""
+1 126.9402315865225 29.82602325605388 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1164 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.8827963305554707 0 1.223914837015087 95.93762935555623 111.4954876077586 1 E 127 30 200 54
+6 2451
+"RECTANGLE9684"
+""
+1 126.9402315865225 29.82602325605388 E E E 1 E 1 E N "COR_BW_OUTLINE" E N "COR_BW_FORECOL" E E
+ E E
+1165 0 0 0 0 0
+E E E
+0
+3
+LANG:10031 0 
+LANG:31 0 
+LANG:1 0 
+
+3
+"layoutAlignment" "AlignCenter"
+"dashclr"N "_Transparent"
+"antiAliased" "0"
+E E 0 0 3 0 1 E 0.8827963305554707 0 1.223914837015087 95.93762935555623 143.4954876077586 1 E 127 30 200 54
+1 2647 265 "" 10
+0
+1 2653 266 "" 10
+0
+0
+LAYER, 1 
+1
+LANG:10031 0 
+0
+LAYER, 2 
+1
+LANG:10031 0 
+0
+LAYER, 3 
+1
+LANG:10031 0 
+0
+LAYER, 4 
+1
+LANG:10031 0 
+0
+LAYER, 5 
+1
+LANG:10031 0 
+0
+LAYER, 6 
+1
+LANG:10031 0 
+0
+LAYER, 7 
+1
+LANG:10031 0 
+1 2455 123 "0" 1
+0
+1 2459 127 "0" 1
+0
+1 2463 132 "0" 1
+0
+1 2469 142 "0" 1
+0
+1 2475 143 "0" 1
+0
+1 2481 144 "0" 1
+0
+1 2485 159 "0" 1
+0
+1 2489 160 "0" 1
+0
+1 2493 164 "0" 1
+0
+1 2499 167 "0" 1
+0
+1 2505 168 "0" 1
+0
+1 2511 169 "0" 1
+0
+1 2517 200 "0" 1
+0
+1 2524 228 "0" 1
+0
+1 2531 229 "0" 1
+0
+1 2538 230 "0" 1
+0
+1 2545 235 "0" 1
+0
+1 2552 236 "0" 1
+0
+1 2559 237 "0" 1
+0
+1 2565 242 "0" 1
+0
+1 2571 243 "0" 1
+0
+1 2577 244 "0" 1
+0
+1 2582 253 "0" 1
+0
+1 2586 254 "0" 1
+0
+1 2592 255 "0" 1
+0
+1 2598 256 "0" 1
+0
+1 2602 257 "0" 1
+0
+1 2606 258 "0" 1
+0
+1 2612 259 "0" 1
+0
+1 2618 260 "0" 1
+0
+1 2625 261 "0" 1
+0
+1 2632 262 "0" 1
+0
+1 2639 263 "0" 1
+0
+1 2646 264 "0" 1
+0
+1 2652 265 "0" 1
+0
+1 2658 266 "0" 1
+0
+0
+1 72 "SHAPE_GROUP104" -1
+1 0 
+440 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 115 "SHAPE_GROUP115" 116
+1 0 
+910 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 116 "SHAPE_GROUP116" 121
+0 1 
+
+115 
+"layoutAlignment" "AlignCenter"
+"" ""
+1 121 "SHAPE_GROUP121" 124
+0 1 
+
+116 
+"layoutAlignment" "AlignCenter"
+"" ""
+3 123 "PANEL_REF1436" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ao/SYM_AO.pnl" 446 513 T 563 1 0 1 -187.2384042065079 -500
+2
+"$DP""C1_HVAC:T1_HGB_C2701A_MVD"
+"$TYPE""AO_TYPE"
+1 124 "SHAPE_GROUP124" -1
+0 1 
+
+121 
+"layoutAlignment" "AlignCenter"
+"" ""
+1 125 "SHAPE_GROUP125" -1
+1 0 
+987 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+3 127 "PANEL_REF127" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ao/SYM_AO.pnl" 446 513 T 573 1 0 1 -187.2384042065079 -436
+2
+"$DP""C1_HVAC:T1_HGB_C2701C_MVD"
+"$TYPE""AO_TYPE"
+1 130 "SHAPE_GROUP130" -1
+2 0 
+1003 1004 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+3 132 "PANEL_REF132" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ao/SYM_AO.pnl" 446 513 T 579 1 0 1 -187.2384042065079 -468
+2
+"$DP""C1_HVAC:T1_HGB_C2701B_MVD"
+"$TYPE""AO_TYPE"
+1 134 "SHAPE_GROUP134" -1
+1 0 
+1009 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 141 "SHAPE_GROUP141" -1
+2 0 
+1022 1021 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+3 142 "PANEL_REF1608" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 593 1 0 1 170.2039034857997 -340
+2
+"$DP""C1_HVAC:T1_HGB_C2701A_MVD_I"
+"$Type""AI_TYPE"
+3 143 "PANEL_REF143" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 594 1 0 1 170.2039034857997 -308
+2
+"$DP""C1_HVAC:T1_HGB_C2701B_MVD_I"
+"$Type""AI_TYPE"
+3 144 "PANEL_REF144" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 595 1 0 1 170.2039034857997 -276
+2
+"$DP""C1_HVAC:T1_HGB_C2701C_MVD_I"
+"$Type""AI_TYPE"
+1 158 "SHAPE_GROUP158" -1
+1 0 
+1117 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+3 159 "PANEL_REF159" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ao/SYM_AO.pnl" 446 513 T 678 1 0 1 -51.23840420650789 -500
+2
+"$DP""C1_HVAC:T1_HGB_C2701A_SC"
+"$TYPE""AO_TYPE"
+3 160 "PANEL_REF160" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ao/SYM_AO.pnl" 446 513 T 679 1 0 1 -51.23840420650789 -436
+2
+"$DP""C1_HVAC:T1_HGB_C2701C_SC"
+"$TYPE""AO_TYPE"
+3 164 "PANEL_REF164" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ao/SYM_AO.pnl" 446 513 T 682 1 0 1 -51.23840420650789 -468
+2
+"$DP""C1_HVAC:T1_HGB_C2701B_SC"
+"$TYPE""AO_TYPE"
+1 165 "SHAPE_GROUP165" -1
+1 0 
+1135 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+3 167 "PANEL_REF167" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 683 1 0 1 306.2039034857997 -340
+2
+"$DP""C1_HVAC:T1_HGB_C2701A_ST"
+"$Type""AI_TYPE"
+3 168 "PANEL_REF168" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 684 1 0 1 306.2039034857997 -308
+2
+"$DP""C1_HVAC:T1_HGB_C2701B_ST"
+"$Type""AI_TYPE"
+3 169 "PANEL_REF169" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 685 1 0 1 306.2039034857997 -276
+2
+"$DP""C1_HVAC:T1_HGB_C2701C_ST"
+"$Type""AI_TYPE"
+1 172 "SHAPE_GROUP172" -1
+1 0 
+1142 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 173 "SHAPE_GROUP173" -1
+1 0 
+1130 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 174 "SHAPE_GROUP174" -1
+1 0 
+1129 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 175 "SHAPE_GROUP175" -1
+1 0 
+1141 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 180 "SHAPE_GROUP180" -1
+2 0 
+1162 1163 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 182 "SHAPE_GROUP182" -1
+1 0 
+1167 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 183 "SHAPE_GROUP183" -1
+1 0 
+1168 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 185 "SHAPE_GROUP185" 187
+1 0 
+1178 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 186 "SHAPE_GROUP186" 187
+1 0 
+1177 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 187 "SHAPE_GROUP187" -1
+0 2 
+
+186 185 
+"layoutAlignment" "AlignCenter"
+"" ""
+1 189 "SHAPE_GROUP189" -1
+1 0 
+1182 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+1 190 "SHAPE_GROUP190" -1
+1 0 
+1183 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+3 200 "PANEL_REF1309" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI_PID.pnl" 80 360 T 803 1 0 0.9376791456979754 -130 -253.4081979782246
+3
+"$DP""C1_HVAC:T1_DPT_C2HG01NLOGIC"
+"$DP2""C1_HVAC:T1_HGB_C2701A_SC"
+"$Type""NPID_TYPE"
+1 225 "SHAPE_GROUP571" -1
+1 0 
+1443 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+3 228 "PANEL_REF228" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/SYM_COM/SYM_COM_PUMP_TBA_NOT_HANG.pnl" 62 152 T 906 1 0 1 -21.00000000000003 -171.2846195385974
+4
+"$ABDP""C1_HVAC:T1_HGB_C2701A_CX_AB"
+"$CXNUM""1"
+"$DP""C1_HVAC:T1_HGB_C2701A"
+"$Number""A"
+3 229 "PANEL_REF229" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/SYM_COM/SYM_COM_PUMP_TBA_NOT_HANG.pnl" 62 152 T 907 1 0 1 -21.00000000000003 -139.2846195385974
+4
+"$ABDP""C1_HVAC:T1_HGB_C2701A_CX_AB"
+"$CXNUM""2"
+"$DP""C1_HVAC:T1_HGB_C2701B"
+"$Number""B"
+3 230 "PANEL_REF230" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/SYM_COM/SYM_COM_PUMP_TBA_NOT_HANG.pnl" 62 152 T 908 1 0 1 -21.00000000000003 -107.2846195385974
+4
+"$ABDP""C1_HVAC:T1_HGB_C2701A_CX_AB"
+"$CXNUM""3"
+"$DP""C1_HVAC:T1_HGB_C2701C"
+"$Number""C"
+3 235 "PANEL_REF1802" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_di/SYM_DI_TOT_ALM.pnl" 436 234 T 960 1 0 1 -210 -217
+2
+"$DP""C1_HVAC:T1_HGB_C2701A_MVD_TOT"
+"$Type""DI_TYPE"
+3 236 "PANEL_REF1803" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_di/SYM_DI_TOT_ALM.pnl" 436 234 T 961 1 0 1 -208.6159795559286 -184.2819074194259
+2
+"$DP""C1_HVAC:T1_HGB_C2701B_MVD_TOT"
+"$Type""DI_TYPE"
+3 237 "PANEL_REF1804" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_di/SYM_DI_TOT_ALM.pnl" 436 234 T 962 1 0 1 -208.6159795559286 -152.281907419426
+2
+"$DP""C1_HVAC:T1_HGB_C2701C_MVD_TOT"
+"$Type""DI_TYPE"
+1 240 "SHAPE_GROUP240" -1
+2 0 
+1788 1789 
+
+"layoutAlignment" "AlignCenter"
+"" ""
+3 242 "PANEL_REF1592" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 1100 1 0 1 -15.72517059862426 -339.6000892376077
+2
+"$DP""C1_HVAC:T1_HGB_C2701A_VI"
+"$Type""AI_TYPE"
+3 243 "PANEL_REF243" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 1106 1 0 1 -15.72517059862426 -307.6000892376077
+2
+"$DP""C1_HVAC:T1_HGB_C2701B_VI"
+"$Type""AI_TYPE"
+3 244 "PANEL_REF244" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 1107 1 0 1 -15.72517059862426 -275.6000892376077
+2
+"$DP""C1_HVAC:T1_HGB_C2701C_VI"
+"$Type""AI_TYPE"
+3 248 "PANEL_REF248" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_etc/image/SYM_ETC_IMAGE_DPRESS_L.pnl" 757 484 T 1114 1 0 1 -746.929529815777 -361.4597482420547
+0
+1 250 "SHAPE_GROUP574" -1
+2 0 
+2264 2263 
+
+"layoutAlignment" "AlignNone"
+"" ""
+3 253 "PANEL_REF1805" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ao/SYM_AO.pnl" 446 513 T 1126 1 0 1 -187.238404206508 -372
+2
+"$DP""C1_HVAC:T1_HGB_C2701E_MVD"
+"$TYPE""AO_TYPE"
+3 254 "PANEL_REF1806" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ao/SYM_AO.pnl" 446 513 T 1127 1 0 1 -187.238404206508 -404
+2
+"$DP""C1_HVAC:T1_HGB_C2701D_MVD"
+"$TYPE""AO_TYPE"
+3 255 "PANEL_REF1807" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 1128 1 0 1 170.2039034857997 -244
+2
+"$DP""C1_HVAC:T1_HGB_C2701D_MVD_I"
+"$Type""AI_TYPE"
+3 256 "PANEL_REF1808" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 1129 1 0 1 170.2039034857997 -212
+2
+"$DP""C1_HVAC:T1_HGB_C2701E_MVD_I"
+"$Type""AI_TYPE"
+3 257 "PANEL_REF1809" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ao/SYM_AO.pnl" 446 513 T 1130 1 0 1 -51.23840420650794 -372
+2
+"$DP""C1_HVAC:T1_HGB_C2701E_SC"
+"$TYPE""AO_TYPE"
+3 258 "PANEL_REF1810" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ao/SYM_AO.pnl" 446 513 T 1131 1 0 1 -51.23840420650794 -404
+2
+"$DP""C1_HVAC:T1_HGB_C2701D_SC"
+"$TYPE""AO_TYPE"
+3 259 "PANEL_REF1811" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 1132 1 0 1 306.2039034857996 -244
+2
+"$DP""C1_HVAC:T1_HGB_C2701D_ST"
+"$Type""AI_TYPE"
+3 260 "PANEL_REF1812" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 1133 1 0 1 306.2039034857996 -212
+2
+"$DP""C1_HVAC:T1_HGB_C2701E_ST"
+"$Type""AI_TYPE"
+3 261 "PANEL_REF1813" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/SYM_COM/SYM_COM_PUMP_TBA_NOT_HANG.pnl" 62 152 T 1134 1 0 1 -21.00000000000009 -75.2846195385974
+4
+"$ABDP""C1_HVAC:T1_HGB_C2701A_CX_AB"
+"$CXNUM""4"
+"$DP""C1_HVAC:T1_HGB_C2701D"
+"$Number""D"
+3 262 "PANEL_REF1814" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/SYM_COM/SYM_COM_PUMP_TBA_NOT_HANG.pnl" 62 152 T 1135 1 0 1 -21.00000000000009 -43.28461953859738
+4
+"$ABDP""C1_HVAC:T1_HGB_C2701A_CX_AB"
+"$CXNUM""5"
+"$DP""C1_HVAC:T1_HGB_C2701E"
+"$Number""E"
+3 263 "PANEL_REF1815" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_di/SYM_DI_TOT_ALM.pnl" 436 234 T 1136 1 0 1 -208.6159795559286 -120.2819074194259
+2
+"$DP""C1_HVAC:T1_HGB_C2701D_MVD_TOT"
+"$Type""DI_TYPE"
+3 264 "PANEL_REF1816" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_di/SYM_DI_TOT_ALM.pnl" 436 234 T 1137 1 0 1 -208.6159795559286 -88.28190741942599
+2
+"$DP""C1_HVAC:T1_HGB_C2701E_MVD_TOT"
+"$Type""DI_TYPE"
+3 265 "PANEL_REF1817" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 1138 1 0 1 -15.72517059862432 -243.6000892376077
+2
+"$DP""C1_HVAC:T1_HGB_C2701D_VI"
+"$Type""AI_TYPE"
+3 266 "PANEL_REF1818" -1
+"layoutAlignment" "AlignCenter"
+"" ""
+"general/symbol/sym_ai/SYM_AI.pnl" 172 364 T 1139 1 0 1 -15.72517059862432 -211.6000892376077
+2
+"$DP""C1_HVAC:T1_HGB_C2701E_VI"
+"$Type""AI_TYPE"
+0

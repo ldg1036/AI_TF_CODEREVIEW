@@ -1,0 +1,900 @@
+{
+  "generated_at": "2026-02-25T11:14:21",
+  "server_url": "http://127.0.0.1:8765",
+  "dataset_name": "local_code_review_data",
+  "selected_files": [
+    "GoldenTime.ctl"
+  ],
+  "matrix": {
+    "live_ai": [
+      false
+    ],
+    "ctrlpp": [
+      false,
+      true
+    ],
+    "defer_excel_reports": [
+      false,
+      true
+    ],
+    "iterations": 2,
+    "flush_excel": true
+  },
+  "elapsed_ms": 10644,
+  "runs": [
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": false,
+        "defer_excel_reports": false,
+        "iteration": 1
+      },
+      "status": {
+        "analyze_http": 200,
+        "flush_http": 200,
+        "ok": true
+      },
+      "request": {
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\Coder_Wincc-main\\backend\\..\\CodeReview_Report\\20260225_111410_727487",
+        "request_id": "6db2f1f4826c45d7b9a319644a97ab03"
+      },
+      "wall_ms": {
+        "analyze_http": 49,
+        "flush_http": 17,
+        "end_to_end_http": 66
+      },
+      "metrics": {
+        "timings_ms": {
+          "total": 47,
+          "collect": 1,
+          "convert": 0,
+          "mcp_context": 0,
+          "analyze": 41,
+          "report": 2,
+          "heuristic": 22,
+          "ctrlpp": 0,
+          "ai": 0,
+          "excel_copy": 0,
+          "excel_load": 0,
+          "excel_save": 0,
+          "server_total": 48
+        },
+        "llm_calls": 0,
+        "ctrlpp_calls": 0,
+        "bytes_read": 10741,
+        "bytes_written": 12639,
+        "convert_cache": {
+          "hits": 0,
+          "misses": 0
+        }
+      },
+      "summary": {
+        "total": 9,
+        "critical": 1,
+        "warning": 5,
+        "info": 3,
+        "score": 57,
+        "p1_total": 1,
+        "p2_total": 0,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0
+      },
+      "pending_excel_jobs": {
+        "after_analyze": 0,
+        "running_after_analyze": 0,
+        "after_flush": 0
+      },
+      "errors": {
+        "analyze": "",
+        "flush": ""
+      }
+    },
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": false,
+        "defer_excel_reports": false,
+        "iteration": 2
+      },
+      "status": {
+        "analyze_http": 200,
+        "flush_http": 200,
+        "ok": true
+      },
+      "request": {
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\Coder_Wincc-main\\backend\\..\\CodeReview_Report\\20260225_111410_807153",
+        "request_id": "90f89e56d36845b79694f8aa1cfd71b7"
+      },
+      "wall_ms": {
+        "analyze_http": 42,
+        "flush_http": 17,
+        "end_to_end_http": 59
+      },
+      "metrics": {
+        "timings_ms": {
+          "total": 26,
+          "collect": 0,
+          "convert": 0,
+          "mcp_context": 0,
+          "analyze": 22,
+          "report": 1,
+          "heuristic": 19,
+          "ctrlpp": 0,
+          "ai": 0,
+          "excel_copy": 0,
+          "excel_load": 0,
+          "excel_save": 0,
+          "server_total": 27
+        },
+        "llm_calls": 0,
+        "ctrlpp_calls": 0,
+        "bytes_read": 10741,
+        "bytes_written": 12639,
+        "convert_cache": {
+          "hits": 0,
+          "misses": 0
+        }
+      },
+      "summary": {
+        "total": 9,
+        "critical": 1,
+        "warning": 5,
+        "info": 3,
+        "score": 57,
+        "p1_total": 1,
+        "p2_total": 0,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0
+      },
+      "pending_excel_jobs": {
+        "after_analyze": 0,
+        "running_after_analyze": 0,
+        "after_flush": 0
+      },
+      "errors": {
+        "analyze": "",
+        "flush": ""
+      }
+    },
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": false,
+        "defer_excel_reports": true,
+        "iteration": 1
+      },
+      "status": {
+        "analyze_http": 200,
+        "flush_http": 200,
+        "ok": true
+      },
+      "request": {
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\Coder_Wincc-main\\backend\\..\\CodeReview_Report\\20260225_111410_867344",
+        "request_id": "5d45b7a24e55486190ec671b8e4dfd92"
+      },
+      "wall_ms": {
+        "analyze_http": 41,
+        "flush_http": 1,
+        "end_to_end_http": 42
+      },
+      "metrics": {
+        "timings_ms": {
+          "total": 25,
+          "collect": 0,
+          "convert": 0,
+          "mcp_context": 0,
+          "analyze": 22,
+          "report": 2,
+          "heuristic": 18,
+          "ctrlpp": 0,
+          "ai": 0,
+          "excel_copy": 0,
+          "excel_load": 0,
+          "excel_save": 0,
+          "server_total": 27
+        },
+        "llm_calls": 0,
+        "ctrlpp_calls": 0,
+        "bytes_read": 10741,
+        "bytes_written": 12639,
+        "convert_cache": {
+          "hits": 0,
+          "misses": 0
+        }
+      },
+      "summary": {
+        "total": 9,
+        "critical": 1,
+        "warning": 5,
+        "info": 3,
+        "score": 57,
+        "p1_total": 1,
+        "p2_total": 0,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0
+      },
+      "pending_excel_jobs": {
+        "after_analyze": 0,
+        "running_after_analyze": 0,
+        "after_flush": 0
+      },
+      "errors": {
+        "analyze": "",
+        "flush": ""
+      }
+    },
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": false,
+        "defer_excel_reports": true,
+        "iteration": 2
+      },
+      "status": {
+        "analyze_http": 200,
+        "flush_http": 200,
+        "ok": true
+      },
+      "request": {
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\Coder_Wincc-main\\backend\\..\\CodeReview_Report\\20260225_111410_898207",
+        "request_id": "f96fedde13e443cea067d8d36217f7f9"
+      },
+      "wall_ms": {
+        "analyze_http": 31,
+        "flush_http": 2,
+        "end_to_end_http": 33
+      },
+      "metrics": {
+        "timings_ms": {
+          "total": 28,
+          "collect": 0,
+          "convert": 0,
+          "mcp_context": 0,
+          "analyze": 23,
+          "report": 3,
+          "heuristic": 19,
+          "ctrlpp": 0,
+          "ai": 0,
+          "excel_copy": 0,
+          "excel_load": 0,
+          "excel_save": 0,
+          "server_total": 29
+        },
+        "llm_calls": 0,
+        "ctrlpp_calls": 0,
+        "bytes_read": 10741,
+        "bytes_written": 12639,
+        "convert_cache": {
+          "hits": 0,
+          "misses": 0
+        }
+      },
+      "summary": {
+        "total": 9,
+        "critical": 1,
+        "warning": 5,
+        "info": 3,
+        "score": 57,
+        "p1_total": 1,
+        "p2_total": 0,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0
+      },
+      "pending_excel_jobs": {
+        "after_analyze": 0,
+        "running_after_analyze": 0,
+        "after_flush": 0
+      },
+      "errors": {
+        "analyze": "",
+        "flush": ""
+      }
+    },
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": true,
+        "defer_excel_reports": false,
+        "iteration": 1
+      },
+      "status": {
+        "analyze_http": 200,
+        "flush_http": 200,
+        "ok": true
+      },
+      "request": {
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\Coder_Wincc-main\\backend\\..\\CodeReview_Report\\20260225_111410_942417",
+        "request_id": "f00d4b1193e94df19c9b5bb78e518db2"
+      },
+      "wall_ms": {
+        "analyze_http": 2533,
+        "flush_http": 26,
+        "end_to_end_http": 2559
+      },
+      "metrics": {
+        "timings_ms": {
+          "total": 2520,
+          "collect": 0,
+          "convert": 0,
+          "mcp_context": 0,
+          "analyze": 2516,
+          "report": 1,
+          "heuristic": 21,
+          "ctrlpp": 2491,
+          "ai": 0,
+          "excel_copy": 0,
+          "excel_load": 0,
+          "excel_save": 0,
+          "server_total": 2521
+        },
+        "llm_calls": 0,
+        "ctrlpp_calls": 1,
+        "bytes_read": 10741,
+        "bytes_written": 12639,
+        "convert_cache": {
+          "hits": 0,
+          "misses": 0
+        }
+      },
+      "summary": {
+        "total": 9,
+        "critical": 1,
+        "warning": 5,
+        "info": 3,
+        "score": 57,
+        "p1_total": 1,
+        "p2_total": 43,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0
+      },
+      "pending_excel_jobs": {
+        "after_analyze": 0,
+        "running_after_analyze": 0,
+        "after_flush": 0
+      },
+      "errors": {
+        "analyze": "",
+        "flush": ""
+      }
+    },
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": true,
+        "defer_excel_reports": false,
+        "iteration": 2
+      },
+      "status": {
+        "analyze_http": 200,
+        "flush_http": 200,
+        "ok": true
+      },
+      "request": {
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\Coder_Wincc-main\\backend\\..\\CodeReview_Report\\20260225_111413_492394",
+        "request_id": "82b7464d4ae5472cb39fe3182507916a"
+      },
+      "wall_ms": {
+        "analyze_http": 2580,
+        "flush_http": 2,
+        "end_to_end_http": 2582
+      },
+      "metrics": {
+        "timings_ms": {
+          "total": 2578,
+          "collect": 0,
+          "convert": 0,
+          "mcp_context": 0,
+          "analyze": 2574,
+          "report": 2,
+          "heuristic": 20,
+          "ctrlpp": 2551,
+          "ai": 0,
+          "excel_copy": 0,
+          "excel_load": 0,
+          "excel_save": 0,
+          "server_total": 2579
+        },
+        "llm_calls": 0,
+        "ctrlpp_calls": 1,
+        "bytes_read": 10741,
+        "bytes_written": 12639,
+        "convert_cache": {
+          "hits": 0,
+          "misses": 0
+        }
+      },
+      "summary": {
+        "total": 9,
+        "critical": 1,
+        "warning": 5,
+        "info": 3,
+        "score": 57,
+        "p1_total": 1,
+        "p2_total": 43,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0
+      },
+      "pending_excel_jobs": {
+        "after_analyze": 0,
+        "running_after_analyze": 0,
+        "after_flush": 0
+      },
+      "errors": {
+        "analyze": "",
+        "flush": ""
+      }
+    },
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": true,
+        "defer_excel_reports": true,
+        "iteration": 1
+      },
+      "status": {
+        "analyze_http": 200,
+        "flush_http": 200,
+        "ok": true
+      },
+      "request": {
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\Coder_Wincc-main\\backend\\..\\CodeReview_Report\\20260225_111416_094543",
+        "request_id": "bab5653b6dcc4e5d858d58eb5886d73c"
+      },
+      "wall_ms": {
+        "analyze_http": 2713,
+        "flush_http": 17,
+        "end_to_end_http": 2730
+      },
+      "metrics": {
+        "timings_ms": {
+          "total": 2692,
+          "collect": 0,
+          "convert": 0,
+          "mcp_context": 0,
+          "analyze": 2687,
+          "report": 3,
+          "heuristic": 30,
+          "ctrlpp": 2653,
+          "ai": 0,
+          "excel_copy": 0,
+          "excel_load": 0,
+          "excel_save": 0,
+          "server_total": 2693
+        },
+        "llm_calls": 0,
+        "ctrlpp_calls": 1,
+        "bytes_read": 10741,
+        "bytes_written": 12639,
+        "convert_cache": {
+          "hits": 0,
+          "misses": 0
+        }
+      },
+      "summary": {
+        "total": 9,
+        "critical": 1,
+        "warning": 5,
+        "info": 3,
+        "score": 57,
+        "p1_total": 1,
+        "p2_total": 43,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0
+      },
+      "pending_excel_jobs": {
+        "after_analyze": 0,
+        "running_after_analyze": 0,
+        "after_flush": 0
+      },
+      "errors": {
+        "analyze": "",
+        "flush": ""
+      }
+    },
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": true,
+        "defer_excel_reports": true,
+        "iteration": 2
+      },
+      "status": {
+        "analyze_http": 200,
+        "flush_http": 200,
+        "ok": true
+      },
+      "request": {
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\Coder_Wincc-main\\backend\\..\\CodeReview_Report\\20260225_111418_808152",
+        "request_id": "9b90d99a7a0a4047a23cacaf0da9f1b6"
+      },
+      "wall_ms": {
+        "analyze_http": 2544,
+        "flush_http": 17,
+        "end_to_end_http": 2561
+      },
+      "metrics": {
+        "timings_ms": {
+          "total": 2541,
+          "collect": 0,
+          "convert": 0,
+          "mcp_context": 0,
+          "analyze": 2537,
+          "report": 3,
+          "heuristic": 20,
+          "ctrlpp": 2512,
+          "ai": 0,
+          "excel_copy": 0,
+          "excel_load": 0,
+          "excel_save": 0,
+          "server_total": 2542
+        },
+        "llm_calls": 0,
+        "ctrlpp_calls": 1,
+        "bytes_read": 10741,
+        "bytes_written": 12639,
+        "convert_cache": {
+          "hits": 0,
+          "misses": 0
+        }
+      },
+      "summary": {
+        "total": 9,
+        "critical": 1,
+        "warning": 5,
+        "info": 3,
+        "score": 57,
+        "p1_total": 1,
+        "p2_total": 43,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0
+      },
+      "pending_excel_jobs": {
+        "after_analyze": 0,
+        "running_after_analyze": 0,
+        "after_flush": 0
+      },
+      "errors": {
+        "analyze": "",
+        "flush": ""
+      }
+    }
+  ],
+  "combo_summaries": [
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": false,
+        "defer_excel_reports": false
+      },
+      "run_count": 2,
+      "ok_runs": 2,
+      "analyze_http_ms": {
+        "count": 2,
+        "min": 42,
+        "max": 49,
+        "avg": 46,
+        "p95": 49
+      },
+      "end_to_end_http_ms": {
+        "count": 2,
+        "min": 59,
+        "max": 66,
+        "avg": 62,
+        "p95": 66
+      },
+      "server_total_ms": {
+        "count": 2,
+        "min": 27,
+        "max": 48,
+        "avg": 38,
+        "p95": 48
+      },
+      "analyze_stage_ms": {
+        "count": 2,
+        "min": 22,
+        "max": 41,
+        "avg": 32,
+        "p95": 41
+      },
+      "report_stage_ms": {
+        "count": 2,
+        "min": 1,
+        "max": 2,
+        "avg": 2,
+        "p95": 2
+      },
+      "ai_stage_ms": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "ctrlpp_stage_ms": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "llm_calls": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "ctrlpp_calls": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "pending_excel_after_analyze": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      }
+    },
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": false,
+        "defer_excel_reports": true
+      },
+      "run_count": 2,
+      "ok_runs": 2,
+      "analyze_http_ms": {
+        "count": 2,
+        "min": 31,
+        "max": 41,
+        "avg": 36,
+        "p95": 41
+      },
+      "end_to_end_http_ms": {
+        "count": 2,
+        "min": 33,
+        "max": 42,
+        "avg": 38,
+        "p95": 42
+      },
+      "server_total_ms": {
+        "count": 2,
+        "min": 27,
+        "max": 29,
+        "avg": 28,
+        "p95": 29
+      },
+      "analyze_stage_ms": {
+        "count": 2,
+        "min": 22,
+        "max": 23,
+        "avg": 22,
+        "p95": 23
+      },
+      "report_stage_ms": {
+        "count": 2,
+        "min": 2,
+        "max": 3,
+        "avg": 2,
+        "p95": 3
+      },
+      "ai_stage_ms": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "ctrlpp_stage_ms": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "llm_calls": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "ctrlpp_calls": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "pending_excel_after_analyze": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      }
+    },
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": true,
+        "defer_excel_reports": false
+      },
+      "run_count": 2,
+      "ok_runs": 2,
+      "analyze_http_ms": {
+        "count": 2,
+        "min": 2533,
+        "max": 2580,
+        "avg": 2556,
+        "p95": 2580
+      },
+      "end_to_end_http_ms": {
+        "count": 2,
+        "min": 2559,
+        "max": 2582,
+        "avg": 2570,
+        "p95": 2582
+      },
+      "server_total_ms": {
+        "count": 2,
+        "min": 2521,
+        "max": 2579,
+        "avg": 2550,
+        "p95": 2579
+      },
+      "analyze_stage_ms": {
+        "count": 2,
+        "min": 2516,
+        "max": 2574,
+        "avg": 2545,
+        "p95": 2574
+      },
+      "report_stage_ms": {
+        "count": 2,
+        "min": 1,
+        "max": 2,
+        "avg": 2,
+        "p95": 2
+      },
+      "ai_stage_ms": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "ctrlpp_stage_ms": {
+        "count": 2,
+        "min": 2491,
+        "max": 2551,
+        "avg": 2521,
+        "p95": 2551
+      },
+      "llm_calls": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "ctrlpp_calls": {
+        "count": 2,
+        "min": 1,
+        "max": 1,
+        "avg": 1,
+        "p95": 1
+      },
+      "pending_excel_after_analyze": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      }
+    },
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": true,
+        "defer_excel_reports": true
+      },
+      "run_count": 2,
+      "ok_runs": 2,
+      "analyze_http_ms": {
+        "count": 2,
+        "min": 2544,
+        "max": 2713,
+        "avg": 2628,
+        "p95": 2713
+      },
+      "end_to_end_http_ms": {
+        "count": 2,
+        "min": 2561,
+        "max": 2730,
+        "avg": 2646,
+        "p95": 2730
+      },
+      "server_total_ms": {
+        "count": 2,
+        "min": 2542,
+        "max": 2693,
+        "avg": 2618,
+        "p95": 2693
+      },
+      "analyze_stage_ms": {
+        "count": 2,
+        "min": 2537,
+        "max": 2687,
+        "avg": 2612,
+        "p95": 2687
+      },
+      "report_stage_ms": {
+        "count": 2,
+        "min": 3,
+        "max": 3,
+        "avg": 3,
+        "p95": 3
+      },
+      "ai_stage_ms": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "ctrlpp_stage_ms": {
+        "count": 2,
+        "min": 2512,
+        "max": 2653,
+        "avg": 2582,
+        "p95": 2653
+      },
+      "llm_calls": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "ctrlpp_calls": {
+        "count": 2,
+        "min": 1,
+        "max": 1,
+        "avg": 1,
+        "p95": 1
+      },
+      "pending_excel_after_analyze": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      }
+    }
+  ],
+  "notes": [
+    "Values come from /api/analyze metrics + HTTP wall-clock timings.",
+    "Use this file as a baseline for local/CI regression comparisons."
+  ]
+}
