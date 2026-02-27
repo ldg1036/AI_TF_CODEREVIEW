@@ -245,6 +245,18 @@ class HeuristicChecker(
             flags |= mapping.get(key, 0)
         return flags
 
+    @staticmethod
+    def _normalize_detector_regex(pattern: Any) -> str:
+        text = str(pattern or "")
+        if not text:
+            return ""
+        # Some detector entries were serialized with double-escaped regex tokens
+        # like "\\\\b", which should behave as "\\b" at runtime.
+        try:
+            return re.sub(r"\\\\([\\bBsSdDwW\(\)\[\]\{\}\.\+\*\?\^\$\|])", r"\\\1", text)
+        except Exception:
+            return text
+
     def _build_p1_issue(
         self,
         rule_id: str,
@@ -457,10 +469,20 @@ class HeuristicChecker(
         static_message = str(finding_meta.get("message", "") or "")
 
         if op == "sql_injection":
-            sql_keywords = str(
+            sql_keywords_raw = str(
                 detector.get("sql_keywords_pattern", r"\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN)\b")
             )
-            sprintf_pattern = str(detector.get("sprintf_pattern", r"sprintf.*%s"))
+            sprintf_pattern_raw = str(detector.get("sprintf_pattern", r"sprintf.*%s"))
+            sql_keywords = self._normalize_detector_regex(sql_keywords_raw)
+            sprintf_pattern = self._normalize_detector_regex(sprintf_pattern_raw)
+            try:
+                re.compile(sql_keywords, re.IGNORECASE)
+            except re.error:
+                sql_keywords = sql_keywords_raw
+            try:
+                re.compile(sprintf_pattern)
+            except re.error:
+                sprintf_pattern = sprintf_pattern_raw
             for idx, line in enumerate(analysis_code.splitlines(), 1):
                 if re.search(sprintf_pattern, line) and re.search(sql_keywords, line, re.IGNORECASE):
                     absolute_line = base_line + idx - 1
@@ -468,7 +490,12 @@ class HeuristicChecker(
             return []
 
         if op == "db_query_error":
-            query_pattern = str(detector.get("query_call_pattern", r"\b(dpQuery|dbGet)\b"))
+            query_pattern_raw = str(detector.get("query_call_pattern", r"\b(dpQuery|dbGet)\b"))
+            query_pattern = self._normalize_detector_regex(query_pattern_raw)
+            try:
+                re.compile(query_pattern)
+            except re.error:
+                query_pattern = query_pattern_raw
             if not re.search(query_pattern, analysis_code):
                 return []
             if re.search(r"\b(writeLog|DebugTN|getLastError)\b", analysis_code):
@@ -478,7 +505,12 @@ class HeuristicChecker(
             return [self._build_p1_issue(rule_id, rule_item, severity, absolute_line, static_message, analysis_code, event_name)]
 
         if op == "dp_function_exception":
-            dp_call_pattern = str(detector.get("dp_call_pattern", r"\b(dpSet|dpGet|dpQuery|dpConnect)\s*\([^;]+\)\s*;"))
+            dp_call_pattern_raw = str(detector.get("dp_call_pattern", r"\b(dpSet|dpGet|dpQuery|dpConnect)\s*\([^;]+\)\s*;"))
+            dp_call_pattern = self._normalize_detector_regex(dp_call_pattern_raw)
+            try:
+                re.compile(dp_call_pattern)
+            except re.error:
+                dp_call_pattern = dp_call_pattern_raw
             first_dp_call = re.search(dp_call_pattern, analysis_code)
             if not first_dp_call:
                 return []

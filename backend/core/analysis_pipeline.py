@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypedDict
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypedDict, cast
 
 
 logger = logging.getLogger(__name__)
@@ -55,6 +55,14 @@ class PayloadDict(TypedDict, total=False):
     report_jobs: Dict[str, Any]
 
 
+class CtrlppPreflightPayload(TypedDict):
+    attempted: bool
+    ready: bool
+    binary_path: str
+    message: str
+    error_code: str
+
+
 @dataclass
 class PipelineRequest:
     mode: Any
@@ -77,6 +85,8 @@ class PipelineRuntime:
     use_live_ai: bool
     mcp_context: Any
     progress_cb: Optional[Callable[[Dict[str, Any]], None]]
+    enable_ctrlppcheck_effective: Optional[bool]
+    ctrlpp_preflight: CtrlppPreflightPayload
 
 
 class DirectoryAnalysisPipeline:
@@ -136,6 +146,37 @@ class DirectoryAnalysisPipeline:
 
         analysis_targets = self._collect_targets(request, metrics)
         metrics["file_count"] = len(analysis_targets)
+        requested_ctrlpp = self.app._resolve_toggle(self.app.ctrlpp_enabled_default, request.enable_ctrlppcheck)
+        ctrlpp_preflight = cast(
+            CtrlppPreflightPayload,
+            {
+                "attempted": False,
+                "ready": False,
+                "binary_path": "",
+                "message": "",
+                "error_code": "",
+            },
+        )
+        effective_enable_ctrlppcheck: Optional[bool] = bool(requested_ctrlpp)
+        if requested_ctrlpp:
+            ctl_targets = [path for path in analysis_targets if str(path).lower().endswith(".ctl")]
+            if ctl_targets:
+                raw_preflight = self.app.ctrl_tool.prepare_for_analysis(True, ctl_targets)
+                ctrlpp_preflight = cast(
+                    CtrlppPreflightPayload,
+                    {
+                        "attempted": bool(raw_preflight.get("attempted", False)),
+                        "ready": bool(raw_preflight.get("ready", False)),
+                        "binary_path": str(raw_preflight.get("binary_path", "") or ""),
+                        "message": str(raw_preflight.get("message", "") or ""),
+                        "error_code": str(raw_preflight.get("error_code", "") or ""),
+                    },
+                )
+                # Fail-soft: keep analysis alive but skip per-file Ctrlpp when preflight failed.
+                if not ctrlpp_preflight["ready"]:
+                    effective_enable_ctrlppcheck = False
+                    metrics["ctrlpp_preflight_failed"] = 1
+
         use_deferred_excel = (
             self.app.defer_excel_reports_default
             if request.defer_excel_reports is None
@@ -153,6 +194,8 @@ class DirectoryAnalysisPipeline:
             use_live_ai=use_live_ai,
             mcp_context=mcp_context,
             progress_cb=progress_cb,
+            enable_ctrlppcheck_effective=effective_enable_ctrlppcheck,
+            ctrlpp_preflight=ctrlpp_preflight,
         )
 
     def _collect_targets(self, request: PipelineRequest, metrics: MetricsDict) -> List[str]:
@@ -325,7 +368,7 @@ class DirectoryAnalysisPipeline:
         result = self.app.analyze_file(
             target,
             mode=request.mode,
-            enable_ctrlppcheck=request.enable_ctrlppcheck,
+            enable_ctrlppcheck=runtime.enable_ctrlppcheck_effective,
             enable_live_ai=request.enable_live_ai,
             ai_with_context=request.ai_with_context,
             context_payload=runtime.mcp_context,
@@ -358,9 +401,13 @@ class DirectoryAnalysisPipeline:
         runtime: PipelineRuntime,
     ) -> PayloadDict:
         payload = self.app.summarize_results(all_file_results)
+        self._inject_ctrlpp_preflight_warning(payload, runtime.ctrlpp_preflight)
         payload["summary"]["requested_file_count"] = len(runtime.analysis_targets)
         payload["summary"]["successful_file_count"] = len(all_file_results)
         payload["summary"]["failed_file_count"] = len(analysis_errors)
+        payload["summary"]["ctrlpp_preflight_attempted"] = bool(runtime.ctrlpp_preflight.get("attempted", False))
+        payload["summary"]["ctrlpp_preflight_ready"] = bool(runtime.ctrlpp_preflight.get("ready", False))
+        payload["summary"]["ctrlpp_preflight_message"] = str(runtime.ctrlpp_preflight.get("message", "") or "")
 
         excel_files, reviewed_txt = self._scan_report_artifacts(runtime.request_reporter.output_dir)
         payload["report_paths"] = {
@@ -372,6 +419,33 @@ class DirectoryAnalysisPipeline:
         payload["errors"] = analysis_errors
         self.app._last_output_dir = runtime.request_reporter.output_dir
         return payload
+
+    @staticmethod
+    def _inject_ctrlpp_preflight_warning(payload: PayloadDict, preflight: CtrlppPreflightPayload) -> None:
+        if bool(preflight.get("ready", False)):
+            return
+        message = str(preflight.get("message", "") or "").strip()
+        if not message:
+            return
+        p2_list = payload.setdefault("violations", {}).setdefault("P2", [])
+        if any(str(item.get("message", "") or "").strip() == message for item in p2_list if isinstance(item, dict)):
+            return
+        p2_list.append(
+            {
+                "type": "warning",
+                "severity": "warning",
+                "rule_id": "ctrlppcheck.info",
+                "line": 0,
+                "message": f"CtrlppCheck preflight install failed: {message}",
+                "verbose": "",
+                "file": "",
+                "source": "CtrlppCheck",
+                "priority_origin": "P2",
+            }
+        )
+        summary = payload.get("summary", {})
+        if isinstance(summary, dict):
+            summary["p2_total"] = len(p2_list)
 
     @staticmethod
     def _scan_report_artifacts(output_dir: str) -> Tuple[List[str], List[str]]:

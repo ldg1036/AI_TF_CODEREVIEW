@@ -168,7 +168,7 @@
     "detector": {
       "kind": "composite",
       "op": "sql_injection",
-      "sql_keywords_pattern": "\\\\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN)\\\\b",
+      "sql_keywords_pattern": "\\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN)\\b",
       "sprintf_pattern": "sprintf.*%s"
     },
     "meta": {
@@ -281,7 +281,7 @@
     "detector": {
       "kind": "composite",
       "op": "db_query_error",
-      "query_call_pattern": "\\\\b(dpQuery|dbGet)\\\\b"
+      "query_call_pattern": "\\b(dpQuery|dbGet)\\b"
     },
     "meta": {
       "migrated_from": "check_db_query_error",
@@ -305,7 +305,7 @@
     "detector": {
       "kind": "composite",
       "op": "dp_function_exception",
-      "dp_call_pattern": "\\\\b(dpSet|dpGet|dpQuery|dpConnect)\\\\s*\\\\([^;]+\\\\)\\\\s*;"
+      "dp_call_pattern": "\\b(dpSet|dpGet|dpQuery|dpConnect)\\s*\\([^;]+\\)\\s*;"
     },
     "meta": {
       "migrated_from": "check_dp_function_exception",

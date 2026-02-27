@@ -1726,6 +1726,9 @@ class ApiIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(status, 200)
         self.assertEqual(payload.get("violations", {}).get("P2", []), [])
+        summary = payload.get("summary", {})
+        self.assertFalse(bool(summary.get("ctrlpp_preflight_attempted", False)))
+        self.assertFalse(bool(summary.get("ctrlpp_preflight_ready", False)))
 
     def test_post_api_analyze_ctrlpp_toggle_on_missing_binary(self):
         status, payload = self._request(
@@ -1737,6 +1740,9 @@ class ApiIntegrationTests(unittest.TestCase):
         p2 = payload.get("violations", {}).get("P2", [])
         self.assertGreaterEqual(len(p2), 1)
         self.assertTrue(any(v.get("source") == "CtrlppCheck" for v in p2))
+        summary = payload.get("summary", {})
+        self.assertFalse(bool(summary.get("ctrlpp_preflight_ready", False)))
+        self.assertTrue("ctrlpp" in str(summary.get("ctrlpp_preflight_message", "")).lower())
 
     def test_post_api_analyze_ctrlpp_toggle_type_validation(self):
         status, payload = self._request(
@@ -1766,6 +1772,9 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertEqual(calls["count"], 1)
         p2 = payload.get("violations", {}).get("P2", [])
         self.assertTrue(any("install failed" in (v.get("message", "").lower()) for v in p2))
+        summary = payload.get("summary", {})
+        self.assertTrue(bool(summary.get("ctrlpp_preflight_attempted", False)))
+        self.assertFalse(bool(summary.get("ctrlpp_preflight_ready", False)))
 
     def test_api_ctrlpp_toggle_on_install_failure_returns_200_with_p2_info(self):
         self.app.ctrl_tool.auto_install_on_missing = True
@@ -1783,6 +1792,28 @@ class ApiIntegrationTests(unittest.TestCase):
         p2 = payload.get("violations", {}).get("P2", [])
         self.assertGreaterEqual(len(p2), 1)
         self.assertTrue(any("download failed" in (v.get("message", "").lower()) for v in p2))
+        summary = payload.get("summary", {})
+        self.assertTrue(bool(summary.get("ctrlpp_preflight_attempted", False)))
+        self.assertFalse(bool(summary.get("ctrlpp_preflight_ready", False)))
+
+    def test_api_ctrlpp_preflight_skips_without_ctl_target(self):
+        self.app.ctrl_tool.auto_install_on_missing = True
+        calls = {"count": 0}
+
+        def fake_ensure():
+            calls["count"] += 1
+            return "", "CtrlppCheck install failed: mocked"
+
+        self.app.ctrl_tool.ensure_installed = fake_ensure
+        status, payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["raw_input.txt"], "allow_raw_txt": True, "enable_ctrlppcheck": True, "mode": "Static"},
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(calls["count"], 0)
+        summary = payload.get("summary", {})
+        self.assertFalse(bool(summary.get("ctrlpp_preflight_attempted", False)))
 
     def test_api_analyze_ctl_filters_to_server_rules(self):
         status, payload = self._request(

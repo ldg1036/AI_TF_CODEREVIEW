@@ -56,6 +56,8 @@ class CtrlppWrapper:
 
         self.config_binary_path = self._resolve_optional_path(self.config.get("binary_path"))
         self.tool_path = tool_path
+        self._install_retry_block_until = 0.0
+        self._install_retry_block_reason = ""
 
     @staticmethod
     def _safe_int(value, fallback):
@@ -63,6 +65,13 @@ class CtrlppWrapper:
             return int(value)
         except (TypeError, ValueError):
             return fallback
+
+    @staticmethod
+    def _perf_now() -> float:
+        try:
+            return datetime.datetime.utcnow().timestamp()
+        except Exception:
+            return 0.0
 
     def _load_ctrlpp_config(self, path: str) -> Dict:
         try:
@@ -347,6 +356,75 @@ class CtrlppWrapper:
 
             return binary, ""
 
+    def _set_install_retry_block(self, reason: str, seconds: int = 30):
+        now = self._perf_now()
+        self._install_retry_block_until = now + max(1, int(seconds or 1))
+        self._install_retry_block_reason = str(reason or "").strip()
+
+    def _clear_install_retry_block(self):
+        self._install_retry_block_until = 0.0
+        self._install_retry_block_reason = ""
+
+    def _is_install_retry_blocked(self) -> bool:
+        return self._perf_now() < float(self._install_retry_block_until or 0.0)
+
+    def prepare_for_analysis(self, enabled: bool, selected_files: List[str]) -> Dict[str, object]:
+        """Best-effort preflight for CtrlppCheck before analysis begins."""
+        result: Dict[str, object] = {
+            "attempted": False,
+            "ready": False,
+            "binary_path": "",
+            "message": "",
+            "error_code": "",
+        }
+        if not bool(enabled):
+            result["message"] = "CtrlppCheck preflight skipped: disabled"
+            return result
+
+        has_ctl_target = any(str(item or "").lower().endswith(".ctl") for item in (selected_files or []))
+        if not has_ctl_target:
+            result["message"] = "CtrlppCheck preflight skipped: no .ctl target"
+            return result
+
+        existing = self._find_binary()
+        if existing:
+            result["ready"] = True
+            result["binary_path"] = existing
+            result["message"] = "CtrlppCheck preflight ready: existing binary found"
+            self._clear_install_retry_block()
+            return result
+
+        if not self.auto_install_on_missing:
+            msg = "CtrlppCheck binary not found (auto_install_on_missing=false)"
+            result["message"] = msg
+            result["error_code"] = "CTRLPPCHECK_NOT_FOUND"
+            self._set_install_retry_block(msg)
+            return result
+
+        result["attempted"] = True
+        try:
+            binary, install_error = self.ensure_installed()
+        except Exception as exc:
+            binary, install_error = "", f"CtrlppCheck install failed: {exc}"
+
+        if binary:
+            result["ready"] = True
+            result["binary_path"] = binary
+            result["message"] = "CtrlppCheck preflight ready: installed"
+            self._clear_install_retry_block()
+            return result
+
+        lowered = str(install_error or "").lower()
+        if "download failed" in lowered:
+            result["error_code"] = "CTRLPPCHECK_INSTALL_FAILED"
+        elif "install failed" in lowered:
+            result["error_code"] = "CTRLPPCHECK_INSTALL_FAILED"
+        else:
+            result["error_code"] = "CTRLPPCHECK_NOT_FOUND"
+        result["message"] = str(install_error or "CtrlppCheck binary not found")
+        self._set_install_retry_block(result["message"])
+        return result
+
     def _build_command(self, binary: str, file_path: str) -> List[str]:
         cmd = [
             binary,
@@ -472,7 +550,7 @@ class CtrlppWrapper:
         else:
             binary = self._find_binary(binary_path=None)
 
-        if not binary and self.auto_install_on_missing:
+        if not binary and self.auto_install_on_missing and not self._is_install_retry_blocked():
             try:
                 if explicit_binary_override:
                     original_find_binary = self._find_binary
@@ -486,6 +564,7 @@ class CtrlppWrapper:
             except Exception as exc:
                 install_error = f"CtrlppCheck install failed: {exc}"
             if not binary and install_error:
+                self._set_install_retry_block(install_error)
                 return [
                     self._build_info_violation(
                         install_error,
@@ -493,6 +572,15 @@ class CtrlppWrapper:
                         violation_type="warning",
                     )
                 ]
+        elif not binary and self.auto_install_on_missing and self._is_install_retry_blocked():
+            reason = self._install_retry_block_reason or "CtrlppCheck install retry temporarily suppressed"
+            return [
+                self._build_info_violation(
+                    reason,
+                    file_path=file_path,
+                    violation_type="warning",
+                )
+            ]
         if not binary:
             return [
                 self._build_info_violation(

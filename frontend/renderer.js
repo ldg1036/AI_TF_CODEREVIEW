@@ -21,11 +21,17 @@ const codeViewer = document.getElementById("code-viewer");
 
 const resultTableWrap = document.querySelector(".result-table");
 const resultBody = document.getElementById("result-body");
+const inspectorTabDetail = document.getElementById("inspector-tab-detail");
+const inspectorTabAi = document.getElementById("inspector-tab-ai");
+const violationDetailPanel = document.getElementById("violation-detail-panel");
+const aiPanelWrap = document.getElementById("ai-panel-wrap");
 const violationDetail = document.getElementById("violation-detail");
 const aiCard = document.getElementById("ai-suggestion-card");
 const aiText = document.getElementById("ai-text");
 const aiReviewToggleBtn = document.getElementById("btn-ai-review-toggle");
 const aiTextFull = document.getElementById("ai-text-full");
+const btnAiMore = document.getElementById("btn-ai-more");
+const aiMoreActions = document.getElementById("ai-more-actions");
 const aiDiffPanel = document.getElementById("autofix-diff-panel");
 const aiDiffText = document.getElementById("autofix-diff-text");
 const aiComparePanel = document.getElementById("autofix-compare-panel");
@@ -45,6 +51,7 @@ const analyzeProgressMeta = document.getElementById("analyze-progress-meta");
 const liveAiToggle = document.getElementById("toggle-live-ai");
 const aiContextToggle = document.getElementById("toggle-ai-context");
 const aiContextLabel = document.getElementById("label-ai-context");
+const aiContextHelp = document.getElementById("ai-context-help");
 let currentViewerFile = "";
 let currentViewerResolvedName = "";
 let currentViewerSource = "";
@@ -53,6 +60,7 @@ let currentViewerHeaderLines = 0;
 let currentHighlightedLine = null;
 let currentHighlightedLineNear = false;
 let currentViewerLines = [];
+const functionScopeCacheByFile = new Map();
 let workspaceRowIndex = [];
 let workspaceRenderToken = 0;
 let workspaceFilteredRows = [];
@@ -66,6 +74,8 @@ let resultTableRenderQueued = false;
 const autofixProposalCache = new Map();
 const AUTOFIX_PREPARE_MODE = "compare";
 let aiReviewExpanded = false;
+let activeInspectorTab = "detail";
+let aiMoreMenuOpen = false;
 const codeViewerVirtualState = {
     headerEl: null,
     linesWrap: null,
@@ -108,6 +118,78 @@ function syncAiContextToggle() {
     }
     if (aiContextLabel) {
         aiContextLabel.style.opacity = liveEnabled ? "1" : "0.7";
+    }
+    updateAiContextHelpText();
+}
+
+function updateAiContextHelpText() {
+    if (aiContextHelp) {
+        const liveEnabled = !!(liveAiToggle && liveAiToggle.checked);
+        const withContext = liveEnabled && !!(aiContextToggle && aiContextToggle.checked);
+        if (!liveEnabled) {
+            aiContextHelp.textContent = "Live AI를 켜야 MCP 문맥을 사용할 수 있습니다.";
+            return;
+        }
+        if (!withContext) {
+            aiContextHelp.textContent = "현재는 MCP 문맥 없이 Live AI만 사용합니다.";
+            return;
+        }
+
+        const timings = (analysisData && analysisData.metrics && analysisData.metrics.timings_ms) || {};
+        const mcpMs = Number(timings.mcp_context);
+        if (Number.isFinite(mcpMs) && mcpMs >= 0) {
+            aiContextHelp.textContent = `MCP 문맥 요청을 시도했습니다 (${Math.round(mcpMs)}ms). 실패 시 자동으로 생략됩니다.`;
+        } else {
+            aiContextHelp.textContent = "분석 시 MCP 문맥을 요청합니다. MCP 서버가 없거나 실패하면 자동으로 생략됩니다.";
+        }
+    }
+}
+
+function setInspectorTab(tabName, hasAiSuggestion = false) {
+    const normalized = tabName === "ai" ? "ai" : "detail";
+    activeInspectorTab = normalized;
+
+    if (inspectorTabDetail) {
+        const active = normalized === "detail";
+        inspectorTabDetail.classList.toggle("active", active);
+        inspectorTabDetail.setAttribute("aria-selected", active ? "true" : "false");
+    }
+
+    if (inspectorTabAi) {
+        const aiEnabled = !!hasAiSuggestion;
+        inspectorTabAi.disabled = !aiEnabled;
+        inspectorTabAi.classList.toggle("disabled", !aiEnabled);
+        const active = normalized === "ai" && aiEnabled;
+        inspectorTabAi.classList.toggle("active", active);
+        inspectorTabAi.setAttribute("aria-selected", active ? "true" : "false");
+    }
+
+    if (violationDetailPanel) {
+        violationDetailPanel.classList.toggle("active", normalized === "detail");
+    }
+    if (aiPanelWrap) {
+        aiPanelWrap.classList.toggle("active", normalized === "ai");
+    }
+}
+
+function resetInspectorTabsForViolation({ hasAiSuggestion = false, preferAi = false } = {}) {
+    if (!hasAiSuggestion) {
+        aiMoreMenuOpen = false;
+        if (aiMoreActions) {
+            aiMoreActions.style.display = "none";
+        }
+        setInspectorTab("detail", false);
+        return;
+    }
+    setInspectorTab(preferAi ? "ai" : "detail", true);
+}
+
+function syncAiMoreMenuUi() {
+    if (!aiMoreActions) return;
+    const show = !!aiMoreMenuOpen;
+    aiMoreActions.style.display = show ? "grid" : "none";
+    if (btnAiMore) {
+        btnAiMore.textContent = show ? "접기" : "더보기";
     }
 }
 
@@ -299,6 +381,153 @@ function currentViewerLineCount() {
     return String(currentViewerContent).split("\n").length;
 }
 
+function countChar(text, ch) {
+    let count = 0;
+    const s = String(text || "");
+    for (let i = 0; i < s.length; i += 1) {
+        if (s[i] === ch) count += 1;
+    }
+    return count;
+}
+
+function isLikelyFunctionKeyword(name) {
+    const lowered = String(name || "").toLowerCase();
+    return lowered === "if"
+        || lowered === "for"
+        || lowered === "while"
+        || lowered === "switch"
+        || lowered === "catch"
+        || lowered === "return";
+}
+
+function buildFunctionScopes(lines) {
+    const src = Array.isArray(lines) ? lines : [];
+    const scopes = [];
+    const fnHeaderRe = /^\s*(?:[A-Za-z_]\w*\s+)*([A-Za-z_]\w*)\s*\([^;{}]*\)\s*\{?\s*$/;
+
+    for (let i = 0; i < src.length; i += 1) {
+        const raw = String(src[i] || "");
+        const trimmed = raw.trim();
+        if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
+
+        const m = trimmed.match(fnHeaderRe);
+        if (!m) continue;
+        const fnName = String(m[1] || "").trim();
+        if (!fnName || isLikelyFunctionKeyword(fnName)) continue;
+
+        let openLineIdx = -1;
+        if (trimmed.includes("{")) {
+            openLineIdx = i;
+        } else {
+            for (let j = i + 1; j < Math.min(src.length, i + 4); j += 1) {
+                const t = String(src[j] || "").trim();
+                if (!t) continue;
+                if (t.startsWith("{")) {
+                    openLineIdx = j;
+                }
+                break;
+            }
+        }
+        if (openLineIdx < 0) continue;
+
+        let depth = 0;
+        let endLineIdx = -1;
+        for (let k = openLineIdx; k < src.length; k += 1) {
+            const lineText = String(src[k] || "");
+            depth += countChar(lineText, "{");
+            depth -= countChar(lineText, "}");
+            if (depth <= 0 && k >= openLineIdx) {
+                endLineIdx = k;
+                break;
+            }
+        }
+        if (endLineIdx < openLineIdx) continue;
+
+        scopes.push({
+            name: fnName,
+            start: i + 1,
+            end: endLineIdx + 1,
+        });
+        i = Math.max(i, endLineIdx);
+    }
+
+    return scopes;
+}
+
+function findScopeForLine(scopes, lineNo) {
+    const targetLine = positiveLineOrZero(lineNo);
+    if (targetLine <= 0 || !Array.isArray(scopes) || scopes.length === 0) return null;
+    let picked = null;
+    for (const s of scopes) {
+        const start = positiveLineOrZero(s && s.start);
+        const end = positiveLineOrZero(s && s.end);
+        if (start <= 0 || end <= 0) continue;
+        if (targetLine >= start && targetLine <= end) {
+            if (!picked || ((end - start) < (picked.end - picked.start))) {
+                picked = { name: String((s && s.name) || "Global"), start, end };
+            }
+        }
+    }
+    return picked;
+}
+
+function cacheFunctionScopesForFile(fileName, content) {
+    const key = basenamePath(fileName);
+    if (!key) return;
+    const scopes = buildFunctionScopes(String(content || "").split("\n"));
+    functionScopeCacheByFile.set(key, scopes);
+}
+
+function getFunctionScopeFor(fileName, lineNo) {
+    const key = basenamePath(fileName);
+    if (!key) return null;
+    return findScopeForLine(functionScopeCacheByFile.get(key) || [], lineNo);
+}
+
+function resolveFunctionScopeForViolation(fileName, lineNo) {
+    const scope = getFunctionScopeFor(fileName, lineNo);
+    if (!scope) return { name: "Global", start: 0, end: 0 };
+    return scope;
+}
+
+async function fetchFileContentPayload(fileName, options = {}) {
+    if (!fileName) throw new Error("file name is required");
+    const preferSource = !!(options && options.preferSource);
+    const qs = new URLSearchParams({ name: String(fileName) });
+    if (preferSource) {
+        qs.set("prefer_source", "true");
+    }
+    const response = await fetch(`/api/file-content?${qs.toString()}`);
+    const payload = await response.json();
+    if (!response.ok) {
+        throw new Error(payload.error || "파일 내용을 불러오지 못했습니다.");
+    }
+    return payload;
+}
+
+async function prepareFunctionScopeCacheForSelectedFiles(selectedFiles) {
+    functionScopeCacheByFile.clear();
+    const files = Array.isArray(selectedFiles)
+        ? selectedFiles.map((name) => basenamePath(name)).filter((name) => !!name)
+        : [];
+    if (files.length === 0) return;
+
+    const batchSize = 4;
+    for (let i = 0; i < files.length; i += batchSize) {
+        const batch = files.slice(i, i + batchSize);
+        // Fail-soft: best-effort cache population. Missing files remain unresolved.
+        // eslint-disable-next-line no-await-in-loop
+        await Promise.all(batch.map(async (fileName) => {
+            try {
+                const payload = await fetchFileContentPayload(fileName, { preferSource: true });
+                cacheFunctionScopesForFile(fileName, String(payload.content || ""));
+            } catch (_) {
+                // unresolved scope fallback
+            }
+        }));
+    }
+}
+
 function ensureAiStatusNode() {
     let node = document.getElementById("ai-status-inline");
     if (!node && aiCard) {
@@ -388,7 +617,7 @@ function formatAutofixValidationSummary(resultPayload) {
 
 function buildAiReviewSummary(reviewText) {
     const raw = String(reviewText || "");
-    if (!raw.trim()) return "AI 媛쒖꽑 ?쒖븞";
+    if (!raw.trim()) return "AI 개선 제안";
     const noCodeBlock = raw.replace(/```[\s\S]*?```/g, " ").replace(/`([^`]+)`/g, "$1");
     const cleaned = noCodeBlock
         .split(/\r?\n/)
@@ -397,9 +626,9 @@ function buildAiReviewSummary(reviewText) {
         .join(" ");
     const sentence = cleaned.split(/(?<=[.!?])\s+/)[0] || cleaned;
     const compact = sentence.replace(/\s+/g, " ").trim();
-    if (!compact) return "AI 媛쒖꽑 ?쒖븞";
-    if (compact.length <= 120) return compact;
-    return `${compact.slice(0, 117)}...`;
+    if (!compact) return "AI 개선 제안";
+    if (compact.length <= 200) return compact;
+    return `${compact.slice(0, 197)}...`;
 }
 
 function setAiReviewText(reviewText) {
@@ -413,7 +642,7 @@ function setAiReviewText(reviewText) {
     }
     if (aiReviewToggleBtn) {
         aiReviewToggleBtn.style.display = full ? "inline-block" : "none";
-        aiReviewToggleBtn.textContent = aiReviewExpanded ? "?묎린" : "?먯꽭??蹂닿린";
+        aiReviewToggleBtn.textContent = aiReviewExpanded ? "접기" : "자세히 보기";
     }
 }
 
@@ -451,16 +680,16 @@ function updateExcelJobUiFromAnalysis() {
     const hasSession = !!(analysisData && analysisData.output_dir);
     if (flushExcelBtn) {
         flushExcelBtn.disabled = !hasSession || total === 0;
-        flushExcelBtn.textContent = (pending > 0 || running > 0) ? "Excel ?앹꽦 ?꾨즺" : "Excel ?곹깭 ?뺤씤";
+        flushExcelBtn.textContent = (pending > 0 || running > 0) ? "Excel 생성 완료" : "Excel 상태 확인";
     }
     if (!hasSession || total === 0) {
         setExcelJobStatus("");
         return;
     }
     const statusParts = [`Excel ${completed}/${total}`];
-    if (pending > 0) statusParts.push(`?湲?${pending}`);
-    if (running > 0) statusParts.push(`?ㅽ뻾 ${running}`);
-    if (failed > 0) statusParts.push(`?ㅽ뙣 ${failed}`);
+    if (pending > 0) statusParts.push(`대기 ${pending}`);
+    if (running > 0) statusParts.push(`실행 ${running}`);
+    if (failed > 0) statusParts.push(`실패 ${failed}`);
     const color = failed > 0 ? "#ffcdd2" : (pending > 0 || running > 0) ? "#fff59d" : "#c8e6c9";
     setExcelJobStatus(statusParts.join(" | "), color);
 }
@@ -476,36 +705,48 @@ function makeAiCardKey(violation, eventName, aiMatch) {
 function jumpFailureMessage(jumpResult) {
     if (!jumpResult || jumpResult.ok) return "";
     const reason = String(jumpResult.reason || "");
+    if (reason === "no-locatable-position") {
+        return "이 항목은 위치 정보(line/file)가 없어 줄 이동을 수행하지 않습니다.";
+    }
+    if (reason === "load-source-failed") {
+        return "P2는 원본 .ctl 기준이라 source 로드 실패 시 줄 이동을 중단했습니다.";
+    }
+    if (reason === "source-not-found") {
+        return "대상 .ctl source 파일을 찾지 못해 줄 이동을 수행할 수 없습니다.";
+    }
+    if (reason === "invalid-target-file") {
+        return "P2 항목의 대상 파일이 .ctl 형식이 아니어서 위치 이동을 수행하지 않았습니다.";
+    }
     if (reason === "cross-file") {
-        return "?꾩옱 ?쒖떆 ?뚯씪怨??좏깮???댁뒋 ?뚯씪???щ씪 ?꾩튂 ?대룞???섑뻾?섏? ?딆븯?듬땲??";
+        return "현재 표시 파일과 선택한 이슈 파일이 달라 위치 이동을 수행하지 않았습니다.";
     }
     if (reason === "load-failed") {
-        return "?좏깮???댁뒋 ?뚯씪??遺덈윭?ㅼ? 紐삵빐 ?꾩튂 ?대룞???섑뻾?섏? 紐삵뻽?듬땲??";
+        return "선택한 이슈 파일을 불러오지 못해 위치 이동을 수행하지 못했습니다.";
     }
     if (reason === "no-viewer") {
-        return "?뚯씪 ?댁슜???꾩쭅 濡쒕뱶?섏? ?딆븘 ?꾩튂 ?대룞???섑뻾?섏? 紐삵뻽?듬땲?? 醫뚯륫 ?뚯씪 紐⑸줉?먯꽌 ?뚯씪??癒쇱? ?좏깮?섏꽭??";
+        return "파일 내용을 아직 불러오지 않아 위치 이동을 수행하지 못했습니다. 왼쪽 파일 목록에서 파일을 먼저 선택하세요.";
     }
     if (reason === "no-match-reviewed") {
-        return "REVIEWED.txt 湲곗? 硫붿떆吏/?쇱씤 留ㅼ묶???ㅽ뙣?덉뒿?덈떎. (洹쇱쿂 ?섏씠?쇱씠???ы븿)";
+        return "REVIEWED.txt 기준 메시지/라인 매칭에 실패했습니다. (근접 하이라이트 포함)";
     }
-    return "?꾩옱 ?쒖떆 以묒씤 肄붾뱶酉곗뼱 湲곗??쇰줈 ?꾩튂瑜?李얠? 紐삵뻽?듬땲??";
+    return "현재 표시 중인 코드뷰어 기준으로 위치를 찾지 못했습니다.";
 }
 
 function buildCodeViewerHeader(payload) {
     if (!payload || typeof payload !== "object") return "";
     const sourceMap = {
         reviewed: "REVIEWED.txt",
-        normalized: "?뺢퇋??TXT",
-        source: "?먮낯 ?뚯씪",
+        normalized: "정규화 TXT",
+        source: "원본 파일",
     };
-    const sourceType = sourceMap[String(payload.source || "")] || String(payload.source || "?뚯씪");
+    const sourceType = sourceMap[String(payload.source || "")] || String(payload.source || "파일");
     const resolvedName = String(payload.resolved_name || payload.file || "");
-    return `// ?쒖떆 ?뚯씪: ${resolvedName} (${sourceType})`;
+    return `// 표시 파일: ${resolvedName} (${sourceType})`;
 }
 
 async function applyAiSuggestion(violation, eventName, aiMatch) {
     const fileName = basenamePath((violation && (violation.file || violation.file_name || violation.filename)) || currentViewerFile);
-    if (!fileName) throw new Error("????뚯씪???뺤씤?????놁뒿?덈떎");
+    if (!fileName) throw new Error("대상 파일을 확인할 수 없습니다.");
     const response = await fetch("/api/ai-review/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -537,7 +778,7 @@ async function applyAiSuggestion(violation, eventName, aiMatch) {
     }
 
     if (!response.ok) {
-        throw new Error(payload.error || responseText || `AI ?쒖븞 ?곸슜 ?ㅽ뙣 (${response.status})`);
+        throw new Error(payload.error || responseText || `AI 제안 적용 실패 (${response.status})`);
     }
     return payload;
 }
@@ -681,21 +922,14 @@ async function loadCodeViewer(fileName, options = {}) {
     if (!fileName) return;
     const preferSource = !!(options && options.preferSource);
     try {
-        const qs = new URLSearchParams({ name: String(fileName) });
-        if (preferSource) {
-            qs.set("prefer_source", "true");
-        }
-        const response = await fetch(`/api/file-content?${qs.toString()}`);
-        const payload = await response.json();
-        if (!response.ok) {
-            throw new Error(payload.error || "?뚯씪 ?댁슜??遺덈윭?ㅼ? 紐삵뻽?듬땲??");
-        }
+        const payload = await fetchFileContentPayload(fileName, { preferSource });
         const header = buildCodeViewerHeader(payload);
         const content = String(payload.content || "");
         currentViewerFile = String(payload.file || fileName || "");
         currentViewerResolvedName = String(payload.resolved_name || "");
         currentViewerSource = String(payload.source || "");
         currentViewerContent = content;
+        cacheFunctionScopesForFile(currentViewerFile || fileName, content);
         currentViewerHeaderLines = header ? 2 : 0;
         renderCodeViewerContent(header, content);
         return payload;
@@ -703,7 +937,7 @@ async function loadCodeViewer(fileName, options = {}) {
         currentViewerSource = "";
         currentViewerContent = "";
         currentViewerHeaderLines = 0;
-        setCodeViewerText(`// ?뚯씪 ?댁슜??遺덈윭?ㅼ? 紐삵뻽?듬땲??\n// ${String((err && err.message) || err || "")}`);
+        setCodeViewerText(`// 파일 내용을 불러오지 못했습니다.\n// ${String((err && err.message) || err || "")}`);
         throw err;
     }
 }
@@ -713,7 +947,7 @@ function updateDashboard() {
     criticalText.textContent = analysisData.summary.critical || 0;
     warningText.textContent = analysisData.summary.warning || 0;
     scoreBar.style.width = `${analysisData.summary.score || 0}%`;
-    scoreText.textContent = `?먯닔: ${analysisData.summary.score || 0}/100`;
+    scoreText.textContent = `점수: ${analysisData.summary.score || 0}/100`;
 }
 
 function initFilterControls() {
@@ -764,6 +998,13 @@ function severityFilterKey(rawSeverity) {
     return "info";
 }
 
+function pickHigherSeverity(currentSeverity, candidateSeverity) {
+    const rank = { info: 0, warning: 1, critical: 2 };
+    const currentKey = severityFilterKey(currentSeverity);
+    const candidateKey = severityFilterKey(candidateSeverity);
+    return (rank[candidateKey] || 0) > (rank[currentKey] || 0) ? candidateSeverity : currentSeverity;
+}
+
 function normalizeSeverityKeyword(rawSeverity) {
     const sev = String(rawSeverity || "").toLowerCase();
     if (["critical", "error", "fatal"].includes(sev)) return "error";
@@ -783,35 +1024,138 @@ function localizeCtrlppMessage(message) {
     if (!text) return text;
 
     let out = text;
-    out = out.replace(/^Uninitialized variable:\s*(.+)$/i, "珥덇린?붾릺吏 ?딆? 蹂?? $1");
+    out = out.replace(/^Uninitialized variable:\s*(.+)$/i, "초기화되지 않은 변수: $1");
     out = out.replace(
         /^It is potentially a safety issue to use the function\s+(.+)$/i,
-        "?⑥닔 $1 ?ъ슜? ?좎옱?곸씤 ?덉쟾???댁뒋媛 ?덉뒿?덈떎",
+        "함수 $1 사용은 잠재적인 안전성 이슈가 될 수 있습니다",
     );
     out = out.replace(
         /^It is really neccessary to use the function\s+(.+)$/i,
-        "?⑥닔 $1 ?ъ슜???뺣쭚 ?꾩슂?쒖? 寃?좏븯?몄슂",
+        "함수 $1 사용이 정말 필요한지 검토하세요",
     );
     out = out.replace(
         /^It is really necessary to use the function\s+(.+)$/i,
-        "?⑥닔 $1 ?ъ슜???뺣쭚 ?꾩슂?쒖? 寃?좏븯?몄슂",
+        "함수 $1 사용이 정말 필요한지 검토하세요",
     );
     out = out.replace(
         /^Cppcheck cannot find all the include files \(use --check-config for details\)$/i,
-        "Cppcheck媛 紐⑤뱺 include ?뚯씪??李얠? 紐삵뻽?듬땲??(?먯꽭???댁슜? --check-config ?ъ슜)",
+        "Cppcheck가 일부 include 파일을 찾지 못했습니다 (--check-config로 상세 확인)",
     );
     return out;
 }
 
+function localizeCtrlppByRuleId(ruleId, message, verbose) {
+    const id = String(ruleId || "").toLowerCase();
+    const msg = String(message || "");
+    const details = String(verbose || "");
+    const mapping = [
+        { keys: ["uninitializedvariable", "uninitvar"], text: "초기화되지 않은 변수 사용 가능성이 있습니다." },
+        { keys: ["nullpointer", "nullpointerdereference"], text: "널 포인터 접근 가능성이 있습니다." },
+        { keys: ["checklibrarynoreturn", "noreturn"], text: "반환값/예외 처리 누락 가능성이 있습니다." },
+        { keys: ["memleak", "resourceleak"], text: "메모리/자원 해제 누락 가능성이 있습니다." },
+        { keys: ["unusedfunction", "unusedvariable"], text: "미사용 코드(함수/변수)가 포함되어 있습니다." },
+        { keys: ["syntaxerror", "parseerror"], text: "문법/구문 오류 가능성이 있습니다." },
+        { keys: ["bufferaccessoutofbounds", "outofbounds"], text: "배열/버퍼 경계 초과 접근 가능성이 있습니다." },
+        { keys: ["useafterfree"], text: "해제된 자원 접근(use-after-free) 가능성이 있습니다." },
+        { keys: ["shadowvariable", "shadowedvariable"], text: "변수 그림자(shadowing)로 인한 혼동 가능성이 있습니다." },
+    ];
+    for (const entry of mapping) {
+        if (entry.keys.some((k) => id.includes(k))) return entry.text;
+    }
+    if (id === "ctrlppcheck.info") {
+        const localized = localizeCtrlppMessage(msg || details);
+        return localized || "CtrlppCheck 정보성 메시지입니다.";
+    }
+    return "";
+}
+
+function localizeCtrlppByPattern(message) {
+    const text = String(message || "").trim();
+    if (!text) return "";
+    const localized = localizeCtrlppMessage(text);
+    if (localized !== text) return localized;
+
+    const nullMatch = text.match(/null(?:\s+pointer)?\s+([A-Za-z_][A-Za-z0-9_]*)?/i);
+    if (nullMatch) {
+        const name = String(nullMatch[1] || "").trim();
+        return name ? `포인터 ${name}가 null일 수 있어 접근 시 오류 가능성이 있습니다.` : "null 포인터 접근 가능성이 있습니다.";
+    }
+    const callMatch = text.match(/function\s+([A-Za-z_][A-Za-z0-9_]*)/i);
+    if (callMatch) return `함수 ${callMatch[1]} 호출부에서 안전성/예외 처리 점검이 필요합니다.`;
+    const varMatch = text.match(/variable:\s*([A-Za-z_][A-Za-z0-9_]*)/i);
+    if (varMatch) return `변수 ${varMatch[1]} 사용 전에 초기화/유효성 검증이 필요합니다.`;
+    return "";
+}
+
+function truncateMiddle(text, maxLen = 140) {
+    const s = String(text || "").trim();
+    if (s.length <= maxLen) return s;
+    const keep = Math.max(20, Math.floor((maxLen - 3) / 2));
+    return `${s.slice(0, keep)}...${s.slice(s.length - keep)}`;
+}
+
+function buildP2LocalizedMessage(violation) {
+    const ruleId = String((violation && violation.rule_id) || "");
+    const rawMessage = String((violation && violation.message) || "").trim();
+    const verbose = String((violation && violation.verbose) || "").trim();
+    const byRule = localizeCtrlppByRuleId(ruleId, rawMessage, verbose);
+    const byPattern = localizeCtrlppByPattern(rawMessage || verbose);
+    const localizedText = byRule || byPattern || (rawMessage ? `(원문) ${truncateMiddle(rawMessage, 180)}` : "P2 점검 메시지");
+    const shortText = truncateMiddle(localizedText.replace(/^\(원문\)\s*/i, ""), 80) || "P2 점검 메시지";
+    return { shortText, localizedText, rawText: rawMessage || verbose || "" };
+}
+
+function buildP2DetailBlocks(violation) {
+    const ruleId = String((violation && violation.rule_id) || "unknown");
+    const severity = String((violation && (violation.severity || violation.type)) || "information").toLowerCase();
+    const lineNo = positiveLineOrZero(violation && violation.line);
+    const fileName = basenamePath(violation && (violation.file || violation.file_name || violation.filename));
+    const localized = buildP2LocalizedMessage(violation);
+
+    const cause = localized.localizedText || "P2 정적 분석에서 위험 신호가 감지되었습니다.";
+    const impactMap = {
+        error: "실행 중 오류 또는 안전성 문제로 이어질 가능성이 높습니다.",
+        warning: "기능 안정성/유지보수성 저하 가능성이 있습니다.",
+        performance: "성능 저하 또는 불필요한 리소스 사용이 발생할 수 있습니다.",
+        information: "즉시 오류는 아니지만 코드 품질 개선이 필요할 수 있습니다.",
+        style: "가독성/일관성 저하로 유지보수 비용이 증가할 수 있습니다.",
+        portability: "환경/버전 차이에서 동작 차이가 발생할 수 있습니다.",
+    };
+    const impact = impactMap[severity] || "코드 품질 및 안정성에 부정적 영향이 있을 수 있습니다.";
+
+    let action = "관련 코드에서 입력값 검증, 예외 처리, 반환값 확인을 추가하고 동일 패턴을 함께 점검하세요.";
+    const lowerRule = ruleId.toLowerCase();
+    if (lowerRule.includes("uninitialized")) {
+        action = "변수 선언 시 초기값을 명시하고 사용 전에 초기화 경로를 보장하세요.";
+    } else if (lowerRule.includes("null")) {
+        action = "포인터/핸들 사용 전 null 검사와 실패 분기 처리를 추가하세요.";
+    } else if (lowerRule.includes("noreturn")) {
+        action = "함수 반환값을 확인하고 실패 시 로그/복구 로직을 추가하세요.";
+    }
+
+    const evidenceParts = [];
+    if (fileName) evidenceParts.push(fileName);
+    if (lineNo > 0) evidenceParts.push(`line ${lineNo}`);
+    evidenceParts.push(`rule_id=${ruleId || "unknown"}`);
+    const evidence = evidenceParts.join(", ");
+
+    return {
+        cause: `원인: ${cause}`,
+        impact: `영향: ${impact}`,
+        action: `권장조치: ${action} (근거: ${evidence})`,
+        raw: localized.rawText ? `원문: ${truncateMiddle(localized.rawText, 180)}` : "",
+    };
+}
+
 function localizeCtrlppSeverity(severity) {
     const sev = String(severity || "").toLowerCase();
-    if (sev === "error") return "?ㅻ쪟";
-    if (sev === "information" || sev === "info") return "?뺣낫";
-    if (sev === "performance") return "?깅뒫";
-    if (sev === "warning") return "寃쎄퀬";
+    if (sev === "error") return "오류";
+    if (sev === "information" || sev === "info") return "정보";
+    if (sev === "performance") return "성능";
+    if (sev === "warning") return "경고";
     if (sev === "style") return "스타일";
     if (sev === "portability") return "이식성";
-    return severity || "?뺣낫";
+    return severity || "정보";
 }
 
 function clearCodeViewerHighlight() {
@@ -908,12 +1252,55 @@ async function jumpCodeViewerToViolation(violation) {
     const isP2 = sourceKey === "p2";
     const isP1 = sourceKey === "p1";
     const fileHint = basenamePath(violation && (violation.file || violation.file_name || violation.filename));
+    const lineNo = positiveLineOrZero(violation && violation.line);
+    const ruleId = String((violation && violation.rule_id) || "").toLowerCase();
     const currentFile = basenamePath(currentViewerFile);
+
+    if (
+        isP2
+        && (
+            ((!fileHint || !String(fileHint).trim()) && lineNo <= 0)
+            || (ruleId === "ctrlppcheck.info" && lineNo <= 0)
+        )
+    ) {
+        return { ok: false, reason: "no-locatable-position" };
+    }
+
     if (!currentViewerContent) return { ok: false, reason: "no-viewer" };
+
+    if (isP2 && fileHint && !String(fileHint).toLowerCase().endsWith(".ctl")) {
+        return { ok: false, reason: "invalid-target-file" };
+    }
+
+    const ensureP2SourceView = async () => {
+        const targetFile = fileHint || basenamePath(currentViewerFile);
+        if (!targetFile) {
+            return { ok: false, reason: "source-not-found" };
+        }
+        if (isP2 && !String(targetFile).toLowerCase().endsWith(".ctl")) {
+            return { ok: false, reason: "invalid-target-file" };
+        }
+        const shouldReload =
+            basenamePath(currentViewerFile) !== targetFile
+            || currentViewerSource === "reviewed"
+            || currentViewerSource === "normalized"
+            || currentViewerSource !== "source";
+        if (!shouldReload) return { ok: true };
+        try {
+            await loadCodeViewer(targetFile, { preferSource: true });
+        } catch (_) {
+            return { ok: false, reason: "load-source-failed" };
+        }
+        if (String(currentViewerSource || "") !== "source") {
+            return { ok: false, reason: "source-not-found" };
+        }
+        return { ok: true };
+    };
+
     if (fileHint && currentFile && fileHint !== currentFile) {
-        if (isP1) {
+        if (isP1 || isP2) {
             try {
-                await loadCodeViewer(fileHint);
+                await loadCodeViewer(fileHint, isP2 ? { preferSource: true } : {});
             } catch (_) {
                 return { ok: false, reason: "load-failed" };
             }
@@ -922,8 +1309,15 @@ async function jumpCodeViewerToViolation(violation) {
         }
     }
 
+    if (isP2) {
+        const sourceReady = await ensureP2SourceView();
+        if (!sourceReady.ok) {
+            clearCodeViewerHighlight();
+            return sourceReady;
+        }
+    }
+
     const isReviewed = currentViewerSource === "reviewed";
-    const lineNo = positiveLineOrZero(violation && violation.line);
     const tryNearLine = () => {
         if (lineNo <= 0) return false;
         const maxLine = currentViewerLineCount();
@@ -933,11 +1327,11 @@ async function jumpCodeViewerToViolation(violation) {
     };
 
     if (isP2) {
-        if (scrollCodeViewerToMessage(violation && violation.message)) {
-            return { ok: true, reason: "hit-message" };
-        }
         if (tryNearLine()) {
             return { ok: true, reason: "hit-line-near" };
+        }
+        if (scrollCodeViewerToMessage(violation && violation.message)) {
+            return { ok: true, reason: "hit-message" };
         }
         return { ok: false, reason: isReviewed ? "no-match-reviewed" : "line-miss" };
     }
@@ -1108,35 +1502,213 @@ function buildWorkspaceRowIndex() {
     const p1Groups = analysisData.violations.P1 || [];
     const p2List = analysisData.violations.P2 || [];
     const p3List = analysisData.violations.P3 || [];
+    const jumpTargetGroups = new Map();
+    const fallbackDedup = new Map();
+    const unresolvedFallbackStats = new Map();
+    const fallbackCandidates = [];
 
     p1Groups.forEach((group) => {
         (group.violations || []).forEach((v) => {
             const violation = { ...v, object: group.object };
             violation.file = violation.file || group.object;
-            nextRows.push({
-                source: v.priority_origin || "P1",
-                object: group.object,
+            const source = v.priority_origin || "P1";
+            const sourceKey = sourceFilterKey(source);
+            const fileKey = basenamePath(violation.file || group.object || "");
+            const ruleIdKey = String(violation.rule_id || "");
+            const messageKey = String(violation.message || "");
+            const lineValue = positiveLineOrZero(violation.line);
+            const fnScope = resolveFunctionScopeForViolation(violation.file || group.object || "", lineValue);
+            const fnScopeName = String((fnScope && fnScope.name) || "Global");
+            const fnScopeStart = positiveLineOrZero(fnScope && fnScope.start);
+            const fnScopeEnd = positiveLineOrZero(fnScope && fnScope.end);
+            const fnScopeResolved = !!(fnScopeStart > 0 && fnScopeEnd > 0);
+
+            const candidate = {
+                violation,
+                eventName: group.event,
+                rowObject: group.object,
                 severity: v.severity,
                 message: v.message,
-                onClick: async () => {
-                    showDetail(violation, group.event);
-                    const jumpResult = await jumpCodeViewerToViolation(violation);
-                    showDetail(violation, group.event, { jumpResult });
-                },
-            });
+                source,
+                sourceKey,
+                fileKey,
+                ruleIdKey,
+                messageKey,
+                lineValue,
+                fnScopeName,
+                fnScopeStart,
+                fnScopeEnd,
+                fnScopeResolved,
+            };
+
+            if (lineValue > 0) {
+                const jumpKey = [sourceKey, fileKey, lineValue].join("||");
+                const existingJump = jumpTargetGroups.get(jumpKey);
+                if (existingJump) {
+                    existingJump.count += 1;
+                    existingJump.lines.push(lineValue);
+                    if (ruleIdKey && !existingJump.ruleIds.includes(ruleIdKey)) existingJump.ruleIds.push(ruleIdKey);
+                    if (messageKey && !existingJump.messages.includes(messageKey)) existingJump.messages.push(messageKey);
+                    const issueId = String(violation.issue_id || "");
+                    if (issueId && !existingJump.issueIds.includes(issueId)) existingJump.issueIds.push(issueId);
+                    existingJump.severity = pickHigherSeverity(existingJump.severity, candidate.severity);
+                    return;
+                }
+                jumpTargetGroups.set(jumpKey, {
+                    count: 1,
+                    lines: [lineValue],
+                    primaryLine: lineValue,
+                    representativeViolation: candidate.violation,
+                    eventName: candidate.eventName,
+                    rowObject: candidate.rowObject,
+                    severity: candidate.severity,
+                    message: candidate.message,
+                    source: candidate.source,
+                    fileKey: candidate.fileKey,
+                    ruleIds: ruleIdKey ? [ruleIdKey] : [],
+                    messages: messageKey ? [messageKey] : [],
+                    issueIds: String(violation.issue_id || "") ? [String(violation.issue_id || "")] : [],
+                });
+                return;
+            }
+
+            fallbackCandidates.push(candidate);
+            if (!fnScopeResolved) {
+                const statKey = [sourceKey, fileKey, ruleIdKey, messageKey].join("||");
+                const stat = unresolvedFallbackStats.get(statKey);
+                if (!stat) {
+                    unresolvedFallbackStats.set(statKey, { count: 1, minLine: 0, maxLine: 0 });
+                } else {
+                    stat.count += 1;
+                }
+            }
+        });
+    });
+
+    jumpTargetGroups.forEach((entry) => {
+        const uniqueLines = Array.from(new Set((entry.lines || []).map((line) => positiveLineOrZero(line)).filter((line) => line > 0))).sort((a, b) => a - b);
+        const primaryLine = positiveLineOrZero(entry.primaryLine) || uniqueLines[0] || 0;
+        const violationWithCount = {
+            ...entry.representativeViolation,
+            _duplicate_count: entry.count,
+            _duplicate_lines: uniqueLines,
+            _primary_line: primaryLine,
+            _function_scope_name: "line-target",
+            _function_scope_start: 0,
+            _function_scope_end: 0,
+            _function_scope_resolved: false,
+            _dedup_mode: "jump_target",
+            _grouping_mode: "jump_target",
+            _group_rule_ids: Array.isArray(entry.ruleIds) ? entry.ruleIds : [],
+            _group_messages: Array.isArray(entry.messages) ? entry.messages : [],
+            _group_issue_ids: Array.isArray(entry.issueIds) ? entry.issueIds : [],
+        };
+        if (primaryLine > 0) {
+            violationWithCount.line = primaryLine;
+        }
+        nextRows.push({
+            source: entry.source || "P1",
+            object: entry.rowObject || violationWithCount.object || "Global",
+            severity: entry.severity,
+            message: entry.message,
+            onClick: async () => {
+                showDetail(violationWithCount, entry.eventName);
+                const jumpResult = await jumpCodeViewerToViolation(violationWithCount);
+                showDetail(violationWithCount, entry.eventName, { jumpResult });
+            },
+        });
+    });
+
+    fallbackCandidates.forEach((item) => {
+        const fnScopeRange = item.fnScopeResolved ? `${item.fnScopeStart}-${item.fnScopeEnd}` : "unresolved";
+        const dedupMode = item.fnScopeResolved ? "strong" : "none";
+        const dedupKey = dedupMode === "strong"
+            ? [item.sourceKey, item.fileKey, item.fnScopeName, fnScopeRange, item.ruleIdKey, item.messageKey].join("||")
+            : [item.sourceKey, item.fileKey, "scope:unresolved:none", item.ruleIdKey, item.messageKey, `${item.lineValue || 0}:${String(item.violation.issue_id || "") || "no-issue-id"}`].join("||");
+
+        const existing = fallbackDedup.get(dedupKey);
+        if (existing) {
+            existing.count += 1;
+            if (item.lineValue > 0) existing.lines.push(item.lineValue);
+            return;
+        }
+
+        fallbackDedup.set(dedupKey, {
+            count: 1,
+            lines: item.lineValue > 0 ? [item.lineValue] : [],
+            primaryLine: item.lineValue > 0 ? item.lineValue : 0,
+            functionScopeName: item.fnScopeName,
+            functionScopeStart: item.fnScopeStart,
+            functionScopeEnd: item.fnScopeEnd,
+            functionScopeResolved: item.fnScopeResolved,
+            dedupMode,
+            representativeViolation: item.violation,
+            eventName: item.eventName,
+            rowObject: item.rowObject,
+            severity: item.severity,
+            message: item.message,
+            source: item.source,
+        });
+    });
+
+    fallbackDedup.forEach((entry) => {
+        const uniqueLines = Array.from(
+            new Set((Array.isArray(entry.lines) ? entry.lines : []).map((line) => positiveLineOrZero(line)).filter((line) => line > 0)),
+        ).sort((a, b) => a - b);
+        const primaryLine = positiveLineOrZero(entry.primaryLine) || uniqueLines[0] || 0;
+        const violationWithCount = {
+            ...entry.representativeViolation,
+            _duplicate_count: entry.count,
+            _duplicate_lines: uniqueLines,
+            _primary_line: primaryLine,
+            _function_scope_name: entry.functionScopeName || "Global",
+            _function_scope_start: positiveLineOrZero(entry.functionScopeStart),
+            _function_scope_end: positiveLineOrZero(entry.functionScopeEnd),
+            _function_scope_resolved: !!entry.functionScopeResolved,
+            _dedup_mode: String(entry.dedupMode || "none"),
+            _grouping_mode: String(entry.dedupMode || "none"),
+            _group_rule_ids: entry.representativeViolation && entry.representativeViolation.rule_id ? [String(entry.representativeViolation.rule_id)] : [],
+            _group_messages: entry.representativeViolation && entry.representativeViolation.message ? [String(entry.representativeViolation.message)] : [],
+            _group_issue_ids: entry.representativeViolation && entry.representativeViolation.issue_id ? [String(entry.representativeViolation.issue_id)] : [],
+        };
+        if (primaryLine > 0) {
+            violationWithCount.line = primaryLine;
+        }
+        nextRows.push({
+            source: entry.source || "P1",
+            object: entry.rowObject || violationWithCount.object || "Global",
+            severity: entry.severity,
+            message: entry.message,
+            onClick: async () => {
+                showDetail(violationWithCount, entry.eventName);
+                const jumpResult = await jumpCodeViewerToViolation(violationWithCount);
+                showDetail(violationWithCount, entry.eventName, { jumpResult });
+            },
         });
     });
 
     p2List.forEach((v) => {
+        const objectName = String(v.object || "Global");
+        const fileFromPayload = basenamePath(v.file || v.file_name || v.filename);
+        const fileFromObject = /\.ctl$/i.test(objectName) ? basenamePath(objectName) : "";
+        const fileHint = fileFromPayload || fileFromObject;
+        const displayObject = fileHint || objectName || "Global";
+        const p2Violation = {
+            ...v,
+            object: displayObject,
+            file: fileHint || "",
+            priority_origin: v.priority_origin || "P2",
+        };
+        const p2Localized = buildP2LocalizedMessage(p2Violation);
         nextRows.push({
-            source: v.priority_origin || "P2",
-            object: v.object || "Global",
-            severity: v.severity || v.type || "Info",
-            message: localizeCtrlppMessage(v.message || ""),
+            source: p2Violation.priority_origin || "P2",
+            object: p2Violation.object || "Global",
+            severity: p2Violation.severity || p2Violation.type || "Info",
+            message: p2Localized.shortText,
             onClick: async () => {
-                showDetail(v, "Global");
-                const jumpResult = await jumpCodeViewerToViolation(v);
-                showDetail(v, "Global", { jumpResult });
+                showDetail(p2Violation, "Global");
+                const jumpResult = await jumpCodeViewerToViolation(p2Violation);
+                showDetail(p2Violation, "Global", { jumpResult });
             },
         });
     });
@@ -1171,10 +1743,11 @@ function buildWorkspaceRowIndex() {
 
 function showDetail(violation, eventName, options = {}) {
     violationDetail.replaceChildren();
+    const detailSourceKey = sourceFilterKey(violation.priority_origin || "P1");
     const detailRows = [
-        ["?댁뒋 ID", violation.issue_id || "N/A"],
-        ["?곗꽑?쒖쐞 異쒖쿂", violation.priority_origin || "N/A"],
-        ["媛앹껜", violation.object || "N/A"],
+        ["이슈 ID", violation.issue_id || "N/A"],
+        ["우선순위 출처", violation.priority_origin || "N/A"],
+        ["객체", violation.object || "N/A"],
         ["이벤트", eventName || "Global"],
     ];
     detailRows.forEach(([label, value]) => {
@@ -1186,15 +1759,137 @@ function showDetail(violation, eventName, options = {}) {
         violationDetail.appendChild(p);
     });
     violationDetail.appendChild(document.createElement("hr"));
-    const desc = document.createElement("p");
-    const descLabel = document.createElement("strong");
-    descLabel.textContent = "?ㅻ챸:";
-    desc.appendChild(descLabel);
-    const detailMessage = sourceFilterKey(violation.priority_origin || "P1") === "p2"
-        ? localizeCtrlppMessage(violation.message || "")
-        : (violation.message || "");
-    desc.append(` ${detailMessage}`);
-    violationDetail.appendChild(desc);
+    const duplicateCount = Math.max(1, Number.parseInt(violation._duplicate_count, 10) || 1);
+      if (detailSourceKey === "p1" && duplicateCount > 1) {
+          const duplicateLines = Array.from(
+              new Set(
+                  (Array.isArray(violation._duplicate_lines) ? violation._duplicate_lines : [])
+                    .map((line) => positiveLineOrZero(line))
+                    .filter((line) => line > 0),
+            ),
+        ).sort((a, b) => a - b);
+        const primaryLine = positiveLineOrZero(violation._primary_line || violation.line);
+        const dup = document.createElement("p");
+        dup.style.marginTop = "4px";
+        dup.style.fontSize = "12px";
+        dup.style.color = "#666";
+          dup.textContent = `중복 검출: ${duplicateCount}건`;
+          violationDetail.appendChild(dup);
+
+          const groupingMode = String(violation._grouping_mode || violation._dedup_mode || "none");
+          if (groupingMode === "jump_target") {
+              const target = document.createElement("p");
+              target.style.marginTop = "2px";
+              target.style.fontSize = "12px";
+              target.style.color = "#666";
+              const targetFile = basenamePath(violation.file || violation.object || "");
+              target.textContent = `이동 타깃 기준 묶음: ${targetFile || "N/A"}:${primaryLine > 0 ? primaryLine : "N/A"}`;
+              violationDetail.appendChild(target);
+
+              const groupedRules = Array.from(
+                  new Set(
+                      (Array.isArray(violation._group_rule_ids) ? violation._group_rule_ids : [])
+                          .map((value) => String(value || "").trim())
+                          .filter(Boolean),
+                  ),
+              );
+              if (groupedRules.length > 0) {
+                  const ruleLimit = 8;
+                  const rulePreview = groupedRules.slice(0, ruleLimit);
+                  const ruleSuffix = groupedRules.length > ruleLimit
+                      ? ` ... (+${groupedRules.length - ruleLimit}개)`
+                      : "";
+                  const ruleInfo = document.createElement("p");
+                  ruleInfo.style.marginTop = "2px";
+                  ruleInfo.style.fontSize = "12px";
+                  ruleInfo.style.color = "#666";
+                  ruleInfo.textContent = `포함 규칙: ${rulePreview.join(", ")}${ruleSuffix}`;
+                  violationDetail.appendChild(ruleInfo);
+              }
+
+              const groupedMessages = Array.from(
+                  new Set(
+                      (Array.isArray(violation._group_messages) ? violation._group_messages : [])
+                          .map((value) => String(value || "").trim())
+                          .filter(Boolean),
+                  ),
+              );
+              if (groupedMessages.length > 1) {
+                  const msgInfo = document.createElement("p");
+                  msgInfo.style.marginTop = "2px";
+                  msgInfo.style.fontSize = "12px";
+                  msgInfo.style.color = "#666";
+                  msgInfo.textContent = `추가 메시지: ${groupedMessages.length - 1}건`;
+                  violationDetail.appendChild(msgInfo);
+              }
+          }
+
+          const functionScopeName = String(violation._function_scope_name || "Global");
+          const functionScopeStart = positiveLineOrZero(violation._function_scope_start);
+          const functionScopeEnd = positiveLineOrZero(violation._function_scope_end);
+        const fn = document.createElement("p");
+        fn.style.marginTop = "2px";
+        fn.style.fontSize = "12px";
+        fn.style.color = "#666";
+        if (functionScopeStart > 0 && functionScopeEnd > 0) {
+            fn.textContent = `함수: ${functionScopeName} (line ${functionScopeStart}~${functionScopeEnd})`;
+        } else {
+            fn.textContent = `함수: ${functionScopeName}`;
+        }
+        violationDetail.appendChild(fn);
+
+          const primary = document.createElement("p");
+        primary.style.marginTop = "2px";
+        primary.style.fontSize = "12px";
+        primary.style.color = "#666";
+        primary.textContent = `대표 라인: ${primaryLine > 0 ? primaryLine : "N/A"}`;
+        violationDetail.appendChild(primary);
+
+        if (duplicateLines.length > 0) {
+            const previewLimit = 12;
+            const previewLines = duplicateLines.slice(0, previewLimit);
+            const suffix = duplicateLines.length > previewLimit
+                ? ` ... (+${duplicateLines.length - previewLimit}건)`
+                : "";
+            const lines = document.createElement("p");
+            lines.style.marginTop = "2px";
+            lines.style.fontSize = "12px";
+            lines.style.color = "#666";
+            lines.textContent = `검출 라인: ${previewLines.join(", ")}${suffix}`;
+            violationDetail.appendChild(lines);
+        }
+    }
+    const isP2 = detailSourceKey === "p2";
+    if (isP2) {
+        const title = document.createElement("p");
+        const titleStrong = document.createElement("strong");
+        titleStrong.textContent = "설명:";
+        title.appendChild(titleStrong);
+        violationDetail.appendChild(title);
+
+        const blocks = buildP2DetailBlocks(violation);
+        [blocks.cause, blocks.impact, blocks.action].forEach((line) => {
+            const p = document.createElement("p");
+            p.style.marginTop = "4px";
+            p.textContent = line;
+            violationDetail.appendChild(p);
+        });
+        if (blocks.raw) {
+            const raw = document.createElement("p");
+            raw.style.marginTop = "6px";
+            raw.style.fontSize = "12px";
+            raw.style.color = "#666";
+            raw.textContent = blocks.raw;
+            violationDetail.appendChild(raw);
+        }
+    } else {
+        const desc = document.createElement("p");
+        const descLabel = document.createElement("strong");
+        descLabel.textContent = "설명:";
+        desc.appendChild(descLabel);
+        desc.append(` ${violation.message || ""}`);
+        violationDetail.appendChild(desc);
+    }
 
     const jumpMsg = jumpFailureMessage(options && options.jumpResult);
     if (jumpMsg) {
@@ -1215,7 +1910,12 @@ function showDetail(violation, eventName, options = {}) {
             && String(r.event || "Global") === String(eventName || "Global");
     });
     const aiStatus = String((aiMatch && aiMatch.status) || "Pending");
-    if (aiMatch && aiStatus !== "Ignored") {
+    const hasAiSuggestion = !!(aiMatch && aiStatus !== "Ignored");
+    const sourceKey = sourceFilterKey(violation.priority_origin || "P1");
+    const preferAiTab = sourceKey === "p3";
+    resetInspectorTabsForViolation({ hasAiSuggestion, preferAi: preferAiTab });
+
+    if (hasAiSuggestion) {
         aiCard.style.display = "block";
         aiReviewExpanded = false;
         setAiReviewText(aiMatch.review);
@@ -1223,6 +1923,7 @@ function showDetail(violation, eventName, options = {}) {
         const btnAiDiff = document.getElementById("btn-ai-diff");
         const btnAiSourceApply = document.getElementById("btn-ai-source-apply");
         const btnAiIgnore = document.getElementById("btn-ai-ignore");
+        const btnAiMoreLocal = document.getElementById("btn-ai-more");
         const aiKey = makeAiCardKey(violation, eventName, aiMatch);
         const cachedAutofixBundle = autofixProposalCache.get(aiKey) || null;
         const cachedAutofixProposal = getActiveAutofixProposal(cachedAutofixBundle);
@@ -1243,6 +1944,8 @@ function showDetail(violation, eventName, options = {}) {
             });
         };
         aiCard.dataset.aiKey = aiKey;
+        aiMoreMenuOpen = false;
+        syncAiMoreMenuUi();
         setAiStatusInline("");
         setAutofixDiffPanel(cachedAutofixProposal ? cachedAutofixProposal.unified_diff : "");
         refreshComparePanel(aiKey);
@@ -1271,6 +1974,14 @@ function showDetail(violation, eventName, options = {}) {
             btnAiIgnore.disabled = false;
             btnAiIgnore.style.display = "inline-block";
         }
+        if (btnAiMoreLocal) {
+            btnAiMoreLocal.onclick = () => {
+                aiMoreMenuOpen = !aiMoreMenuOpen;
+                syncAiMoreMenuUi();
+            };
+            btnAiMoreLocal.disabled = false;
+            btnAiMoreLocal.style.opacity = "1";
+        }
 
         if (aiStatus === "Accepted") {
             if (btnAiAccept) {
@@ -1288,6 +1999,10 @@ function showDetail(violation, eventName, options = {}) {
             }
             if (btnAiIgnore) {
                 btnAiIgnore.disabled = true;
+            }
+            if (btnAiMoreLocal) {
+                btnAiMoreLocal.disabled = true;
+                btnAiMoreLocal.style.opacity = "0.8";
             }
             setAiStatusInline("Applied", "#2e7d32");
             setAutofixValidationPanel(
@@ -1472,6 +2187,9 @@ function showDetail(violation, eventName, options = {}) {
             btnAiIgnore.onclick = () => {
                 aiMatch.status = "Ignored";
                 aiCard.style.display = "none";
+                aiMoreMenuOpen = false;
+                syncAiMoreMenuUi();
+                setInspectorTab("detail", false);
                 setAiStatusInline("");
                 setAutofixDiffPanel("");
                 setAutofixValidationPanel("");
@@ -1480,6 +2198,8 @@ function showDetail(violation, eventName, options = {}) {
     } else {
         aiCard.style.display = "none";
         aiReviewExpanded = false;
+        aiMoreMenuOpen = false;
+        syncAiMoreMenuUi();
         setAiReviewText("");
         setAiStatusInline("");
         setAutofixDiffPanel("");
@@ -1510,7 +2230,7 @@ function renderFileList(files) {
     chkAll.id = "chk-all";
     chkAll.checked = true;
     const chkAllLabel = document.createElement("strong");
-    chkAllLabel.textContent = "?꾩껜 ?좏깮";
+    chkAllLabel.textContent = "전체 선택";
     selectAllWrap.appendChild(chkAll);
     selectAllWrap.append(" ");
     selectAllWrap.appendChild(chkAllLabel);
@@ -1549,7 +2269,7 @@ function renderFileList(files) {
 async function loadFiles() {
     const response = await fetch("/api/files");
     if (!response.ok) {
-        throw new Error(`?뚯씪 紐⑸줉 濡쒕뱶 ?ㅽ뙣 (${response.status})`);
+        throw new Error(`파일 목록 로드 실패 (${response.status})`);
     }
     const payload = await response.json();
     renderFileList(payload.files || []);
@@ -1559,9 +2279,9 @@ async function handleFlushExcelReportsClick() {
     if (!analysisData.output_dir) return;
     if (flushExcelBtn) {
         flushExcelBtn.disabled = true;
-        flushExcelBtn.textContent = "Excel ?앹꽦 以?..";
+        flushExcelBtn.textContent = "Excel 생성 중...";
     }
-    setExcelJobStatus("Excel 由ы룷???앹꽦 ?곹깭 ?뺤씤 以?..", "#fff59d");
+    setExcelJobStatus("Excel 리포트 생성 상태 확인 중...", "#fff59d");
     try {
         const payload = await flushExcelReports({ wait: true, timeout_sec: 120 });
         analysisData.report_jobs = payload.report_jobs || {};
@@ -1571,8 +2291,8 @@ async function handleFlushExcelReportsClick() {
         updateExcelJobUiFromAnalysis();
     } catch (err) {
         const msg = String((err && err.message) || err || "Excel flush failed");
-        setExcelJobStatus(`Excel ?ㅽ뙣: ${msg}`, "#ffcdd2");
-        alert(`Excel ?앹꽦 ?꾨즺 泥섎━ ?ㅽ뙣: ${msg}`);
+        setExcelJobStatus(`Excel 실패: ${msg}`, "#ffcdd2");
+        alert(`Excel 생성 완료 처리 실패: ${msg}`);
     } finally {
         updateExcelJobUiFromAnalysis();
     }
@@ -1616,7 +2336,7 @@ function updateAnalyzeProgressUi(statusPayload = {}) {
     }
 }
 
-function applyAnalyzePayload(payload) {
+async function applyAnalyzePayload(payload) {
     analysisData = {
         summary: payload.summary || { total: 0, critical: 0, warning: 0, info: 0, score: 0 },
         violations: payload.violations || { P1: [], P2: [], P3: [] },
@@ -1625,17 +2345,20 @@ function applyAnalyzePayload(payload) {
         report_jobs: payload.report_jobs || {},
     };
     workspaceRowIndex = [];
+    functionScopeCacheByFile.clear();
     autofixProposalCache.clear();
     setAutofixDiffPanel("");
     setAutofixValidationPanel("");
+    const selected = getSelectedFiles();
+    await prepareFunctionScopeCacheForSelectedFiles(selected);
     buildWorkspaceRowIndex();
 
     updateDashboard();
     renderWorkspace();
     updateExcelJobUiFromAnalysis();
+    updateAiContextHelpText();
     navWorkspace.onclick();
 
-    const selected = getSelectedFiles();
     if (selected.length > 0) {
         void loadCodeViewer(selected[0]).catch(() => { });
     }
@@ -1703,7 +2426,7 @@ btnAnalyze.onclick = async () => {
             updateAnalyzeProgressUi(statusPayload);
             const status = String(statusPayload.status || "");
             if (status === "completed") {
-                applyAnalyzePayload(statusPayload.result || {});
+                await applyAnalyzePayload(statusPayload.result || {});
                 break;
             }
             if (status === "failed") {
@@ -1725,6 +2448,17 @@ btnAnalyze.onclick = async () => {
 window.addEventListener("DOMContentLoaded", async () => {
     initFilterControls();
     attachResultTableVirtualScrollHandler();
+    setInspectorTab("detail", false);
+    if (inspectorTabDetail) {
+        inspectorTabDetail.addEventListener("click", () => setInspectorTab("detail", !!(aiCard && aiCard.style.display !== "none")));
+    }
+    if (inspectorTabAi) {
+        inspectorTabAi.addEventListener("click", () => {
+            if (inspectorTabAi.disabled) return;
+            setInspectorTab("ai", true);
+        });
+    }
+    syncAiMoreMenuUi();
     if (aiReviewToggleBtn) {
         aiReviewToggleBtn.addEventListener("click", () => {
             aiReviewExpanded = !aiReviewExpanded;
@@ -1735,14 +2469,17 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (liveAiToggle) {
         liveAiToggle.addEventListener("change", syncAiContextToggle);
     }
+    if (aiContextToggle) {
+        aiContextToggle.addEventListener("change", updateAiContextHelpText);
+    }
     syncAiContextToggle();
     updateExcelJobUiFromAnalysis();
     updateDashboard();
-    setCodeViewerText("// ?뚯씪???좏깮?섎㈃ ?뺢퇋??肄붾뱶? ?꾨컲 ??ぉ??蹂????덉뒿?덈떎");
+    setCodeViewerText("// 파일을 선택하면 원본 코드와 위반 항목을 확인할 수 있습니다.");
     try {
         await loadFiles();
     } catch (err) {
-        alert(`?뚯씪 紐⑸줉 珥덇린???ㅽ뙣: ${(err && err.message) || String(err)}`);
+        alert(`파일 목록 초기화 실패: ${(err && err.message) || String(err)}`);
     }
 });
 
@@ -1750,4 +2487,3 @@ window.addEventListener("resize", () => {
     queueCodeViewerWindowRender(true);
     queueResultTableWindowRender(true);
 });
-

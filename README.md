@@ -28,6 +28,8 @@
 ### 1) 코드 분석 (P1 / P2 / P3)
 - `P1`: 정적 규칙 기반 분석
 - `P2`: `CtrlppCheck` 연동 결과
+  - `enable_ctrlppcheck=true` + `.ctl` 대상 분석 시작 시 CtrlppCheck preflight(자동 다운로드/설치) 1회 수행
+  - preflight 실패 시 fail-soft로 P2 경고만 기록하고 P1/P3 분석은 계속 진행
 - `P3`: AI(LLM) 리뷰 (선택/Fail-soft)
 
 ### 2) 성능/운영 최적화

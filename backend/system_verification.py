@@ -68,6 +68,64 @@ class SystemVerification(unittest.TestCase):
         violations = checker.check_sql_injection(code)
         self.assertTrue(any(v["rule_id"] == "SEC-01" for v in violations), "SQL Injection not detected")
 
+    def test_configured_composite_patterns_detect_with_standard_escape(self):
+        checker = HeuristicChecker(os.path.join(self.config_dir, "parsed_rules.json"))
+        rows = {str(r.get("rule_id") or r.get("id")): r for r in checker.p1_rule_defs if isinstance(r, dict)}
+        samples = {
+            "SEC-01": 'main(){ sprintf(sql, "SELECT * FROM t WHERE a = %s", input); }',
+            "DB-ERR-01": 'main(){ dpQuery("SELECT * FROM T", result); }',
+            "EXC-DP-01": 'main(){ dpSet("A.B.C", 1); }',
+        }
+        for rid, code in samples.items():
+            rule = rows[rid]
+            analysis = checker._remove_comments(code)
+            findings = checker._run_composite_rule(
+                rule,
+                code=code,
+                analysis_code=analysis,
+                event_name="Global",
+                base_line=1,
+                anchor_line=checker._first_function_line(analysis),
+            )
+            found_ids = {str(x.get("rule_id", "")) for x in findings}
+            self.assertIn(rid, found_ids, f"configured composite did not detect {rid}")
+
+    def test_configured_composite_patterns_detect_with_double_escape(self):
+        checker = HeuristicChecker(os.path.join(self.config_dir, "parsed_rules.json"))
+        rows = {str(r.get("rule_id") or r.get("id")): r for r in checker.p1_rule_defs if isinstance(r, dict)}
+        samples = {
+            "SEC-01": {
+                "code": 'main(){ sprintf(sql, "SELECT * FROM t WHERE a = %s", input); }',
+                "patch_key": "sql_keywords_pattern",
+            },
+            "DB-ERR-01": {
+                "code": 'main(){ dpQuery("SELECT * FROM T", result); }',
+                "patch_key": "query_call_pattern",
+            },
+            "EXC-DP-01": {
+                "code": 'main(){ dpSet("A.B.C", 1); }',
+                "patch_key": "dp_call_pattern",
+            },
+        }
+        for rid, meta in samples.items():
+            base_rule = dict(rows[rid])
+            detector = dict(base_rule.get("detector") or {})
+            key = str(meta["patch_key"])
+            detector[key] = str(detector.get(key, "")).replace("\\", "\\\\")
+            base_rule["detector"] = detector
+            code = str(meta["code"])
+            analysis = checker._remove_comments(code)
+            findings = checker._run_composite_rule(
+                base_rule,
+                code=code,
+                analysis_code=analysis,
+                event_name="Global",
+                base_line=1,
+                anchor_line=checker._first_function_line(analysis),
+            )
+            found_ids = {str(x.get("rule_id", "")) for x in findings}
+            self.assertIn(rid, found_ids, f"double-escaped detector did not detect {rid}")
+
     def test_heuristic_checker_unused_var(self):
         checker = HeuristicChecker(os.path.join(self.config_dir, "parsed_rules.json"))
         code = """
@@ -1336,6 +1394,66 @@ class SystemVerification(unittest.TestCase):
         self.assertGreaterEqual(len(result), 1)
         self.assertEqual(result[0].get("source"), "CtrlppCheck")
         self.assertIn("download failed", result[0].get("message", "").lower())
+
+    def test_ctrlpp_prepare_for_analysis_skip_without_ctl(self):
+        wrapper = CtrlppWrapper()
+        wrapper.auto_install_on_missing = True
+        calls = {"count": 0}
+
+        def fake_ensure():
+            calls["count"] += 1
+            return "", "CtrlppCheck install failed: mocked"
+
+        wrapper.ensure_installed = fake_ensure
+        result = wrapper.prepare_for_analysis(True, ["sample_pnl.txt"])
+        self.assertFalse(bool(result.get("attempted", False)))
+        self.assertFalse(bool(result.get("ready", False)))
+        self.assertEqual(calls["count"], 0)
+
+    def test_ctrlpp_prepare_for_analysis_attempts_install_once(self):
+        wrapper = CtrlppWrapper()
+        wrapper.config_binary_path = ""
+        wrapper.state_binary_path = ""
+        wrapper.tool_path = ""
+        wrapper.auto_install_on_missing = True
+        calls = {"count": 0}
+
+        def fake_ensure():
+            calls["count"] += 1
+            return "", "CtrlppCheck install failed: mocked"
+
+        wrapper.ensure_installed = fake_ensure
+        result = wrapper.prepare_for_analysis(True, ["sample.ctl"])
+        self.assertTrue(bool(result.get("attempted", False)))
+        self.assertFalse(bool(result.get("ready", False)))
+        self.assertIn("install failed", str(result.get("message", "")).lower())
+        self.assertEqual(calls["count"], 1)
+
+    def test_ctrlpp_prepare_for_analysis_blocks_immediate_reinstall_retry(self):
+        wrapper = CtrlppWrapper()
+        wrapper.config_binary_path = ""
+        wrapper.state_binary_path = ""
+        wrapper.tool_path = ""
+        wrapper.auto_install_on_missing = True
+        calls = {"count": 0}
+
+        def fake_ensure():
+            calls["count"] += 1
+            return "", "CtrlppCheck install failed: mocked"
+
+        wrapper.ensure_installed = fake_ensure
+        preflight = wrapper.prepare_for_analysis(True, ["sample.ctl"])
+        self.assertTrue(bool(preflight.get("attempted", False)))
+        self.assertFalse(bool(preflight.get("ready", False)))
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = os.path.join(temp_dir, "sample.ctl")
+            with open(target, "w", encoding="utf-8") as f:
+                f.write("main() { int a = 0; }")
+            result = wrapper.run_check(target, enabled=True)
+        self.assertEqual(calls["count"], 1)
+        self.assertGreaterEqual(len(result), 1)
+        self.assertIn("install failed", result[0].get("message", "").lower())
 
     def test_ctrlpp_checksum_validation(self):
         with tempfile.TemporaryDirectory() as temp_dir:

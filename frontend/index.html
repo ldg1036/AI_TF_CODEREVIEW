@@ -1,16 +1,16 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>WinCC OA 코드 검사기</title>
+    <title>WinCC OA 코드 리뷰어</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Global Navigation -->
     <nav class="nav-sidebar" aria-label="기본 내비게이션">
-        <button type="button" class="nav-item" id="nav-dashboard" aria-label="대시보드" style="cursor: pointer; margin-bottom: 20px;">📊</button>
-        <button type="button" class="nav-item" id="nav-workspace" aria-label="작업공간" style="cursor: pointer;">🔍</button>
-        <button type="button" class="nav-item" aria-label="설정" style="cursor: pointer; margin-top: auto; margin-bottom: 20px;">⚙️</button>
+        <button type="button" class="nav-item" id="nav-dashboard" aria-label="대시보드" style="cursor: pointer; margin-bottom: 20px;">🏠</button>
+        <button type="button" class="nav-item" id="nav-workspace" aria-label="작업공간" style="cursor: pointer;">🖇</button>
+        <button type="button" class="nav-item" aria-label="설정" style="cursor: pointer; margin-top: auto; margin-bottom: 20px;">⚙</button>
     </nav>
 
     <!-- Sidebar (File Tree) -->
@@ -24,10 +24,10 @@
             <div class="file-item"><input type="checkbox" checked> main_logic.ctl</div>
         </div>
         <div class="filter-matrix" style="padding: 10px; border-top: 1px solid var(--border);">
-            <strong>다중 매트릭스 필터</strong>
+            <strong>결과 필터</strong>
             <div style="font-size: 11px; margin-top: 5px;">
-                <div><input type="checkbox" checked> P1 (정적분석)</div>
-                <div><input type="checkbox" checked> P2 (전역규칙)</div>
+                <div><input type="checkbox" checked> P1 (정적 분석)</div>
+                <div><input type="checkbox" checked> P2 (CtrlppCheck)</div>
                 <div><input type="checkbox" checked> P3 (AI)</div>
                 <hr>
                 <div><input type="checkbox" checked> 치명</div>
@@ -40,7 +40,7 @@
     <!-- Main Content -->
     <main class="main-content">
         <header class="header">
-            <span id="header-title">WinCC OA 코드 검사기 v2.3</span>
+            <span id="header-title">WinCC OA 코드 리뷰어 v2.3</span>
             <div class="header-controls">
                 <label style="font-size: 12px;">
                     <input type="checkbox" id="toggle-ctrlppcheck">
@@ -54,10 +54,10 @@
                     <div class="ai-context-block" id="label-ai-context">
                         <label class="header-toggle-label">
                             <input type="checkbox" id="toggle-ai-context" disabled>
-                            Live AI 프롬프트에 MCP 문맥 포함
+                            Live AI에 프로젝트 MCP 문맥 포함
                         </label>
-                        <div class="ai-context-help">
-                            로컬 읽기 전용 WinCC OA Context Server의 프로젝트/드라이버 문맥을 추가합니다.
+                        <div class="ai-context-help" id="ai-context-help">
+                            Live AI가 켜져 있고 MCP 서버 연결이 성공한 경우에만 문맥 보강이 적용됩니다. 실패 시 자동으로 생략됩니다.
                         </div>
                     </div>
                 </div>
@@ -74,7 +74,7 @@
 
         <!-- Dashboard View -->
         <div id="dashboard-view" style="padding: 30px;">
-            <h2>프로젝트 품질 대시보드</h2>
+            <h2>프로젝트 요약 대시보드</h2>
             <div style="display: flex; gap: 20px; margin-top: 20px;">
                 <div style="flex: 1; background: var(--primary); color: white; padding: 20px; border-radius: 8px;">
                     <h3>전체 이슈</h3>
@@ -89,7 +89,7 @@
                     <h1 id="warning-issues" style="color: var(--warning);">0</h1>
                 </div>
             </div>
-            
+
             <div style="margin-top: 40px; background: white; padding: 20px; border: 1px solid var(--border); border-radius: 8px;">
                 <h3>코드 품질 점수</h3>
                 <div style="width: 100%; height: 30px; background: #eee; border-radius: 15px; margin-top: 10px; overflow: hidden;">
@@ -98,11 +98,11 @@
                 <p id="score-text" style="text-align: right; font-weight: bold; margin-top: 5px;">점수: 0/100</p>
             </div>
         </div>
-        
+
         <!-- Workspace View (Hidden by default) -->
         <div id="workspace-view" style="display: none; flex: 1; flex-direction: column;">
             <div class="code-viewer" id="code-viewer">
-                // 파일을 선택하면 정규화 코드와 위반 항목을 볼 수 있습니다
+                // 파일을 선택하면 원본 코드와 위반 항목을 확인할 수 있습니다.
             </div>
 
             <div class="result-table">
@@ -127,37 +127,47 @@
     <section class="inspector-panel">
         <h3>이슈 상세</h3>
         <hr>
-        <div id="violation-detail" style="font-size: 13px; line-height: 1.6;">
-            <p style="color: #666;">목록에서 이슈를 선택하면 상세 분석 정보를 볼 수 있습니다.</p>
+        <div class="inspector-tabs" role="tablist" aria-label="Inspector Tabs">
+            <button id="inspector-tab-detail" class="inspector-tab active" type="button" role="tab" aria-selected="true">이슈 상세</button>
+            <button id="inspector-tab-ai" class="inspector-tab" type="button" role="tab" aria-selected="false">AI 제안</button>
         </div>
-        
-        <!-- UC-03: AI Interaction Card -->
-        <div id="ai-suggestion-card" style="margin-top: 20px; display: none; background: #e3f2fd; padding: 15px; border-radius: 6px; border: 1px solid #bbdefb;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                <span class="badge badge-p3">P3 AI</span>
-                <strong>AI 개선 제안</strong>
+        <div id="violation-detail-panel" class="inspector-content-panel active" role="tabpanel" aria-labelledby="inspector-tab-detail">
+            <div id="violation-detail" style="font-size: 13px; line-height: 1.6;">
+                <p style="color: #666;">목록에서 이슈를 선택하면 상세 분석 정보를 확인할 수 있습니다.</p>
             </div>
-            <p id="ai-text" style="font-size: 12.5px; color: #1565c0;"></p>
-            <button id="btn-ai-review-toggle" type="button" style="padding: 4px 8px; background: #eceff1; color: #263238; border: 1px solid rgba(38,50,56,0.18); border-radius: 4px; cursor: pointer; font-size: 11px;">자세히 보기</button>
-            <pre id="ai-text-full" style="display:none; margin-top: 8px; max-height: 140px; overflow:auto; background:#ffffff; color:#0d47a1; padding:8px; border-radius:4px; border:1px solid rgba(21,101,192,0.2); white-space: pre-wrap;"></pre>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px;">
-                <button id="btn-ai-diff" style="padding: 8px; background: #1565c0; color: white; border: none; border-radius: 4px; cursor: pointer;">Diff Preview</button>
-                <button id="btn-ai-source-apply" style="padding: 8px; background: #2e7d32; color: white; border: none; border-radius: 4px; cursor: pointer;" disabled>Apply Source</button>
-                <button id="btn-ai-accept" style="padding: 8px; background: var(--success); color: white; border: none; border-radius: 4px; cursor: pointer;">Apply REVIEWED</button>
-                <button id="btn-ai-ignore" style="padding: 8px; background: #aaa; color: white; border: none; border-radius: 4px; cursor: pointer;">Ignore</button>
-            </div>
-            <div id="autofix-diff-panel" style="display:none; margin-top: 12px;">
-                <div style="font-size: 11px; color: #0d47a1; margin-bottom: 6px; font-weight: 600;">Unified Diff</div>
-                <pre id="autofix-diff-text" style="margin:0; max-height: 180px; overflow:auto; background:#0f172a; color:#dbeafe; padding:10px; border-radius:4px; border:1px solid rgba(21,101,192,0.25); white-space: pre-wrap;"></pre>
-            </div>
-            <div id="autofix-compare-panel" style="display:none; margin-top: 10px; background:#f7faff; border:1px solid rgba(21,101,192,0.2); border-radius:6px; padding:8px;">
-                <div style="font-size: 11px; color: #0d47a1; margin-bottom: 6px; font-weight: 600;">Autofix Candidates</div>
-                <div id="autofix-compare-buttons" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
-                <p id="autofix-compare-meta" style="margin:8px 0 0 0; font-size:12px; color:#455a64;"></p>
-            </div>
-            <div id="autofix-validation-panel" style="display:none; margin-top: 10px;">
-                <div style="font-size: 11px; color: #1b5e20; margin-bottom: 6px; font-weight: 600;">Autofix Validation</div>
-                <pre id="autofix-validation-text" style="margin:0; max-height: 120px; overflow:auto; background:#f1f8e9; color:#1b5e20; padding:10px; border-radius:4px; border:1px solid rgba(46,125,50,0.2); white-space: pre-wrap;"></pre>
+        </div>
+
+        <div id="ai-panel-wrap" class="inspector-content-panel" role="tabpanel" aria-labelledby="inspector-tab-ai">
+            <div id="ai-suggestion-card" style="margin-top: 20px; display: none; background: #e3f2fd; padding: 15px; border-radius: 6px; border: 1px solid #bbdefb;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <span class="badge badge-p3">P3 AI</span>
+                    <strong>AI 개선 제안</strong>
+                </div>
+                <p id="ai-text" style="font-size: 12.5px; color: #1565c0;"></p>
+                <button id="btn-ai-review-toggle" type="button" style="padding: 4px 8px; background: #eceff1; color: #263238; border: 1px solid rgba(38,50,56,0.18); border-radius: 4px; cursor: pointer; font-size: 11px;">자세히 보기</button>
+                <pre id="ai-text-full" style="display:none; margin-top: 8px; max-height: 140px; overflow:auto; background:#ffffff; color:#0d47a1; padding:8px; border-radius:4px; border:1px solid rgba(21,101,192,0.2); white-space: pre-wrap;"></pre>
+                <div class="ai-primary-actions">
+                    <button id="btn-ai-diff" style="padding: 8px; background: #1565c0; color: white; border: none; border-radius: 4px; cursor: pointer;">Diff Preview</button>
+                    <button id="btn-ai-source-apply" style="padding: 8px; background: #2e7d32; color: white; border: none; border-radius: 4px; cursor: pointer;" disabled>Apply Source</button>
+                    <button id="btn-ai-more" style="padding: 8px; background: #546e7a; color: white; border: none; border-radius: 4px; cursor: pointer;">더보기</button>
+                </div>
+                <div id="ai-more-actions" class="ai-more-actions" style="display:none;">
+                    <button id="btn-ai-accept" style="padding: 8px; background: var(--success); color: white; border: none; border-radius: 4px; cursor: pointer;">Apply REVIEWED</button>
+                    <button id="btn-ai-ignore" style="padding: 8px; background: #aaa; color: white; border: none; border-radius: 4px; cursor: pointer;">Ignore</button>
+                </div>
+                <div id="autofix-diff-panel" style="display:none; margin-top: 12px;">
+                    <div style="font-size: 11px; color: #0d47a1; margin-bottom: 6px; font-weight: 600;">Unified Diff</div>
+                    <pre id="autofix-diff-text" style="margin:0; max-height: 180px; overflow:auto; background:#0f172a; color:#dbeafe; padding:10px; border-radius:4px; border:1px solid rgba(21,101,192,0.25); white-space: pre-wrap;"></pre>
+                </div>
+                <div id="autofix-compare-panel" style="display:none; margin-top: 10px; background:#f7faff; border:1px solid rgba(21,101,192,0.2); border-radius:6px; padding:8px;">
+                    <div style="font-size: 11px; color: #0d47a1; margin-bottom: 6px; font-weight: 600;">Autofix Candidates</div>
+                    <div id="autofix-compare-buttons" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+                    <p id="autofix-compare-meta" style="margin:8px 0 0 0; font-size:12px; color:#455a64;"></p>
+                </div>
+                <div id="autofix-validation-panel" style="display:none; margin-top: 10px;">
+                    <div style="font-size: 11px; color: #1b5e20; margin-bottom: 6px; font-weight: 600;">Autofix Validation</div>
+                    <pre id="autofix-validation-text" style="margin:0; max-height: 120px; overflow:auto; background:#f1f8e9; color:#1b5e20; padding:10px; border-radius:4px; border:1px solid rgba(46,125,50,0.2); white-space: pre-wrap;"></pre>
+                </div>
             </div>
         </div>
     </section>

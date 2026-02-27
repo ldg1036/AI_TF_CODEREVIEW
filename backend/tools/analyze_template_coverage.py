@@ -26,7 +26,7 @@ def _is_empty_item(value) -> bool:
 
 
 def _load_json(path: str):
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8-sig") as f:
         return json.load(f)
 
 

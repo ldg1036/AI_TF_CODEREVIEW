@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 import re
 import urllib.error
@@ -136,7 +136,7 @@ class LLMReviewer:
             "요약: <한 문장>\n\n"
             "코드:\n"
             "```cpp\n"
-            "<짧은 수정 예시 코드>\n"
+            "<직접 수정 예시 코드>\n"
             "```\n\n"
             "[Review]\n"
         )
@@ -162,7 +162,7 @@ class LLMReviewer:
             if stripped.startswith("```"):
                 continue
             return f"요약: {stripped}"
-        return "요약: 제공된 위반 항목에 맞는 최소 수정 코드를 적용하세요."
+        return "요약: 신고된 위반 항목에 맞는 최소 수정 코드를 적용하세요."
 
     def _normalize_review_output(self, text: str) -> str:
         summary = self._extract_summary_line(text)
@@ -216,9 +216,9 @@ class LLMReviewer:
     @staticmethod
     def get_mock_review(code: str, violations: List[Dict]) -> str:
         return (
-            "요약: 조건 검증 후 최소 범위만 수정하는 코드로 정리하세요.\n\n"
+            "요약: 조건 검증을 추가하고 최소 범위만 수정하는 코드로 정리하세요.\n\n"
             "코드:\n```cpp\n"
-            "// TODO: 조건 검증 추가 후 필요한 호출만 수행\n"
+            "// TODO: 조건 검증 추가 및 필요한 로직만 수행\n"
             "if (isValid) {\n"
             "  // apply update\n"
             "}\n"

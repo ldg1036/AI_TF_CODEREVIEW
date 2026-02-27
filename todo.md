@@ -10,7 +10,7 @@
 - `[ ] 미완료`: 아직 구현되지 않음
 
 ## 전체 요약
-- 완료: `140`
+- 완료: `141`
 - 부분완료: `4`
 - 미완료: `2`
 - 비고: 상단 요약은 문서 전체 체크마크(`todo.md`) 기준 재집계값이며, GoldenTime 기준 Excel 비교/품질게이트/릴리즈 체크리스트 제거 결정(P1/P2/P3 기준 재정의)을 반영함.
@@ -468,3 +468,13 @@
   - 2026-02-27 실측 3차(`kpi_observe_mode` 도입): `docs/perf_baselines/autofix_apply_baseline_20260227_1042_general.json`, `docs/perf_baselines/autofix_apply_improved_20260227_1042_general.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_1042_general.json`, `docs/perf_baselines/autofix_apply_baseline_20260227_1042_drift.json`, `docs/perf_baselines/autofix_apply_improved_20260227_1042_drift.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_1042_drift.json`
   - 결과: general(`strict_hash`)은 정상(`anchor_exact`), drift(`benchmark_relaxed`)도 내부 `proposal_base_hash` 선검증으로 `BASE_HASH_MISMATCH` 지속 (KPI 판정 보류 유지)
 - [x] 기존 `autofix/apply` 안전성(백업/감사로그/회귀검사) 회귀 없음
+
+### 8-5) P1 규칙 매트릭스 신뢰도 실측 (Config 기준)
+- [x] `verify_p1_rules_matrix.py` 개선(규칙 ID 기반 curated case catalog + op fallback + collateral 분리 + API 교차검증 유지)
+- [x] 실측 결과(2026-02-27): `docs/perf_baselines/p1_rule_matrix_20260227_141452.json`, `docs/perf_baselines/p1_rule_matrix_20260227_141452.md`
+  - `enabled_rules=43`, `supported_rules=43`, `unsupported_rules=0`
+  - `positive_detection_rate=100.0%`
+  - `negative_not_detected_rate=100.0%`
+  - `checker_vs_api_mismatch_rate=0.0%`
+- [x] `STYLE-HEADER-01` negative false positive 해소(타겟 규칙 기준 비검출 확인)
+- [x] `SEC-01`/`DB-ERR-01`/`EXC-DP-01` escape 보정 완료(엔진 regex 정규화 + 규칙 패턴 표준화 적용)
