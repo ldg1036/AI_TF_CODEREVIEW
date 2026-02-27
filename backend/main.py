@@ -22,6 +22,9 @@ from core.mcp_context import MCPContextClient
 from core.pnl_parser import PnlParser
 from core.reporter import Reporter
 from core.analysis_pipeline import DirectoryAnalysisPipeline
+from core.autofix_apply_engine import apply_with_engine
+from core.autofix_semantic_guard import evaluate_semantic_delta
+from core.autofix_tokenizer import locate_anchor_line_by_tokens, normalize_anchor_text
 from core.xml_parser import XmlParser
 
 DEFAULT_MODE = "AI 보조"
@@ -96,6 +99,15 @@ class AutoFixQualityMetrics(TypedDict, total=False):
     applied: bool
     rejected_reason: str
     validation_errors: List[str]
+    locator_mode: str
+    apply_engine_mode: str
+    apply_engine_fallback_reason: str
+    token_fallback_attempted: bool
+    token_fallback_confidence: float
+    token_fallback_candidates: int
+    semantic_check_passed: bool
+    semantic_blocked_reason: str
+    semantic_violation_count: int
 
 
 class AutoFixApplyError(RuntimeError):
@@ -309,6 +321,19 @@ class CodeInspectorApp:
             "autofix": {
                 "proposals": collections.OrderedDict(),
                 "latest_by_file": {},
+                "stats": {
+                    "prepare_compare_count": 0,
+                    "prepare_compare_generated_candidates_total": 0,
+                    "selected_generator_counts": {"rule": 0, "llm": 0},
+                    "compare_apply_count": 0,
+                    "anchor_mismatch_count": 0,
+                    "token_fallback_attempt_count": 0,
+                    "token_fallback_success_count": 0,
+                    "token_fallback_ambiguous_count": 0,
+                    "apply_engine_structure_success_count": 0,
+                    "apply_engine_text_fallback_count": 0,
+                    "selected_apply_engine_mode": {"structure_apply": 0, "text_fallback": 0},
+                },
             },
             "report_jobs": {
                 "excel": collections.OrderedDict(),
@@ -497,14 +522,23 @@ class CodeInspectorApp:
         return normalized if normalized in ("auto", "llm", "rule") else str(fallback or "auto")
 
     @staticmethod
+    def _normalize_autofix_prepare_mode(value: Optional[str], fallback: str = "single") -> str:
+        normalized = str(value or fallback or "single").strip().lower()
+        return normalized if normalized in ("single", "compare") else str(fallback or "single")
+
+    @staticmethod
     def _autofix_error_code_from_exception_message(message: str) -> str:
         msg = str(message or "").lower()
         if "base hash mismatch" in msg:
             return "BASE_HASH_MISMATCH"
         if "anchor mismatch" in msg:
             return "ANCHOR_MISMATCH"
+        if "semantic guard blocked" in msg:
+            return "SEMANTIC_GUARD_BLOCKED"
         if "syntax precheck failed" in msg:
             return "SYNTAX_PRECHECK_FAILED"
+        if "apply engine failed" in msg:
+            return "APPLY_ENGINE_FAILED"
         if "heuristic regression detected" in msg or "ctrlppcheck regression detected" in msg:
             return "REGRESSION_BLOCKED"
         if "supported only for .ctl" in msg:
@@ -527,6 +561,15 @@ class CodeInspectorApp:
         applied: bool = False,
         rejected_reason: str = "",
         validation_errors: Optional[List[str]] = None,
+        locator_mode: str = "anchor",
+        apply_engine_mode: str = "",
+        apply_engine_fallback_reason: str = "",
+        token_fallback_attempted: bool = False,
+        token_fallback_confidence: float = 0.0,
+        token_fallback_candidates: int = 0,
+        semantic_check_passed: bool = True,
+        semantic_blocked_reason: str = "",
+        semantic_violation_count: int = 0,
     ) -> AutoFixQualityMetrics:
         return {
             "proposal_id": str(proposal_id or ""),
@@ -539,6 +582,15 @@ class CodeInspectorApp:
             "applied": bool(applied),
             "rejected_reason": str(rejected_reason or ""),
             "validation_errors": list(validation_errors or []),
+            "locator_mode": str(locator_mode or "anchor"),
+            "apply_engine_mode": str(apply_engine_mode or ""),
+            "apply_engine_fallback_reason": str(apply_engine_fallback_reason or ""),
+            "token_fallback_attempted": bool(token_fallback_attempted),
+            "token_fallback_confidence": float(token_fallback_confidence or 0.0),
+            "token_fallback_candidates": int(token_fallback_candidates or 0),
+            "semantic_check_passed": bool(semantic_check_passed),
+            "semantic_blocked_reason": str(semantic_blocked_reason or ""),
+            "semantic_violation_count": int(semantic_violation_count or 0),
         }
 
     def _autofix_apply_error(
@@ -747,6 +799,37 @@ class CodeInspectorApp:
             for file_key, val in list(latest_by_file.items()):
                 if val == old_pid:
                     latest_by_file.pop(file_key, None)
+
+    def _autofix_session_stats(self, session: Dict) -> Dict:
+        autofix = session.setdefault("autofix", {}) if isinstance(session, dict) else {}
+        stats = autofix.setdefault("stats", {}) if isinstance(autofix, dict) else {}
+        stats.setdefault("prepare_compare_count", 0)
+        stats.setdefault("prepare_compare_generated_candidates_total", 0)
+        selected = stats.setdefault("selected_generator_counts", {"rule": 0, "llm": 0})
+        if not isinstance(selected, dict):
+            selected = {"rule": 0, "llm": 0}
+            stats["selected_generator_counts"] = selected
+        selected.setdefault("rule", 0)
+        selected.setdefault("llm", 0)
+        stats.setdefault("compare_apply_count", 0)
+        stats.setdefault("anchor_mismatch_count", 0)
+        stats.setdefault("token_fallback_attempt_count", 0)
+        stats.setdefault("token_fallback_success_count", 0)
+        stats.setdefault("token_fallback_ambiguous_count", 0)
+        stats.setdefault("apply_engine_structure_success_count", 0)
+        stats.setdefault("apply_engine_text_fallback_count", 0)
+        stats.setdefault("multi_hunk_attempt_count", 0)
+        stats.setdefault("multi_hunk_success_count", 0)
+        stats.setdefault("multi_hunk_blocked_count", 0)
+        stats.setdefault("semantic_guard_checked_count", 0)
+        stats.setdefault("semantic_guard_blocked_count", 0)
+        engine_counts = stats.setdefault("selected_apply_engine_mode", {"structure_apply": 0, "text_fallback": 0})
+        if not isinstance(engine_counts, dict):
+            engine_counts = {"structure_apply": 0, "text_fallback": 0}
+            stats["selected_apply_engine_mode"] = engine_counts
+        engine_counts.setdefault("structure_apply", 0)
+        engine_counts.setdefault("text_fallback", 0)
+        return stats
 
     def _resolve_review_session_and_file(
         self,
@@ -1808,6 +1891,7 @@ class CodeInspectorApp:
         issue_id: str = "",
         generator_preference: Optional[str] = None,
         allow_fallback: Optional[bool] = None,
+        prepare_mode: Optional[str] = None,
     ) -> Dict:
         # Preserve legacy behavior for existing clients: if a review text is supplied and no generator was
         # explicitly requested, default to the LLM path instead of forcing auto(rule-first).
@@ -1816,17 +1900,27 @@ class CodeInspectorApp:
         else:
             preferred = self._normalize_autofix_generator_preference(generator_preference, self.autofix_prepare_generator_default)
         allow_fallback = self.autofix_allow_fallback_default if allow_fallback is None else bool(allow_fallback)
+        normalized_prepare_mode = self._normalize_autofix_prepare_mode(prepare_mode, "single")
         session_output_dir, session, cache_key, cached = self._resolve_review_session_and_file(file_name=file_name, output_dir=output_dir)
         file_lock = self._get_session_file_lock(session, cache_key)
         with file_lock:
             last_error: Optional[Exception] = None
-            plan_order = []
-            if preferred == "auto":
-                plan_order = ["rule", "llm"]
-            else:
-                plan_order = [preferred]
+            proposals: List[Dict] = []
+            fallback_used_any = False
 
-            proposal = None
+            if normalized_prepare_mode == "compare":
+                if preferred == "auto":
+                    plan_order = ["rule", "llm"]
+                elif preferred == "rule":
+                    plan_order = ["rule", "llm"]
+                else:
+                    plan_order = ["llm", "rule"]
+            else:
+                if preferred == "auto":
+                    plan_order = ["rule", "llm"]
+                else:
+                    plan_order = [preferred]
+
             for idx, generator in enumerate(plan_order):
                 try:
                     if generator == "rule":
@@ -1852,22 +1946,65 @@ class CodeInspectorApp:
                             review_text=review_text,
                             issue_id=issue_id,
                         )
-                    if idx > 0:
-                        proposal["generator_reason"] = f"{proposal.get('generator_reason', '')}; fallback from {plan_order[0]}"
-                        if proposal.get("generator_type") == "llm":
-                            llm_meta = proposal.setdefault("llm_meta", {})
-                            if isinstance(llm_meta, dict):
-                                llm_meta["fallback_used"] = True
-                    break
+                    proposal["_prepare_mode"] = normalized_prepare_mode
+                    proposal["_requested_preference"] = preferred
+                    proposals.append(proposal)
+                    if normalized_prepare_mode == "single":
+                        if idx > 0:
+                            fallback_used_any = True
+                            proposal["generator_reason"] = f"{proposal.get('generator_reason', '')}; fallback from {plan_order[0]}"
+                            if proposal.get("generator_type") == "llm":
+                                llm_meta = proposal.setdefault("llm_meta", {})
+                                if isinstance(llm_meta, dict):
+                                    llm_meta["fallback_used"] = True
+                        break
                 except Exception as exc:
                     last_error = exc
-                    if idx == (len(plan_order) - 1) or not allow_fallback:
-                        raise
-            if proposal is None:
+                    if normalized_prepare_mode == "single":
+                        if idx == (len(plan_order) - 1) or not allow_fallback:
+                            raise
+                        fallback_used_any = True
+                        continue
+                    # compare mode is fail-soft per generator
+                    continue
+
+            if not proposals:
                 if last_error:
                     raise last_error
                 raise RuntimeError("Autofix proposal generation failed")
-        return self._proposal_public_view(proposal)
+
+            selected_proposal = None
+            for item in proposals:
+                if str(item.get("generator_type", "")) == "rule":
+                    selected_proposal = item
+                    break
+            if selected_proposal is None:
+                selected_proposal = proposals[0]
+
+            with session["lock"]:
+                stats = self._autofix_session_stats(session)
+                if normalized_prepare_mode == "compare":
+                    stats["prepare_compare_count"] = self._safe_int(stats.get("prepare_compare_count", 0), 0) + 1
+                    stats["prepare_compare_generated_candidates_total"] = (
+                        self._safe_int(stats.get("prepare_compare_generated_candidates_total", 0), 0) + len(proposals)
+                    )
+                self._touch_review_session(session)
+
+            selected_view = self._proposal_public_view(selected_proposal)
+            if normalized_prepare_mode != "compare":
+                return selected_view
+
+            proposal_views = [self._proposal_public_view(item) for item in proposals]
+            selected_pid = str(selected_view.get("proposal_id", ""))
+            selected_view["proposals"] = proposal_views
+            selected_view["selected_proposal_id"] = selected_pid
+            selected_view["compare_meta"] = {
+                "mode": "compare",
+                "requested_generators": list(plan_order),
+                "generated_count": len(proposal_views),
+                "fallback_used": bool(fallback_used_any),
+            }
+            return selected_view
 
     def get_autofix_file_diff(
         self,
@@ -1901,6 +2038,7 @@ class CodeInspectorApp:
             autofix = session.get("autofix", {}) if isinstance(session, dict) else {}
             proposals = autofix.get("proposals", {}) if isinstance(autofix, dict) else {}
             latest_by_file = autofix.get("latest_by_file", {}) if isinstance(autofix, dict) else {}
+            extra_stats = self._autofix_session_stats(session)
             items = list(proposals.values()) if isinstance(proposals, dict) else []
 
             by_status: Dict[str, int] = {}
@@ -1950,6 +2088,43 @@ class CodeInspectorApp:
                 "by_generator": by_generator,
                 "by_generator_status": by_generator_status,
                 "quality_summary": quality_summary,
+                "prepare_compare_count": self._safe_int(extra_stats.get("prepare_compare_count", 0), 0),
+                "prepare_compare_generated_candidates_total": self._safe_int(
+                    extra_stats.get("prepare_compare_generated_candidates_total", 0),
+                    0,
+                ),
+                "selected_generator_counts": dict(extra_stats.get("selected_generator_counts", {}))
+                if isinstance(extra_stats.get("selected_generator_counts", {}), dict)
+                else {"rule": 0, "llm": 0},
+                "compare_apply_count": self._safe_int(extra_stats.get("compare_apply_count", 0), 0),
+                "anchor_mismatch_count": self._safe_int(extra_stats.get("anchor_mismatch_count", 0), 0),
+                "token_fallback_attempt_count": self._safe_int(extra_stats.get("token_fallback_attempt_count", 0), 0),
+                "token_fallback_success_count": self._safe_int(extra_stats.get("token_fallback_success_count", 0), 0),
+                "token_fallback_ambiguous_count": self._safe_int(extra_stats.get("token_fallback_ambiguous_count", 0), 0),
+                "apply_engine_structure_success_count": self._safe_int(
+                    extra_stats.get("apply_engine_structure_success_count", 0), 0
+                ),
+                "apply_engine_text_fallback_count": self._safe_int(
+                    extra_stats.get("apply_engine_text_fallback_count", 0), 0
+                ),
+                "multi_hunk_attempt_count": self._safe_int(
+                    extra_stats.get("multi_hunk_attempt_count", 0), 0
+                ),
+                "multi_hunk_success_count": self._safe_int(
+                    extra_stats.get("multi_hunk_success_count", 0), 0
+                ),
+                "multi_hunk_blocked_count": self._safe_int(
+                    extra_stats.get("multi_hunk_blocked_count", 0), 0
+                ),
+                "semantic_guard_checked_count": self._safe_int(
+                    extra_stats.get("semantic_guard_checked_count", 0), 0
+                ),
+                "semantic_guard_blocked_count": self._safe_int(
+                    extra_stats.get("semantic_guard_blocked_count", 0), 0
+                ),
+                "selected_apply_engine_mode": dict(extra_stats.get("selected_apply_engine_mode", {}))
+                if isinstance(extra_stats.get("selected_apply_engine_mode", {}), dict)
+                else {"structure_apply": 0, "text_fallback": 0},
             }
 
     def _count_p1_findings(self, internal_groups: List[Dict]) -> int:
@@ -1974,6 +2149,62 @@ class CodeInspectorApp:
                 continue
             count += 1
         return count
+
+    def _attempt_token_anchor_fallback(self, current_lines: List[str], hunks: List[Dict]) -> Dict[str, Any]:
+        resolved_hunks: List[Dict] = []
+        confidences: List[float] = []
+        candidate_counts: List[int] = []
+        errors: List[str] = []
+
+        for h in hunks or []:
+            if not isinstance(h, dict):
+                continue
+            hint_line = self._safe_int(h.get("start_line", 1), 1)
+            locate = locate_anchor_line_by_tokens(
+                current_lines,
+                before_expected=str(h.get("context_before", "")),
+                after_expected=str(h.get("context_after", "")),
+                hint_line=hint_line,
+                min_confidence=0.8,
+                min_gap=0.15,
+                max_line_drift=max(50, min(300, len(current_lines))),
+            )
+            candidate_counts.append(self._safe_int(locate.get("candidate_count", 0), 0))
+            confidences.append(float(locate.get("confidence", 0.0) or 0.0))
+            if not bool(locate.get("ok", False)):
+                reason = str(locate.get("reason", "no_candidate") or "no_candidate")
+                errors.append(f"token fallback failed at line {hint_line}: {reason}")
+                continue
+            relocated = dict(h)
+            relocated["start_line"] = self._safe_int(locate.get("line", hint_line), hint_line)
+            resolved_hunks.append(relocated)
+
+        expected_count = len([h for h in (hunks or []) if isinstance(h, dict)])
+        success = expected_count > 0 and len(resolved_hunks) == expected_count
+        return {
+            "success": success,
+            "resolved_hunks": resolved_hunks,
+            "confidence": max(confidences) if confidences else 0.0,
+            "candidate_count": max(candidate_counts) if candidate_counts else 0,
+            "errors": errors,
+        }
+
+    @staticmethod
+    def _hunk_ranges_overlap(hunks: List[Dict]) -> bool:
+        ranges: List[Tuple[int, int]] = []
+        for h in hunks or []:
+            if not isinstance(h, dict):
+                continue
+            start_line = max(1, CodeInspectorApp._safe_int(h.get("start_line", 1), 1))
+            end_line = max(start_line, CodeInspectorApp._safe_int(h.get("end_line", start_line), start_line))
+            ranges.append((start_line, end_line))
+        ranges.sort(key=lambda item: (item[0], item[1]))
+        for idx in range(1, len(ranges)):
+            prev_start, prev_end = ranges[idx - 1]
+            cur_start, _cur_end = ranges[idx]
+            if cur_start <= prev_end:
+                return True
+        return False
 
     def _append_autofix_audit_entry(self, output_dir: str, entry: Dict) -> str:
         os.makedirs(output_dir, exist_ok=True)
@@ -2074,9 +2305,15 @@ class CodeInspectorApp:
                 )
 
             current_lines = current_content.splitlines()
+            apply_hunks = list(proposal.get("hunks", []) or [])
             anchors_match = True
+            normalized_anchor_match = False
             anchor_errors = []
-            for h in proposal.get("hunks", []) or []:
+            locator_mode = "anchor_exact"
+            token_fallback_attempted = False
+            token_fallback_confidence = 0.0
+            token_fallback_candidates = 0
+            for h in apply_hunks:
                 if not isinstance(h, dict):
                     continue
                 start_line = self._safe_int(h.get("start_line", 1), 1)
@@ -2085,11 +2322,50 @@ class CodeInspectorApp:
                 before_actual = current_lines[start_line - 2] if start_line >= 2 and (start_line - 2) < len(current_lines) else ""
                 after_actual = current_lines[start_line - 1] if (start_line - 1) < len(current_lines) and start_line >= 1 else ""
                 if before_expected and before_actual != before_expected:
-                    anchors_match = False
-                    anchor_errors.append(f"context_before mismatch at line {start_line}")
+                    if normalize_anchor_text(before_actual) == normalize_anchor_text(before_expected):
+                        normalized_anchor_match = True
+                    else:
+                        anchors_match = False
+                        anchor_errors.append(f"context_before mismatch at line {start_line}")
                 if after_expected and after_actual != after_expected:
-                    anchors_match = False
-                    anchor_errors.append(f"context_after mismatch at line {start_line}")
+                    if normalize_anchor_text(after_actual) == normalize_anchor_text(after_expected):
+                        normalized_anchor_match = True
+                    else:
+                        anchors_match = False
+                        anchor_errors.append(f"context_after mismatch at line {start_line}")
+            if anchors_match and normalized_anchor_match:
+                locator_mode = "anchor_normalized"
+            if not anchors_match:
+                with session["lock"]:
+                    stats = self._autofix_session_stats(session)
+                    stats["anchor_mismatch_count"] = self._safe_int(stats.get("anchor_mismatch_count", 0), 0) + 1
+                token_fallback_attempted = True
+                with session["lock"]:
+                    stats = self._autofix_session_stats(session)
+                    stats["token_fallback_attempt_count"] = self._safe_int(stats.get("token_fallback_attempt_count", 0), 0) + 1
+                fallback = self._attempt_token_anchor_fallback(current_lines, [h for h in apply_hunks if isinstance(h, dict)])
+                token_fallback_confidence = float(fallback.get("confidence", 0.0) or 0.0)
+                token_fallback_candidates = self._safe_int(fallback.get("candidate_count", 0), 0)
+                if bool(fallback.get("success", False)):
+                    apply_hunks = list(fallback.get("resolved_hunks", []) or [])
+                    anchors_match = True
+                    locator_mode = "token_fallback"
+                    with session["lock"]:
+                        stats = self._autofix_session_stats(session)
+                        stats["token_fallback_success_count"] = (
+                            self._safe_int(stats.get("token_fallback_success_count", 0), 0) + 1
+                        )
+                    anchor_errors = []
+                else:
+                    fallback_reasons = [str(e) for e in (fallback.get("errors", []) or [])]
+                    if token_fallback_candidates >= 2 or any("ambiguous_candidates" in e for e in fallback_reasons):
+                        with session["lock"]:
+                            stats = self._autofix_session_stats(session)
+                            stats["token_fallback_ambiguous_count"] = (
+                                self._safe_int(stats.get("token_fallback_ambiguous_count", 0), 0) + 1
+                            )
+                    anchor_errors.extend(fallback_reasons)
+
             if not anchors_match:
                 quality_metrics = self._new_autofix_quality_metrics(
                     proposal_id=str(proposal.get("proposal_id", "")),
@@ -2100,6 +2376,10 @@ class CodeInspectorApp:
                     applied=False,
                     rejected_reason="anchor mismatch",
                     validation_errors=list(anchor_errors),
+                    locator_mode=locator_mode,
+                    token_fallback_attempted=token_fallback_attempted,
+                    token_fallback_confidence=token_fallback_confidence,
+                    token_fallback_candidates=token_fallback_candidates,
                 )
                 self._mark_autofix_proposal_failure(session, proposal, error_code="ANCHOR_MISMATCH", quality_metrics=quality_metrics)
                 raise self._autofix_apply_error(
@@ -2108,17 +2388,161 @@ class CodeInspectorApp:
                     quality_metrics=quality_metrics,
                 )
 
+            valid_apply_hunks = [h for h in apply_hunks if isinstance(h, dict)]
+            is_multi_hunk_apply = len(valid_apply_hunks) >= 2
+            if is_multi_hunk_apply:
+                with session["lock"]:
+                    stats = self._autofix_session_stats(session)
+                    stats["multi_hunk_attempt_count"] = self._safe_int(stats.get("multi_hunk_attempt_count", 0), 0) + 1
+            if len(valid_apply_hunks) > 3:
+                apply_engine_reason = "too_many_hunks"
+                validation_errors = [f"apply engine failed: {apply_engine_reason}"]
+                if is_multi_hunk_apply:
+                    with session["lock"]:
+                        stats = self._autofix_session_stats(session)
+                        stats["multi_hunk_blocked_count"] = self._safe_int(stats.get("multi_hunk_blocked_count", 0), 0) + 1
+                quality_metrics = self._new_autofix_quality_metrics(
+                    proposal_id=str(proposal.get("proposal_id", "")),
+                    generator_type=str(proposal.get("generator_type", "unknown")),
+                    anchors_match=True,
+                    hash_match=hash_match,
+                    syntax_check_passed=True,
+                    applied=False,
+                    rejected_reason="apply engine failed",
+                    validation_errors=validation_errors,
+                    locator_mode=locator_mode,
+                    apply_engine_mode="failed",
+                    apply_engine_fallback_reason=apply_engine_reason,
+                    token_fallback_attempted=token_fallback_attempted,
+                    token_fallback_confidence=token_fallback_confidence,
+                    token_fallback_candidates=token_fallback_candidates,
+                )
+                self._mark_autofix_proposal_failure(
+                    session,
+                    proposal,
+                    error_code="APPLY_ENGINE_FAILED",
+                    quality_metrics=quality_metrics,
+                )
+                raise self._autofix_apply_error(
+                    "Autofix apply engine failed: too_many_hunks",
+                    error_code="APPLY_ENGINE_FAILED",
+                    quality_metrics=quality_metrics,
+                )
+            if self._hunk_ranges_overlap(valid_apply_hunks):
+                apply_engine_reason = "overlapping_hunks"
+                validation_errors = [f"apply engine failed: {apply_engine_reason}"]
+                if is_multi_hunk_apply:
+                    with session["lock"]:
+                        stats = self._autofix_session_stats(session)
+                        stats["multi_hunk_blocked_count"] = self._safe_int(stats.get("multi_hunk_blocked_count", 0), 0) + 1
+                quality_metrics = self._new_autofix_quality_metrics(
+                    proposal_id=str(proposal.get("proposal_id", "")),
+                    generator_type=str(proposal.get("generator_type", "unknown")),
+                    anchors_match=True,
+                    hash_match=hash_match,
+                    syntax_check_passed=True,
+                    applied=False,
+                    rejected_reason="apply engine failed",
+                    validation_errors=validation_errors,
+                    locator_mode=locator_mode,
+                    apply_engine_mode="failed",
+                    apply_engine_fallback_reason=apply_engine_reason,
+                    token_fallback_attempted=token_fallback_attempted,
+                    token_fallback_confidence=token_fallback_confidence,
+                    token_fallback_candidates=token_fallback_candidates,
+                )
+                self._mark_autofix_proposal_failure(
+                    session,
+                    proposal,
+                    error_code="APPLY_ENGINE_FAILED",
+                    quality_metrics=quality_metrics,
+                )
+                raise self._autofix_apply_error(
+                    "Autofix apply engine failed: overlapping_hunks",
+                    error_code="APPLY_ENGINE_FAILED",
+                    quality_metrics=quality_metrics,
+                )
+
             candidate_content = str(proposal.get("_candidate_content", ""))
             if not candidate_content:
                 raise RuntimeError("Autofix proposal candidate content is missing")
+
+            engine_result = apply_with_engine(
+                base_text=current_content,
+                hunks=[h for h in apply_hunks if isinstance(h, dict)],
+                anchor_line=self._safe_int(
+                    (apply_hunks[0] if apply_hunks and isinstance(apply_hunks[0], dict) else {}).get("start_line", 1),
+                    1,
+                ),
+                generator_type=str(proposal.get("generator_type", "unknown")),
+                options={
+                    "max_line_drift": max(50, min(300, len(current_lines))),
+                    "max_hunks_per_apply": 3,
+                },
+            )
+            apply_engine_mode = str(engine_result.get("engine_mode", "failed") or "failed")
+            apply_engine_fallback_reason = str(engine_result.get("fallback_reason", "") or "")
+            if bool(engine_result.get("ok", False)):
+                engine_text = str(engine_result.get("patched_text", ""))
+                if engine_text:
+                    candidate_content = engine_text
+            else:
+                apply_engine_mode = "failed"
+                reason = apply_engine_fallback_reason or "apply_failed"
+                anchor_errors.append(f"apply engine failed: {reason}")
+                if is_multi_hunk_apply and reason in (
+                    "too_many_hunks",
+                    "overlapping_hunks",
+                    "hunks_span_multiple_blocks",
+                    "anchor_context_not_unique",
+                ):
+                    with session["lock"]:
+                        stats = self._autofix_session_stats(session)
+                        stats["multi_hunk_blocked_count"] = self._safe_int(stats.get("multi_hunk_blocked_count", 0), 0) + 1
+                quality_metrics = self._new_autofix_quality_metrics(
+                    proposal_id=str(proposal.get("proposal_id", "")),
+                    generator_type=str(proposal.get("generator_type", "unknown")),
+                    anchors_match=anchors_match,
+                    hash_match=hash_match,
+                    syntax_check_passed=True,
+                    applied=False,
+                    rejected_reason="apply engine failed",
+                    validation_errors=list(anchor_errors),
+                    locator_mode=locator_mode,
+                    apply_engine_mode="failed",
+                    apply_engine_fallback_reason=reason,
+                    token_fallback_attempted=token_fallback_attempted,
+                    token_fallback_confidence=token_fallback_confidence,
+                    token_fallback_candidates=token_fallback_candidates,
+                )
+                self._mark_autofix_proposal_failure(
+                    session,
+                    proposal,
+                    error_code="APPLY_ENGINE_FAILED",
+                    quality_metrics=quality_metrics,
+                )
+                raise self._autofix_apply_error(
+                    f"Autofix apply engine failed: {reason}",
+                    error_code="APPLY_ENGINE_FAILED",
+                    quality_metrics=quality_metrics,
+                )
 
             validation = {
                 "anchors_match": anchors_match,
                 "hash_match": hash_match,
                 "syntax_check_passed": self._basic_syntax_check(candidate_content),
+                "semantic_check_passed": True,
+                "semantic_blocked_reason": "",
+                "semantic_violation_count": 0,
                 "heuristic_regression_count": 0,
                 "ctrlpp_regression_count": 0,
                 "errors": list(anchor_errors),
+                "locator_mode": locator_mode,
+                "apply_engine_mode": apply_engine_mode,
+                "apply_engine_fallback_reason": apply_engine_fallback_reason,
+                "token_fallback_attempted": token_fallback_attempted,
+                "token_fallback_confidence": token_fallback_confidence,
+                "token_fallback_candidates": token_fallback_candidates,
             }
             if not validation["syntax_check_passed"]:
                 quality_metrics = self._new_autofix_quality_metrics(
@@ -2130,6 +2554,12 @@ class CodeInspectorApp:
                     applied=False,
                     rejected_reason="syntax precheck failed",
                     validation_errors=list(validation["errors"]),
+                    locator_mode=locator_mode,
+                    apply_engine_mode=apply_engine_mode,
+                    apply_engine_fallback_reason=apply_engine_fallback_reason,
+                    token_fallback_attempted=token_fallback_attempted,
+                    token_fallback_confidence=token_fallback_confidence,
+                    token_fallback_candidates=token_fallback_candidates,
                 )
                 self._mark_autofix_proposal_failure(
                     session,
@@ -2142,6 +2572,66 @@ class CodeInspectorApp:
                     error_code="SYNTAX_PRECHECK_FAILED",
                     quality_metrics=quality_metrics,
                 )
+
+            generator_type = str(proposal.get("generator_type", "unknown") or "unknown").lower()
+            if generator_type == "rule":
+                with session["lock"]:
+                    stats = self._autofix_session_stats(session)
+                    stats["semantic_guard_checked_count"] = (
+                        self._safe_int(stats.get("semantic_guard_checked_count", 0), 0) + 1
+                    )
+
+                semantic_reference = str(proposal.get("_candidate_content", "") or "")
+                if not semantic_reference:
+                    semantic_reference = candidate_content
+                semantic_result = evaluate_semantic_delta(semantic_reference, candidate_content)
+                semantic_blocked = bool(semantic_result.get("blocked", False))
+                semantic_reason = str(semantic_result.get("reason", "") or "")
+                semantic_violations = [str(v) for v in (semantic_result.get("violations", []) or []) if str(v).strip()]
+                semantic_violation_count = len(semantic_violations)
+                validation["semantic_check_passed"] = not semantic_blocked
+                validation["semantic_blocked_reason"] = semantic_reason
+                validation["semantic_violation_count"] = semantic_violation_count
+
+                if semantic_blocked:
+                    validation["errors"].append(
+                        f"semantic guard blocked ({semantic_reason}): {', '.join(semantic_violations)}"
+                    )
+                    with session["lock"]:
+                        stats = self._autofix_session_stats(session)
+                        stats["semantic_guard_blocked_count"] = (
+                            self._safe_int(stats.get("semantic_guard_blocked_count", 0), 0) + 1
+                        )
+                    quality_metrics = self._new_autofix_quality_metrics(
+                        proposal_id=str(proposal.get("proposal_id", "")),
+                        generator_type=str(proposal.get("generator_type", "unknown")),
+                        anchors_match=anchors_match,
+                        hash_match=hash_match,
+                        syntax_check_passed=bool(validation["syntax_check_passed"]),
+                        semantic_check_passed=False,
+                        semantic_blocked_reason=semantic_reason,
+                        semantic_violation_count=semantic_violation_count,
+                        applied=False,
+                        rejected_reason="semantic guard blocked",
+                        validation_errors=list(validation["errors"]),
+                        locator_mode=locator_mode,
+                        apply_engine_mode=apply_engine_mode,
+                        apply_engine_fallback_reason=apply_engine_fallback_reason,
+                        token_fallback_attempted=token_fallback_attempted,
+                        token_fallback_confidence=token_fallback_confidence,
+                        token_fallback_candidates=token_fallback_candidates,
+                    )
+                    self._mark_autofix_proposal_failure(
+                        session,
+                        proposal,
+                        error_code="SEMANTIC_GUARD_BLOCKED",
+                        quality_metrics=quality_metrics,
+                    )
+                    raise self._autofix_apply_error(
+                        "Autofix semantic guard blocked high-risk token delta",
+                        error_code="SEMANTIC_GUARD_BLOCKED",
+                        quality_metrics=quality_metrics,
+                    )
 
             pre_internal = self.checker.analyze_raw_code(source_path, current_content, file_type="Server")
             post_internal = self.checker.analyze_raw_code(source_path, candidate_content, file_type="Server")
@@ -2189,11 +2679,20 @@ class CodeInspectorApp:
                     anchors_match=anchors_match,
                     hash_match=hash_match,
                     syntax_check_passed=bool(validation["syntax_check_passed"]),
+                    semantic_check_passed=bool(validation.get("semantic_check_passed", True)),
+                    semantic_blocked_reason=str(validation.get("semantic_blocked_reason", "") or ""),
+                    semantic_violation_count=self._safe_int(validation.get("semantic_violation_count", 0), 0),
                     heuristic_regression_count=self._safe_int(validation["heuristic_regression_count"], 0),
                     ctrlpp_regression_count=self._safe_int(validation["ctrlpp_regression_count"], 0),
                     applied=False,
                     rejected_reason="ctrlpp regression blocked",
                     validation_errors=list(validation["errors"]),
+                    locator_mode=locator_mode,
+                    apply_engine_mode=apply_engine_mode,
+                    apply_engine_fallback_reason=apply_engine_fallback_reason,
+                    token_fallback_attempted=token_fallback_attempted,
+                    token_fallback_confidence=token_fallback_confidence,
+                    token_fallback_candidates=token_fallback_candidates,
                 )
                 self._mark_autofix_proposal_failure(session, proposal, error_code="REGRESSION_BLOCKED", quality_metrics=quality_metrics)
                 raise self._autofix_apply_error(
@@ -2236,11 +2735,20 @@ class CodeInspectorApp:
                     anchors_match=anchors_match,
                     hash_match=hash_match,
                     syntax_check_passed=bool(validation["syntax_check_passed"]),
+                    semantic_check_passed=bool(validation.get("semantic_check_passed", True)),
+                    semantic_blocked_reason=str(validation.get("semantic_blocked_reason", "") or ""),
+                    semantic_violation_count=self._safe_int(validation.get("semantic_violation_count", 0), 0),
                     heuristic_regression_count=self._safe_int(validation["heuristic_regression_count"], 0),
                     ctrlpp_regression_count=self._safe_int(validation["ctrlpp_regression_count"], 0),
                     applied=False,
                     rejected_reason="heuristic regression blocked",
                     validation_errors=list(validation["errors"]),
+                    locator_mode=locator_mode,
+                    apply_engine_mode=apply_engine_mode,
+                    apply_engine_fallback_reason=apply_engine_fallback_reason,
+                    token_fallback_attempted=token_fallback_attempted,
+                    token_fallback_confidence=token_fallback_confidence,
+                    token_fallback_candidates=token_fallback_candidates,
                 )
                 self._mark_autofix_proposal_failure(session, proposal, error_code="REGRESSION_BLOCKED", quality_metrics=quality_metrics)
                 raise self._autofix_apply_error(
@@ -2255,11 +2763,20 @@ class CodeInspectorApp:
                 anchors_match=anchors_match,
                 hash_match=hash_match,
                 syntax_check_passed=bool(validation["syntax_check_passed"]),
+                semantic_check_passed=bool(validation.get("semantic_check_passed", True)),
+                semantic_blocked_reason=str(validation.get("semantic_blocked_reason", "") or ""),
+                semantic_violation_count=self._safe_int(validation.get("semantic_violation_count", 0), 0),
                 heuristic_regression_count=self._safe_int(validation["heuristic_regression_count"], 0),
                 ctrlpp_regression_count=self._safe_int(validation["ctrlpp_regression_count"], 0),
                 applied=True,
                 rejected_reason="",
                 validation_errors=list(validation["errors"]),
+                locator_mode=locator_mode,
+                apply_engine_mode=apply_engine_mode,
+                apply_engine_fallback_reason=apply_engine_fallback_reason,
+                token_fallback_attempted=token_fallback_attempted,
+                token_fallback_confidence=token_fallback_confidence,
+                token_fallback_candidates=token_fallback_candidates,
             )
 
             with session["lock"]:
@@ -2270,6 +2787,27 @@ class CodeInspectorApp:
                 proposal["applied_at"] = self._iso_now()
                 proposal["validation"] = dict(validation)
                 proposal["quality_metrics"] = dict(quality_metrics)
+                stats = self._autofix_session_stats(session)
+                if apply_engine_mode == "structure_apply":
+                    stats["apply_engine_structure_success_count"] = (
+                        self._safe_int(stats.get("apply_engine_structure_success_count", 0), 0) + 1
+                    )
+                elif apply_engine_mode == "text_fallback":
+                    stats["apply_engine_text_fallback_count"] = (
+                        self._safe_int(stats.get("apply_engine_text_fallback_count", 0), 0) + 1
+                    )
+                if str(proposal.get("_prepare_mode", "")) == "compare":
+                    stats["compare_apply_count"] = self._safe_int(stats.get("compare_apply_count", 0), 0) + 1
+                    selected = stats.setdefault("selected_generator_counts", {"rule": 0, "llm": 0})
+                    if isinstance(selected, dict):
+                        gen = str(proposal.get("generator_type", "") or "").lower()
+                        if gen in ("rule", "llm"):
+                            selected[gen] = self._safe_int(selected.get(gen, 0), 0) + 1
+                selected_engine = stats.setdefault("selected_apply_engine_mode", {"structure_apply": 0, "text_fallback": 0})
+                if isinstance(selected_engine, dict) and apply_engine_mode in ("structure_apply", "text_fallback"):
+                    selected_engine[apply_engine_mode] = self._safe_int(selected_engine.get(apply_engine_mode, 0), 0) + 1
+                if is_multi_hunk_apply:
+                    stats["multi_hunk_success_count"] = self._safe_int(stats.get("multi_hunk_success_count", 0), 0) + 1
                 self._touch_review_session(session)
 
             audit_entry = {
@@ -2283,6 +2821,11 @@ class CodeInspectorApp:
                     "hash_match": validation["hash_match"],
                     "anchors_match": validation["anchors_match"],
                     "syntax_check_passed": validation["syntax_check_passed"],
+                    "semantic_check_passed": bool(validation.get("semantic_check_passed", True)),
+                    "semantic_blocked_reason": str(validation.get("semantic_blocked_reason", "") or ""),
+                    "semantic_violation_count": self._safe_int(validation.get("semantic_violation_count", 0), 0),
+                    "apply_engine_mode": validation.get("apply_engine_mode", ""),
+                    "apply_engine_fallback_reason": validation.get("apply_engine_fallback_reason", ""),
                     "heuristic_regression_count": validation["heuristic_regression_count"],
                     "ctrlpp_regression_count": validation["ctrlpp_regression_count"],
                     "errors": validation["errors"],
@@ -2349,7 +2892,7 @@ class CodeInspectorApp:
             reporter = Reporter(config_dir=self.reporter.config_dir)
             reporter.output_base_dir = self.reporter.output_base_dir
             reporter.output_dir = target_output_dir
-            reporter.timestamp = os.path.basename(target_output_dir.rstrip("\/"))
+            reporter.timestamp = os.path.basename(target_output_dir.rstrip("/\\"))
             with self._reporter_semaphore:
                 reporter.generate_annotated_txt(
                     cached.get("original_content", ""),

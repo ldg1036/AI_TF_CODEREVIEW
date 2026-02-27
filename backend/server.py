@@ -58,6 +58,7 @@ class AutofixPrepareRequestBody(TypedDict, total=False):
     issue_id: str
     generator_preference: str
     allow_fallback: Optional[bool]
+    prepare_mode: str
 
 
 class AutofixApplyRequestBody(TypedDict, total=False):
@@ -136,6 +137,8 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
                 error_code = "BASE_HASH_MISMATCH"
             elif "anchor mismatch" in msg.lower():
                 error_code = "ANCHOR_MISMATCH"
+            elif "semantic guard blocked" in msg.lower():
+                error_code = "SEMANTIC_GUARD_BLOCKED"
             elif "supported only for .ctl" in msg.lower():
                 error_code = "UNSUPPORTED_FILE_TYPE"
             elif "syntax precheck failed" in msg.lower():
@@ -241,6 +244,7 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
         issue_id = typed_body.get("issue_id", "")
         generator_preference = typed_body.get("generator_preference", None)
         allow_fallback = typed_body.get("allow_fallback", None)
+        prepare_mode = typed_body.get("prepare_mode", None)
 
         if not isinstance(file_name, str) or not file_name.strip():
             raise ValueError("file must be a non-empty string")
@@ -258,11 +262,18 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
             raise ValueError("generator_preference must be a string when provided")
         if allow_fallback is not None and not isinstance(allow_fallback, bool):
             raise ValueError("allow_fallback must be a boolean when provided")
+        if prepare_mode is not None and not isinstance(prepare_mode, str):
+            raise ValueError("prepare_mode must be a string when provided")
         normalized_pref = None
+        normalized_prepare_mode = None
         if generator_preference is not None:
             normalized_pref = str(generator_preference or "").strip().lower()
             if normalized_pref not in ("auto", "llm", "rule"):
                 raise ValueError("generator_preference must be one of: auto, llm, rule")
+        if prepare_mode is not None:
+            normalized_prepare_mode = str(prepare_mode or "").strip().lower()
+            if normalized_prepare_mode not in ("single", "compare"):
+                raise ValueError("prepare_mode must be one of: single, compare")
         if normalized_pref == "llm" and not str(review_text or "").strip():
             raise ValueError("review must be a non-empty string for llm autofix prepare")
 
@@ -276,6 +287,7 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
             issue_id=issue_id,
             generator_preference=normalized_pref,
             allow_fallback=allow_fallback,
+            prepare_mode=normalized_prepare_mode,
         )
         result.setdefault("request_id", request_id)
         self._send_json(HTTPStatus.OK, result)

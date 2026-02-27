@@ -510,6 +510,493 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertGreaterEqual((stats_payload.get("by_generator") or {}).get("rule", 0), 1)
         self.assertGreaterEqual(stats_payload.get("proposal_count", 0), 1)
 
+    def test_autofix_prepare_compare_mode_returns_candidates(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "auto",
+                "prepare_mode": "compare",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        proposals = prepare_payload.get("proposals", [])
+        self.assertGreaterEqual(len(proposals), 1)
+        self.assertLessEqual(len(proposals), 2)
+        proposal_ids = {str(p.get("proposal_id", "")) for p in proposals if isinstance(p, dict)}
+        self.assertIn(str(prepare_payload.get("selected_proposal_id", "")), proposal_ids)
+        compare_meta = prepare_payload.get("compare_meta", {})
+        self.assertEqual(compare_meta.get("mode"), "compare")
+        self.assertGreaterEqual(int(compare_meta.get("generated_count", 0) or 0), 1)
+
+    def test_autofix_prepare_compare_mode_validation(self):
+        status, payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": "sample.ctl",
+                "event": "Global",
+                "review": "",
+                "session_id": "dummy",
+                "prepare_mode": "invalid-mode",
+            },
+        )
+        self.assertEqual(status, 400)
+        self.assertIn("prepare_mode", str(payload.get("error", "")))
+
+    def test_autofix_stats_compare_mode_selected_generator_counts(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "prepare_mode": "compare",
+                "generator_preference": "auto",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        proposals = prepare_payload.get("proposals", [])
+        self.assertGreaterEqual(len(proposals), 1)
+        selected = next(
+            (p for p in proposals if str(p.get("proposal_id", "")) == str(prepare_payload.get("selected_proposal_id", ""))),
+            proposals[0],
+        )
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": selected.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": selected.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+            },
+        )
+        self.assertEqual(apply_status, 200)
+        stats_status, stats_payload = self._request(
+            "GET",
+            "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
+        )
+        self.assertEqual(stats_status, 200)
+        self.assertGreaterEqual(int(stats_payload.get("prepare_compare_count", 0) or 0), 1)
+        self.assertGreaterEqual(int(stats_payload.get("compare_apply_count", 0) or 0), 1)
+        self.assertIn("apply_engine_structure_success_count", stats_payload)
+        self.assertIn("apply_engine_text_fallback_count", stats_payload)
+        self.assertIn("selected_apply_engine_mode", stats_payload)
+        selected_counts = stats_payload.get("selected_generator_counts", {}) or {}
+        selected_gen = str(selected.get("generator_type", "")).lower()
+        if selected_gen in ("rule", "llm"):
+            self.assertGreaterEqual(int(selected_counts.get(selected_gen, 0) or 0), 1)
+
+    def test_autofix_apply_token_fallback_success(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "llm",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        session = self.app._get_review_session(analyze_payload.get("output_dir", ""))
+        self.assertIsNotNone(session)
+        with session["lock"]:
+            proposal = session.get("autofix", {}).get("proposals", {}).get(prepare_payload.get("proposal_id"))
+            self.assertIsNotNone(proposal)
+            hunks = proposal.get("hunks", [])
+            self.assertTrue(hunks and isinstance(hunks[0], dict))
+            hunks[0]["context_after"] = 'main(){dpSet("A.B.C",1);}'
+
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+            },
+        )
+        self.assertEqual(apply_status, 200)
+        validation = apply_payload.get("validation", {})
+        self.assertIn(validation.get("apply_engine_mode"), ("structure_apply", "text_fallback"))
+        self.assertEqual(validation.get("locator_mode"), "token_fallback")
+        self.assertTrue(validation.get("token_fallback_attempted"))
+        self.assertGreaterEqual(float(validation.get("token_fallback_confidence", 0.0) or 0.0), 0.8)
+
+    def test_autofix_apply_anchor_normalized_success(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "llm",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        session = self.app._get_review_session(analyze_payload.get("output_dir", ""))
+        with session["lock"]:
+            proposal = session.get("autofix", {}).get("proposals", {}).get(prepare_payload.get("proposal_id"))
+            hunks = proposal.get("hunks", [])
+            self.assertTrue(hunks and isinstance(hunks[0], dict))
+            # Same semantic line with whitespace differences should pass normalized anchor mode.
+            hunks[0]["context_after"] = 'main()    {   dpSet("A.B.C", 1);    }'
+
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+            },
+        )
+        self.assertEqual(apply_status, 200)
+        validation = apply_payload.get("validation", {})
+        self.assertEqual(validation.get("locator_mode"), "anchor_normalized")
+        self.assertFalse(validation.get("token_fallback_attempted"))
+
+    def test_autofix_apply_token_fallback_ambiguous_fail_soft(self):
+        with open(os.path.join(self.data_dir, "sample.ctl"), "w", encoding="utf-8") as f:
+            f.write('main() { dpSet("A.B.C", 1); }\nmain() { dpSet("A.B.C", 1); }')
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "llm",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        session = self.app._get_review_session(analyze_payload.get("output_dir", ""))
+        with session["lock"]:
+            proposal = session.get("autofix", {}).get("proposals", {}).get(prepare_payload.get("proposal_id"))
+            hunks = proposal.get("hunks", [])
+            hunks[0]["context_after"] = 'main(){dpSet("A.B.C",1);}'
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+            },
+        )
+        self.assertEqual(apply_status, 409)
+        self.assertEqual(apply_payload.get("error_code"), "ANCHOR_MISMATCH")
+        quality = apply_payload.get("quality_metrics", {})
+        self.assertTrue(quality.get("token_fallback_attempted"))
+        self.assertGreaterEqual(int(quality.get("token_fallback_candidates", 0) or 0), 2)
+
+        stats_status, stats_payload = self._request(
+            "GET",
+            "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
+        )
+        self.assertEqual(stats_status, 200)
+        self.assertGreaterEqual(int(stats_payload.get("anchor_mismatch_count", 0) or 0), 1)
+        self.assertGreaterEqual(int(stats_payload.get("token_fallback_attempt_count", 0) or 0), 1)
+        self.assertGreaterEqual(int(stats_payload.get("token_fallback_ambiguous_count", 0) or 0), 1)
+
+    def test_autofix_apply_semantic_guard_blocked_and_stats(self):
+        self._force_single_internal_violation()
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": False, "mode": "Static"},
+        )
+        self.assertEqual(status, 200)
+        p1_group = (analyze_payload.get("violations", {}) or {}).get("P1", [])[0]
+        violation = (p1_group.get("violations") or [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": p1_group.get("object", "sample.ctl"),
+                "event": p1_group.get("event", "Global"),
+                "review": "",
+                "issue_id": violation.get("issue_id", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "rule",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        session = self.app._get_review_session(analyze_payload.get("output_dir", ""))
+        with session["lock"]:
+            proposal = session.get("autofix", {}).get("proposals", {}).get(prepare_payload.get("proposal_id"))
+            self.assertIsNotNone(proposal)
+            hunks = proposal.get("hunks", [])
+            self.assertTrue(hunks and isinstance(hunks[0], dict))
+            original_candidate = str(proposal.get("_candidate_content", ""))
+            hunks[0]["replacement_text"] = 'main() { dpSet("A.B.D", 1); }'
+            proposal["_candidate_content"] = original_candidate
+
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+            },
+        )
+        self.assertEqual(apply_status, 409)
+        self.assertEqual(apply_payload.get("error_code"), "SEMANTIC_GUARD_BLOCKED")
+        quality = apply_payload.get("quality_metrics", {})
+        self.assertFalse(bool(quality.get("semantic_check_passed", True)))
+        self.assertGreaterEqual(int(quality.get("semantic_violation_count", 0) or 0), 1)
+        self.assertIn("semantic guard blocked", str(quality.get("rejected_reason", "")).lower())
+
+        stats_status, stats_payload = self._request(
+            "GET",
+            "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
+        )
+        self.assertEqual(stats_status, 200)
+        self.assertGreaterEqual(int(stats_payload.get("semantic_guard_checked_count", 0) or 0), 1)
+        self.assertGreaterEqual(int(stats_payload.get("semantic_guard_blocked_count", 0) or 0), 1)
+
+    def test_autofix_apply_multi_hunk_success_and_stats(self):
+        with open(os.path.join(self.data_dir, "sample.ctl"), "w", encoding="utf-8") as f:
+            f.write("main()\n{\n  int a = 1;\n  int b = 2;\n  return;\n}\n")
+        self._force_single_internal_violation()
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": False, "mode": "Static"},
+        )
+        self.assertEqual(status, 200)
+        p1_group = (analyze_payload.get("violations", {}) or {}).get("P1", [])[0]
+        violation = (p1_group.get("violations") or [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": p1_group.get("object", "sample.ctl"),
+                "event": p1_group.get("event", "Global"),
+                "review": "",
+                "issue_id": violation.get("issue_id", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "rule",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        with open(os.path.join(self.data_dir, "sample.ctl"), "r", encoding="utf-8", errors="ignore") as f:
+            current_lines = f.read().splitlines()
+        session = self.app._get_review_session(analyze_payload.get("output_dir", ""))
+        with session["lock"]:
+            proposal = session.get("autofix", {}).get("proposals", {}).get(prepare_payload.get("proposal_id"))
+            self.assertIsNotNone(proposal)
+            proposal["hunks"] = [
+                {
+                    "start_line": 3,
+                    "end_line": 3,
+                    "context_before": current_lines[1],
+                    "context_after": current_lines[2],
+                    "replacement_text": "  int a = 10;",
+                },
+                {
+                    "start_line": 4,
+                    "end_line": 4,
+                    "context_before": current_lines[2],
+                    "context_after": current_lines[3],
+                    "replacement_text": "  int b = 20;",
+                },
+            ]
+            proposal["_candidate_content"] = "main()\n{\n  int a = 10;\n  int b = 20;\n  return;\n}\n"
+
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+            },
+        )
+        self.assertEqual(apply_status, 200)
+        self.assertEqual((apply_payload.get("validation") or {}).get("apply_engine_mode"), "structure_apply")
+
+        stats_status, stats_payload = self._request(
+            "GET",
+            "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
+        )
+        self.assertEqual(stats_status, 200)
+        self.assertGreaterEqual(int(stats_payload.get("multi_hunk_attempt_count", 0) or 0), 1)
+        self.assertGreaterEqual(int(stats_payload.get("multi_hunk_success_count", 0) or 0), 1)
+
+    def test_autofix_apply_multi_hunk_overlap_blocked(self):
+        with open(os.path.join(self.data_dir, "sample.ctl"), "w", encoding="utf-8") as f:
+            f.write("main()\n{\n  int a = 1;\n  int b = 2;\n  return;\n}\n")
+        self._force_single_internal_violation()
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": False, "mode": "Static"},
+        )
+        self.assertEqual(status, 200)
+        p1_group = (analyze_payload.get("violations", {}) or {}).get("P1", [])[0]
+        violation = (p1_group.get("violations") or [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": p1_group.get("object", "sample.ctl"),
+                "event": p1_group.get("event", "Global"),
+                "review": "",
+                "issue_id": violation.get("issue_id", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "rule",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        with open(os.path.join(self.data_dir, "sample.ctl"), "r", encoding="utf-8", errors="ignore") as f:
+            current_lines = f.read().splitlines()
+        session = self.app._get_review_session(analyze_payload.get("output_dir", ""))
+        with session["lock"]:
+            proposal = session.get("autofix", {}).get("proposals", {}).get(prepare_payload.get("proposal_id"))
+            self.assertIsNotNone(proposal)
+            proposal["hunks"] = [
+                {
+                    "start_line": 3,
+                    "end_line": 4,
+                    "context_before": current_lines[1],
+                    "context_after": current_lines[2],
+                    "replacement_text": "  int a = 10;\n  int b = 20;",
+                },
+                {
+                    "start_line": 4,
+                    "end_line": 4,
+                    "context_before": current_lines[2],
+                    "context_after": current_lines[3],
+                    "replacement_text": "  int b = 200;",
+                },
+            ]
+            proposal["_candidate_content"] = "main()\n{\n  int a = 10;\n  int b = 200;\n  return;\n}\n"
+
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+            },
+        )
+        self.assertEqual(apply_status, 409)
+        self.assertEqual(apply_payload.get("error_code"), "APPLY_ENGINE_FAILED")
+        quality = apply_payload.get("quality_metrics", {}) or {}
+        self.assertEqual(quality.get("apply_engine_mode"), "failed")
+        self.assertEqual(quality.get("apply_engine_fallback_reason"), "overlapping_hunks")
+
+        stats_status, stats_payload = self._request(
+            "GET",
+            "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
+        )
+        self.assertEqual(stats_status, 200)
+        self.assertGreaterEqual(int(stats_payload.get("multi_hunk_attempt_count", 0) or 0), 1)
+        self.assertGreaterEqual(int(stats_payload.get("multi_hunk_blocked_count", 0) or 0), 1)
+
     def test_autofix_apply_ctrlpp_regression_count_is_reported(self):
         self._force_single_internal_violation()
         self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (

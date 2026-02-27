@@ -10,9 +10,9 @@
 - `[ ] 미완료`: 아직 구현되지 않음
 
 ## 전체 요약
-- 완료: `118`
-- 부분완료: `4`
-- 미완료: `25`
+- 완료: `140`
+- 부분완료: `3`
+- 미완료: `2`
 - 비고: 상단 요약은 문서 전체 체크마크(`todo.md`) 기준 재집계값이며, GoldenTime 기준 Excel 비교/품질게이트/릴리즈 체크리스트 제거 결정(P1/P2/P3 기준 재정의)을 반영함.
 
 ## 1) 계획 단계별 체크 (Plan Steps 1~12)
@@ -359,7 +359,7 @@
   - code block 추출 여부, parseability, fallback 여부 등
 - [x] parserless patch 한계/안전범위 문서화
   - `docs/autofix_safety.md`
-- [-] 멀티-전략 prepare(복수 후보 동시 반환)는 선택 기능으로 보류 (현재 단일 후보 유지, `auto`는 내부 선택)
+- [x] 멀티-전략 prepare(복수 후보 동시 반환) 구현 완료 (`prepare_mode=compare`, 후보 비교/선택, 통계 반영)
 
 ### 추가 검증 (이번 로드맵 반영분)
 - [x] `python -m py_compile backend/main.py backend/server.py tools/http_perf_baseline.py` 통과
@@ -383,16 +383,16 @@
 
 현재 상태는 실사용 가능한 수준이지만, 자동수정 품질/확장성 고도화를 위해 아래 2개 항목을 후속 개선 대상으로 관리한다.
 
-### 8-1) 멀티-전략 `autofix/prepare` (rule/llm 후보 비교)
+### 8-1) 멀티-전략 `autofix/prepare` (rule/llm 후보 비교) (2026-02-26 반영)
 
 #### 목적
 - 현재 `generator_preference=auto`는 내부에서 `rule-first -> llm-fallback`로 **후보 1개만 반환**
 - 향후에는 `rule`/`llm` 후보를 동시에 생성해 사용자가 diff를 비교 후 선택하도록 확장
 
 #### 기대 효과
-- [ ] 동일 이슈에 대한 `rule` vs `llm` 품질 비교 가능
-- [ ] 승인 UX 고도화 (단순 승인/거절 -> 후보 선택 후 승인)
-- [ ] generator 선택 통계 축적 (향후 `auto` 정책 개선 근거)
+- [x] 동일 이슈에 대한 `rule` vs `llm` 품질 비교 가능
+- [x] 승인 UX 고도화 (단순 승인/거절 -> 후보 선택 후 승인)
+- [x] generator 선택 통계 축적 (향후 `auto` 정책 개선 근거)
 
 #### 현재 제약 / 리스크
 - `prepare` 응답 지연 증가 가능 (`rule + llm` 둘 다 수행 시)
@@ -400,11 +400,11 @@
 - LLM 비용/시간 증가 (로컬 모델도 자원 사용 증가)
 
 #### 1차 구현 방향 (권장)
-- [-] 기본 동작은 유지 (`auto` = 단일 후보)
-- [ ] 옵션 모드 추가 (예: `prepare_mode=compare`)
-- [ ] 응답 구조 확장 (단일 `proposal` + `alternatives[]` 또는 `proposals[]`)
-- [ ] UI에서 후보 전환/비교 표시 후 선택 적용
-- [ ] 선택 결과를 `autofix/stats` 품질 통계에 반영
+- [x] 기본 동작은 유지 (`auto` = 단일 후보)
+- [x] 옵션 모드 추가 (`prepare_mode=compare`)
+- [x] 응답 구조 확장 (`proposals[]`, `selected_proposal_id`, `compare_meta`)
+- [x] UI에서 후보 전환/비교 표시 후 선택 적용
+- [x] 선택 결과를 `autofix/stats` 품질 통계에 반영
 
 ### 8-2) WinCC OA 전용 parser/토큰화 기반 patch (적용 안정성 고도화)
 
@@ -414,25 +414,25 @@
 - 고난도 자동수정 정확도를 높이기 위해 토큰화/구조 기반 적용 보강 필요
 
 #### 현재 방식 한계 (parserless patch)
-- [ ] 줄 이동/공백 재정렬에도 anchor mismatch 가능
-- [ ] 의미(semantic) 동일성 판단 불가
-- [ ] 다중 위치/복합 수정에 취약
-- [ ] 유사 코드가 많은 파일에서 오적용 위험 증가
+- [x] 줄 이동/공백 재정렬에도 anchor mismatch 가능 (anchor_normalized + token fallback 강화 반영)
+- [x] 의미(semantic) 동일성 판단 불가 (semantic guard 1차: 문자열/숫자/연산자/키워드 고위험 토큰 변화 차단)
+- [x] 다중 위치/복합 수정에 취약 (P1 최소안: 동일 블록 다중 hunk(최대 3) + overlap/cross-block fail-soft 차단 + multi_hunk 통계 반영)
+- [x] 유사 코드가 많은 파일에서 오적용 위험 증가 (ambiguous 후보 fail-soft 차단 반영)
 
 #### 단계별 고도화 로드맵 (권장)
 
 ##### Phase T1 — 토큰화 기반 locator (빠른 효과)
-- [ ] `.ctl` 코드 토큰화(식별자/키워드/괄호/연산자/문자열/주석)
-- [ ] 줄 기반 anchor 실패 시 토큰 시퀀스 기반 재탐색 fallback
-- [ ] 기존 hash 검증/회귀검사 흐름 유지 (적용 엔진만 보강)
+- [x] `.ctl` 코드 토큰화(식별자/키워드/괄호/연산자/문자열/주석)
+- [x] 줄 기반 anchor 실패 시 토큰 시퀀스 기반 재탐색 fallback
+- [x] 기존 hash 검증/회귀검사 흐름 유지 (적용 엔진만 보강)
 
 ##### Phase T2 — 제한된 구조 parser (부분 문법)
-- [ ] 자주 쓰는 구조만 파싱 (함수/이벤트 블록/if-else/brace 구조)
-- [ ] rule-based autofix부터 구조 기반 적용 도입
-- [ ] 구조 기반 apply 실패 시 기존 텍스트 패치 fallback 정책 정의
+- [x] parser-lite 적용 엔진 실구현 (`backend/core/autofix_apply_engine.py`)
+- [x] rule-based autofix부터 구조 기반 적용 도입
+- [x] 구조 기반 apply 실패 시 기존 텍스트 패치 fallback 정책 정의
 
 ##### Phase T3 — LLM 제안 구조화 (장기)
-- [ ] LLM이 완성 코드 대신 “수정 지시(JSON/구조화 명령)” 반환하도록 확장
+- [-] 구조화 수정 지시(JSON) 스키마/적용 계획 문서화 (`docs/autofix_engine_roadmap.md`)
 - [ ] parser/토큰 엔진이 실제 patch 생성/적용 담당
 - [ ] 복수 후보(rule/llm) 비교와 결합 가능한 구조로 설계
 
@@ -443,13 +443,15 @@
 
 ### 8-3) 권장 우선순위 (P0/P1/P2)
 - `P0` (현재 유지): 현행 승인형 autofix + hash/anchor/회귀검사 유지
-- `P1` (다음 개선): 멀티-전략 `prepare` 비교 모드 (옵션 기반)
-- `P1` (다음 개선): 토큰화 기반 anchor 재탐색 fallback
+- `P1` (완료): 멀티-전략 `prepare` 비교 모드 (옵션 기반)
+- `P1` (완료): 토큰화 기반 anchor 재탐색 fallback
 - `P2` (고도화): 제한된 구조 parser + rule autofix 구조 기반 적용
 - `P2` (장기): LLM 구조화 수정 지시 + 복수 후보 비교 UX 고도화
 
 ### 8-4) 성공 기준 (후속 항목)
-- [ ] 멀티-전략 compare 모드에서 `rule`/`llm` 후보 2개 diff 비교 가능
-- [ ] 선택된 후보 적용 결과가 품질 통계에 기록됨
-- [ ] 토큰화 기반 fallback 도입 후 anchor mismatch 실패율 감소(실데이터 기준)
-- [ ] 기존 `autofix/apply` 안전성(백업/감사로그/회귀검사) 회귀 없음
+- [x] 멀티-전략 compare 모드에서 `rule`/`llm` 후보 diff 비교 가능
+- [x] 선택된 후보 적용 결과가 품질 통계에 기록됨
+- [-] 토큰화 기반 fallback 도입 후 anchor mismatch 실패율 감소(실데이터 기준, 실데이터 장기측정 필요)
+  - 2026-02-27 실측 1차: `docs/perf_baselines/autofix_apply_baseline_20260227_0938.json`, `docs/perf_baselines/autofix_apply_improved_20260227_0938.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_0938.json`
+  - 결과: `improvement_percent=0.0` (샘플에서 anchor mismatch 이벤트 미발생으로 KPI 판정 보류)
+- [x] 기존 `autofix/apply` 안전성(백업/감사로그/회귀검사) 회귀 없음

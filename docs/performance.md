@@ -11,8 +11,25 @@ This project now exposes runtime metrics on `POST /api/analyze` and includes two
 
 - UI rendering benchmark (Playwright): `tools/playwright_ui_benchmark.js`
 - Backend HTTP/matrix benchmark (server metrics): `tools/http_perf_baseline.py`
+- Autofix apply baseline/improved comparison: `tools/perf/autofix_apply_baseline.py`
 
 The goal is to make "performance is acceptable" a measurable statement instead of a subjective impression.
+
+## Autofix Apply Safety Baseline (P1 Multi-hunk)
+
+Current P1 safety policy for multi-hunk apply:
+- same block only (`brace` parser-lite boundary)
+- max 3 hunks per apply
+- fail-soft blocking on ambiguous/high-risk cases:
+  - `too_many_hunks`
+  - `overlapping_hunks`
+  - `hunks_span_multiple_blocks`
+  - `anchor_context_not_unique`
+
+Related stats from `GET /api/autofix/stats`:
+- `multi_hunk_attempt_count`
+- `multi_hunk_success_count`
+- `multi_hunk_blocked_count`
 
 ## 1. What To Measure
 
@@ -117,7 +134,17 @@ Use the same machine/profile when comparing results.
   - UI: `p95` increases by more than `20%`
   - Backend: `server_total` or stage timings increase by more than `20%`
   - LLM/Ctrlpp: unexpected call count increases
-  - Deferred Excel: pending jobs not draining after flush
+- Deferred Excel: pending jobs not draining after flush
+
+### Autofix anchor mismatch improvement rule
+- Collect one `baseline` JSON and one `improved` JSON using the same file set and iteration count.
+- Compare `kpi_anchor_failure_rate` via comparison JSON:
+  - `baseline_failure_rate`
+  - `improved_failure_rate`
+  - `improvement_percent`
+- Recommended gate:
+  - Pass: `improvement_percent >= 10`
+  - Hold (`[-]` in TODO): `< 10` or sample has no anchor-mismatch events
 
 ## 4. Noise / Variance Handling
 
@@ -158,3 +185,44 @@ Threshold check validation run
 - `resultTableScrollMs p95 = 831` (<= 1050)
 - `codeJumpMs p95 = 62` (<= 100)
 - `codeViewerScrollMs p95 = 364` (<= 500)
+
+## 7. Autofix Apply Baseline Workflow (2026-02-27)
+
+Start server:
+
+```powershell
+python backend/server.py
+```
+
+Collect improved run:
+
+```powershell
+python tools/perf/autofix_apply_baseline.py `
+  --mode improved `
+  --discover-count 1 `
+  --iterations 3 `
+  --output docs/perf_baselines/autofix_apply_improved_20260227_0938.json
+```
+
+Collect baseline run + comparison:
+
+```powershell
+python tools/perf/autofix_apply_baseline.py `
+  --mode baseline `
+  --discover-count 1 `
+  --iterations 3 `
+  --output docs/perf_baselines/autofix_apply_baseline_20260227_0938.json `
+  --compare-with docs/perf_baselines/autofix_apply_improved_20260227_0938.json `
+  --output-compare docs/perf_baselines/autofix_apply_comparison_20260227_0938.json
+```
+
+Generated artifacts:
+- `docs/perf_baselines/autofix_apply_baseline_20260227_0938.json`
+- `docs/perf_baselines/autofix_apply_improved_20260227_0938.json`
+- `docs/perf_baselines/autofix_apply_comparison_20260227_0938.json`
+
+Current comparison result:
+- `baseline_failure_rate = 0.0`
+- `improved_failure_rate = 0.0`
+- `improvement_percent = 0.0`
+- Interpretation: no anchor mismatch events were observed in this sample, so KPI pass/fail cannot be confirmed from this run alone.

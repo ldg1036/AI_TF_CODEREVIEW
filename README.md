@@ -41,7 +41,12 @@
 - `autofix/prepare` -> `file-diff` 확인 -> `autofix/apply`
 - `llm` / `rule` / `auto(rule-first, llm-fallback)` generator
 - hash / anchor / syntax / heuristic / optional Ctrlpp regression 검증
+- multi-hunk P1 안전정책: same-block, 최대 3개, overlap/cross-block fail-soft 차단
 - 백업 파일 + 감사 로그 + 사용자 승인 흐름
+
+API note:
+- `GET /api/autofix/stats` includes `multi_hunk_attempt_count`, `multi_hunk_success_count`, `multi_hunk_blocked_count`
+- `POST /api/autofix/apply` may return fail-soft `error_code="APPLY_ENGINE_FAILED"` for unsafe multi-hunk scenarios
 
 ### 4) 벤치/스모크 도구
 - UI benchmark: `tools/playwright_ui_benchmark.js`

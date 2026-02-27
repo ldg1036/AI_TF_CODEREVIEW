@@ -26,6 +26,9 @@ const aiCard = document.getElementById("ai-suggestion-card");
 const aiText = document.getElementById("ai-text");
 const aiDiffPanel = document.getElementById("autofix-diff-panel");
 const aiDiffText = document.getElementById("autofix-diff-text");
+const aiComparePanel = document.getElementById("autofix-compare-panel");
+const aiCompareButtons = document.getElementById("autofix-compare-buttons");
+const aiCompareMeta = document.getElementById("autofix-compare-meta");
 const aiValidationPanel = document.getElementById("autofix-validation-panel");
 const aiValidationText = document.getElementById("autofix-validation-text");
 const fileList = document.getElementById("file-list");
@@ -55,6 +58,7 @@ const resultTableVirtualState = {
 };
 let resultTableRenderQueued = false;
 const autofixProposalCache = new Map();
+const AUTOFIX_PREPARE_MODE = "compare";
 const codeViewerVirtualState = {
     headerEl: null,
     linesWrap: null,
@@ -462,6 +466,64 @@ function setAutofixDiffPanel(diffText) {
     aiDiffPanel.style.display = text ? "block" : "none";
 }
 
+function normalizeAutofixBundle(payload) {
+    const data = (payload && typeof payload === "object") ? payload : {};
+    const rawProposals = Array.isArray(data.proposals) && data.proposals.length ? data.proposals : [data];
+    const proposals = rawProposals.filter((item) => item && typeof item === "object" && item.proposal_id);
+    const fallbackProposal = proposals[0] || {};
+    let selected = String(data.selected_proposal_id || "");
+    if (!selected || !proposals.some((item) => String(item.proposal_id) === selected)) {
+        const ruleProposal = proposals.find((item) => String(item.generator_type || "").toLowerCase() === "rule");
+        selected = String((ruleProposal || fallbackProposal).proposal_id || "");
+    }
+    return {
+        proposals,
+        selected_proposal_id: selected,
+        active_proposal_id: selected,
+        compare_meta: (data.compare_meta && typeof data.compare_meta === "object") ? data.compare_meta : null,
+    };
+}
+
+function getActiveAutofixProposal(bundle) {
+    if (!bundle || !Array.isArray(bundle.proposals) || !bundle.proposals.length) return null;
+    const activeId = String(bundle.active_proposal_id || bundle.selected_proposal_id || "");
+    const found = bundle.proposals.find((item) => String(item.proposal_id) === activeId);
+    return found || bundle.proposals[0];
+}
+
+function renderAutofixComparePanel(bundle, onSelect) {
+    if (!aiComparePanel || !aiCompareButtons || !aiCompareMeta) return;
+    const proposals = (bundle && Array.isArray(bundle.proposals)) ? bundle.proposals : [];
+    if (proposals.length <= 1) {
+        aiCompareButtons.innerHTML = "";
+        aiCompareMeta.textContent = "";
+        aiComparePanel.style.display = "none";
+        return;
+    }
+    aiCompareButtons.innerHTML = "";
+    const activeId = String((bundle && bundle.active_proposal_id) || (bundle && bundle.selected_proposal_id) || "");
+    proposals.forEach((proposal) => {
+        const pid = String((proposal && proposal.proposal_id) || "");
+        if (!pid) return;
+        const gen = String((proposal && proposal.generator_type) || "unknown").toUpperCase();
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = gen;
+        btn.style.padding = "4px 8px";
+        btn.style.borderRadius = "4px";
+        btn.style.border = "1px solid rgba(21,101,192,0.35)";
+        btn.style.cursor = "pointer";
+        const active = pid === activeId;
+        btn.style.background = active ? "#1565c0" : "#ffffff";
+        btn.style.color = active ? "#ffffff" : "#1565c0";
+        btn.onclick = () => onSelect(pid);
+        aiCompareButtons.appendChild(btn);
+    });
+    const generatedCount = proposals.length;
+    aiCompareMeta.textContent = `compare mode: ${generatedCount} candidates`;
+    aiComparePanel.style.display = "block";
+}
+
 async function prepareAutofixProposal(violation, eventName, aiMatch) {
     const fileName = basenamePath((violation && (violation.file || violation.file_name || violation.filename)) || currentViewerFile);
     if (!fileName) throw new Error("target file is missing");
@@ -475,6 +537,7 @@ async function prepareAutofixProposal(violation, eventName, aiMatch) {
             review: String(aiMatch.review || ""),
             issue_id: String((violation && violation.issue_id) || aiMatch.parent_issue_id || ""),
             session_id: analysisData.output_dir || undefined,
+            prepare_mode: AUTOFIX_PREPARE_MODE,
         }),
     });
     const payload = await response.json().catch(() => ({}));
@@ -483,7 +546,7 @@ async function prepareAutofixProposal(violation, eventName, aiMatch) {
         err.payload = payload;
         throw err;
     }
-    return payload;
+    return normalizeAutofixBundle(payload);
 }
 
 async function applyAutofixProposal(proposal, violation, eventName, aiMatch) {
@@ -1051,10 +1114,28 @@ function showDetail(violation, eventName, options = {}) {
         const btnAiSourceApply = document.getElementById("btn-ai-source-apply");
         const btnAiIgnore = document.getElementById("btn-ai-ignore");
         const aiKey = makeAiCardKey(violation, eventName, aiMatch);
-        const cachedAutofixProposal = autofixProposalCache.get(aiKey) || null;
+        const cachedAutofixBundle = autofixProposalCache.get(aiKey) || null;
+        const cachedAutofixProposal = getActiveAutofixProposal(cachedAutofixBundle);
+        const refreshComparePanel = (boundKey) => {
+            const currentBundle = autofixProposalCache.get(boundKey) || null;
+            renderAutofixComparePanel(currentBundle, (proposalId) => {
+                const latestBundle = autofixProposalCache.get(boundKey);
+                if (!latestBundle || !Array.isArray(latestBundle.proposals)) return;
+                latestBundle.active_proposal_id = String(proposalId || "");
+                autofixProposalCache.set(boundKey, latestBundle);
+                const active = getActiveAutofixProposal(latestBundle);
+                setAutofixDiffPanel(active ? active.unified_diff : "");
+                refreshComparePanel(boundKey);
+                if (active) {
+                    const gen = String(active.generator_type || "unknown").toUpperCase();
+                    setAiStatusInline(`Selected candidate: ${gen}`, "#1565c0");
+                }
+            });
+        };
         aiCard.dataset.aiKey = aiKey;
         setAiStatusInline("");
         setAutofixDiffPanel(cachedAutofixProposal ? cachedAutofixProposal.unified_diff : "");
+        refreshComparePanel(aiKey);
         setAutofixValidationPanel("");
 
         if (btnAiAccept) {
@@ -1117,10 +1198,12 @@ function showDetail(violation, eventName, options = {}) {
                 }
                 setAiStatusInline("Preparing source diff...", "#555");
                 try {
-                    const proposal = await prepareAutofixProposal(violation, eventName, aiMatch);
+                    const bundle = await prepareAutofixProposal(violation, eventName, aiMatch);
                     if ((aiCard.dataset.aiKey || "") !== boundKey) return;
-                    autofixProposalCache.set(boundKey, proposal);
-                    setAutofixDiffPanel(proposal.unified_diff || "");
+                    autofixProposalCache.set(boundKey, bundle);
+                    const proposal = getActiveAutofixProposal(bundle);
+                    setAutofixDiffPanel((proposal && proposal.unified_diff) || "");
+                    refreshComparePanel(boundKey);
                     btnAiDiff.textContent = "Diff Ready";
                     btnAiDiff.disabled = false;
                     btnAiDiff.style.opacity = "1";
@@ -1145,7 +1228,8 @@ function showDetail(violation, eventName, options = {}) {
         if (btnAiSourceApply) {
             btnAiSourceApply.onclick = async () => {
                 const boundKey = aiKey;
-                let proposal = autofixProposalCache.get(boundKey) || null;
+                let bundle = autofixProposalCache.get(boundKey) || null;
+                let proposal = getActiveAutofixProposal(bundle);
                 btnAiSourceApply.disabled = true;
                 btnAiSourceApply.textContent = "Applying...";
                 btnAiSourceApply.style.opacity = "0.8";
@@ -1154,13 +1238,24 @@ function showDetail(violation, eventName, options = {}) {
                 setAiStatusInline("Applying source diff...", "#555");
                 try {
                     if (!proposal) {
-                        proposal = await prepareAutofixProposal(violation, eventName, aiMatch);
-                        autofixProposalCache.set(boundKey, proposal);
-                        setAutofixDiffPanel(proposal.unified_diff || "");
+                        bundle = await prepareAutofixProposal(violation, eventName, aiMatch);
+                        autofixProposalCache.set(boundKey, bundle);
+                        proposal = getActiveAutofixProposal(bundle);
+                        setAutofixDiffPanel((proposal && proposal.unified_diff) || "");
+                        refreshComparePanel(boundKey);
                     }
+                    if (!proposal) throw new Error("autofix proposal is missing");
                     const result = await applyAutofixProposal(proposal, violation, eventName, aiMatch);
                     if ((aiCard.dataset.aiKey || "") !== boundKey) return;
-                    autofixProposalCache.set(boundKey, { ...(proposal || {}), ...(result || {}) });
+                    const mergedProposal = { ...(proposal || {}), ...(result || {}) };
+                    if (bundle && Array.isArray(bundle.proposals)) {
+                        bundle.proposals = bundle.proposals.map((item) =>
+                            String(item.proposal_id) === String(mergedProposal.proposal_id) ? mergedProposal : item
+                        );
+                        autofixProposalCache.set(boundKey, bundle);
+                    } else {
+                        autofixProposalCache.set(boundKey, normalizeAutofixBundle(mergedProposal));
+                    }
                     aiMatch.status = "Accepted";
                     if (btnAiAccept) {
                         btnAiAccept.disabled = true;
