@@ -1,8 +1,8 @@
-# Autofix Safety and Parserless Patch Limits
+﻿# Autofix Safety and Parserless Patch Limits
 
-Last Updated: 2026-02-25 (LLM/rule/auto hybrid prepare + quality metrics)
+Last Updated: 2026-02-27 (LLM/rule/auto hybrid prepare + quality metrics)
 
-This project supports diff approval-based autofix for `.ctl` files only.
+This project supports diff approval-based autofix for `.ctl` and normalized text targets (`*_pnl.txt`, `*_xml.txt`, raw `.txt` when allowed).
 
 Implemented API flow:
 - `POST /api/autofix/prepare`
@@ -14,7 +14,7 @@ Implemented API flow:
 
 Autofix is intentionally conservative:
 
-- Target limited to `.ctl`
+- Rule generator path is `.ctl`-centric; non-CTL targets are handled via LLM-based proposals with conservative validation skips recorded in metrics.
 - `prepare` generates a diff proposal
 - User reviews and explicitly approves
 - `apply` validates before writing
@@ -91,4 +91,5 @@ Until then, keep the current guardrails:
 - approval required
 - hash+anchor validation
 - regression checks enabled in production defaults
+
 

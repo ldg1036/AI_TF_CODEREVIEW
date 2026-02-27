@@ -6,6 +6,8 @@
 > - Legacy tool commands under `tools/*.py` / `tools/*.js` are still supported via compatibility wrappers.
 > - Official review quality baseline is `P1 (rules) + P2 (CtrlppCheck) + P3 (AI)` plus regression tests.
 
+Last validated: 2026-02-27
+
 ## 개요
 
 `WinCC OA Code Inspector`는 WinCC OA 프로젝트 코드 리뷰를 자동화/보조하기 위한 도구입니다.
@@ -37,7 +39,7 @@
 - async analyze progress API: `POST /api/analyze/start`, `GET /api/analyze/status?job_id=...`
 - 파일 단위 bounded parallel 분석
 - `.pnl/.xml -> *_txt` 변환 캐시 (`mtime + size`)
-- Excel 지연 생성(`defer_excel_reports`) + flush API
+- Excel 기본 동기 생성 + 선택적 지연 생성(`defer_excel_reports`) + flush API
 - 결과 테이블 virtualization
 - 프론트 헤더에서 분석 진행률/ETA/경과시간 표시 (polling 기반)
 
@@ -78,6 +80,10 @@ Optional (change-dependent):
 python backend/server.py
 ```
 접속: `http://127.0.0.1:8765`
+
+프론트 분석 동작:
+- 기본 분석 버튼은 `/api/analyze/start` + `/api/analyze/status` 폴링으로 진행률/ETA를 표시합니다.
+- 완료 시 최종 결과 payload(`summary`, `violations`, `output_dir`, `metrics`, `report_jobs`)를 기존과 동일하게 렌더링합니다.
 
 ### CLI 분석 실행
 ```powershell

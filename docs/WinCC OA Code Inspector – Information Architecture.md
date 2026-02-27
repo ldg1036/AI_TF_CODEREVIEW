@@ -1,6 +1,6 @@
 # WinCC OA Code Inspector 정보 구조(IA) 문서 (v3.0)
 
-마지막 업데이트: 2026-02-25 (현재 구현 기준)
+마지막 업데이트: 2026-02-27 (현재 구현 기준)
 
 이 문서는 사용자가 프로그램을 사용할 때 보는 화면/정보 흐름과, 백엔드 API 및 데이터 구조의 연결 방식을 정리한다.
 
@@ -28,8 +28,10 @@
 - `GET /api/files`
   - 분석 가능한 파일 목록 제공
 - `POST /api/analyze`
-  - 선택 파일 분석 실행
+  - 동기 분석 실행
   - 응답: `summary`, `violations`, `output_dir`, `metrics`, `report_jobs`
+- `POST /api/analyze/start` + `GET /api/analyze/status`
+  - 프론트 기본 비동기 분석/진행률 조회 경로
 - `GET /api/file-content`
   - 코드뷰어 표시용 파일 내용 조회 (`prefer_source` 지원)
 

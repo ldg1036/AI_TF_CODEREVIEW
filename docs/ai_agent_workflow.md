@@ -2,6 +2,8 @@
 
 This document defines the recommended agent workflow and MCP/skill setup for `AI_TF_CodeReview`.
 
+Last validated: 2026-02-27
+
 ## Repo Structure Note (2026-02-26)
 
 - Canonical project paths are root directories: `Config`, `CodeReview_Data`, `docs`.
@@ -38,7 +40,7 @@ This repo adds:
 
 ### Defer
 
-1. Git/GitHub MCP (path is not currently a git repo)
+1. Git/GitHub MCP (optional; use when PR/review workflow is needed)
 2. Web search/fetch MCP (not needed for local-only workflows)
 3. External doc search MCP (optional later)
 
@@ -51,7 +53,7 @@ python backend/tools/winccoa_context_mcp_server.py --project-root C:\Users\Admin
 ```
 
 Note:
-- Using the repo root path above is still correct. Compatibility junctions preserve `Config` / `CodeReview_Data` path behavior.
+- Using the repo root path above is the canonical setup.
 
 ### Exposed Resources
 

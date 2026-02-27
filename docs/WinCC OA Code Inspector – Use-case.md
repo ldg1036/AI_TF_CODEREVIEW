@@ -1,6 +1,6 @@
 # WinCC OA Code Inspector 사용 시나리오 (v3.0)
 
-마지막 업데이트: 2026-02-25 (현재 구현 기준)
+마지막 업데이트: 2026-02-27 (현재 구현 기준)
 
 이 문서는 실제 사용 흐름 중심으로 WinCC OA Code Inspector의 대표 사용 시나리오를 정리한다.
 
@@ -23,7 +23,7 @@
 - 파일 수가 늘어나 UI 렌더링/리포트 생성 지연이 체감됨
 
 ### 사용 흐름
-1. `defer_excel_reports`를 활성화해 분석 응답 지연을 줄인다.
+1. 기본은 분석과 함께 Excel을 즉시 생성한다. 필요 시 `defer_excel_reports=true`로 지연 생성 모드로 전환한다.
 2. 먼저 결과 검토를 진행한다.
 3. 필요 시 `/api/report/excel` 또는 UI 버튼으로 Excel 생성 flush를 실행한다.
 4. `/api/analyze`의 `metrics`를 비교해 병목 구간을 확인한다.

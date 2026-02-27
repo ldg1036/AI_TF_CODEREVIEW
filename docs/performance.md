@@ -1,6 +1,6 @@
 # Performance Baselines and Quality Gates
 
-Last Updated: 2026-02-25 (current implementation baseline reflected)
+Last Updated: 2026-02-27 (current implementation baseline reflected)
 
 Structure note (2026-02-26):
 - Benchmark scripts are now organized by feature under `tools/perf/` (actual implementation path).
@@ -14,6 +14,12 @@ This project now exposes runtime metrics on `POST /api/analyze` and includes two
 - Autofix apply baseline/improved comparison: `tools/perf/autofix_apply_baseline.py`
 
 The goal is to make "performance is acceptable" a measurable statement instead of a subjective impression.
+
+## Frontend Default Analysis Flow
+
+- UI analyze button uses `/api/analyze/start` + `/api/analyze/status` polling by default.
+- Completion applies final payload with the same contract used by `/api/analyze`.
+- Excel is generated immediately by default. `defer_excel_reports=true` is optional for benchmark/operation tuning.
 
 ## Autofix Apply Safety Baseline (P1 Multi-hunk)
 
