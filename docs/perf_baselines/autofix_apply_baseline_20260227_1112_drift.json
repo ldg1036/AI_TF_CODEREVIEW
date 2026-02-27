@@ -1,0 +1,327 @@
+{
+  "generated_at": "2026-02-27T10:59:03",
+  "server_url": "http://127.0.0.1:8770",
+  "mode": "baseline",
+  "perturb_anchor_mode": "line_drift",
+  "kpi_observe_mode": "benchmark_relaxed",
+  "selected_files": [
+    "GoldenTime.ctl"
+  ],
+  "iterations": 3,
+  "runs": [
+    {
+      "analyze": {
+        "status": 200,
+        "wall_ms": 185,
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\backend\\..\\CodeReview_Report\\20260227_105902_918947"
+      },
+      "prepare": {
+        "status": 200,
+        "wall_ms": 21,
+        "proposal_id": "cc6a455cf79b4562bd87981ee6b3cb68"
+      },
+      "apply": {
+        "status": 409,
+        "wall_ms": 68,
+        "ok": false,
+        "error_code": "ANCHOR_MISMATCH",
+        "validation": {}
+      },
+      "stats": {
+        "status": 200,
+        "wall_ms": 16,
+        "payload": {
+          "ok": true,
+          "session_id": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_105902_918947",
+          "output_dir": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_105902_918947",
+          "proposal_count": 2,
+          "latest_by_file_count": 1,
+          "by_status": {
+            "Rejected": 2
+          },
+          "by_generator": {
+            "rule": 2
+          },
+          "by_generator_status": {
+            "rule": {
+              "Rejected": 2
+            }
+          },
+          "quality_summary": {
+            "applied_count": 0,
+            "blocked_count": 2,
+            "heuristic_regression_blocked_count": 0,
+            "ctrlpp_regression_blocked_count": 0,
+            "failure_error_codes": {
+              "SEMANTIC_GUARD_BLOCKED": 1,
+              "ANCHOR_MISMATCH": 1
+            }
+          },
+          "prepare_compare_count": 0,
+          "prepare_compare_generated_candidates_total": 0,
+          "selected_generator_counts": {
+            "rule": 0,
+            "llm": 0
+          },
+          "compare_apply_count": 0,
+          "anchor_mismatch_count": 2,
+          "token_fallback_attempt_count": 2,
+          "token_fallback_success_count": 1,
+          "token_fallback_ambiguous_count": 0,
+          "apply_engine_structure_success_count": 0,
+          "apply_engine_text_fallback_count": 0,
+          "multi_hunk_attempt_count": 0,
+          "multi_hunk_success_count": 0,
+          "multi_hunk_blocked_count": 0,
+          "semantic_guard_checked_count": 1,
+          "semantic_guard_blocked_count": 1,
+          "selected_apply_engine_mode": {
+            "structure_apply": 0,
+            "text_fallback": 0
+          }
+        }
+      },
+      "perturbation": {
+        "mode": "line_drift",
+        "changed": true,
+        "reason": "blank_line_inserted_before_anchor",
+        "anchor_line": 16,
+        "inserted_index_1based": 16,
+        "encoding": "utf-8"
+      },
+      "target": {
+        "candidate_count": 9,
+        "chosen_index_1based": 2,
+        "object": "GoldenTime.ctl",
+        "event": "Global",
+        "issue_id": "P1-HARD-01-9ad37b192b",
+        "semantic_blocked_candidates_skipped": 1
+      }
+    },
+    {
+      "analyze": {
+        "status": 200,
+        "wall_ms": 150,
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\backend\\..\\CodeReview_Report\\20260227_105903_312048"
+      },
+      "prepare": {
+        "status": 200,
+        "wall_ms": 26,
+        "proposal_id": "ad6ad7bfe0d24b9aad08ee54ea4d5707"
+      },
+      "apply": {
+        "status": 409,
+        "wall_ms": 47,
+        "ok": false,
+        "error_code": "ANCHOR_MISMATCH",
+        "validation": {}
+      },
+      "stats": {
+        "status": 200,
+        "wall_ms": 15,
+        "payload": {
+          "ok": true,
+          "session_id": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_105903_312048",
+          "output_dir": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_105903_312048",
+          "proposal_count": 2,
+          "latest_by_file_count": 1,
+          "by_status": {
+            "Rejected": 2
+          },
+          "by_generator": {
+            "rule": 2
+          },
+          "by_generator_status": {
+            "rule": {
+              "Rejected": 2
+            }
+          },
+          "quality_summary": {
+            "applied_count": 0,
+            "blocked_count": 2,
+            "heuristic_regression_blocked_count": 0,
+            "ctrlpp_regression_blocked_count": 0,
+            "failure_error_codes": {
+              "SEMANTIC_GUARD_BLOCKED": 1,
+              "ANCHOR_MISMATCH": 1
+            }
+          },
+          "prepare_compare_count": 0,
+          "prepare_compare_generated_candidates_total": 0,
+          "selected_generator_counts": {
+            "rule": 0,
+            "llm": 0
+          },
+          "compare_apply_count": 0,
+          "anchor_mismatch_count": 2,
+          "token_fallback_attempt_count": 2,
+          "token_fallback_success_count": 1,
+          "token_fallback_ambiguous_count": 0,
+          "apply_engine_structure_success_count": 0,
+          "apply_engine_text_fallback_count": 0,
+          "multi_hunk_attempt_count": 0,
+          "multi_hunk_success_count": 0,
+          "multi_hunk_blocked_count": 0,
+          "semantic_guard_checked_count": 1,
+          "semantic_guard_blocked_count": 1,
+          "selected_apply_engine_mode": {
+            "structure_apply": 0,
+            "text_fallback": 0
+          }
+        }
+      },
+      "perturbation": {
+        "mode": "line_drift",
+        "changed": true,
+        "reason": "blank_line_inserted_before_anchor",
+        "anchor_line": 16,
+        "inserted_index_1based": 16,
+        "encoding": "utf-8"
+      },
+      "target": {
+        "candidate_count": 9,
+        "chosen_index_1based": 2,
+        "object": "GoldenTime.ctl",
+        "event": "Global",
+        "issue_id": "P1-HARD-01-9ad37b192b",
+        "semantic_blocked_candidates_skipped": 1
+      }
+    },
+    {
+      "analyze": {
+        "status": 200,
+        "wall_ms": 162,
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\backend\\..\\CodeReview_Report\\20260227_105903_658940"
+      },
+      "prepare": {
+        "status": 200,
+        "wall_ms": 29,
+        "proposal_id": "2d5fe5a35d7148e58d63b7a3c971749b"
+      },
+      "apply": {
+        "status": 409,
+        "wall_ms": 34,
+        "ok": false,
+        "error_code": "ANCHOR_MISMATCH",
+        "validation": {}
+      },
+      "stats": {
+        "status": 200,
+        "wall_ms": 2,
+        "payload": {
+          "ok": true,
+          "session_id": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_105903_658940",
+          "output_dir": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_105903_658940",
+          "proposal_count": 2,
+          "latest_by_file_count": 1,
+          "by_status": {
+            "Rejected": 2
+          },
+          "by_generator": {
+            "rule": 2
+          },
+          "by_generator_status": {
+            "rule": {
+              "Rejected": 2
+            }
+          },
+          "quality_summary": {
+            "applied_count": 0,
+            "blocked_count": 2,
+            "heuristic_regression_blocked_count": 0,
+            "ctrlpp_regression_blocked_count": 0,
+            "failure_error_codes": {
+              "SEMANTIC_GUARD_BLOCKED": 1,
+              "ANCHOR_MISMATCH": 1
+            }
+          },
+          "prepare_compare_count": 0,
+          "prepare_compare_generated_candidates_total": 0,
+          "selected_generator_counts": {
+            "rule": 0,
+            "llm": 0
+          },
+          "compare_apply_count": 0,
+          "anchor_mismatch_count": 2,
+          "token_fallback_attempt_count": 2,
+          "token_fallback_success_count": 1,
+          "token_fallback_ambiguous_count": 0,
+          "apply_engine_structure_success_count": 0,
+          "apply_engine_text_fallback_count": 0,
+          "multi_hunk_attempt_count": 0,
+          "multi_hunk_success_count": 0,
+          "multi_hunk_blocked_count": 0,
+          "semantic_guard_checked_count": 1,
+          "semantic_guard_blocked_count": 1,
+          "selected_apply_engine_mode": {
+            "structure_apply": 0,
+            "text_fallback": 0
+          }
+        }
+      },
+      "perturbation": {
+        "mode": "line_drift",
+        "changed": true,
+        "reason": "blank_line_inserted_before_anchor",
+        "anchor_line": 16,
+        "inserted_index_1based": 16,
+        "encoding": "utf-8"
+      },
+      "target": {
+        "candidate_count": 9,
+        "chosen_index_1based": 2,
+        "object": "GoldenTime.ctl",
+        "event": "Global",
+        "issue_id": "P1-HARD-01-9ad37b192b",
+        "semantic_blocked_candidates_skipped": 1
+      }
+    }
+  ],
+  "summary": {
+    "mode": "baseline",
+    "run_count": 3,
+    "apply_attempts": 3,
+    "apply_success_count": 0,
+    "anchor_mismatch_failure_count": 3,
+    "anchor_mismatch_count": 6,
+    "token_fallback_attempt_count": 6,
+    "token_fallback_success_count": 3,
+    "token_fallback_ambiguous_count": 0,
+    "apply_engine_structure_success_count": 0,
+    "apply_engine_text_fallback_count": 0,
+    "apply_success_rate": 0.0,
+    "anchor_mismatch_failure_rate": 1.0,
+    "token_fallback_success_rate": 0.5,
+    "token_fallback_ambiguous_rate": 0.0,
+    "kpi_anchor_failure_rate": 1.0,
+    "error_code_counts": {
+      "ANCHOR_MISMATCH": 3
+    },
+    "locator_mode_counts": {},
+    "semantic_block_reason_counts": {},
+    "apply_engine_fallback_reason_counts": {},
+    "validation_error_fragment_counts": {
+      "ambiguous_candidates": 0,
+      "low_confidence": 0,
+      "drift_exceeded": 0,
+      "engine_fallback": 0
+    },
+    "stats_consistency_mismatch_count": 0
+  },
+  "_meta": {
+    "kpi_observe_mode": "benchmark_relaxed",
+    "benchmark_mode_warning": true,
+    "not_for_production": true
+  },
+  "_meta_output_path": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260227_1112_drift.json",
+  "comparison": {
+    "generated_at": "2026-02-27T10:59:03",
+    "baseline_file": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260227_1112_drift.json",
+    "improved_file": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260227_1112_drift.json",
+    "baseline_failure_rate": 1.0,
+    "improved_failure_rate": 1.0,
+    "improvement_percent": 0.0,
+    "kpi_target_percent": 10.0,
+    "kpi_passed": false
+  }
+}

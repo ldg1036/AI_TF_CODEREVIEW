@@ -48,6 +48,26 @@ Move from full generated code blocks to structured edit intents that can be vali
 - fail-soft fallback to current patch path
 - audit log keeps both instruction and final patch summary
 
+### Decision-complete breakdown (next implementation batch)
+1. Schema v1 lock
+   - fields: `target`, `locator`, `operation`, `payload`, `safety`
+   - validation: required fields + enum checks + locator uniqueness checks
+2. Runtime integration (feature flag OFF by default)
+   - new flag: `autofix.engine.structured_instruction_enabled`
+   - if ON and instruction parse succeeds: engine consumes structured instruction first
+   - if instruction parse fails: fallback to current unified-diff hunk path
+3. Ownership transfer phases
+   - Phase 1: dual-path (instruction apply + legacy patch diff for verification only)
+   - Phase 2: parser/token engine primary patch generation/apply owner
+   - Phase 3: legacy path fallback-only, with explicit diagnostics
+4. Compare mode compatibility
+   - `rule` and `llm` candidates carry the same normalized instruction envelope
+   - selection/apply keeps existing `proposal_id` contract
+5. Acceptance criteria
+   - no regression in `hash/anchor/syntax/semantic/heuristic/ctrlpp` safety gates
+   - deterministic error mapping for instruction parse/resolve failures
+   - stats include instruction-path attempt/success/fallback counts
+
 ## Feature Flags (default OFF, planned)
 - `autofix.engine.parser_lite_enabled`
 - `autofix.engine.structured_instruction_enabled`

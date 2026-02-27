@@ -11,7 +11,7 @@
 
 ## 전체 요약
 - 완료: `140`
-- 부분완료: `3`
+- 부분완료: `4`
 - 미완료: `2`
 - 비고: 상단 요약은 문서 전체 체크마크(`todo.md`) 기준 재집계값이며, GoldenTime 기준 Excel 비교/품질게이트/릴리즈 체크리스트 제거 결정(P1/P2/P3 기준 재정의)을 반영함.
 
@@ -451,7 +451,20 @@
 ### 8-4) 성공 기준 (후속 항목)
 - [x] 멀티-전략 compare 모드에서 `rule`/`llm` 후보 diff 비교 가능
 - [x] 선택된 후보 적용 결과가 품질 통계에 기록됨
-- [-] 토큰화 기반 fallback 도입 후 anchor mismatch 실패율 감소(실데이터 기준, 실데이터 장기측정 필요)
+- [-] KPI 관측 가능성 확보 (벤치마크 전용 `kpi_observe_mode` 도입: `strict_hash|benchmark_relaxed`)
+  - `strict_hash`: 제품 정책(해시 선검증) 그대로
+  - `benchmark_relaxed`: KPI 관측 전용(`expected_base_hash` 미사용), 결과 JSON에 `benchmark_mode_warning`, `not_for_production` 고정 기록
+  - 2026-02-27 반영: 서버 내부 관측 훅 추가(`X-Autofix-Benchmark-Observe-Mode` + `AUTOFIX_BENCHMARK_OBSERVE=1`)
+  - 2026-02-27 반영: 벤치마크 전용 임계치 튜닝 헤더/옵션 추가
+    - `X-Autofix-Benchmark-Tuning-Min-Confidence`
+    - `X-Autofix-Benchmark-Tuning-Min-Gap`
+    - `X-Autofix-Benchmark-Tuning-Max-Line-Drift`
+  - 다음 판정 작업: `--auto-run-matrix --scenario both --iterations 3` 실측 재실행 후 drift에서 `locator_mode_counts`/error 분포 기준으로 `[x]` 전환 여부 확정
+- [-] 토큰화 기반 fallback 도입 후 anchor mismatch 실패율 10% 이상 개선(실데이터 기준, 장기측정 필요)
   - 2026-02-27 실측 1차: `docs/perf_baselines/autofix_apply_baseline_20260227_0938.json`, `docs/perf_baselines/autofix_apply_improved_20260227_0938.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_0938.json`
   - 결과: `improvement_percent=0.0` (샘플에서 anchor mismatch 이벤트 미발생으로 KPI 판정 보류)
+  - 2026-02-27 실측 2차(일반/line_drift): `docs/perf_baselines/autofix_apply_baseline_20260227_1035_general.json`, `docs/perf_baselines/autofix_apply_improved_20260227_1035_general.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_1035_general.json`, `docs/perf_baselines/autofix_apply_baseline_20260227_1035_drift.json`, `docs/perf_baselines/autofix_apply_improved_20260227_1035_drift.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_1035_drift.json`
+  - 결과: 일반 케이스 `improvement_percent=0.0`, drift 케이스는 `BASE_HASH_MISMATCH` 선차단으로 anchor/token fallback 경로 미진입 (KPI 판정 보류 유지)
+  - 2026-02-27 실측 3차(`kpi_observe_mode` 도입): `docs/perf_baselines/autofix_apply_baseline_20260227_1042_general.json`, `docs/perf_baselines/autofix_apply_improved_20260227_1042_general.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_1042_general.json`, `docs/perf_baselines/autofix_apply_baseline_20260227_1042_drift.json`, `docs/perf_baselines/autofix_apply_improved_20260227_1042_drift.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_1042_drift.json`
+  - 결과: general(`strict_hash`)은 정상(`anchor_exact`), drift(`benchmark_relaxed`)도 내부 `proposal_base_hash` 선검증으로 `BASE_HASH_MISMATCH` 지속 (KPI 판정 보류 유지)
 - [x] 기존 `autofix/apply` 안전성(백업/감사로그/회귀검사) 회귀 없음
