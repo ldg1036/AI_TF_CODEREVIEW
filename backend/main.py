@@ -108,6 +108,10 @@ class AutoFixQualityMetrics(TypedDict, total=False):
     semantic_check_passed: bool
     semantic_blocked_reason: str
     semantic_violation_count: int
+    token_min_confidence_used: float
+    token_min_gap_used: float
+    token_max_line_drift_used: int
+    benchmark_tuning_applied: bool
 
 
 class AutoFixApplyError(RuntimeError):
@@ -570,6 +574,10 @@ class CodeInspectorApp:
         semantic_check_passed: bool = True,
         semantic_blocked_reason: str = "",
         semantic_violation_count: int = 0,
+        token_min_confidence_used: float = 0.8,
+        token_min_gap_used: float = 0.15,
+        token_max_line_drift_used: int = 0,
+        benchmark_tuning_applied: bool = False,
     ) -> AutoFixQualityMetrics:
         return {
             "proposal_id": str(proposal_id or ""),
@@ -591,6 +599,10 @@ class CodeInspectorApp:
             "semantic_check_passed": bool(semantic_check_passed),
             "semantic_blocked_reason": str(semantic_blocked_reason or ""),
             "semantic_violation_count": int(semantic_violation_count or 0),
+            "token_min_confidence_used": float(token_min_confidence_used or 0.8),
+            "token_min_gap_used": float(token_min_gap_used or 0.15),
+            "token_max_line_drift_used": int(token_max_line_drift_used or 0),
+            "benchmark_tuning_applied": bool(benchmark_tuning_applied),
         }
 
     def _autofix_apply_error(
@@ -1608,6 +1620,7 @@ class CodeInspectorApp:
         ai_with_context=False,
         request_id: Optional[str] = None,
         defer_excel_reports: Optional[bool] = None,
+        progress_cb=None,
     ):
         pipeline = DirectoryAnalysisPipeline(self)
         return pipeline.run(
@@ -1619,6 +1632,7 @@ class CodeInspectorApp:
             ai_with_context=ai_with_context,
             request_id=request_id,
             defer_excel_reports=defer_excel_reports,
+            progress_cb=progress_cb,
         )
 
     def _find_matching_ai_review(self, report_data: Dict, object_name: str, event_name: str, review_text: str, issue_id: str = ""):
@@ -1677,8 +1691,6 @@ class CodeInspectorApp:
         issue_id: str = "",
     ) -> Dict:
         file_name = str(cache_key or cached.get("file") or "")
-        if not file_name.lower().endswith(".ctl"):
-            raise ValueError("Autofix is supported only for .ctl files")
 
         report_data = cached.get("report_data")
         if not isinstance(report_data, dict):
@@ -1902,6 +1914,10 @@ class CodeInspectorApp:
         allow_fallback = self.autofix_allow_fallback_default if allow_fallback is None else bool(allow_fallback)
         normalized_prepare_mode = self._normalize_autofix_prepare_mode(prepare_mode, "single")
         session_output_dir, session, cache_key, cached = self._resolve_review_session_and_file(file_name=file_name, output_dir=output_dir)
+        is_ctl_target = str(cache_key or "").lower().endswith(".ctl")
+        forced_llm_non_ctl = not is_ctl_target
+        if forced_llm_non_ctl:
+            preferred = "llm"
         file_lock = self._get_session_file_lock(session, cache_key)
         with file_lock:
             last_error: Optional[Exception] = None
@@ -1909,14 +1925,18 @@ class CodeInspectorApp:
             fallback_used_any = False
 
             if normalized_prepare_mode == "compare":
-                if preferred == "auto":
+                if forced_llm_non_ctl:
+                    plan_order = ["llm"]
+                elif preferred == "auto":
                     plan_order = ["rule", "llm"]
                 elif preferred == "rule":
                     plan_order = ["rule", "llm"]
                 else:
                     plan_order = ["llm", "rule"]
             else:
-                if preferred == "auto":
+                if forced_llm_non_ctl:
+                    plan_order = ["llm"]
+                elif preferred == "auto":
                     plan_order = ["rule", "llm"]
                 else:
                     plan_order = [preferred]
@@ -1948,6 +1968,10 @@ class CodeInspectorApp:
                         )
                     proposal["_prepare_mode"] = normalized_prepare_mode
                     proposal["_requested_preference"] = preferred
+                    if forced_llm_non_ctl:
+                        proposal["generator_reason"] = (
+                            f"{proposal.get('generator_reason', '')}; non-ctl target uses llm-only autofix"
+                        ).strip("; ")
                     proposals.append(proposal)
                     if normalized_prepare_mode == "single":
                         if idx > 0:
@@ -2150,11 +2174,23 @@ class CodeInspectorApp:
             count += 1
         return count
 
-    def _attempt_token_anchor_fallback(self, current_lines: List[str], hunks: List[Dict]) -> Dict[str, Any]:
+    def _attempt_token_anchor_fallback(
+        self,
+        current_lines: List[str],
+        hunks: List[Dict],
+        *,
+        min_confidence: float = 0.8,
+        min_gap: float = 0.15,
+        max_line_drift: Optional[int] = None,
+    ) -> Dict[str, Any]:
         resolved_hunks: List[Dict] = []
         confidences: List[float] = []
         candidate_counts: List[int] = []
         errors: List[str] = []
+
+        drift_limit = self._safe_int(max_line_drift, 0)
+        if drift_limit <= 0:
+            drift_limit = max(50, min(300, len(current_lines)))
 
         for h in hunks or []:
             if not isinstance(h, dict):
@@ -2165,9 +2201,9 @@ class CodeInspectorApp:
                 before_expected=str(h.get("context_before", "")),
                 after_expected=str(h.get("context_after", "")),
                 hint_line=hint_line,
-                min_confidence=0.8,
-                min_gap=0.15,
-                max_line_drift=max(50, min(300, len(current_lines))),
+                min_confidence=float(min_confidence),
+                min_gap=float(min_gap),
+                max_line_drift=drift_limit,
             )
             candidate_counts.append(self._safe_int(locate.get("candidate_count", 0), 0))
             confidences.append(float(locate.get("confidence", 0.0) or 0.0))
@@ -2242,6 +2278,10 @@ class CodeInspectorApp:
         apply_mode: str = "source_ctl",
         block_on_regression: Optional[bool] = None,
         check_ctrlpp_regression: Optional[bool] = None,
+        benchmark_observe_mode: str = "strict_hash",
+        benchmark_tuning_min_confidence: Optional[float] = None,
+        benchmark_tuning_min_gap: Optional[float] = None,
+        benchmark_tuning_max_line_drift: Optional[int] = None,
     ) -> Dict:
         if str(apply_mode or "source_ctl") != "source_ctl":
             raise ValueError("apply_mode must be 'source_ctl'")
@@ -2263,8 +2303,7 @@ class CodeInspectorApp:
         with session["lock"]:
             proposal = self._resolve_autofix_proposal(session, proposal_id=str(proposal_id or ""), file_name=normalized_file)
             normalized_file = os.path.basename(str(proposal.get("file", normalized_file)))
-        if not normalized_file.lower().endswith(".ctl"):
-            raise ValueError("Autofix apply is supported only for .ctl files")
+        is_ctl_target = normalized_file.lower().endswith(".ctl")
 
         file_lock = self._get_session_file_lock(session, normalized_file)
         with file_lock:
@@ -2281,13 +2320,44 @@ class CodeInspectorApp:
 
             with open(source_path, "r", encoding="utf-8", errors="ignore") as f:
                 current_content = f.read()
+            current_lines = current_content.splitlines()
             current_hash = self._sha256_text(current_content)
             proposal_base_hash = str(proposal.get("base_hash", ""))
             hash_match = current_hash == proposal_base_hash
             if expected_base_hash:
                 hash_match = hash_match and (current_hash == str(expected_base_hash))
-            if not hash_match:
-                quality_metrics = self._new_autofix_quality_metrics(
+            normalized_observe_mode = str(benchmark_observe_mode or "strict_hash").strip().lower()
+            if normalized_observe_mode not in ("strict_hash", "benchmark_relaxed"):
+                normalized_observe_mode = "strict_hash"
+            benchmark_observe_enabled = (
+                normalized_observe_mode == "benchmark_relaxed"
+                and str(os.environ.get("AUTOFIX_BENCHMARK_OBSERVE", "") or "").strip() == "1"
+            )
+            token_min_confidence_used = 0.8
+            token_min_gap_used = 0.15
+            token_max_line_drift_used = max(50, min(300, len(current_lines)))
+            benchmark_tuning_applied = False
+            if benchmark_observe_enabled:
+                if benchmark_tuning_min_confidence is not None:
+                    token_min_confidence_used = float(benchmark_tuning_min_confidence)
+                    benchmark_tuning_applied = True
+                if benchmark_tuning_min_gap is not None:
+                    token_min_gap_used = float(benchmark_tuning_min_gap)
+                    benchmark_tuning_applied = True
+                if benchmark_tuning_max_line_drift is not None:
+                    token_max_line_drift_used = max(10, int(benchmark_tuning_max_line_drift))
+                    benchmark_tuning_applied = True
+
+            def _with_tuning_metrics(payload: AutoFixQualityMetrics) -> AutoFixQualityMetrics:
+                payload["token_min_confidence_used"] = float(token_min_confidence_used)
+                payload["token_min_gap_used"] = float(token_min_gap_used)
+                payload["token_max_line_drift_used"] = int(token_max_line_drift_used)
+                payload["benchmark_tuning_applied"] = bool(benchmark_tuning_applied)
+                return payload
+
+            hash_gate_bypassed = False
+            if not hash_match and not benchmark_observe_enabled:
+                quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
                     proposal_id=str(proposal.get("proposal_id", "")),
                     generator_type=str(proposal.get("generator_type", "unknown")),
                     anchors_match=True,
@@ -2296,15 +2366,16 @@ class CodeInspectorApp:
                     applied=False,
                     rejected_reason="base hash mismatch",
                     validation_errors=[],
-                )
+                ))
                 self._mark_autofix_proposal_failure(session, proposal, error_code="BASE_HASH_MISMATCH", quality_metrics=quality_metrics)
                 raise self._autofix_apply_error(
                     "Autofix base hash mismatch. Re-run analysis and prepare a new diff.",
                     error_code="BASE_HASH_MISMATCH",
                     quality_metrics=quality_metrics,
                 )
+            if not hash_match and benchmark_observe_enabled:
+                hash_gate_bypassed = True
 
-            current_lines = current_content.splitlines()
             apply_hunks = list(proposal.get("hunks", []) or [])
             anchors_match = True
             normalized_anchor_match = False
@@ -2343,7 +2414,13 @@ class CodeInspectorApp:
                 with session["lock"]:
                     stats = self._autofix_session_stats(session)
                     stats["token_fallback_attempt_count"] = self._safe_int(stats.get("token_fallback_attempt_count", 0), 0) + 1
-                fallback = self._attempt_token_anchor_fallback(current_lines, [h for h in apply_hunks if isinstance(h, dict)])
+                fallback = self._attempt_token_anchor_fallback(
+                    current_lines,
+                    [h for h in apply_hunks if isinstance(h, dict)],
+                    min_confidence=token_min_confidence_used,
+                    min_gap=token_min_gap_used,
+                    max_line_drift=token_max_line_drift_used,
+                )
                 token_fallback_confidence = float(fallback.get("confidence", 0.0) or 0.0)
                 token_fallback_candidates = self._safe_int(fallback.get("candidate_count", 0), 0)
                 if bool(fallback.get("success", False)):
@@ -2367,7 +2444,7 @@ class CodeInspectorApp:
                     anchor_errors.extend(fallback_reasons)
 
             if not anchors_match:
-                quality_metrics = self._new_autofix_quality_metrics(
+                quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
                     proposal_id=str(proposal.get("proposal_id", "")),
                     generator_type=str(proposal.get("generator_type", "unknown")),
                     anchors_match=False,
@@ -2380,7 +2457,7 @@ class CodeInspectorApp:
                     token_fallback_attempted=token_fallback_attempted,
                     token_fallback_confidence=token_fallback_confidence,
                     token_fallback_candidates=token_fallback_candidates,
-                )
+                ))
                 self._mark_autofix_proposal_failure(session, proposal, error_code="ANCHOR_MISMATCH", quality_metrics=quality_metrics)
                 raise self._autofix_apply_error(
                     "Autofix anchor mismatch. Source file changed since diff preparation.",
@@ -2401,7 +2478,7 @@ class CodeInspectorApp:
                     with session["lock"]:
                         stats = self._autofix_session_stats(session)
                         stats["multi_hunk_blocked_count"] = self._safe_int(stats.get("multi_hunk_blocked_count", 0), 0) + 1
-                quality_metrics = self._new_autofix_quality_metrics(
+                quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
                     proposal_id=str(proposal.get("proposal_id", "")),
                     generator_type=str(proposal.get("generator_type", "unknown")),
                     anchors_match=True,
@@ -2416,7 +2493,7 @@ class CodeInspectorApp:
                     token_fallback_attempted=token_fallback_attempted,
                     token_fallback_confidence=token_fallback_confidence,
                     token_fallback_candidates=token_fallback_candidates,
-                )
+                ))
                 self._mark_autofix_proposal_failure(
                     session,
                     proposal,
@@ -2435,7 +2512,7 @@ class CodeInspectorApp:
                     with session["lock"]:
                         stats = self._autofix_session_stats(session)
                         stats["multi_hunk_blocked_count"] = self._safe_int(stats.get("multi_hunk_blocked_count", 0), 0) + 1
-                quality_metrics = self._new_autofix_quality_metrics(
+                quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
                     proposal_id=str(proposal.get("proposal_id", "")),
                     generator_type=str(proposal.get("generator_type", "unknown")),
                     anchors_match=True,
@@ -2450,7 +2527,7 @@ class CodeInspectorApp:
                     token_fallback_attempted=token_fallback_attempted,
                     token_fallback_confidence=token_fallback_confidence,
                     token_fallback_candidates=token_fallback_candidates,
-                )
+                ))
                 self._mark_autofix_proposal_failure(
                     session,
                     proposal,
@@ -2530,6 +2607,12 @@ class CodeInspectorApp:
             validation = {
                 "anchors_match": anchors_match,
                 "hash_match": hash_match,
+                "benchmark_observe_mode": normalized_observe_mode,
+                "hash_gate_bypassed": hash_gate_bypassed,
+                "token_min_confidence_used": float(token_min_confidence_used),
+                "token_min_gap_used": float(token_min_gap_used),
+                "token_max_line_drift_used": int(token_max_line_drift_used),
+                "benchmark_tuning_applied": bool(benchmark_tuning_applied),
                 "syntax_check_passed": self._basic_syntax_check(candidate_content),
                 "semantic_check_passed": True,
                 "semantic_blocked_reason": "",
@@ -2543,9 +2626,14 @@ class CodeInspectorApp:
                 "token_fallback_attempted": token_fallback_attempted,
                 "token_fallback_confidence": token_fallback_confidence,
                 "token_fallback_candidates": token_fallback_candidates,
+                "syntax_check_skipped_reason": "",
+                "ctrlpp_regression_skipped_reason": "",
             }
+            if not is_ctl_target:
+                validation["syntax_check_passed"] = True
+                validation["syntax_check_skipped_reason"] = "non_ctl_file"
             if not validation["syntax_check_passed"]:
-                quality_metrics = self._new_autofix_quality_metrics(
+                quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
                     proposal_id=str(proposal.get("proposal_id", "")),
                     generator_type=str(proposal.get("generator_type", "unknown")),
                     anchors_match=anchors_match,
@@ -2560,7 +2648,7 @@ class CodeInspectorApp:
                     token_fallback_attempted=token_fallback_attempted,
                     token_fallback_confidence=token_fallback_confidence,
                     token_fallback_candidates=token_fallback_candidates,
-                )
+                ))
                 self._mark_autofix_proposal_failure(
                     session,
                     proposal,
@@ -2602,7 +2690,7 @@ class CodeInspectorApp:
                         stats["semantic_guard_blocked_count"] = (
                             self._safe_int(stats.get("semantic_guard_blocked_count", 0), 0) + 1
                         )
-                    quality_metrics = self._new_autofix_quality_metrics(
+                    quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
                         proposal_id=str(proposal.get("proposal_id", "")),
                         generator_type=str(proposal.get("generator_type", "unknown")),
                         anchors_match=anchors_match,
@@ -2620,7 +2708,7 @@ class CodeInspectorApp:
                         token_fallback_attempted=token_fallback_attempted,
                         token_fallback_confidence=token_fallback_confidence,
                         token_fallback_candidates=token_fallback_candidates,
-                    )
+                    ))
                     self._mark_autofix_proposal_failure(
                         session,
                         proposal,
@@ -2640,7 +2728,9 @@ class CodeInspectorApp:
             regression_count = max(0, post_count - pre_count)
             validation["heuristic_regression_count"] = regression_count
 
-            if check_ctrlpp_regression:
+            if check_ctrlpp_regression and not is_ctl_target:
+                validation["ctrlpp_regression_skipped_reason"] = "non_ctl_file"
+            elif check_ctrlpp_regression:
                 tmp_ctrl_fd = None
                 tmp_ctrl_path = ""
                 try:
@@ -2673,7 +2763,7 @@ class CodeInspectorApp:
                 validation["errors"].append(
                     f"ctrlpp regression detected (+{validation['ctrlpp_regression_count']})"
                 )
-                quality_metrics = self._new_autofix_quality_metrics(
+                quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
                     proposal_id=str(proposal.get("proposal_id", "")),
                     generator_type=str(proposal.get("generator_type", "unknown")),
                     anchors_match=anchors_match,
@@ -2693,7 +2783,7 @@ class CodeInspectorApp:
                     token_fallback_attempted=token_fallback_attempted,
                     token_fallback_confidence=token_fallback_confidence,
                     token_fallback_candidates=token_fallback_candidates,
-                )
+                ))
                 self._mark_autofix_proposal_failure(session, proposal, error_code="REGRESSION_BLOCKED", quality_metrics=quality_metrics)
                 raise self._autofix_apply_error(
                     "Autofix validation failed: CtrlppCheck regression detected",
@@ -2729,7 +2819,7 @@ class CodeInspectorApp:
                     validation["errors"].append(
                         f"heuristic regression detected (+{regression_count}); changes rolled back"
                     )
-                quality_metrics = self._new_autofix_quality_metrics(
+                quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
                     proposal_id=str(proposal.get("proposal_id", "")),
                     generator_type=str(proposal.get("generator_type", "unknown")),
                     anchors_match=anchors_match,
@@ -2749,7 +2839,7 @@ class CodeInspectorApp:
                     token_fallback_attempted=token_fallback_attempted,
                     token_fallback_confidence=token_fallback_confidence,
                     token_fallback_candidates=token_fallback_candidates,
-                )
+                ))
                 self._mark_autofix_proposal_failure(session, proposal, error_code="REGRESSION_BLOCKED", quality_metrics=quality_metrics)
                 raise self._autofix_apply_error(
                     "Autofix validation failed: heuristic regression detected",
@@ -2757,7 +2847,7 @@ class CodeInspectorApp:
                     quality_metrics=quality_metrics,
                 )
 
-            quality_metrics = self._new_autofix_quality_metrics(
+            quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
                 proposal_id=str(proposal.get("proposal_id", "")),
                 generator_type=str(proposal.get("generator_type", "unknown")),
                 anchors_match=anchors_match,
@@ -2777,7 +2867,7 @@ class CodeInspectorApp:
                 token_fallback_attempted=token_fallback_attempted,
                 token_fallback_confidence=token_fallback_confidence,
                 token_fallback_candidates=token_fallback_candidates,
-            )
+            ))
 
             with session["lock"]:
                 cached["original_content"] = candidate_content
@@ -2819,6 +2909,8 @@ class CodeInspectorApp:
                 "generator_type": proposal.get("generator_type", "unknown"),
                 "validation_summary": {
                     "hash_match": validation["hash_match"],
+                    "benchmark_observe_mode": validation.get("benchmark_observe_mode", "strict_hash"),
+                    "hash_gate_bypassed": bool(validation.get("hash_gate_bypassed", False)),
                     "anchors_match": validation["anchors_match"],
                     "syntax_check_passed": validation["syntax_check_passed"],
                     "semantic_check_passed": bool(validation.get("semantic_check_passed", True)),

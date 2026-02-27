@@ -5,6 +5,7 @@ import os
 import sys
 import tempfile
 import threading
+import time
 import urllib.parse
 import unittest
 from http.server import ThreadingHTTPServer
@@ -56,11 +57,13 @@ class ApiIntegrationTests(unittest.TestCase):
         self.thread.join(timeout=3)
         self.tmp_dir.cleanup()
 
-    def _request(self, method, path, body=None):
+    def _request(self, method, path, body=None, headers=None):
         conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=15)
-        headers = {"Content-Type": "application/json"}
+        request_headers = {"Content-Type": "application/json"}
+        if isinstance(headers, dict):
+            request_headers.update(headers)
         payload = json.dumps(body) if body is not None else None
-        conn.request(method, path, payload, headers)
+        conn.request(method, path, payload, request_headers)
         resp = conn.getresponse()
         data = resp.read().decode("utf-8")
         conn.close()
@@ -122,6 +125,70 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertIn("convert", payload["metrics"]["timings_ms"])
         self.assertIn("llm_calls", payload["metrics"])
         self.assertIn("convert_cache", payload["metrics"])
+
+    def test_post_api_analyze_start_returns_job(self):
+        status, payload = self._request(
+            "POST",
+            "/api/analyze/start",
+            {"mode": "Static", "selected_files": ["sample.ctl"]},
+        )
+        self.assertEqual(status, 202)
+        self.assertTrue(str(payload.get("job_id", "")))
+        self.assertEqual(str(payload.get("status", "")), "queued")
+        self.assertIn("progress", payload)
+        self.assertIn("poll_interval_ms", payload)
+
+    def test_get_api_analyze_status_unknown_job_returns_404(self):
+        status, payload = self._request("GET", "/api/analyze/status?job_id=missing-job-id")
+        self.assertEqual(status, 404)
+        self.assertIn("error", payload)
+
+    def test_post_api_analyze_start_and_poll_until_completed(self):
+        status, payload = self._request(
+            "POST",
+            "/api/analyze/start",
+            {"mode": "Static", "selected_files": ["sample.ctl"]},
+        )
+        self.assertEqual(status, 202)
+        job_id = str(payload.get("job_id", ""))
+        self.assertTrue(job_id)
+
+        final_payload = {}
+        for _ in range(60):
+            s, p = self._request("GET", f"/api/analyze/status?job_id={urllib.parse.quote(job_id)}")
+            self.assertEqual(s, 200)
+            final_payload = p
+            if str(p.get("status", "")) in ("completed", "failed"):
+                break
+            time.sleep(0.05)
+
+        self.assertEqual(str(final_payload.get("status", "")), "completed")
+        self.assertIn("result", final_payload)
+        result = final_payload.get("result", {})
+        self.assertIn("summary", result)
+        self.assertIn("violations", result)
+
+    def test_post_api_analyze_start_invalid_selection_eventually_fails(self):
+        status, payload = self._request(
+            "POST",
+            "/api/analyze/start",
+            {"mode": "Static", "selected_files": ["missing.ctl"]},
+        )
+        self.assertEqual(status, 202)
+        job_id = str(payload.get("job_id", ""))
+        self.assertTrue(job_id)
+
+        final_payload = {}
+        for _ in range(60):
+            s, p = self._request("GET", f"/api/analyze/status?job_id={urllib.parse.quote(job_id)}")
+            self.assertEqual(s, 200)
+            final_payload = p
+            if str(p.get("status", "")) in ("completed", "failed"):
+                break
+            time.sleep(0.05)
+
+        self.assertEqual(str(final_payload.get("status", "")), "failed")
+        self.assertIn("error", final_payload)
 
     def test_post_api_analyze_p1_violations_include_file_field(self):
         status, payload = self._request(
@@ -398,6 +465,77 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertIn("[AI-AUTOFIX:", patched)
         self.assertIn("if (isValid) {", patched)
 
+    def test_autofix_prepare_and_apply_raw_txt_llm_only(self):
+        self.app.checker.analyze_raw_code = lambda *_args, **_kwargs: [
+            {
+                "object": "raw_input.txt",
+                "event": "Global",
+                "violations": [
+                    {
+                        "issue_id": "P1-RAW-1",
+                        "rule_id": "R-RAW",
+                        "rule_item": "raw-item",
+                        "priority_origin": "P1",
+                        "severity": "Warning",
+                        "line": 1,
+                        "message": "raw test violation",
+                    }
+                ],
+            }
+        ]
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 로그를 개선하세요.\n\n"
+            "코드:\n```cpp\nDebugN(\"raw-fix\");\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["raw_input.txt"], "allow_raw_txt": True, "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "raw_input.txt",
+                "object": ai_review.get("object", "raw_input.txt"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "rule",
+                "prepare_mode": "compare",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        self.assertEqual(prepare_payload.get("generator_type"), "llm")
+        proposals = prepare_payload.get("proposals", [])
+        self.assertEqual(len(proposals), 1)
+        self.assertEqual((proposals[0] or {}).get("generator_type"), "llm")
+
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "raw_input.txt",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+                "check_ctrlpp_regression": True,
+            },
+        )
+        self.assertEqual(apply_status, 200)
+        validation = apply_payload.get("validation", {})
+        self.assertEqual(validation.get("syntax_check_skipped_reason"), "non_ctl_file")
+        self.assertEqual(validation.get("ctrlpp_regression_skipped_reason"), "non_ctl_file")
+
+        with open(os.path.join(self.data_dir, "raw_input.txt"), "r", encoding="utf-8") as f:
+            patched = f.read()
+        self.assertIn("[AI-AUTOFIX:", patched)
+
     def test_autofix_apply_rejects_hash_mismatch(self):
         self._force_single_internal_violation()
         self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
@@ -445,6 +583,319 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertIn("quality_metrics", apply_payload)
         self.assertEqual((apply_payload.get("quality_metrics") or {}).get("hash_match"), False)
         self.assertIn("hash mismatch", apply_payload.get("error", "").lower())
+
+    def test_autofix_apply_benchmark_relaxed_requires_env_flag(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+
+        previous = os.environ.get("AUTOFIX_BENCHMARK_OBSERVE")
+        try:
+            os.environ.pop("AUTOFIX_BENCHMARK_OBSERVE", None)
+            apply_status, apply_payload = self._request(
+                "POST",
+                "/api/autofix/apply",
+                {
+                    "proposal_id": prepare_payload.get("proposal_id"),
+                    "session_id": analyze_payload.get("output_dir", ""),
+                    "file": "sample.ctl",
+                    "expected_base_hash": "deadbeef",
+                    "apply_mode": "source_ctl",
+                    "block_on_regression": False,
+                },
+                headers={"X-Autofix-Benchmark-Observe-Mode": "benchmark_relaxed"},
+            )
+        finally:
+            if previous is None:
+                os.environ.pop("AUTOFIX_BENCHMARK_OBSERVE", None)
+            else:
+                os.environ["AUTOFIX_BENCHMARK_OBSERVE"] = previous
+
+        self.assertEqual(apply_status, 409)
+        self.assertEqual(apply_payload.get("error_code"), "BASE_HASH_MISMATCH")
+
+    def test_autofix_apply_benchmark_relaxed_bypasses_hash_gate_with_env_flag(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+
+        previous = os.environ.get("AUTOFIX_BENCHMARK_OBSERVE")
+        try:
+            os.environ["AUTOFIX_BENCHMARK_OBSERVE"] = "1"
+            apply_status, apply_payload = self._request(
+                "POST",
+                "/api/autofix/apply",
+                {
+                    "proposal_id": prepare_payload.get("proposal_id"),
+                    "session_id": analyze_payload.get("output_dir", ""),
+                    "file": "sample.ctl",
+                    "expected_base_hash": "deadbeef",
+                    "apply_mode": "source_ctl",
+                    "block_on_regression": False,
+                },
+                headers={"X-Autofix-Benchmark-Observe-Mode": "benchmark_relaxed"},
+            )
+        finally:
+            if previous is None:
+                os.environ.pop("AUTOFIX_BENCHMARK_OBSERVE", None)
+            else:
+                os.environ["AUTOFIX_BENCHMARK_OBSERVE"] = previous
+
+        self.assertEqual(apply_status, 200)
+        validation = apply_payload.get("validation", {})
+        self.assertTrue(bool(validation.get("hash_gate_bypassed", False)))
+        self.assertEqual(validation.get("benchmark_observe_mode"), "benchmark_relaxed")
+
+    def test_autofix_apply_benchmark_strict_hash_with_env_still_blocks_hash_mismatch(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+
+        previous = os.environ.get("AUTOFIX_BENCHMARK_OBSERVE")
+        try:
+            os.environ["AUTOFIX_BENCHMARK_OBSERVE"] = "1"
+            apply_status, apply_payload = self._request(
+                "POST",
+                "/api/autofix/apply",
+                {
+                    "proposal_id": prepare_payload.get("proposal_id"),
+                    "session_id": analyze_payload.get("output_dir", ""),
+                    "file": "sample.ctl",
+                    "expected_base_hash": "deadbeef",
+                    "apply_mode": "source_ctl",
+                    "block_on_regression": False,
+                },
+                headers={"X-Autofix-Benchmark-Observe-Mode": "strict_hash"},
+            )
+        finally:
+            if previous is None:
+                os.environ.pop("AUTOFIX_BENCHMARK_OBSERVE", None)
+            else:
+                os.environ["AUTOFIX_BENCHMARK_OBSERVE"] = previous
+
+        self.assertEqual(apply_status, 409)
+        self.assertEqual(apply_payload.get("error_code"), "BASE_HASH_MISMATCH")
+
+    def test_autofix_apply_benchmark_tuning_headers_ignored_without_observe_gate(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        previous = os.environ.get("AUTOFIX_BENCHMARK_OBSERVE")
+        try:
+            os.environ.pop("AUTOFIX_BENCHMARK_OBSERVE", None)
+            apply_status, apply_payload = self._request(
+                "POST",
+                "/api/autofix/apply",
+                {
+                    "proposal_id": prepare_payload.get("proposal_id"),
+                    "session_id": analyze_payload.get("output_dir", ""),
+                    "file": "sample.ctl",
+                    "expected_base_hash": prepare_payload.get("base_hash"),
+                    "apply_mode": "source_ctl",
+                    "block_on_regression": False,
+                },
+                headers={
+                    "X-Autofix-Benchmark-Observe-Mode": "benchmark_relaxed",
+                    "X-Autofix-Benchmark-Tuning-Min-Confidence": "0.55",
+                    "X-Autofix-Benchmark-Tuning-Min-Gap": "0.05",
+                    "X-Autofix-Benchmark-Tuning-Max-Line-Drift": "900",
+                },
+            )
+        finally:
+            if previous is None:
+                os.environ.pop("AUTOFIX_BENCHMARK_OBSERVE", None)
+            else:
+                os.environ["AUTOFIX_BENCHMARK_OBSERVE"] = previous
+        self.assertEqual(apply_status, 200)
+        validation = apply_payload.get("validation", {})
+        self.assertFalse(bool(validation.get("benchmark_tuning_applied", True)))
+        self.assertEqual(float(validation.get("token_min_confidence_used", 0.0)), 0.8)
+        self.assertEqual(float(validation.get("token_min_gap_used", 0.0)), 0.15)
+
+    def test_autofix_apply_benchmark_tuning_headers_applied_with_observe_gate(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        previous = os.environ.get("AUTOFIX_BENCHMARK_OBSERVE")
+        try:
+            os.environ["AUTOFIX_BENCHMARK_OBSERVE"] = "1"
+            apply_status, apply_payload = self._request(
+                "POST",
+                "/api/autofix/apply",
+                {
+                    "proposal_id": prepare_payload.get("proposal_id"),
+                    "session_id": analyze_payload.get("output_dir", ""),
+                    "file": "sample.ctl",
+                    "expected_base_hash": "deadbeef",
+                    "apply_mode": "source_ctl",
+                    "block_on_regression": False,
+                },
+                headers={
+                    "X-Autofix-Benchmark-Observe-Mode": "benchmark_relaxed",
+                    "X-Autofix-Benchmark-Tuning-Min-Confidence": "0.55",
+                    "X-Autofix-Benchmark-Tuning-Min-Gap": "0.05",
+                    "X-Autofix-Benchmark-Tuning-Max-Line-Drift": "900",
+                },
+            )
+        finally:
+            if previous is None:
+                os.environ.pop("AUTOFIX_BENCHMARK_OBSERVE", None)
+            else:
+                os.environ["AUTOFIX_BENCHMARK_OBSERVE"] = previous
+        self.assertEqual(apply_status, 200)
+        validation = apply_payload.get("validation", {})
+        self.assertTrue(bool(validation.get("benchmark_tuning_applied", False)))
+        self.assertAlmostEqual(float(validation.get("token_min_confidence_used", 0.0)), 0.55, places=3)
+        self.assertAlmostEqual(float(validation.get("token_min_gap_used", 0.0)), 0.05, places=3)
+        self.assertEqual(int(validation.get("token_max_line_drift_used", 0)), 900)
+
+    def test_autofix_apply_rejects_invalid_benchmark_tuning_headers(self):
+        self._force_single_internal_violation()
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": False, "mode": "Static"},
+        )
+        self.assertEqual(status, 200)
+        p1_group = (analyze_payload.get("violations", {}) or {}).get("P1", [])[0]
+        violation = (p1_group.get("violations") or [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": p1_group.get("object", "sample.ctl"),
+                "event": p1_group.get("event", "Global"),
+                "review": "",
+                "issue_id": violation.get("issue_id", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "rule",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+            },
+            headers={
+                "X-Autofix-Benchmark-Observe-Mode": "benchmark_relaxed",
+                "X-Autofix-Benchmark-Tuning-Min-Confidence": "1.5",
+            },
+        )
+        self.assertEqual(apply_status, 400)
+        self.assertIn("Min-Confidence", str(apply_payload.get("error", "")))
 
     def test_autofix_prepare_rule_generator_without_review(self):
         self._force_single_internal_violation()

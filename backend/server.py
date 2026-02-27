@@ -2,6 +2,7 @@
 import logging
 import os
 import sys
+import threading
 import time
 import uuid
 from http import HTTPStatus
@@ -79,7 +80,40 @@ class ExcelFlushRequestBody(TypedDict, total=False):
     timeout_sec: Optional[int]
 
 
+class AnalyzeProgressPayload(TypedDict, total=False):
+    total_files: int
+    completed_files: int
+    failed_files: int
+    percent: int
+    current_file: str
+
+
+class AnalyzeTimingPayload(TypedDict, total=False):
+    elapsed_ms: int
+    eta_ms: Optional[int]
+
+
+class AnalyzeJobState(TypedDict, total=False):
+    job_id: str
+    status: str
+    created_at: int
+    started_at: Optional[int]
+    finished_at: Optional[int]
+    request: Dict[str, Any]
+    progress: AnalyzeProgressPayload
+    timing: AnalyzeTimingPayload
+    result: Optional[Dict[str, Any]]
+    error: Optional[str]
+    request_id: str
+
+
 class CodeInspectorHandler(SimpleHTTPRequestHandler):
+    _analyze_jobs: Dict[str, AnalyzeJobState] = {}
+    _analyze_jobs_lock = threading.RLock()
+    _analyze_job_ttl_sec = 1800
+    _analyze_job_max_entries = 64
+    _analyze_poll_interval_ms = 500
+
     def __init__(self, *args, app=None, frontend_dir=None, **kwargs):
         self.app = app
         self.frontend_dir = frontend_dir
@@ -97,7 +131,13 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
     def _send_cors_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header(
+            "Access-Control-Allow-Headers",
+            "Content-Type, X-Autofix-Benchmark-Observe-Mode, "
+            "X-Autofix-Benchmark-Tuning-Min-Confidence, "
+            "X-Autofix-Benchmark-Tuning-Min-Gap, "
+            "X-Autofix-Benchmark-Tuning-Max-Line-Drift",
+        )
 
     @staticmethod
     def _safe_int(value, fallback=0):
@@ -105,6 +145,109 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
             return int(value)
         except (TypeError, ValueError):
             return fallback
+
+    @staticmethod
+    def _epoch_ms() -> int:
+        return int(time.time() * 1000)
+
+    @classmethod
+    def _prune_analyze_jobs(cls) -> None:
+        now = time.time()
+        with cls._analyze_jobs_lock:
+            stale = []
+            for job_id, job in list(cls._analyze_jobs.items()):
+                finished_ms = job.get("finished_at")
+                if not finished_ms:
+                    continue
+                age_sec = now - (float(finished_ms) / 1000.0)
+                if age_sec > cls._analyze_job_ttl_sec:
+                    stale.append(job_id)
+            for job_id in stale:
+                cls._analyze_jobs.pop(job_id, None)
+            while len(cls._analyze_jobs) > cls._analyze_job_max_entries:
+                oldest = next(iter(cls._analyze_jobs))
+                cls._analyze_jobs.pop(oldest, None)
+
+    @classmethod
+    def _compute_eta_ms(cls, progress: AnalyzeProgressPayload, started_at_ms: Optional[int]) -> Optional[int]:
+        if not started_at_ms:
+            return None
+        total = max(0, cls._safe_int(progress.get("total_files", 0), 0))
+        completed = max(0, cls._safe_int(progress.get("completed_files", 0), 0))
+        if total <= 0 or completed <= 0:
+            return None
+        elapsed_ms = max(0, cls._epoch_ms() - int(started_at_ms))
+        ratio = float(completed) / float(total)
+        if ratio <= 0.0:
+            return None
+        return max(0, int(elapsed_ms * (1.0 - ratio) / ratio))
+
+    @classmethod
+    def _refresh_job_timing_locked(cls, job: AnalyzeJobState) -> None:
+        started_at = job.get("started_at")
+        timing = cast(AnalyzeTimingPayload, job.setdefault("timing", {}))
+        if started_at:
+            timing["elapsed_ms"] = max(0, cls._epoch_ms() - int(started_at))
+        else:
+            timing["elapsed_ms"] = 0
+        timing["eta_ms"] = cls._compute_eta_ms(cast(AnalyzeProgressPayload, job.get("progress", {})), started_at)
+
+    @classmethod
+    def _public_analyze_job_view(cls, job: AnalyzeJobState) -> Dict[str, Any]:
+        with cls._analyze_jobs_lock:
+            cls._refresh_job_timing_locked(job)
+            payload: Dict[str, Any] = {
+                "job_id": str(job.get("job_id", "") or ""),
+                "status": str(job.get("status", "unknown") or "unknown"),
+                "request_id": str(job.get("request_id", "") or ""),
+                "progress": dict(job.get("progress", {}) or {}),
+                "timing": dict(job.get("timing", {}) or {}),
+                "error": job.get("error"),
+                "created_at": job.get("created_at"),
+                "started_at": job.get("started_at"),
+                "finished_at": job.get("finished_at"),
+            }
+            if payload["status"] == "completed" and isinstance(job.get("result"), dict):
+                payload["result"] = job["result"]
+            return payload
+
+    def _parse_analyze_request_body(self, *, validate_selected_files: bool) -> Dict[str, Any]:
+        body = self._read_json_body()
+        if not isinstance(body, dict):
+            raise ValueError("JSON body must be an object")
+        typed_body = cast(AnalyzeRequestBody, body)
+        mode = typed_body.get("mode", DEFAULT_MODE)
+        selected_files = typed_body.get("selected_files", [])
+        if not isinstance(selected_files, list):
+            raise ValueError("selected_files must be a list")
+
+        allow_raw_txt = typed_body.get("allow_raw_txt", False)
+        if not isinstance(allow_raw_txt, bool):
+            raise ValueError("allow_raw_txt must be a boolean")
+        enable_ctrlppcheck = typed_body.get("enable_ctrlppcheck", None)
+        enable_live_ai = typed_body.get("enable_live_ai", None)
+        ai_with_context = typed_body.get("ai_with_context", False)
+        defer_excel_reports = typed_body.get("defer_excel_reports", None)
+        if enable_ctrlppcheck is not None and not isinstance(enable_ctrlppcheck, bool):
+            raise ValueError("enable_ctrlppcheck must be a boolean")
+        if enable_live_ai is not None and not isinstance(enable_live_ai, bool):
+            raise ValueError("enable_live_ai must be a boolean")
+        if not isinstance(ai_with_context, bool):
+            raise ValueError("ai_with_context must be a boolean")
+        if defer_excel_reports is not None and not isinstance(defer_excel_reports, bool):
+            raise ValueError("defer_excel_reports must be a boolean when provided")
+        if validate_selected_files:
+            self._validate_selected_files(selected_files, allow_raw_txt=allow_raw_txt)
+
+        return {
+            "mode": mode,
+            "selected_files": selected_files,
+            "allow_raw_txt": allow_raw_txt,
+            "enable_ctrlppcheck": enable_ctrlppcheck,
+            "enable_live_ai": enable_live_ai,
+            "ai_with_context": ai_with_context,
+            "defer_excel_reports": defer_excel_reports,
+        }
 
     def _analysis_response_status(self, result: Any):
         if not isinstance(result, dict):
@@ -306,6 +449,10 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
         apply_mode = typed_body.get("apply_mode", "source_ctl")
         block_on_regression = typed_body.get("block_on_regression", None)
         check_ctrlpp_regression = typed_body.get("check_ctrlpp_regression", None)
+        benchmark_observe_mode = str(self.headers.get("X-Autofix-Benchmark-Observe-Mode", "") or "").strip().lower()
+        tune_min_confidence_header = self.headers.get("X-Autofix-Benchmark-Tuning-Min-Confidence", None)
+        tune_min_gap_header = self.headers.get("X-Autofix-Benchmark-Tuning-Min-Gap", None)
+        tune_max_drift_header = self.headers.get("X-Autofix-Benchmark-Tuning-Max-Line-Drift", None)
 
         if not isinstance(proposal_id, str) or not proposal_id.strip():
             raise ValueError("proposal_id must be a non-empty string")
@@ -321,6 +468,32 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
             raise ValueError("block_on_regression must be a boolean when provided")
         if check_ctrlpp_regression is not None and not isinstance(check_ctrlpp_regression, bool):
             raise ValueError("check_ctrlpp_regression must be a boolean when provided")
+        if benchmark_observe_mode and benchmark_observe_mode not in ("strict_hash", "benchmark_relaxed"):
+            raise ValueError("X-Autofix-Benchmark-Observe-Mode must be one of: strict_hash, benchmark_relaxed")
+        benchmark_tuning_min_confidence = None
+        benchmark_tuning_min_gap = None
+        benchmark_tuning_max_line_drift = None
+        if tune_min_confidence_header not in (None, ""):
+            try:
+                benchmark_tuning_min_confidence = float(tune_min_confidence_header)
+            except (TypeError, ValueError):
+                raise ValueError("X-Autofix-Benchmark-Tuning-Min-Confidence must be a float")
+            if not (0.5 <= benchmark_tuning_min_confidence <= 0.99):
+                raise ValueError("X-Autofix-Benchmark-Tuning-Min-Confidence must be within [0.5, 0.99]")
+        if tune_min_gap_header not in (None, ""):
+            try:
+                benchmark_tuning_min_gap = float(tune_min_gap_header)
+            except (TypeError, ValueError):
+                raise ValueError("X-Autofix-Benchmark-Tuning-Min-Gap must be a float")
+            if not (0.0 <= benchmark_tuning_min_gap <= 0.5):
+                raise ValueError("X-Autofix-Benchmark-Tuning-Min-Gap must be within [0.0, 0.5]")
+        if tune_max_drift_header not in (None, ""):
+            try:
+                benchmark_tuning_max_line_drift = int(tune_max_drift_header)
+            except (TypeError, ValueError):
+                raise ValueError("X-Autofix-Benchmark-Tuning-Max-Line-Drift must be an integer")
+            if not (10 <= benchmark_tuning_max_line_drift <= 2000):
+                raise ValueError("X-Autofix-Benchmark-Tuning-Max-Line-Drift must be within [10, 2000]")
 
         logger.info("Autofix apply start id=%s proposal_id=%s", request_id, proposal_id)
         result = self.app.apply_autofix_proposal(
@@ -331,6 +504,10 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
             apply_mode=apply_mode,
             block_on_regression=block_on_regression,
             check_ctrlpp_regression=check_ctrlpp_regression,
+            benchmark_observe_mode=benchmark_observe_mode or "strict_hash",
+            benchmark_tuning_min_confidence=benchmark_tuning_min_confidence,
+            benchmark_tuning_min_gap=benchmark_tuning_min_gap,
+            benchmark_tuning_max_line_drift=benchmark_tuning_max_line_drift,
         )
         result.setdefault("request_id", request_id)
         self._send_json(HTTPStatus.OK, result)
@@ -367,8 +544,170 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
         self._send_json(HTTPStatus.OK, result)
         logger.info("Excel report flush done id=%s status=200", request_id)
 
+    def _run_analyze_job(self, job_id: str, request_id: str, analyze_args: Dict[str, Any]) -> None:
+        try:
+            with self._analyze_jobs_lock:
+                job = self._analyze_jobs.get(job_id)
+                if not job:
+                    return
+                job["status"] = "running"
+                job["started_at"] = self._epoch_ms()
+                self._refresh_job_timing_locked(job)
+
+            total_selected = max(0, self._safe_int(len(analyze_args.get("selected_files", []) or []), 0))
+
+            def progress_cb(event: Dict[str, Any]) -> None:
+                with self._analyze_jobs_lock:
+                    current = self._analyze_jobs.get(job_id)
+                    if not current:
+                        return
+                    progress = cast(AnalyzeProgressPayload, current.setdefault("progress", {}))
+                    total = max(1, self._safe_int(event.get("total_files", total_selected), total_selected or 1))
+                    completed = max(0, self._safe_int(event.get("completed_files", 0), 0))
+                    failed = max(0, self._safe_int(event.get("failed_files", 0), 0))
+                    progress["total_files"] = total
+                    progress["completed_files"] = completed
+                    progress["failed_files"] = failed
+                    progress["current_file"] = str(event.get("file", "") or "")
+                    progress["percent"] = max(0, min(100, int((float(completed) / float(total)) * 100)))
+                    self._refresh_job_timing_locked(current)
+
+            # Keep start-path behavior explicit: unknown file/raw-txt policy errors surface as failed job.
+            self._validate_selected_files(
+                analyze_args.get("selected_files", []),
+                allow_raw_txt=bool(analyze_args.get("allow_raw_txt", False)),
+            )
+            result = self.app.run_directory_analysis(
+                mode=analyze_args.get("mode", DEFAULT_MODE),
+                selected_files=analyze_args.get("selected_files", []),
+                allow_raw_txt=bool(analyze_args.get("allow_raw_txt", False)),
+                enable_ctrlppcheck=analyze_args.get("enable_ctrlppcheck", None),
+                enable_live_ai=analyze_args.get("enable_live_ai", None),
+                ai_with_context=bool(analyze_args.get("ai_with_context", False)),
+                request_id=request_id,
+                defer_excel_reports=analyze_args.get("defer_excel_reports", None),
+                progress_cb=progress_cb,
+            )
+            response_status = self._analysis_response_status(result)
+            elapsed_ms = int((time.perf_counter() - float(analyze_args.get("_request_started", time.perf_counter()))) * 1000)
+            if isinstance(result.get("metrics"), dict):
+                timings = result["metrics"].setdefault("timings_ms", {})
+                if isinstance(timings, dict) and not timings.get("server_total"):
+                    timings["server_total"] = elapsed_ms
+            result.setdefault("request_id", request_id)
+
+            with self._analyze_jobs_lock:
+                job = self._analyze_jobs.get(job_id)
+                if not job:
+                    return
+                job["status"] = "completed" if int(response_status) < 500 else "failed"
+                job["finished_at"] = self._epoch_ms()
+                if job["status"] == "completed":
+                    job["result"] = result
+                    progress = cast(AnalyzeProgressPayload, job.setdefault("progress", {}))
+                    total = max(1, self._safe_int(progress.get("total_files", total_selected), total_selected or 1))
+                    progress["total_files"] = total
+                    progress["percent"] = 100
+                else:
+                    job["error"] = "Analyze completed with internal errors"
+                self._refresh_job_timing_locked(job)
+                self._prune_analyze_jobs()
+        except Exception as exc:
+            with self._analyze_jobs_lock:
+                job = self._analyze_jobs.get(job_id)
+                if job:
+                    job["status"] = "failed"
+                    job["error"] = str(exc)
+                    job["finished_at"] = self._epoch_ms()
+                    self._refresh_job_timing_locked(job)
+                    self._prune_analyze_jobs()
+            logger.error("Analyze async job failed id=%s request_id=%s error=%s", job_id, request_id, exc)
+
+    def _handle_analyze_start(self, request_id: str, request_started: float) -> None:
+        analyze_args = self._parse_analyze_request_body(validate_selected_files=False)
+        selected_files = analyze_args.get("selected_files", []) or []
+        logger.info(
+            "Analyze async request start id=%s selected=%d allow_raw_txt=%s",
+            request_id,
+            len(selected_files),
+            bool(analyze_args.get("allow_raw_txt", False)),
+        )
+
+        job_id = uuid.uuid4().hex
+        created_at = self._epoch_ms()
+        initial_total = max(0, self._safe_int(len(selected_files), 0))
+        with self._analyze_jobs_lock:
+            self._prune_analyze_jobs()
+            self._analyze_jobs[job_id] = cast(
+                AnalyzeJobState,
+                {
+                    "job_id": job_id,
+                    "status": "queued",
+                    "created_at": created_at,
+                    "started_at": None,
+                    "finished_at": None,
+                    "request": {
+                        "selected_count": initial_total,
+                        "enable_live_ai": bool(analyze_args.get("enable_live_ai", False)),
+                        "enable_ctrlppcheck": bool(analyze_args.get("enable_ctrlppcheck", False)),
+                        "allow_raw_txt": bool(analyze_args.get("allow_raw_txt", False)),
+                    },
+                    "progress": {
+                        "total_files": initial_total,
+                        "completed_files": 0,
+                        "failed_files": 0,
+                        "percent": 0,
+                        "current_file": "",
+                    },
+                    "timing": {"elapsed_ms": 0, "eta_ms": None},
+                    "result": None,
+                    "error": None,
+                    "request_id": request_id,
+                },
+            )
+        analyze_args["_request_started"] = request_started
+
+        worker = threading.Thread(
+            target=self._run_analyze_job,
+            args=(job_id, request_id, analyze_args),
+            daemon=True,
+        )
+        worker.start()
+        self._send_json(
+            getattr(HTTPStatus, "ACCEPTED", 202),
+            {
+                "job_id": job_id,
+                "status": "queued",
+                "progress": {"total_files": initial_total, "completed_files": 0, "failed_files": 0, "percent": 0, "current_file": ""},
+                "poll_interval_ms": self._analyze_poll_interval_ms,
+                "request_id": request_id,
+            },
+        )
+
+    def _handle_analyze_status(self) -> None:
+        parsed = urlparse(self.path)
+        query = parse_qs(parsed.query)
+        job_id = str(query.get("job_id", [""])[0] or "").strip()
+        if not job_id:
+            raise ValueError("job_id is required")
+        with self._analyze_jobs_lock:
+            self._prune_analyze_jobs()
+            job = self._analyze_jobs.get(job_id)
+            if not job:
+                raise FileNotFoundError(f"Analyze job not found: {job_id}")
+        self._send_json(HTTPStatus.OK, self._public_analyze_job_view(job))
+
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path == "/api/analyze/status":
+            try:
+                self._handle_analyze_status()
+            except ValueError as exc:
+                self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+            except FileNotFoundError as exc:
+                self._send_json(HTTPStatus.NOT_FOUND, {"error": str(exc)})
+            return
+
         if parsed.path == "/api/files":
             query = parse_qs(parsed.query)
             allow_raw_txt = str(query.get("allow_raw_txt", ["false"])[0]).lower() in ("1", "true", "yes", "on")
@@ -533,51 +872,42 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
                 logger.error("Excel report flush done id=%s status=500 error=%s", request_id, exc)
             return
 
+        if parsed.path == "/api/analyze/start":
+            request_id = uuid.uuid4().hex
+            try:
+                self._handle_analyze_start(request_id, request_started)
+                logger.info("Analyze async request accepted id=%s status=202", request_id)
+            except ValueError as exc:
+                self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc), "request_id": request_id})
+                logger.warning("Analyze async request done id=%s status=400 error=%s", request_id, exc)
+            except Exception as exc:
+                self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc), "request_id": request_id})
+                logger.error("Analyze async request done id=%s status=500 error=%s", request_id, exc)
+            return
+
         if parsed.path != "/api/analyze":
             self._send_json(HTTPStatus.NOT_FOUND, {"error": "Not Found"})
             return
 
         request_id = uuid.uuid4().hex
         try:
-            body = self._read_json_body()
-            if not isinstance(body, dict):
-                raise ValueError("JSON body must be an object")
-            typed_body = cast(AnalyzeRequestBody, body)
-            mode = typed_body.get("mode", DEFAULT_MODE)
-            selected_files = typed_body.get("selected_files", [])
-            if not isinstance(selected_files, list):
-                raise ValueError("selected_files must be a list")
-
-            allow_raw_txt = typed_body.get("allow_raw_txt", False)
-            if not isinstance(allow_raw_txt, bool):
-                raise ValueError("allow_raw_txt must be a boolean")
-            enable_ctrlppcheck = typed_body.get("enable_ctrlppcheck", None)
-            enable_live_ai = typed_body.get("enable_live_ai", None)
-            ai_with_context = typed_body.get("ai_with_context", False)
-            defer_excel_reports = typed_body.get("defer_excel_reports", None)
+            analyze_args = self._parse_analyze_request_body(validate_selected_files=True)
+            selected_files = analyze_args.get("selected_files", [])
+            allow_raw_txt = bool(analyze_args.get("allow_raw_txt", False))
             logger.info(
                 "Analyze request start id=%s selected=%d allow_raw_txt=%s",
                 request_id, len(selected_files), allow_raw_txt,
             )
-            if enable_ctrlppcheck is not None and not isinstance(enable_ctrlppcheck, bool):
-                raise ValueError("enable_ctrlppcheck must be a boolean")
-            if enable_live_ai is not None and not isinstance(enable_live_ai, bool):
-                raise ValueError("enable_live_ai must be a boolean")
-            if not isinstance(ai_with_context, bool):
-                raise ValueError("ai_with_context must be a boolean")
-            if defer_excel_reports is not None and not isinstance(defer_excel_reports, bool):
-                raise ValueError("defer_excel_reports must be a boolean when provided")
-            self._validate_selected_files(selected_files, allow_raw_txt=allow_raw_txt)
             # File-type routing is handled in main.py: .ctl => Server, .txt => Client rules.
             result = self.app.run_directory_analysis(
-                mode=mode,
+                mode=analyze_args.get("mode", DEFAULT_MODE),
                 selected_files=selected_files,
                 allow_raw_txt=allow_raw_txt,
-                enable_ctrlppcheck=enable_ctrlppcheck,
-                enable_live_ai=enable_live_ai,
-                ai_with_context=ai_with_context,
+                enable_ctrlppcheck=analyze_args.get("enable_ctrlppcheck", None),
+                enable_live_ai=analyze_args.get("enable_live_ai", None),
+                ai_with_context=bool(analyze_args.get("ai_with_context", False)),
                 request_id=request_id,
-                defer_excel_reports=defer_excel_reports,
+                defer_excel_reports=analyze_args.get("defer_excel_reports", None),
             )
             response_status = self._analysis_response_status(result)
             result.setdefault("request_id", request_id)

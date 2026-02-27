@@ -50,6 +50,11 @@ These come from `tools/playwright_ui_benchmark.js` using mocked API responses so
 
 These come from the real backend and reflect actual file I/O, reporting, LLM, and Ctrlpp behavior.
 
+### Analyze progress/ETA (UI polling)
+- `POST /api/analyze/start` returns `202` with `job_id` and initial progress.
+- `GET /api/analyze/status?job_id=...` returns `status`, `progress`, `timing` (`elapsed_ms`, `eta_ms`), and final `result` on completion.
+- Frontend header panel uses this status API to render `percent`, `completed/total files`, `ETA`, and `elapsed`.
+
 ## 2. Recommended Baseline Process
 
 ### A. UI baseline (Playwright)
@@ -201,6 +206,8 @@ python tools/perf/autofix_apply_baseline.py `
   --mode improved `
   --discover-count 1 `
   --iterations 3 `
+  --perturb-anchor-mode none `
+  --kpi-observe-mode strict_hash `
   --output docs/perf_baselines/autofix_apply_improved_20260227_0938.json
 ```
 
@@ -211,18 +218,90 @@ python tools/perf/autofix_apply_baseline.py `
   --mode baseline `
   --discover-count 1 `
   --iterations 3 `
+  --perturb-anchor-mode none `
+  --kpi-observe-mode strict_hash `
   --output docs/perf_baselines/autofix_apply_baseline_20260227_0938.json `
   --compare-with docs/perf_baselines/autofix_apply_improved_20260227_0938.json `
   --output-compare docs/perf_baselines/autofix_apply_comparison_20260227_0938.json
 ```
 
+### Matrix auto-run (general + drift, benchmark-only tuning)
+
+Use one command to run `general/drift x baseline/improved` and produce comparison JSON + review markdown:
+
+```powershell
+python tools/perf/autofix_apply_baseline.py `
+  --auto-run-matrix `
+  --scenario both `
+  --discover-count 1 `
+  --iterations 3 `
+  --tune-min-confidence 0.55 `
+  --tune-min-gap 0.05 `
+  --tune-max-line-drift 900 `
+  --output docs/perf_baselines `
+  --review-output docs/perf_baselines/autofix_review_latest.md
+```
+
+Notes:
+- Tuning headers are sent only in `benchmark_relaxed` runs.
+- Runtime behavior is unchanged unless server process has `AUTOFIX_BENCHMARK_OBSERVE=1`.
+- Response validation includes:
+  - `token_min_confidence_used`
+  - `token_min_gap_used`
+  - `token_max_line_drift_used`
+  - `benchmark_tuning_applied`
+- Frontend `Autofix Validation` panel now surfaces benchmark/tuning metadata
+  (`benchmark_observe_mode`, `hash_gate_bypassed`, `benchmark_tuning_applied`, `token_*_used`) without API schema changes.
+
+Anchor drift stress run (line shift perturbation):
+
+```powershell
+python tools/perf/autofix_apply_baseline.py `
+  --mode improved `
+  --discover-count 1 `
+  --iterations 3 `
+  --perturb-anchor-mode line_drift `
+  --kpi-observe-mode benchmark_relaxed `
+  --output docs/perf_baselines/autofix_apply_improved_<timestamp>_drift.json
+```
+
+Perturbation modes:
+- `none`: no source perturbation
+- `whitespace`: trailing whitespace injection before apply
+- `line_drift`: blank line insertion before resolved anchor line
+
+KPI observe modes:
+- `strict_hash`: runtime hash gate policy preserved (production-equivalent)
+- `benchmark_relaxed`: benchmark-only KPI observability mode (does not send `expected_base_hash`)
+- In `benchmark_relaxed`, output JSON includes:
+  - `_meta.benchmark_mode_warning=true`
+  - `_meta.not_for_production=true`
+- Limitation (current implementation):
+  - `benchmark_relaxed` only bypasses request-level `expected_base_hash`.
+  - Server still validates internal `proposal_base_hash` first, so drift perturbation can still end at `BASE_HASH_MISMATCH`.
+
 Generated artifacts:
 - `docs/perf_baselines/autofix_apply_baseline_20260227_0938.json`
 - `docs/perf_baselines/autofix_apply_improved_20260227_0938.json`
 - `docs/perf_baselines/autofix_apply_comparison_20260227_0938.json`
+- `docs/perf_baselines/autofix_apply_baseline_20260227_1042_general.json`
+- `docs/perf_baselines/autofix_apply_improved_20260227_1042_general.json`
+- `docs/perf_baselines/autofix_apply_comparison_20260227_1042_general.json`
+- `docs/perf_baselines/autofix_apply_baseline_20260227_1042_drift.json`
+- `docs/perf_baselines/autofix_apply_improved_20260227_1042_drift.json`
+- `docs/perf_baselines/autofix_apply_comparison_20260227_1042_drift.json`
 
 Current comparison result:
 - `baseline_failure_rate = 0.0`
 - `improved_failure_rate = 0.0`
 - `improvement_percent = 0.0`
-- Interpretation: no anchor mismatch events were observed in this sample, so KPI pass/fail cannot be confirmed from this run alone.
+- Interpretation:
+  - general(strict): no anchor mismatch events observed
+  - drift(relaxed): still blocked by internal `proposal_base_hash` check, so fallback-path KPI is not yet measurable
+
+Note on hash gate and KPI observability:
+- Current `autofix/apply` flow validates proposal base hash before anchor/token fallback.
+- If source is perturbed between `prepare` and `apply`, request is blocked as `BASE_HASH_MISMATCH` before fallback stage.
+- Therefore, anchor mismatch KPI should be interpreted with this constraint and validated either:
+  - on naturally drifting real sessions where proposal hash still matches (rare), or
+  - via dedicated benchmark harness/server test hook that can safely simulate post-hash pre-anchor conditions.

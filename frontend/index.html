@@ -62,6 +62,13 @@
                     </div>
                 </div>
                 <button id="btn-analyze" style="background: var(--success); color: white; border: none; padding: 5px 15px; cursor: pointer;">선택 항목 분석</button>
+                <div id="analyze-progress-panel" class="analyze-progress-panel" style="display:none;" aria-live="polite">
+                    <div id="analyze-progress-status" class="analyze-progress-status">분석 중...</div>
+                    <div class="analyze-progress-track">
+                        <div id="analyze-progress-bar" class="analyze-progress-bar"></div>
+                    </div>
+                    <div id="analyze-progress-meta" class="analyze-progress-meta">0% | 0/0 파일 | ETA 계산 중 | 경과 00:00</div>
+                </div>
             </div>
         </header>
 
@@ -131,6 +138,8 @@
                 <strong>AI 개선 제안</strong>
             </div>
             <p id="ai-text" style="font-size: 12.5px; color: #1565c0;"></p>
+            <button id="btn-ai-review-toggle" type="button" style="padding: 4px 8px; background: #eceff1; color: #263238; border: 1px solid rgba(38,50,56,0.18); border-radius: 4px; cursor: pointer; font-size: 11px;">자세히 보기</button>
+            <pre id="ai-text-full" style="display:none; margin-top: 8px; max-height: 140px; overflow:auto; background:#ffffff; color:#0d47a1; padding:8px; border-radius:4px; border:1px solid rgba(21,101,192,0.2); white-space: pre-wrap;"></pre>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px;">
                 <button id="btn-ai-diff" style="padding: 8px; background: #1565c0; color: white; border: none; border-radius: 4px; cursor: pointer;">Diff Preview</button>
                 <button id="btn-ai-source-apply" style="padding: 8px; background: #2e7d32; color: white; border: none; border-radius: 4px; cursor: pointer;" disabled>Apply Source</button>

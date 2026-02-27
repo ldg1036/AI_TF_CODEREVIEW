@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Sequence, Tuple, TypedDict
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypedDict
 
 
 logger = logging.getLogger(__name__)
@@ -76,6 +76,7 @@ class PipelineRuntime:
     use_deferred_excel: bool
     use_live_ai: bool
     mcp_context: Any
+    progress_cb: Optional[Callable[[Dict[str, Any]], None]]
 
 
 class DirectoryAnalysisPipeline:
@@ -94,6 +95,7 @@ class DirectoryAnalysisPipeline:
         ai_with_context=False,
         request_id: Optional[str] = None,
         defer_excel_reports: Optional[bool] = None,
+        progress_cb: Optional[Callable[[Dict[str, Any]], None]] = None,
     ) -> PayloadDict:
         request = PipelineRequest(
             mode=mode,
@@ -105,7 +107,7 @@ class DirectoryAnalysisPipeline:
             request_id=request_id,
             defer_excel_reports=defer_excel_reports,
         )
-        runtime = self._prepare_runtime(request)
+        runtime = self._prepare_runtime(request, progress_cb=progress_cb)
 
         if not runtime.analysis_targets:
             logger.info("No analysis targets found. Skipping report generation.")
@@ -120,7 +122,11 @@ class DirectoryAnalysisPipeline:
         payload["metrics"] = runtime.metrics
         return payload
 
-    def _prepare_runtime(self, request: PipelineRequest) -> PipelineRuntime:
+    def _prepare_runtime(
+        self,
+        request: PipelineRequest,
+        progress_cb: Optional[Callable[[Dict[str, Any]], None]] = None,
+    ) -> PipelineRuntime:
         total_started = self.app._perf_now()
         metrics = self.app._new_metrics(request_id=request.request_id)
         logger.info("Starting Directory Analysis: %s", self.app.data_dir)
@@ -146,6 +152,7 @@ class DirectoryAnalysisPipeline:
             use_deferred_excel=use_deferred_excel,
             use_live_ai=use_live_ai,
             mcp_context=mcp_context,
+            progress_cb=progress_cb,
         )
 
     def _collect_targets(self, request: PipelineRequest, metrics: MetricsDict) -> List[str]:
@@ -200,6 +207,9 @@ class DirectoryAnalysisPipeline:
         ordered_results: Dict[int, FileAnalysisResult] = {}
         ordered_errors: Dict[int, AnalysisError] = {}
         max_workers = max(1, min(self.app.analysis_max_workers, len(indexed_targets)))
+        total_files = len(indexed_targets)
+        completed_files = 0
+        failed_files = 0
 
         if max_workers > 1 and len(indexed_targets) > 1:
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
@@ -209,15 +219,45 @@ class DirectoryAnalysisPipeline:
                 }
                 for future in concurrent.futures.as_completed(future_map):
                     idx, target = future_map[future]
-                    self._collect_future_result(future, idx, target, ordered_results, ordered_errors)
+                    ok = self._collect_future_result(future, idx, target, ordered_results, ordered_errors)
+                    if ok:
+                        completed_files += 1
+                    else:
+                        failed_files += 1
+                    self._emit_progress_event(
+                        runtime,
+                        phase="analyze_file_done" if ok else "analyze_file_failed",
+                        file_name=os.path.basename(str(target)),
+                        total_files=total_files,
+                        completed_files=completed_files,
+                        failed_files=failed_files,
+                    )
             return ordered_results, ordered_errors
 
         for idx, target in indexed_targets:
             try:
                 _, result = self._analyze_one((idx, target), request, runtime)
                 ordered_results[idx] = result
+                completed_files += 1
+                self._emit_progress_event(
+                    runtime,
+                    phase="analyze_file_done",
+                    file_name=os.path.basename(str(target)),
+                    total_files=total_files,
+                    completed_files=completed_files,
+                    failed_files=failed_files,
+                )
             except Exception as exc:  # pragma: no cover - exercised via API tests
                 self._record_analysis_error(idx, target, exc, ordered_errors)
+                failed_files += 1
+                self._emit_progress_event(
+                    runtime,
+                    phase="analyze_file_failed",
+                    file_name=os.path.basename(str(target)),
+                    total_files=total_files,
+                    completed_files=completed_files,
+                    failed_files=failed_files,
+                )
         return ordered_results, ordered_errors
 
     def _collect_future_result(
@@ -227,12 +267,14 @@ class DirectoryAnalysisPipeline:
         target: str,
         ordered_results: Dict[int, FileAnalysisResult],
         ordered_errors: Dict[int, AnalysisError],
-    ) -> None:
+    ) -> bool:
         try:
             result_idx, result = future.result()
             ordered_results[result_idx] = result
+            return True
         except Exception as exc:  # pragma: no cover - exercised via API tests
             self._record_analysis_error(idx, target, exc, ordered_errors)
+            return False
 
     def _record_analysis_error(
         self,
@@ -246,6 +288,32 @@ class DirectoryAnalysisPipeline:
             "file": os.path.basename(str(target)),
             "error": str(exc),
         }
+
+    @staticmethod
+    def _emit_progress_event(
+        runtime: PipelineRuntime,
+        *,
+        phase: str,
+        file_name: str,
+        total_files: int,
+        completed_files: int,
+        failed_files: int,
+    ) -> None:
+        cb = runtime.progress_cb
+        if not callable(cb):
+            return
+        try:
+            cb(
+                {
+                    "phase": phase,
+                    "file": str(file_name or ""),
+                    "total_files": max(0, int(total_files or 0)),
+                    "completed_files": max(0, int(completed_files or 0)),
+                    "failed_files": max(0, int(failed_files or 0)),
+                }
+            )
+        except Exception:
+            logger.exception("Analysis progress callback error")
 
     def _analyze_one(
         self,

@@ -21,7 +21,7 @@
 - Excel 리포트
 - Annotated TXT (`*_REVIEWED.txt`)
 
-또한 diff 승인형 source autofix(`.ctl` 전용)를 지원합니다.
+또한 diff 승인형 source autofix를 지원하며, P3(LLM) 경로는 텍스트 입력(`*_pnl.txt`, `*_xml.txt`, raw `.txt`)에도 적용 가능합니다.
 
 ## 주요 기능
 
@@ -32,14 +32,17 @@
 
 ### 2) 성능/운영 최적화
 - `/api/analyze` `metrics` 응답 제공
+- async analyze progress API: `POST /api/analyze/start`, `GET /api/analyze/status?job_id=...`
 - 파일 단위 bounded parallel 분석
 - `.pnl/.xml -> *_txt` 변환 캐시 (`mtime + size`)
 - Excel 지연 생성(`defer_excel_reports`) + flush API
 - 결과 테이블 virtualization
+- 프론트 헤더에서 분석 진행률/ETA/경과시간 표시 (polling 기반)
 
-### 3) Autofix (CTL only)
+### 3) Autofix
 - `autofix/prepare` -> `file-diff` 확인 -> `autofix/apply`
 - `llm` / `rule` / `auto(rule-first, llm-fallback)` generator
+- `rule` 경로는 `.ctl` 중심, `P3(llm)` 경로는 텍스트 입력까지 지원
 - hash / anchor / syntax / heuristic / optional Ctrlpp regression 검증
 - multi-hunk P1 안전정책: same-block, 최대 3개, overlap/cross-block fail-soft 차단
 - 백업 파일 + 감사 로그 + 사용자 승인 흐름

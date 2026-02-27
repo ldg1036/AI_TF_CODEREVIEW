@@ -1,4 +1,4 @@
-let analysisData = {
+﻿let analysisData = {
     summary: { total: 0, critical: 0, warning: 0, info: 0, score: 0 },
     violations: { P1: [], P2: [], P3: [] },
     output_dir: "",
@@ -24,6 +24,8 @@ const resultBody = document.getElementById("result-body");
 const violationDetail = document.getElementById("violation-detail");
 const aiCard = document.getElementById("ai-suggestion-card");
 const aiText = document.getElementById("ai-text");
+const aiReviewToggleBtn = document.getElementById("btn-ai-review-toggle");
+const aiTextFull = document.getElementById("ai-text-full");
 const aiDiffPanel = document.getElementById("autofix-diff-panel");
 const aiDiffText = document.getElementById("autofix-diff-text");
 const aiComparePanel = document.getElementById("autofix-compare-panel");
@@ -36,6 +38,10 @@ const filterMatrix = document.querySelector(".filter-matrix");
 const ctrlppToggle = document.getElementById("toggle-ctrlppcheck");
 const flushExcelBtn = document.getElementById("btn-flush-excel");
 const excelJobStatusText = document.getElementById("excel-job-status");
+const analyzeProgressPanel = document.getElementById("analyze-progress-panel");
+const analyzeProgressStatus = document.getElementById("analyze-progress-status");
+const analyzeProgressBar = document.getElementById("analyze-progress-bar");
+const analyzeProgressMeta = document.getElementById("analyze-progress-meta");
 const liveAiToggle = document.getElementById("toggle-live-ai");
 const aiContextToggle = document.getElementById("toggle-ai-context");
 const aiContextLabel = document.getElementById("label-ai-context");
@@ -59,6 +65,7 @@ const resultTableVirtualState = {
 let resultTableRenderQueued = false;
 const autofixProposalCache = new Map();
 const AUTOFIX_PREPARE_MODE = "compare";
+let aiReviewExpanded = false;
 const codeViewerVirtualState = {
     headerEl: null,
     linesWrap: null,
@@ -325,21 +332,97 @@ function setAutofixValidationPanel(text, { ok = true } = {}) {
 
 function formatAutofixValidationSummary(resultPayload) {
     const validation = (resultPayload && resultPayload.validation) || {};
-    if (!validation || typeof validation !== "object") return "";
+    const quality = (resultPayload && resultPayload.quality_metrics) || {};
+    if ((!validation || typeof validation !== "object") && (!quality || typeof quality !== "object")) return "";
+    const readValue = (key, fallback = "") => {
+        if (validation && typeof validation === "object" && Object.prototype.hasOwnProperty.call(validation, key)) {
+            return validation[key];
+        }
+        if (quality && typeof quality === "object" && Object.prototype.hasOwnProperty.call(quality, key)) {
+            return quality[key];
+        }
+        return fallback;
+    };
+    const boolText = (value) => (value ? "yes" : "no");
+    const toFloat = (value, fallback = 0) => {
+        const parsed = Number.parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
+    };
+    const toInt = (value, fallback = 0) => {
+        const parsed = Number.parseInt(value, 10);
+        return Number.isFinite(parsed) ? parsed : fallback;
+    };
+    const observeMode = String(readValue("benchmark_observe_mode", "strict_hash") || "strict_hash");
+    const hashBypassed = !!readValue("hash_gate_bypassed", false);
+    const tuningApplied = !!readValue("benchmark_tuning_applied", false);
+    const tokenMinConfidence = toFloat(readValue("token_min_confidence_used", 0.8), 0.8);
+    const tokenMinGap = toFloat(readValue("token_min_gap_used", 0.15), 0.15);
+    const tokenMaxLineDrift = toInt(readValue("token_max_line_drift_used", 0), 0);
     const lines = [
-        `hash_match: ${validation.hash_match ? "yes" : "no"}`,
-        `anchors_match: ${validation.anchors_match ? "yes" : "no"}`,
-        `syntax_check_passed: ${validation.syntax_check_passed ? "yes" : "no"}`,
-        `heuristic_regression_count: ${Number.parseInt(validation.heuristic_regression_count || 0, 10) || 0}`,
-        `ctrlpp_regression_count: ${Number.parseInt(validation.ctrlpp_regression_count || 0, 10) || 0}`,
+        `hash_match: ${boolText(!!readValue("hash_match", false))}`,
+        `anchors_match: ${boolText(!!readValue("anchors_match", false))}`,
+        `syntax_check_passed: ${boolText(!!readValue("syntax_check_passed", false))}`,
+        `heuristic_regression_count: ${toInt(readValue("heuristic_regression_count", 0), 0)}`,
+        `ctrlpp_regression_count: ${toInt(readValue("ctrlpp_regression_count", 0), 0)}`,
+        `locator_mode: ${String(readValue("locator_mode", "")) || "-"}`,
+        `apply_engine_mode: ${String(readValue("apply_engine_mode", "")) || "-"}`,
+        `apply_engine_fallback_reason: ${String(readValue("apply_engine_fallback_reason", "")) || "-"}`,
+        `benchmark_observe_mode: ${observeMode}`,
+        `hash_gate_bypassed: ${boolText(hashBypassed)}`,
+        `benchmark_tuning_applied: ${boolText(tuningApplied)}`,
+        `token_min_confidence_used: ${tokenMinConfidence}`,
+        `token_min_gap_used: ${tokenMinGap}`,
+        `token_max_line_drift_used: ${tokenMaxLineDrift}`,
     ];
-    const errors = Array.isArray(validation.errors) ? validation.errors.filter(Boolean) : [];
+    const validationErrors = Array.isArray(validation.errors) ? validation.errors.filter(Boolean) : [];
+    const qualityErrors = Array.isArray(quality.validation_errors) ? quality.validation_errors.filter(Boolean) : [];
+    const mergedErrorSet = new Set([...validationErrors, ...qualityErrors].map((item) => String(item || "").trim()).filter(Boolean));
+    const errors = Array.from(mergedErrorSet);
     if (errors.length) {
         lines.push("");
         lines.push("errors:");
         errors.slice(0, 10).forEach((err) => lines.push(`- ${String(err)}`));
     }
     return lines.join("\n");
+}
+
+function buildAiReviewSummary(reviewText) {
+    const raw = String(reviewText || "");
+    if (!raw.trim()) return "AI 媛쒖꽑 ?쒖븞";
+    const noCodeBlock = raw.replace(/```[\s\S]*?```/g, " ").replace(/`([^`]+)`/g, "$1");
+    const cleaned = noCodeBlock
+        .split(/\r?\n/)
+        .map((line) => line.replace(/^\s*(요약|summary)\s*[:：-]?\s*/i, "").trim())
+        .filter((line) => line.length > 0)
+        .join(" ");
+    const sentence = cleaned.split(/(?<=[.!?])\s+/)[0] || cleaned;
+    const compact = sentence.replace(/\s+/g, " ").trim();
+    if (!compact) return "AI 媛쒖꽑 ?쒖븞";
+    if (compact.length <= 120) return compact;
+    return `${compact.slice(0, 117)}...`;
+}
+
+function setAiReviewText(reviewText) {
+    const full = String(reviewText || "").trim();
+    if (aiText) {
+        aiText.textContent = buildAiReviewSummary(full);
+    }
+    if (aiTextFull) {
+        aiTextFull.textContent = full;
+        aiTextFull.style.display = aiReviewExpanded && full ? "block" : "none";
+    }
+    if (aiReviewToggleBtn) {
+        aiReviewToggleBtn.style.display = full ? "inline-block" : "none";
+        aiReviewToggleBtn.textContent = aiReviewExpanded ? "?묎린" : "?먯꽭??蹂닿린";
+    }
+}
+
+function hasAutofixValidationErrors(resultPayload) {
+    const validation = (resultPayload && resultPayload.validation) || {};
+    const quality = (resultPayload && resultPayload.quality_metrics) || {};
+    const validationErrors = Array.isArray(validation.errors) ? validation.errors.filter(Boolean) : [];
+    const qualityErrors = Array.isArray(quality.validation_errors) ? quality.validation_errors.filter(Boolean) : [];
+    return (validationErrors.length + qualityErrors.length) > 0;
 }
 
 function setExcelJobStatus(message, color = "") {
@@ -368,16 +451,16 @@ function updateExcelJobUiFromAnalysis() {
     const hasSession = !!(analysisData && analysisData.output_dir);
     if (flushExcelBtn) {
         flushExcelBtn.disabled = !hasSession || total === 0;
-        flushExcelBtn.textContent = (pending > 0 || running > 0) ? "Excel 생성 완료" : "Excel 상태 확인";
+        flushExcelBtn.textContent = (pending > 0 || running > 0) ? "Excel ?앹꽦 ?꾨즺" : "Excel ?곹깭 ?뺤씤";
     }
     if (!hasSession || total === 0) {
         setExcelJobStatus("");
         return;
     }
     const statusParts = [`Excel ${completed}/${total}`];
-    if (pending > 0) statusParts.push(`대기 ${pending}`);
-    if (running > 0) statusParts.push(`실행 ${running}`);
-    if (failed > 0) statusParts.push(`실패 ${failed}`);
+    if (pending > 0) statusParts.push(`?湲?${pending}`);
+    if (running > 0) statusParts.push(`?ㅽ뻾 ${running}`);
+    if (failed > 0) statusParts.push(`?ㅽ뙣 ${failed}`);
     const color = failed > 0 ? "#ffcdd2" : (pending > 0 || running > 0) ? "#fff59d" : "#c8e6c9";
     setExcelJobStatus(statusParts.join(" | "), color);
 }
@@ -394,35 +477,35 @@ function jumpFailureMessage(jumpResult) {
     if (!jumpResult || jumpResult.ok) return "";
     const reason = String(jumpResult.reason || "");
     if (reason === "cross-file") {
-        return "현재 표시 파일과 선택한 이슈 파일이 달라 위치 이동을 수행하지 않았습니다.";
+        return "?꾩옱 ?쒖떆 ?뚯씪怨??좏깮???댁뒋 ?뚯씪???щ씪 ?꾩튂 ?대룞???섑뻾?섏? ?딆븯?듬땲??";
     }
     if (reason === "load-failed") {
-        return "선택한 이슈 파일을 불러오지 못해 위치 이동을 수행하지 못했습니다.";
+        return "?좏깮???댁뒋 ?뚯씪??遺덈윭?ㅼ? 紐삵빐 ?꾩튂 ?대룞???섑뻾?섏? 紐삵뻽?듬땲??";
     }
     if (reason === "no-viewer") {
-        return "파일 내용이 아직 로드되지 않아 위치 이동을 수행하지 못했습니다. 좌측 파일 목록에서 파일을 먼저 선택하세요.";
+        return "?뚯씪 ?댁슜???꾩쭅 濡쒕뱶?섏? ?딆븘 ?꾩튂 ?대룞???섑뻾?섏? 紐삵뻽?듬땲?? 醫뚯륫 ?뚯씪 紐⑸줉?먯꽌 ?뚯씪??癒쇱? ?좏깮?섏꽭??";
     }
     if (reason === "no-match-reviewed") {
-        return "REVIEWED.txt 기준 메시지/라인 매칭에 실패했습니다. (근처 하이라이트 포함)";
+        return "REVIEWED.txt 湲곗? 硫붿떆吏/?쇱씤 留ㅼ묶???ㅽ뙣?덉뒿?덈떎. (洹쇱쿂 ?섏씠?쇱씠???ы븿)";
     }
-    return "현재 표시 중인 코드뷰어 기준으로 위치를 찾지 못했습니다.";
+    return "?꾩옱 ?쒖떆 以묒씤 肄붾뱶酉곗뼱 湲곗??쇰줈 ?꾩튂瑜?李얠? 紐삵뻽?듬땲??";
 }
 
 function buildCodeViewerHeader(payload) {
     if (!payload || typeof payload !== "object") return "";
     const sourceMap = {
         reviewed: "REVIEWED.txt",
-        normalized: "정규화 TXT",
-        source: "원본 파일",
+        normalized: "?뺢퇋??TXT",
+        source: "?먮낯 ?뚯씪",
     };
-    const sourceType = sourceMap[String(payload.source || "")] || String(payload.source || "파일");
+    const sourceType = sourceMap[String(payload.source || "")] || String(payload.source || "?뚯씪");
     const resolvedName = String(payload.resolved_name || payload.file || "");
-    return `// 표시 파일: ${resolvedName} (${sourceType})`;
+    return `// ?쒖떆 ?뚯씪: ${resolvedName} (${sourceType})`;
 }
 
 async function applyAiSuggestion(violation, eventName, aiMatch) {
     const fileName = basenamePath((violation && (violation.file || violation.file_name || violation.filename)) || currentViewerFile);
-    if (!fileName) throw new Error("대상 파일을 확인할 수 없습니다");
+    if (!fileName) throw new Error("????뚯씪???뺤씤?????놁뒿?덈떎");
     const response = await fetch("/api/ai-review/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -454,7 +537,7 @@ async function applyAiSuggestion(violation, eventName, aiMatch) {
     }
 
     if (!response.ok) {
-        throw new Error(payload.error || responseText || `AI 제안 적용 실패 (${response.status})`);
+        throw new Error(payload.error || responseText || `AI ?쒖븞 ?곸슜 ?ㅽ뙣 (${response.status})`);
     }
     return payload;
 }
@@ -605,7 +688,7 @@ async function loadCodeViewer(fileName, options = {}) {
         const response = await fetch(`/api/file-content?${qs.toString()}`);
         const payload = await response.json();
         if (!response.ok) {
-            throw new Error(payload.error || "파일 내용을 불러오지 못했습니다.");
+            throw new Error(payload.error || "?뚯씪 ?댁슜??遺덈윭?ㅼ? 紐삵뻽?듬땲??");
         }
         const header = buildCodeViewerHeader(payload);
         const content = String(payload.content || "");
@@ -620,7 +703,7 @@ async function loadCodeViewer(fileName, options = {}) {
         currentViewerSource = "";
         currentViewerContent = "";
         currentViewerHeaderLines = 0;
-        setCodeViewerText(`// 파일 내용을 불러오지 못했습니다.\n// ${String((err && err.message) || err || "")}`);
+        setCodeViewerText(`// ?뚯씪 ?댁슜??遺덈윭?ㅼ? 紐삵뻽?듬땲??\n// ${String((err && err.message) || err || "")}`);
         throw err;
     }
 }
@@ -630,7 +713,7 @@ function updateDashboard() {
     criticalText.textContent = analysisData.summary.critical || 0;
     warningText.textContent = analysisData.summary.warning || 0;
     scoreBar.style.width = `${analysisData.summary.score || 0}%`;
-    scoreText.textContent = `점수: ${analysisData.summary.score || 0}/100`;
+    scoreText.textContent = `?먯닔: ${analysisData.summary.score || 0}/100`;
 }
 
 function initFilterControls() {
@@ -700,35 +783,35 @@ function localizeCtrlppMessage(message) {
     if (!text) return text;
 
     let out = text;
-    out = out.replace(/^Uninitialized variable:\s*(.+)$/i, "초기화되지 않은 변수: $1");
+    out = out.replace(/^Uninitialized variable:\s*(.+)$/i, "珥덇린?붾릺吏 ?딆? 蹂?? $1");
     out = out.replace(
         /^It is potentially a safety issue to use the function\s+(.+)$/i,
-        "함수 $1 사용은 잠재적인 안전성 이슈가 있습니다",
+        "?⑥닔 $1 ?ъ슜? ?좎옱?곸씤 ?덉쟾???댁뒋媛 ?덉뒿?덈떎",
     );
     out = out.replace(
         /^It is really neccessary to use the function\s+(.+)$/i,
-        "함수 $1 사용이 정말 필요한지 검토하세요",
+        "?⑥닔 $1 ?ъ슜???뺣쭚 ?꾩슂?쒖? 寃?좏븯?몄슂",
     );
     out = out.replace(
         /^It is really necessary to use the function\s+(.+)$/i,
-        "함수 $1 사용이 정말 필요한지 검토하세요",
+        "?⑥닔 $1 ?ъ슜???뺣쭚 ?꾩슂?쒖? 寃?좏븯?몄슂",
     );
     out = out.replace(
         /^Cppcheck cannot find all the include files \(use --check-config for details\)$/i,
-        "Cppcheck가 모든 include 파일을 찾지 못했습니다 (자세한 내용은 --check-config 사용)",
+        "Cppcheck媛 紐⑤뱺 include ?뚯씪??李얠? 紐삵뻽?듬땲??(?먯꽭???댁슜? --check-config ?ъ슜)",
     );
     return out;
 }
 
 function localizeCtrlppSeverity(severity) {
     const sev = String(severity || "").toLowerCase();
-    if (sev === "error") return "오류";
-    if (sev === "information" || sev === "info") return "정보";
-    if (sev === "performance") return "성능";
-    if (sev === "warning") return "경고";
+    if (sev === "error") return "?ㅻ쪟";
+    if (sev === "information" || sev === "info") return "?뺣낫";
+    if (sev === "performance") return "?깅뒫";
+    if (sev === "warning") return "寃쎄퀬";
     if (sev === "style") return "스타일";
     if (sev === "portability") return "이식성";
-    return severity || "정보";
+    return severity || "?뺣낫";
 }
 
 function clearCodeViewerHighlight() {
@@ -1024,6 +1107,7 @@ function buildWorkspaceRowIndex() {
     const nextRows = [];
     const p1Groups = analysisData.violations.P1 || [];
     const p2List = analysisData.violations.P2 || [];
+    const p3List = analysisData.violations.P3 || [];
 
     p1Groups.forEach((group) => {
         (group.violations || []).forEach((v) => {
@@ -1057,15 +1141,40 @@ function buildWorkspaceRowIndex() {
         });
     });
 
+    p3List.forEach((v) => {
+        if (!v || typeof v !== "object") return;
+        const reviewText = String(v.review || "");
+        const rowMessage = buildAiReviewSummary(reviewText || String(v.message || ""));
+        const p3Violation = {
+            ...v,
+            priority_origin: v.priority_origin || "P3",
+            severity: v.severity || "Info",
+            message: rowMessage,
+            file: v.file || v.object || currentViewerFile,
+        };
+        nextRows.push({
+            source: p3Violation.priority_origin,
+            object: p3Violation.object || "Global",
+            severity: p3Violation.severity || "Info",
+            message: rowMessage,
+            onClick: async () => {
+                const event = String(p3Violation.event || "Global");
+                showDetail(p3Violation, event);
+                const jumpResult = await jumpCodeViewerToViolation(p3Violation);
+                showDetail(p3Violation, event, { jumpResult });
+            },
+        });
+    });
+
     workspaceRowIndex = nextRows;
 }
 
 function showDetail(violation, eventName, options = {}) {
     violationDetail.replaceChildren();
     const detailRows = [
-        ["이슈 ID", violation.issue_id || "N/A"],
-        ["우선순위 출처", violation.priority_origin || "N/A"],
-        ["객체", violation.object || "N/A"],
+        ["?댁뒋 ID", violation.issue_id || "N/A"],
+        ["?곗꽑?쒖쐞 異쒖쿂", violation.priority_origin || "N/A"],
+        ["媛앹껜", violation.object || "N/A"],
         ["이벤트", eventName || "Global"],
     ];
     detailRows.forEach(([label, value]) => {
@@ -1079,7 +1188,7 @@ function showDetail(violation, eventName, options = {}) {
     violationDetail.appendChild(document.createElement("hr"));
     const desc = document.createElement("p");
     const descLabel = document.createElement("strong");
-    descLabel.textContent = "설명:";
+    descLabel.textContent = "?ㅻ챸:";
     desc.appendChild(descLabel);
     const detailMessage = sourceFilterKey(violation.priority_origin || "P1") === "p2"
         ? localizeCtrlppMessage(violation.message || "")
@@ -1108,7 +1217,8 @@ function showDetail(violation, eventName, options = {}) {
     const aiStatus = String((aiMatch && aiMatch.status) || "Pending");
     if (aiMatch && aiStatus !== "Ignored") {
         aiCard.style.display = "block";
-        aiText.textContent = aiMatch.review;
+        aiReviewExpanded = false;
+        setAiReviewText(aiMatch.review);
         const btnAiAccept = document.getElementById("btn-ai-accept");
         const btnAiDiff = document.getElementById("btn-ai-diff");
         const btnAiSourceApply = document.getElementById("btn-ai-source-apply");
@@ -1268,9 +1378,12 @@ function showDetail(violation, eventName, options = {}) {
                     btnAiSourceApply.textContent = "Source Applied";
                     btnAiSourceApply.disabled = true;
                     const generatorType = String((result && result.quality_metrics && result.quality_metrics.generator_type) || (proposal && proposal.generator_type) || "llm").toUpperCase();
-                    setAiStatusInline(`Source patch applied (${generatorType}).`, "#2e7d32");
+                    const validation = (result && result.validation) || {};
+                    const observeMode = String(validation.benchmark_observe_mode || "strict_hash");
+                    const bypassText = validation.hash_gate_bypassed ? "yes" : "no";
+                    setAiStatusInline(`Source patch applied (${generatorType}). mode=${observeMode}, bypass=${bypassText}`, "#2e7d32");
                     setAutofixValidationPanel(formatAutofixValidationSummary(result), {
-                        ok: !(Array.isArray((result && result.validation && result.validation.errors)) && result.validation.errors.length),
+                        ok: !hasAutofixValidationErrors(result),
                     });
                     const resultFile = basenamePath(result && result.file);
                     if (resultFile && basenamePath(currentViewerFile) === resultFile) {
@@ -1290,8 +1403,13 @@ function showDetail(violation, eventName, options = {}) {
                     const msg = String((err && err.message) || err || "autofix apply failed");
                     const payload = (err && err.payload) || {};
                     const errorCode = String((payload && payload.error_code) || "");
-                    setAiStatusInline(`Source apply failed: ${msg}`, "#c62828");
-                    const panelMsg = errorCode ? `${msg}\nerror_code: ${errorCode}` : String(msg || "");
+                    const observeMode = String(((payload && payload.validation && payload.validation.benchmark_observe_mode) || "strict_hash"));
+                    setAiStatusInline(`Source apply failed: ${msg} (mode=${observeMode}${errorCode ? `, code=${errorCode}` : ""})`, "#c62828");
+                    const validationSummary = formatAutofixValidationSummary(payload);
+                    const panelMsg = [
+                        errorCode ? `${msg}\nerror_code: ${errorCode}` : String(msg || ""),
+                        validationSummary,
+                    ].filter(Boolean).join("\n\n");
                     setAutofixValidationPanel(panelMsg, { ok: false });
                     alert(`Source apply failed: ${msg}`);
                 }
@@ -1361,6 +1479,8 @@ function showDetail(violation, eventName, options = {}) {
         }
     } else {
         aiCard.style.display = "none";
+        aiReviewExpanded = false;
+        setAiReviewText("");
         setAiStatusInline("");
         setAutofixDiffPanel("");
         setAutofixValidationPanel("");
@@ -1390,7 +1510,7 @@ function renderFileList(files) {
     chkAll.id = "chk-all";
     chkAll.checked = true;
     const chkAllLabel = document.createElement("strong");
-    chkAllLabel.textContent = "전체 선택";
+    chkAllLabel.textContent = "?꾩껜 ?좏깮";
     selectAllWrap.appendChild(chkAll);
     selectAllWrap.append(" ");
     selectAllWrap.appendChild(chkAllLabel);
@@ -1429,7 +1549,7 @@ function renderFileList(files) {
 async function loadFiles() {
     const response = await fetch("/api/files");
     if (!response.ok) {
-        throw new Error(`파일 목록 로드 실패 (${response.status})`);
+        throw new Error(`?뚯씪 紐⑸줉 濡쒕뱶 ?ㅽ뙣 (${response.status})`);
     }
     const payload = await response.json();
     renderFileList(payload.files || []);
@@ -1439,9 +1559,9 @@ async function handleFlushExcelReportsClick() {
     if (!analysisData.output_dir) return;
     if (flushExcelBtn) {
         flushExcelBtn.disabled = true;
-        flushExcelBtn.textContent = "Excel 생성 중...";
+        flushExcelBtn.textContent = "Excel ?앹꽦 以?..";
     }
-    setExcelJobStatus("Excel 리포트 생성 상태 확인 중...", "#fff59d");
+    setExcelJobStatus("Excel 由ы룷???앹꽦 ?곹깭 ?뺤씤 以?..", "#fff59d");
     try {
         const payload = await flushExcelReports({ wait: true, timeout_sec: 120 });
         analysisData.report_jobs = payload.report_jobs || {};
@@ -1451,21 +1571,107 @@ async function handleFlushExcelReportsClick() {
         updateExcelJobUiFromAnalysis();
     } catch (err) {
         const msg = String((err && err.message) || err || "Excel flush failed");
-        setExcelJobStatus(`Excel 실패: ${msg}`, "#ffcdd2");
-        alert(`Excel 생성 완료 처리 실패: ${msg}`);
+        setExcelJobStatus(`Excel ?ㅽ뙣: ${msg}`, "#ffcdd2");
+        alert(`Excel ?앹꽦 ?꾨즺 泥섎━ ?ㅽ뙣: ${msg}`);
     } finally {
         updateExcelJobUiFromAnalysis();
     }
 }
 
+function formatDurationMs(ms) {
+    const safeMs = Math.max(0, Number(ms) || 0);
+    const totalSec = Math.floor(safeMs / 1000);
+    const minutes = Math.floor(totalSec / 60);
+    const seconds = totalSec % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function setAnalyzeProgressVisible(visible) {
+    if (!analyzeProgressPanel) return;
+    analyzeProgressPanel.style.display = visible ? "block" : "none";
+}
+
+function updateAnalyzeProgressUi(statusPayload = {}) {
+    const status = String(statusPayload.status || "queued");
+    const progress = (statusPayload && statusPayload.progress) || {};
+    const timing = (statusPayload && statusPayload.timing) || {};
+    const percent = Math.max(0, Math.min(100, Number(progress.percent) || 0));
+    const completed = Math.max(0, Number(progress.completed_files) || 0);
+    const total = Math.max(0, Number(progress.total_files) || 0);
+    const currentFile = String(progress.current_file || "");
+    const etaMs = timing.eta_ms;
+    const elapsedMs = timing.elapsed_ms;
+
+    if (analyzeProgressStatus) {
+        const head = status === "queued" ? "분석 대기 중..." : status === "running" ? "분석 중..." : status === "completed" ? "분석 완료" : "분석 실패";
+        analyzeProgressStatus.textContent = currentFile ? `${head} (${currentFile})` : head;
+    }
+    if (analyzeProgressBar) {
+        analyzeProgressBar.style.width = `${percent}%`;
+    }
+    if (analyzeProgressMeta) {
+        const etaText = Number.isFinite(Number(etaMs)) && Number(etaMs) >= 0 ? formatDurationMs(Number(etaMs)) : "계산 중";
+        const elapsedText = Number.isFinite(Number(elapsedMs)) && Number(elapsedMs) >= 0 ? formatDurationMs(Number(elapsedMs)) : "00:00";
+        analyzeProgressMeta.textContent = `${percent}% | ${completed}/${total} 파일 | ETA ${etaText} | 경과 ${elapsedText}`;
+    }
+}
+
+function applyAnalyzePayload(payload) {
+    analysisData = {
+        summary: payload.summary || { total: 0, critical: 0, warning: 0, info: 0, score: 0 },
+        violations: payload.violations || { P1: [], P2: [], P3: [] },
+        output_dir: payload.output_dir || "",
+        metrics: payload.metrics || {},
+        report_jobs: payload.report_jobs || {},
+    };
+    workspaceRowIndex = [];
+    autofixProposalCache.clear();
+    setAutofixDiffPanel("");
+    setAutofixValidationPanel("");
+    buildWorkspaceRowIndex();
+
+    updateDashboard();
+    renderWorkspace();
+    updateExcelJobUiFromAnalysis();
+    navWorkspace.onclick();
+
+    const selected = getSelectedFiles();
+    if (selected.length > 0) {
+        void loadCodeViewer(selected[0]).catch(() => { });
+    }
+}
+
+async function sleepMs(ms) {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 btnAnalyze.onclick = async () => {
+    const originalText = btnAnalyze ? btnAnalyze.textContent : "";
     try {
         const allowRawTxt = false;
         const enableCtrlppcheck = !!(ctrlppToggle && ctrlppToggle.checked);
         const enableLiveAi = !!(liveAiToggle && liveAiToggle.checked);
         const aiWithContext = enableLiveAi && !!(aiContextToggle && aiContextToggle.checked);
         const selected_files = getSelectedFiles();
-        const response = await fetch("/api/analyze", {
+
+        if (btnAnalyze) {
+            btnAnalyze.disabled = true;
+            btnAnalyze.textContent = "분석 중...";
+        }
+        setAnalyzeProgressVisible(true);
+        updateAnalyzeProgressUi({
+            status: "queued",
+            progress: {
+                total_files: selected_files.length,
+                completed_files: 0,
+                failed_files: 0,
+                percent: 0,
+                current_file: "",
+            },
+            timing: { elapsed_ms: 0, eta_ms: null },
+        });
+
+        const response = await fetch("/api/analyze/start", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1482,47 +1688,61 @@ btnAnalyze.onclick = async () => {
             throw new Error(payload.error || "분석 실패");
         }
 
-        analysisData = {
-            summary: payload.summary || { total: 0, critical: 0, warning: 0, info: 0, score: 0 },
-            violations: payload.violations || { P1: [], P2: [], P3: [] },
-            output_dir: payload.output_dir || "",
-            metrics: payload.metrics || {},
-            report_jobs: payload.report_jobs || {},
-        };
-        workspaceRowIndex = [];
-        autofixProposalCache.clear();
-        setAutofixDiffPanel("");
-        setAutofixValidationPanel("");
-        buildWorkspaceRowIndex();
+        const jobId = String(payload.job_id || "");
+        if (!jobId) {
+            throw new Error("분석 작업 ID를 받지 못했습니다.");
+        }
+        const pollIntervalMs = Math.max(200, Number(payload.poll_interval_ms) || 500);
 
-        updateDashboard();
-        renderWorkspace();
-        updateExcelJobUiFromAnalysis();
-        navWorkspace.onclick();
-
-        const selected = getSelectedFiles();
-        if (selected.length > 0) {
-            void loadCodeViewer(selected[0]).catch(() => { });
+        for (;;) {
+            const statusResp = await fetch(`/api/analyze/status?job_id=${encodeURIComponent(jobId)}`);
+            const statusPayload = await statusResp.json();
+            if (!statusResp.ok) {
+                throw new Error(statusPayload.error || `분석 상태 조회 실패 (${statusResp.status})`);
+            }
+            updateAnalyzeProgressUi(statusPayload);
+            const status = String(statusPayload.status || "");
+            if (status === "completed") {
+                applyAnalyzePayload(statusPayload.result || {});
+                break;
+            }
+            if (status === "failed") {
+                throw new Error(String(statusPayload.error || "분석 실패"));
+            }
+            await sleepMs(pollIntervalMs);
         }
     } catch (err) {
         alert(`분석 실패: ${(err && err.message) || String(err)}`);
+    } finally {
+        setAnalyzeProgressVisible(false);
+        if (btnAnalyze) {
+            btnAnalyze.disabled = false;
+            btnAnalyze.textContent = originalText || "선택 항목 분석";
+        }
     }
 };
 
 window.addEventListener("DOMContentLoaded", async () => {
     initFilterControls();
     attachResultTableVirtualScrollHandler();
+    if (aiReviewToggleBtn) {
+        aiReviewToggleBtn.addEventListener("click", () => {
+            aiReviewExpanded = !aiReviewExpanded;
+            const currentFull = (aiTextFull && aiTextFull.textContent) ? aiTextFull.textContent : "";
+            setAiReviewText(currentFull);
+        });
+    }
     if (liveAiToggle) {
         liveAiToggle.addEventListener("change", syncAiContextToggle);
     }
     syncAiContextToggle();
     updateExcelJobUiFromAnalysis();
     updateDashboard();
-    setCodeViewerText("// 파일을 선택하면 정규화 코드와 위반 항목을 볼 수 있습니다");
+    setCodeViewerText("// ?뚯씪???좏깮?섎㈃ ?뺢퇋??肄붾뱶? ?꾨컲 ??ぉ??蹂????덉뒿?덈떎");
     try {
         await loadFiles();
     } catch (err) {
-        alert(`파일 목록 초기화 실패: ${(err && err.message) || String(err)}`);
+        alert(`?뚯씪 紐⑸줉 珥덇린???ㅽ뙣: ${(err && err.message) || String(err)}`);
     }
 });
 
@@ -1530,3 +1750,4 @@ window.addEventListener("resize", () => {
     queueCodeViewerWindowRender(true);
     queueResultTableWindowRender(true);
 });
+
