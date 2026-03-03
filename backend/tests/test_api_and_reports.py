@@ -536,6 +536,259 @@ class ApiIntegrationTests(unittest.TestCase):
             patched = f.read()
         self.assertIn("[AI-AUTOFIX:", patched)
 
+    def test_autofix_instruction_flag_off_keeps_legacy_hunk_apply(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        self.app.autofix_structured_instruction_enabled = False
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+            },
+        )
+        self.assertEqual(apply_status, 200)
+        validation = apply_payload.get("validation", {})
+        self.assertEqual(str(validation.get("instruction_mode", "off")), "off")
+        self.assertFalse(bool(validation.get("instruction_apply_success", True)))
+
+    def test_autofix_instruction_flag_on_applies_instruction_path(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        self.app.autofix_structured_instruction_enabled = True
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+            },
+        )
+        self.assertEqual(apply_status, 200)
+        validation = apply_payload.get("validation", {})
+        self.assertEqual(str(validation.get("instruction_mode", "")), "applied")
+        self.assertTrue(bool(validation.get("instruction_apply_success", False)))
+        self.assertIn(str(validation.get("instruction_operation", "")), ("insert", "replace"))
+        stats_status, stats_payload = self._request(
+            "GET",
+            "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
+        )
+        self.assertEqual(stats_status, 200)
+        self.assertGreaterEqual(int(stats_payload.get("instruction_attempt_count", 0) or 0), 1)
+        self.assertGreaterEqual(int(stats_payload.get("instruction_apply_success_count", 0) or 0), 1)
+
+    def test_autofix_instruction_invalid_falls_back_to_hunks(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        self.app.autofix_structured_instruction_enabled = True
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        session = self.app._get_review_session(analyze_payload.get("output_dir", ""))
+        with session["lock"]:
+            proposal = session.get("autofix", {}).get("proposals", {}).get(prepare_payload.get("proposal_id"))
+            self.assertIsNotNone(proposal)
+            proposal["_structured_instruction"] = {
+                "target": {"file": "sample.ctl", "object": "sample.ctl", "event": "Global"},
+                "operation": "delete",
+                "locator": {"kind": "anchor_context", "start_line": 1},
+                "payload": {"code": "x"},
+                "safety": {"requires_hash_match": True},
+            }
+
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+            },
+        )
+        self.assertEqual(apply_status, 200)
+        validation = apply_payload.get("validation", {})
+        self.assertEqual(str(validation.get("instruction_mode", "")), "fallback_hunks")
+        self.assertFalse(bool(validation.get("instruction_apply_success", True)))
+        self.assertTrue(len(validation.get("instruction_validation_errors", []) or []) >= 1)
+        stats_status, stats_payload = self._request(
+            "GET",
+            "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
+        )
+        self.assertEqual(stats_status, 200)
+        self.assertGreaterEqual(int(stats_payload.get("instruction_attempt_count", 0) or 0), 1)
+        self.assertGreaterEqual(int(stats_payload.get("instruction_validation_fail_count", 0) or 0), 1)
+        self.assertGreaterEqual(int(stats_payload.get("instruction_fallback_to_hunk_count", 0) or 0), 1)
+
+    def test_autofix_compare_proposals_include_structured_instruction_envelope(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "auto",
+                "prepare_mode": "compare",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        self.assertGreaterEqual(len(prepare_payload.get("proposals", []) or []), 1)
+        session = self.app._get_review_session(analyze_payload.get("output_dir", ""))
+        with session["lock"]:
+            stored = session.get("autofix", {}).get("proposals", {})
+            for view in (prepare_payload.get("proposals") or []):
+                pid = str((view or {}).get("proposal_id", ""))
+                self.assertTrue(pid)
+                proposal = stored.get(pid, {})
+                self.assertIsInstance(proposal.get("_structured_instruction"), dict)
+                self.assertIsInstance((view or {}).get("instruction_preview"), dict)
+
+    def test_autofix_compare_selection_prefers_valid_instruction_candidate(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        original_rule_builder = self.app._build_autofix_proposal_from_rule_template
+
+        def _patched_rule_builder(*args, **kwargs):
+            proposal = original_rule_builder(*args, **kwargs)
+            proposal["_structured_instruction"] = {
+                "target": {"file": "sample.ctl", "object": "sample.ctl", "event": "Global"},
+                "operation": "delete",
+                "locator": {"kind": "anchor_context", "start_line": 1},
+                "payload": {"code": "x"},
+                "safety": {"requires_hash_match": True},
+            }
+            return proposal
+
+        self.app._build_autofix_proposal_from_rule_template = _patched_rule_builder
+        try:
+            status, analyze_payload = self._request(
+                "POST",
+                "/api/analyze",
+                {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+            )
+            self.assertEqual(status, 200)
+            ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+            prepare_status, prepare_payload = self._request(
+                "POST",
+                "/api/autofix/prepare",
+                {
+                    "file": "sample.ctl",
+                    "object": ai_review.get("object", "sample.ctl"),
+                    "event": ai_review.get("event", "Global"),
+                    "review": ai_review.get("review", ""),
+                    "session_id": analyze_payload.get("output_dir", ""),
+                    "generator_preference": "auto",
+                    "prepare_mode": "compare",
+                },
+            )
+            self.assertEqual(prepare_status, 200)
+            compare_meta = prepare_payload.get("compare_meta", {})
+            self.assertEqual(compare_meta.get("selection_policy"), "instruction_validity_then_syntax_then_rule")
+            self.assertIsInstance(compare_meta.get("selected_compare_score", {}), dict)
+            self.assertGreaterEqual(int((compare_meta.get("selected_compare_score", {}) or {}).get("total", 0) or 0), 0)
+            selected_pid = str(prepare_payload.get("selected_proposal_id", ""))
+            selected = None
+            for item in (prepare_payload.get("proposals") or []):
+                if str((item or {}).get("proposal_id", "")) == selected_pid:
+                    selected = item
+                    break
+            self.assertIsNotNone(selected)
+            self.assertEqual(str((selected or {}).get("generator_type", "")), "llm")
+        finally:
+            self.app._build_autofix_proposal_from_rule_template = original_rule_builder
+
     def test_autofix_apply_rejects_hash_mismatch(self):
         self._force_single_internal_violation()
         self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (

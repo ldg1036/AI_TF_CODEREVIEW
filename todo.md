@@ -434,8 +434,8 @@
 
 ##### Phase T3 — LLM 제안 구조화 (장기)
 - [-] 구조화 수정 지시(JSON) 스키마/적용 계획 문서화 (`docs/autofix_engine_roadmap.md`)
-- [ ] parser/토큰 엔진이 실제 patch 생성/적용 담당
-- [ ] 복수 후보(rule/llm) 비교와 결합 가능한 구조로 설계
+- [-] parser/토큰 엔진이 실제 patch 생성/적용 담당 (T3-1 1차 반영: LLM 전용 `replace/insert`, feature flag 기본 OFF, 실패 시 hunk fallback)
+- [x] 복수 후보(rule/llm) 비교와 결합 가능한 구조로 설계 (compare 후보 공통 structured instruction envelope + selection policy(`instruction_validity_then_syntax_then_rule`) + score/reason 메타 및 프론트 표시 반영)
 
 #### 리스크 / 주의점
 - WinCC OA 문법 커버리지 부족 시 parser 유지보수 부담 증가

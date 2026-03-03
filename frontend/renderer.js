@@ -587,6 +587,9 @@ function formatAutofixValidationSummary(resultPayload) {
     const tokenMinConfidence = toFloat(readValue("token_min_confidence_used", 0.8), 0.8);
     const tokenMinGap = toFloat(readValue("token_min_gap_used", 0.15), 0.15);
     const tokenMaxLineDrift = toInt(readValue("token_max_line_drift_used", 0), 0);
+    const instructionMode = String(readValue("instruction_mode", "off") || "off");
+    const instructionOperation = String(readValue("instruction_operation", "") || "-");
+    const instructionApplySuccess = !!readValue("instruction_apply_success", false);
     const lines = [
         `hash_match: ${boolText(!!readValue("hash_match", false))}`,
         `anchors_match: ${boolText(!!readValue("anchors_match", false))}`,
@@ -602,11 +605,20 @@ function formatAutofixValidationSummary(resultPayload) {
         `token_min_confidence_used: ${tokenMinConfidence}`,
         `token_min_gap_used: ${tokenMinGap}`,
         `token_max_line_drift_used: ${tokenMaxLineDrift}`,
+        `instruction_mode: ${instructionMode}`,
+        `instruction_operation: ${instructionOperation}`,
+        `instruction_apply_success: ${boolText(instructionApplySuccess)}`,
     ];
     const validationErrors = Array.isArray(validation.errors) ? validation.errors.filter(Boolean) : [];
     const qualityErrors = Array.isArray(quality.validation_errors) ? quality.validation_errors.filter(Boolean) : [];
     const mergedErrorSet = new Set([...validationErrors, ...qualityErrors].map((item) => String(item || "").trim()).filter(Boolean));
     const errors = Array.from(mergedErrorSet);
+    const instructionErrors = Array.isArray(readValue("instruction_validation_errors", []))
+        ? readValue("instruction_validation_errors", []).filter(Boolean).map((item) => String(item))
+        : [];
+    if (instructionErrors.length) {
+        lines.push(`instruction_validation_errors: ${instructionErrors.slice(0, 3).join(" | ")}`);
+    }
     if (errors.length) {
         lines.push("");
         lines.push("errors:");
@@ -832,7 +844,15 @@ function renderAutofixComparePanel(bundle, onSelect) {
         const gen = String((proposal && proposal.generator_type) || "unknown").toUpperCase();
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.textContent = gen;
+        const preview = (proposal && typeof proposal.instruction_preview === "object") ? proposal.instruction_preview : {};
+        const instructionValid = !!preview.valid;
+        const compareScore = (proposal && typeof proposal.compare_score === "object") ? proposal.compare_score : {};
+        const totalScore = Number.parseInt(compareScore.total, 10);
+        const scoreText = Number.isFinite(totalScore) ? ` (${totalScore})` : "";
+        btn.textContent = instructionValid ? `${gen} ✓${scoreText}` : `${gen} !${scoreText}`;
+        btn.title = instructionValid
+            ? "structured instruction: valid"
+            : `structured instruction: invalid (${String((preview.errors || []).join(", ") || "unknown")})`;
         btn.style.padding = "4px 8px";
         btn.style.borderRadius = "4px";
         btn.style.border = "1px solid rgba(21,101,192,0.35)";
@@ -844,7 +864,18 @@ function renderAutofixComparePanel(bundle, onSelect) {
         aiCompareButtons.appendChild(btn);
     });
     const generatedCount = proposals.length;
-    aiCompareMeta.textContent = `compare mode: ${generatedCount} candidates`;
+    const compareMeta = (bundle && bundle.compare_meta && typeof bundle.compare_meta === "object") ? bundle.compare_meta : {};
+    const selectionPolicy = String(compareMeta.selection_policy || "").trim();
+    const active = proposals.find((item) => String((item && item.proposal_id) || "") === activeId) || proposals[0] || {};
+    const activePreview = (active && typeof active.instruction_preview === "object") ? active.instruction_preview : {};
+    const activeScore = (active && typeof active.compare_score === "object") ? active.compare_score : {};
+    const op = String(activePreview.operation || "-");
+    const validText = activePreview.valid ? "valid" : "invalid";
+    const scoreSummary = `score=${Number.parseInt(activeScore.total || 0, 10) || 0}`;
+    const errPreview = Array.isArray(activePreview.errors) ? activePreview.errors.filter(Boolean) : [];
+    const errText = errPreview.length ? ` | errors: ${errPreview.slice(0, 2).join(", ")}` : "";
+    const selectedReason = String(active.selection_reason || compareMeta.selected_selection_reason || "").trim();
+    aiCompareMeta.textContent = `compare mode: ${generatedCount} candidates | selected instruction: ${validText} (${op}, ${scoreSummary})${selectionPolicy ? ` | policy: ${selectionPolicy}` : ""}${selectedReason ? ` | reason: ${selectedReason}` : ""}${errText}`;
     aiComparePanel.style.display = "block";
 }
 
@@ -1939,7 +1970,9 @@ function showDetail(violation, eventName, options = {}) {
                 refreshComparePanel(boundKey);
                 if (active) {
                     const gen = String(active.generator_type || "unknown").toUpperCase();
-                    setAiStatusInline(`Selected candidate: ${gen}`, "#1565c0");
+                    const compareScore = (active && typeof active.compare_score === "object") ? active.compare_score : {};
+                    const score = Number.parseInt(compareScore.total || 0, 10) || 0;
+                    setAiStatusInline(`Selected candidate: ${gen} (score=${score})`, "#1565c0");
                 }
             });
         };

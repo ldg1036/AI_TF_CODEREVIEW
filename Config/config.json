@@ -87,6 +87,9 @@
     "ctrlpp_regression_check_default": false,
     "session_ttl_sec": 3600,
     "session_max_entries": 32,
-    "proposal_limit_per_session": 50
+    "proposal_limit_per_session": 50,
+    "engine": {
+      "structured_instruction_enabled": false
+    }
   }
 }

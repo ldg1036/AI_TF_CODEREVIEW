@@ -23,6 +23,11 @@ from core.pnl_parser import PnlParser
 from core.reporter import Reporter
 from core.analysis_pipeline import DirectoryAnalysisPipeline
 from core.autofix_apply_engine import apply_with_engine
+from core.autofix_instruction import (
+    instruction_to_hunks,
+    normalize_instruction,
+    validate_instruction,
+)
 from core.autofix_semantic_guard import evaluate_semantic_delta
 from core.autofix_tokenizer import locate_anchor_line_by_tokens, normalize_anchor_text
 from core.xml_parser import XmlParser
@@ -115,6 +120,10 @@ class AutoFixQualityMetrics(TypedDict, total=False):
     token_prefer_nearest_tie_used: bool
     token_hint_bias_used: float
     token_force_nearest_on_ambiguous_used: bool
+    instruction_mode: str
+    instruction_validation_errors: List[str]
+    instruction_operation: str
+    instruction_apply_success: bool
 
 
 class AutoFixApplyError(RuntimeError):
@@ -184,6 +193,10 @@ class CodeInspectorApp:
         if self.autofix_prepare_generator_default not in ("auto", "llm", "rule"):
             self.autofix_prepare_generator_default = "auto"
         self.autofix_allow_fallback_default = bool(autofix_cfg.get("allow_fallback_default", True))
+        engine_cfg = autofix_cfg.get("engine", {}) if isinstance(autofix_cfg.get("engine"), dict) else {}
+        self.autofix_structured_instruction_enabled = bool(
+            engine_cfg.get("structured_instruction_enabled", False)
+        )
 
         self._last_output_dir = ""
         self._review_session_cache = collections.OrderedDict()
@@ -524,6 +537,42 @@ class CodeInspectorApp:
         ]
 
     @staticmethod
+    def _build_structured_instruction_from_first_hunk(
+        *,
+        proposal: Dict,
+        file_name: str,
+        object_name: str,
+        event_name: str,
+        operation: str = "replace",
+    ) -> Optional[Dict]:
+        hunks = proposal.get("hunks", []) if isinstance(proposal, dict) else []
+        first_hunk = hunks[0] if isinstance(hunks, list) and hunks else None
+        if not isinstance(first_hunk, dict):
+            return None
+        try:
+            instruction_raw = {
+                "target": {
+                    "file": str(file_name or ""),
+                    "object": str(object_name or ""),
+                    "event": str(event_name or "Global"),
+                },
+                "operation": str(operation or "replace"),
+                "locator": {
+                    "kind": "anchor_context",
+                    "start_line": int(first_hunk.get("start_line", 1) or 1),
+                    "context_before": str(first_hunk.get("context_before", "") or ""),
+                    "context_after": str(first_hunk.get("context_after", "") or ""),
+                },
+                "payload": {
+                    "code": str(first_hunk.get("replacement_text", "") or ""),
+                },
+                "safety": {"requires_hash_match": True},
+            }
+            return normalize_instruction(instruction_raw)
+        except Exception:
+            return None
+
+    @staticmethod
     def _normalize_autofix_generator_preference(value: Optional[str], fallback: str = "auto") -> str:
         normalized = str(value or fallback or "auto").strip().lower()
         return normalized if normalized in ("auto", "llm", "rule") else str(fallback or "auto")
@@ -584,6 +633,10 @@ class CodeInspectorApp:
         token_prefer_nearest_tie_used: bool = False,
         token_hint_bias_used: float = 0.0,
         token_force_nearest_on_ambiguous_used: bool = False,
+        instruction_mode: str = "off",
+        instruction_validation_errors: Optional[List[str]] = None,
+        instruction_operation: str = "",
+        instruction_apply_success: bool = False,
     ) -> AutoFixQualityMetrics:
         return {
             "proposal_id": str(proposal_id or ""),
@@ -612,6 +665,10 @@ class CodeInspectorApp:
             "token_prefer_nearest_tie_used": bool(token_prefer_nearest_tie_used),
             "token_hint_bias_used": float(token_hint_bias_used or 0.0),
             "token_force_nearest_on_ambiguous_used": bool(token_force_nearest_on_ambiguous_used),
+            "instruction_mode": str(instruction_mode or "off"),
+            "instruction_validation_errors": list(instruction_validation_errors or []),
+            "instruction_operation": str(instruction_operation or ""),
+            "instruction_apply_success": bool(instruction_apply_success),
         }
 
     def _autofix_apply_error(
@@ -798,9 +855,54 @@ class CodeInspectorApp:
             "quality_preview": proposal.get("quality_preview", {}),
             "generator_type": proposal.get("generator_type", "llm"),
             "generator_reason": proposal.get("generator_reason", ""),
+            "instruction_preview": proposal.get("instruction_preview", {}),
+            "compare_score": proposal.get("compare_score", {}),
+            "selection_reason": proposal.get("selection_reason", ""),
             "llm_meta": proposal.get("llm_meta", {}),
             "created_at": proposal.get("created_at"),
         }
+
+    def _instruction_preview_for_proposal(self, proposal: Dict, expected_file: str) -> Dict[str, Any]:
+        raw = proposal.get("_structured_instruction") if isinstance(proposal, dict) else None
+        if not isinstance(raw, dict):
+            return {"available": False, "valid": False, "operation": "", "errors": ["missing_instruction"]}
+        normalized = normalize_instruction(raw)
+        valid, errors = validate_instruction(normalized)
+        target_file = os.path.basename(str((normalized.get("target", {}) or {}).get("file", "") or ""))
+        if target_file and target_file != os.path.basename(str(expected_file or "")):
+            valid = False
+            errors = list(errors) + ["target.file must match proposal file"]
+        return {
+            "available": True,
+            "valid": bool(valid),
+            "operation": str(normalized.get("operation", "") or ""),
+            "errors": [str(e) for e in (errors or [])],
+        }
+
+    def _select_compare_proposal(self, proposals: List[Dict], file_name: str) -> Tuple[Dict, str]:
+        if not proposals:
+            return {}, "none"
+        for item in proposals:
+            if isinstance(item, dict):
+                item["instruction_preview"] = self._instruction_preview_for_proposal(item, file_name)
+
+        def _score(item: Dict) -> Tuple[int, int, int]:
+            preview = item.get("instruction_preview", {}) if isinstance(item, dict) else {}
+            quality = item.get("quality_preview", {}) if isinstance(item, dict) else {}
+            valid_instruction = 1 if bool(preview.get("valid", False)) else 0
+            syntax_ok = 1 if bool(quality.get("syntax_check_passed", True)) else 0
+            prefer_rule = 1 if str(item.get("generator_type", "")).lower() == "rule" else 0
+            item["compare_score"] = {
+                "instruction_valid": valid_instruction,
+                "syntax_ok": syntax_ok,
+                "prefer_rule": prefer_rule,
+                "total": (valid_instruction * 100) + (syntax_ok * 10) + prefer_rule,
+            }
+            return (valid_instruction, syntax_ok, prefer_rule)
+
+        selected = max([p for p in proposals if isinstance(p, dict)], key=_score)
+        selected["selection_reason"] = "max(score=instruction_valid*100 + syntax_ok*10 + prefer_rule)"
+        return selected, "instruction_validity_then_syntax_then_rule"
 
     def _store_autofix_proposal(self, session: Dict, proposal: Dict):
         autofix = session.setdefault("autofix", {})
@@ -844,6 +946,10 @@ class CodeInspectorApp:
         stats.setdefault("multi_hunk_blocked_count", 0)
         stats.setdefault("semantic_guard_checked_count", 0)
         stats.setdefault("semantic_guard_blocked_count", 0)
+        stats.setdefault("instruction_attempt_count", 0)
+        stats.setdefault("instruction_apply_success_count", 0)
+        stats.setdefault("instruction_fallback_to_hunk_count", 0)
+        stats.setdefault("instruction_validation_fail_count", 0)
         engine_counts = stats.setdefault("selected_apply_engine_mode", {"structure_apply": 0, "text_fallback": 0})
         if not isinstance(engine_counts, dict):
             engine_counts = {"structure_apply": 0, "text_fallback": 0}
@@ -1782,6 +1888,31 @@ class CodeInspectorApp:
         )
         # Preserve insertion-specific hunk shape for anchor checks/backward compatibility.
         proposal["hunks"] = self._build_autofix_hunks_for_insertion(source_lines, new_lines, insert_at, inserted_lines)
+        try:
+            context_before = source_lines[insert_at - 2] if insert_at >= 2 and (insert_at - 2) < len(source_lines) else ""
+            context_after = source_lines[insert_at - 1] if insert_at >= 1 and (insert_at - 1) < len(source_lines) else ""
+            instruction_raw = {
+                "target": {
+                    "file": file_name,
+                    "object": str(ai_review.get("object", object_name or "")),
+                    "event": str(ai_review.get("event", event_name or "Global")),
+                },
+                "operation": "insert",
+                "locator": {
+                    "kind": "anchor_context",
+                    "start_line": insert_at,
+                    "context_before": context_before,
+                    "context_after": context_after,
+                },
+                "payload": {
+                    "code": "\n".join(inserted_lines),
+                },
+                "safety": {"requires_hash_match": True},
+            }
+            proposal["_structured_instruction"] = normalize_instruction(instruction_raw)
+        except Exception:
+            # Fail-soft: keep legacy hunk-only proposal path.
+            pass
         return proposal
 
     def _find_violation_for_rule_autofix(
@@ -1900,6 +2031,18 @@ class CodeInspectorApp:
                 "_rule_stats": normalize_stats,
             },
         )
+        try:
+            structured = self._build_structured_instruction_from_first_hunk(
+                proposal=proposal,
+                file_name=file_name,
+                object_name=str(object_name or ""),
+                event_name=str(event_name or "Global"),
+                operation="replace",
+            )
+            if isinstance(structured, dict):
+                proposal["_structured_instruction"] = structured
+        except Exception:
+            pass
         return proposal
 
     def prepare_autofix_for_ai_review(
@@ -2006,13 +2149,17 @@ class CodeInspectorApp:
                     raise last_error
                 raise RuntimeError("Autofix proposal generation failed")
 
-            selected_proposal = None
-            for item in proposals:
-                if str(item.get("generator_type", "")) == "rule":
-                    selected_proposal = item
-                    break
-            if selected_proposal is None:
-                selected_proposal = proposals[0]
+            selection_policy = "rule_first_default"
+            if normalized_prepare_mode == "compare":
+                selected_proposal, selection_policy = self._select_compare_proposal(proposals, cache_key)
+            else:
+                selected_proposal = None
+                for item in proposals:
+                    if str(item.get("generator_type", "")) == "rule":
+                        selected_proposal = item
+                        break
+                if selected_proposal is None:
+                    selected_proposal = proposals[0]
 
             with session["lock"]:
                 stats = self._autofix_session_stats(session)
@@ -2036,6 +2183,10 @@ class CodeInspectorApp:
                 "requested_generators": list(plan_order),
                 "generated_count": len(proposal_views),
                 "fallback_used": bool(fallback_used_any),
+                "selection_policy": selection_policy,
+                "selected_generator_type": str(selected_view.get("generator_type", "") or ""),
+                "selected_compare_score": selected_view.get("compare_score", {}),
+                "selected_selection_reason": str(selected_view.get("selection_reason", "") or ""),
             }
             return selected_view
 
@@ -2154,6 +2305,18 @@ class CodeInspectorApp:
                 ),
                 "semantic_guard_blocked_count": self._safe_int(
                     extra_stats.get("semantic_guard_blocked_count", 0), 0
+                ),
+                "instruction_attempt_count": self._safe_int(
+                    extra_stats.get("instruction_attempt_count", 0), 0
+                ),
+                "instruction_apply_success_count": self._safe_int(
+                    extra_stats.get("instruction_apply_success_count", 0), 0
+                ),
+                "instruction_fallback_to_hunk_count": self._safe_int(
+                    extra_stats.get("instruction_fallback_to_hunk_count", 0), 0
+                ),
+                "instruction_validation_fail_count": self._safe_int(
+                    extra_stats.get("instruction_validation_fail_count", 0), 0
                 ),
                 "selected_apply_engine_mode": dict(extra_stats.get("selected_apply_engine_mode", {}))
                 if isinstance(extra_stats.get("selected_apply_engine_mode", {}), dict)
@@ -2355,6 +2518,10 @@ class CodeInspectorApp:
             token_prefer_nearest_tie_used = False
             token_hint_bias_used = 0.0
             token_force_nearest_on_ambiguous_used = False
+            instruction_mode = "off"
+            instruction_validation_errors: List[str] = []
+            instruction_operation = ""
+            instruction_apply_success = False
             if benchmark_observe_enabled:
                 if benchmark_tuning_min_confidence is not None:
                     token_min_confidence_used = float(benchmark_tuning_min_confidence)
@@ -2378,6 +2545,10 @@ class CodeInspectorApp:
                 payload["token_prefer_nearest_tie_used"] = bool(token_prefer_nearest_tie_used)
                 payload["token_hint_bias_used"] = float(token_hint_bias_used)
                 payload["token_force_nearest_on_ambiguous_used"] = bool(token_force_nearest_on_ambiguous_used)
+                payload["instruction_mode"] = str(instruction_mode or "off")
+                payload["instruction_validation_errors"] = list(instruction_validation_errors)
+                payload["instruction_operation"] = str(instruction_operation or "")
+                payload["instruction_apply_success"] = bool(instruction_apply_success)
                 return payload
 
             hash_gate_bypassed = False
@@ -2401,7 +2572,53 @@ class CodeInspectorApp:
             if not hash_match and benchmark_observe_enabled:
                 hash_gate_bypassed = True
 
-            apply_hunks = list(proposal.get("hunks", []) or [])
+            base_hunks = list(proposal.get("hunks", []) or [])
+            apply_hunks = list(base_hunks)
+            structured_instruction_hunks: List[Dict[str, Any]] = []
+            instruction_hunks_active = False
+            structured_instruction_raw = proposal.get("_structured_instruction")
+            if self.autofix_structured_instruction_enabled and isinstance(structured_instruction_raw, dict):
+                instruction_mode = "attempted"
+                with session["lock"]:
+                    stats = self._autofix_session_stats(session)
+                    stats["instruction_attempt_count"] = self._safe_int(
+                        stats.get("instruction_attempt_count", 0), 0
+                    ) + 1
+                normalized_instruction = normalize_instruction(structured_instruction_raw)
+                instruction_operation = str(normalized_instruction.get("operation", "") or "")
+                valid_instruction, instruction_validation_errors = validate_instruction(normalized_instruction)
+                target_file = str((normalized_instruction.get("target", {}) or {}).get("file", "") or "")
+                if target_file and target_file != normalized_file:
+                    valid_instruction = False
+                    instruction_validation_errors.append("target.file must match proposal file")
+                if valid_instruction:
+                    try:
+                        structured_instruction_hunks = instruction_to_hunks(normalized_instruction)
+                        apply_hunks = list(structured_instruction_hunks)
+                        instruction_hunks_active = True
+                    except Exception as exc:
+                        instruction_validation_errors.append(f"instruction_to_hunks failed: {exc}")
+                        instruction_mode = "fallback_hunks"
+                        with session["lock"]:
+                            stats = self._autofix_session_stats(session)
+                            stats["instruction_fallback_to_hunk_count"] = self._safe_int(
+                                stats.get("instruction_fallback_to_hunk_count", 0), 0
+                            ) + 1
+                        apply_hunks = list(base_hunks)
+                        instruction_hunks_active = False
+                else:
+                    instruction_mode = "fallback_hunks"
+                    with session["lock"]:
+                        stats = self._autofix_session_stats(session)
+                        stats["instruction_validation_fail_count"] = self._safe_int(
+                            stats.get("instruction_validation_fail_count", 0), 0
+                        ) + 1
+                        stats["instruction_fallback_to_hunk_count"] = self._safe_int(
+                            stats.get("instruction_fallback_to_hunk_count", 0), 0
+                        ) + 1
+                    apply_hunks = list(base_hunks)
+                    instruction_hunks_active = False
+
             anchors_match = True
             normalized_anchor_match = False
             anchor_errors = []
@@ -2591,11 +2808,53 @@ class CodeInspectorApp:
                 engine_text = str(engine_result.get("patched_text", ""))
                 if engine_text:
                     candidate_content = engine_text
+                if instruction_hunks_active:
+                    instruction_mode = "applied"
+                    instruction_apply_success = True
+                    with session["lock"]:
+                        stats = self._autofix_session_stats(session)
+                        stats["instruction_apply_success_count"] = self._safe_int(
+                            stats.get("instruction_apply_success_count", 0), 0
+                        ) + 1
             else:
                 apply_engine_mode = "failed"
                 reason = apply_engine_fallback_reason or "apply_failed"
-                anchor_errors.append(f"apply engine failed: {reason}")
-                if is_multi_hunk_apply and reason in (
+                if instruction_hunks_active:
+                    instruction_mode = "fallback_hunks"
+                    instruction_apply_success = False
+                    instruction_validation_errors.append(f"instruction apply failed: {reason}")
+                    with session["lock"]:
+                        stats = self._autofix_session_stats(session)
+                        stats["instruction_fallback_to_hunk_count"] = self._safe_int(
+                            stats.get("instruction_fallback_to_hunk_count", 0), 0
+                        ) + 1
+                    legacy_engine = apply_with_engine(
+                        base_text=current_content,
+                        hunks=[h for h in base_hunks if isinstance(h, dict)],
+                        anchor_line=self._safe_int(
+                            (base_hunks[0] if base_hunks and isinstance(base_hunks[0], dict) else {}).get("start_line", 1),
+                            1,
+                        ),
+                        generator_type=str(proposal.get("generator_type", "unknown")),
+                        options={
+                            "max_line_drift": max(50, min(300, len(current_lines))),
+                            "max_hunks_per_apply": 3,
+                        },
+                    )
+                    if bool(legacy_engine.get("ok", False)):
+                        legacy_text = str(legacy_engine.get("patched_text", ""))
+                        if legacy_text:
+                            candidate_content = legacy_text
+                        apply_engine_mode = str(legacy_engine.get("engine_mode", "failed") or "failed")
+                        apply_engine_fallback_reason = str(legacy_engine.get("fallback_reason", "") or "")
+                        instruction_hunks_active = False
+                    else:
+                        reason = str(legacy_engine.get("fallback_reason", "") or reason or "apply_failed")
+                        apply_engine_mode = "failed"
+                        apply_engine_fallback_reason = reason
+                if apply_engine_mode == "failed":
+                    anchor_errors.append(f"apply engine failed: {reason}")
+                if apply_engine_mode == "failed" and is_multi_hunk_apply and reason in (
                     "too_many_hunks",
                     "overlapping_hunks",
                     "hunks_span_multiple_blocks",
@@ -2604,33 +2863,34 @@ class CodeInspectorApp:
                     with session["lock"]:
                         stats = self._autofix_session_stats(session)
                         stats["multi_hunk_blocked_count"] = self._safe_int(stats.get("multi_hunk_blocked_count", 0), 0) + 1
-                quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
-                    proposal_id=str(proposal.get("proposal_id", "")),
-                    generator_type=str(proposal.get("generator_type", "unknown")),
-                    anchors_match=anchors_match,
-                    hash_match=hash_match,
-                    syntax_check_passed=True,
-                    applied=False,
-                    rejected_reason="apply engine failed",
-                    validation_errors=list(anchor_errors),
-                    locator_mode=locator_mode,
-                    apply_engine_mode="failed",
-                    apply_engine_fallback_reason=reason,
-                    token_fallback_attempted=token_fallback_attempted,
-                    token_fallback_confidence=token_fallback_confidence,
-                    token_fallback_candidates=token_fallback_candidates,
-                ))
-                self._mark_autofix_proposal_failure(
-                    session,
-                    proposal,
-                    error_code="APPLY_ENGINE_FAILED",
-                    quality_metrics=quality_metrics,
-                )
-                raise self._autofix_apply_error(
-                    f"Autofix apply engine failed: {reason}",
-                    error_code="APPLY_ENGINE_FAILED",
-                    quality_metrics=quality_metrics,
-                )
+                if apply_engine_mode == "failed":
+                    quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
+                        proposal_id=str(proposal.get("proposal_id", "")),
+                        generator_type=str(proposal.get("generator_type", "unknown")),
+                        anchors_match=anchors_match,
+                        hash_match=hash_match,
+                        syntax_check_passed=True,
+                        applied=False,
+                        rejected_reason="apply engine failed",
+                        validation_errors=list(anchor_errors),
+                        locator_mode=locator_mode,
+                        apply_engine_mode="failed",
+                        apply_engine_fallback_reason=reason,
+                        token_fallback_attempted=token_fallback_attempted,
+                        token_fallback_confidence=token_fallback_confidence,
+                        token_fallback_candidates=token_fallback_candidates,
+                    ))
+                    self._mark_autofix_proposal_failure(
+                        session,
+                        proposal,
+                        error_code="APPLY_ENGINE_FAILED",
+                        quality_metrics=quality_metrics,
+                    )
+                    raise self._autofix_apply_error(
+                        f"Autofix apply engine failed: {reason}",
+                        error_code="APPLY_ENGINE_FAILED",
+                        quality_metrics=quality_metrics,
+                    )
 
             validation = {
                 "anchors_match": anchors_match,
@@ -2659,6 +2919,10 @@ class CodeInspectorApp:
                 "token_fallback_candidates": token_fallback_candidates,
                 "syntax_check_skipped_reason": "",
                 "ctrlpp_regression_skipped_reason": "",
+                "instruction_mode": str(instruction_mode or "off"),
+                "instruction_validation_errors": list(instruction_validation_errors),
+                "instruction_operation": str(instruction_operation or ""),
+                "instruction_apply_success": bool(instruction_apply_success),
             }
             if not is_ctl_target:
                 validation["syntax_check_passed"] = True
@@ -2949,6 +3213,9 @@ class CodeInspectorApp:
                     "semantic_violation_count": self._safe_int(validation.get("semantic_violation_count", 0), 0),
                     "apply_engine_mode": validation.get("apply_engine_mode", ""),
                     "apply_engine_fallback_reason": validation.get("apply_engine_fallback_reason", ""),
+                    "instruction_mode": validation.get("instruction_mode", "off"),
+                    "instruction_operation": validation.get("instruction_operation", ""),
+                    "instruction_apply_success": bool(validation.get("instruction_apply_success", False)),
                     "heuristic_regression_count": validation["heuristic_regression_count"],
                     "ctrlpp_regression_count": validation["ctrlpp_regression_count"],
                     "errors": validation["errors"],
