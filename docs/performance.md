@@ -236,6 +236,7 @@ python tools/perf/autofix_apply_baseline.py `
 Use one command to run `general/drift x baseline/improved` and produce comparison JSON + review markdown:
 
 ```powershell
+set AUTOFIX_BENCHMARK_OBSERVE=1
 python tools/perf/autofix_apply_baseline.py `
   --auto-run-matrix `
   --scenario both `
@@ -248,9 +249,56 @@ python tools/perf/autofix_apply_baseline.py `
   --review-output docs/perf_baselines/autofix_review_latest.md
 ```
 
+### Drift-only tuning sweep (for KPI 10% improvement search)
+
+Run drift scenario with benchmark-relaxed mode across tuning combinations and auto-select the best candidate:
+
+```powershell
+set AUTOFIX_BENCHMARK_OBSERVE=1
+python tools/perf/autofix_apply_baseline.py `
+  --auto-tune-drift `
+  --discover-count 1 `
+  --iterations 3 `
+  --sweep-min-confidence 0.55,0.65,0.8 `
+  --sweep-min-gap 0.05,0.1,0.15 `
+  --sweep-max-line-drift 300,600,900 `
+  --output docs/perf_baselines `
+  --review-output docs/perf_baselines/autofix_review_latest.md
+```
+
+Generated artifacts:
+- `autofix_apply_sweep_<timestamp>_drift.json` (all combinations + best candidate)
+- `autofix_apply_comparison_<timestamp>_drift_tune_*.json` (per-combination comparisons)
+- `autofix_apply_root_cause_<timestamp>_drift.json` (aggregate root-cause classification across sweep rows)
+
+### Root-cause analysis from an existing sweep JSON
+
+If you already ran a sweep, generate root-cause classification without re-running API calls:
+
+```powershell
+python tools/perf/autofix_apply_baseline.py `
+  --analyze-sweep-json docs/perf_baselines/autofix_apply_sweep_<timestamp>_drift.json `
+  --analyze-sweep-output docs/perf_baselines/autofix_apply_root_cause_<timestamp>.json `
+  --review-output docs/perf_baselines/autofix_root_cause_review_<timestamp>.md
+```
+
+Root-cause tags:
+- `PASS_10_PERCENT`
+- `BLOCKED_AMBIGUOUS`
+- `BLOCKED_LOW_CONFIDENCE`
+- `BLOCKED_DRIFT_EXCEEDED`
+- `BLOCKED_APPLY_ENGINE`
+- `BLOCKED_ENV_GATE`
+- `HOLD_LOW_SAMPLE`
+- `autofix_review_latest.md` (best candidate summary + per-row observability/improvement)
+
 Notes:
 - Tuning headers are sent only in `benchmark_relaxed` runs.
 - Runtime behavior is unchanged unless server process has `AUTOFIX_BENCHMARK_OBSERVE=1`.
+- Matrix fixed protocol:
+  - `general(strict_hash)`: baseline/improved each 3 iterations
+  - `drift(benchmark_relaxed)`: baseline/improved each 3 iterations
+  - same selected-files and same iteration count for both modes
 - Response validation includes:
   - `token_min_confidence_used`
   - `token_min_gap_used`
@@ -282,9 +330,17 @@ KPI observe modes:
 - In `benchmark_relaxed`, output JSON includes:
   - `_meta.benchmark_mode_warning=true`
   - `_meta.not_for_production=true`
-- Limitation (current implementation):
-  - `benchmark_relaxed` only bypasses request-level `expected_base_hash`.
-  - Server still validates internal `proposal_base_hash` first, so drift perturbation can still end at `BASE_HASH_MISMATCH`.
+
+Observability pass criteria (drift + benchmark_relaxed):
+1. `summary.locator_mode_counts` is not empty
+2. `summary.error_code_counts` is not `BASE_HASH_MISMATCH` only
+3. `summary.hash_gate_bypassed_count >= 1`
+
+Automated observability result tags in review/comparison output:
+- `PASS`: all criteria satisfied
+- `BLOCKED_ENV_GATE`: hash bypass not observed and hash mismatch-only pattern remains
+- `BLOCKED_AMBIGUOUS`: fallback entered but ambiguous-candidate errors dominate
+- `HOLD_LOW_SAMPLE`: insufficient/biased sample for stable decision
 
 Generated artifacts:
 - `docs/perf_baselines/autofix_apply_baseline_20260227_0938.json`
@@ -296,14 +352,15 @@ Generated artifacts:
 - `docs/perf_baselines/autofix_apply_baseline_20260227_1042_drift.json`
 - `docs/perf_baselines/autofix_apply_improved_20260227_1042_drift.json`
 - `docs/perf_baselines/autofix_apply_comparison_20260227_1042_drift.json`
+- `docs/perf_baselines/autofix_apply_sweep_20260303_102303_drift.json`
+- `docs/perf_baselines/autofix_apply_root_cause_20260303_102303_drift.json`
+- `docs/perf_baselines/autofix_review_latest.md`
 
-Current comparison result:
-- `baseline_failure_rate = 0.0`
-- `improved_failure_rate = 0.0`
-- `improvement_percent = 0.0`
-- Interpretation:
-  - general(strict): no anchor mismatch events observed
-  - drift(relaxed): still blocked by internal `proposal_base_hash` check, so fallback-path KPI is not yet measurable
+Current comparison result (latest drift tuning sweep):
+- `best improvement_percent = 100.0`
+- `kpi_passed combinations = 18/27`
+- `aggregate_reason_counts = {"PASS_10_PERCENT": 18, "BLOCKED_ANCHOR_MISMATCH_ONLY": 9}`
+- `aggregate_fragment_counts = {"ambiguous_candidates": 0, "low_confidence": 0, "drift_exceeded": 0}`
 
 Note on hash gate and KPI observability:
 - Current `autofix/apply` flow validates proposal base hash before anchor/token fallback.

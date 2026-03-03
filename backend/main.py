@@ -112,6 +112,9 @@ class AutoFixQualityMetrics(TypedDict, total=False):
     token_min_gap_used: float
     token_max_line_drift_used: int
     benchmark_tuning_applied: bool
+    token_prefer_nearest_tie_used: bool
+    token_hint_bias_used: float
+    token_force_nearest_on_ambiguous_used: bool
 
 
 class AutoFixApplyError(RuntimeError):
@@ -578,6 +581,9 @@ class CodeInspectorApp:
         token_min_gap_used: float = 0.15,
         token_max_line_drift_used: int = 0,
         benchmark_tuning_applied: bool = False,
+        token_prefer_nearest_tie_used: bool = False,
+        token_hint_bias_used: float = 0.0,
+        token_force_nearest_on_ambiguous_used: bool = False,
     ) -> AutoFixQualityMetrics:
         return {
             "proposal_id": str(proposal_id or ""),
@@ -603,6 +609,9 @@ class CodeInspectorApp:
             "token_min_gap_used": float(token_min_gap_used or 0.15),
             "token_max_line_drift_used": int(token_max_line_drift_used or 0),
             "benchmark_tuning_applied": bool(benchmark_tuning_applied),
+            "token_prefer_nearest_tie_used": bool(token_prefer_nearest_tie_used),
+            "token_hint_bias_used": float(token_hint_bias_used or 0.0),
+            "token_force_nearest_on_ambiguous_used": bool(token_force_nearest_on_ambiguous_used),
         }
 
     def _autofix_apply_error(
@@ -2182,6 +2191,9 @@ class CodeInspectorApp:
         min_confidence: float = 0.8,
         min_gap: float = 0.15,
         max_line_drift: Optional[int] = None,
+        prefer_nearest_on_tie: bool = False,
+        hint_bias: float = 0.0,
+        force_pick_nearest_on_ambiguous: bool = False,
     ) -> Dict[str, Any]:
         resolved_hunks: List[Dict] = []
         confidences: List[float] = []
@@ -2204,6 +2216,9 @@ class CodeInspectorApp:
                 min_confidence=float(min_confidence),
                 min_gap=float(min_gap),
                 max_line_drift=drift_limit,
+                prefer_nearest_on_tie=bool(prefer_nearest_on_tie),
+                hint_bias=float(hint_bias or 0.0),
+                force_pick_nearest_on_ambiguous=bool(force_pick_nearest_on_ambiguous),
             )
             candidate_counts.append(self._safe_int(locate.get("candidate_count", 0), 0))
             confidences.append(float(locate.get("confidence", 0.0) or 0.0))
@@ -2337,6 +2352,9 @@ class CodeInspectorApp:
             token_min_gap_used = 0.15
             token_max_line_drift_used = max(50, min(300, len(current_lines)))
             benchmark_tuning_applied = False
+            token_prefer_nearest_tie_used = False
+            token_hint_bias_used = 0.0
+            token_force_nearest_on_ambiguous_used = False
             if benchmark_observe_enabled:
                 if benchmark_tuning_min_confidence is not None:
                     token_min_confidence_used = float(benchmark_tuning_min_confidence)
@@ -2347,12 +2365,19 @@ class CodeInspectorApp:
                 if benchmark_tuning_max_line_drift is not None:
                     token_max_line_drift_used = max(10, int(benchmark_tuning_max_line_drift))
                     benchmark_tuning_applied = True
+                if benchmark_tuning_applied:
+                    token_prefer_nearest_tie_used = True
+                    token_hint_bias_used = 0.03
+                    token_force_nearest_on_ambiguous_used = True
 
             def _with_tuning_metrics(payload: AutoFixQualityMetrics) -> AutoFixQualityMetrics:
                 payload["token_min_confidence_used"] = float(token_min_confidence_used)
                 payload["token_min_gap_used"] = float(token_min_gap_used)
                 payload["token_max_line_drift_used"] = int(token_max_line_drift_used)
                 payload["benchmark_tuning_applied"] = bool(benchmark_tuning_applied)
+                payload["token_prefer_nearest_tie_used"] = bool(token_prefer_nearest_tie_used)
+                payload["token_hint_bias_used"] = float(token_hint_bias_used)
+                payload["token_force_nearest_on_ambiguous_used"] = bool(token_force_nearest_on_ambiguous_used)
                 return payload
 
             hash_gate_bypassed = False
@@ -2420,6 +2445,9 @@ class CodeInspectorApp:
                     min_confidence=token_min_confidence_used,
                     min_gap=token_min_gap_used,
                     max_line_drift=token_max_line_drift_used,
+                    prefer_nearest_on_tie=token_prefer_nearest_tie_used,
+                    hint_bias=token_hint_bias_used,
+                    force_pick_nearest_on_ambiguous=token_force_nearest_on_ambiguous_used,
                 )
                 token_fallback_confidence = float(fallback.get("confidence", 0.0) or 0.0)
                 token_fallback_candidates = self._safe_int(fallback.get("candidate_count", 0), 0)
@@ -2576,7 +2604,7 @@ class CodeInspectorApp:
                     with session["lock"]:
                         stats = self._autofix_session_stats(session)
                         stats["multi_hunk_blocked_count"] = self._safe_int(stats.get("multi_hunk_blocked_count", 0), 0) + 1
-                quality_metrics = self._new_autofix_quality_metrics(
+                quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
                     proposal_id=str(proposal.get("proposal_id", "")),
                     generator_type=str(proposal.get("generator_type", "unknown")),
                     anchors_match=anchors_match,
@@ -2591,7 +2619,7 @@ class CodeInspectorApp:
                     token_fallback_attempted=token_fallback_attempted,
                     token_fallback_confidence=token_fallback_confidence,
                     token_fallback_candidates=token_fallback_candidates,
-                )
+                ))
                 self._mark_autofix_proposal_failure(
                     session,
                     proposal,
@@ -2613,6 +2641,9 @@ class CodeInspectorApp:
                 "token_min_gap_used": float(token_min_gap_used),
                 "token_max_line_drift_used": int(token_max_line_drift_used),
                 "benchmark_tuning_applied": bool(benchmark_tuning_applied),
+                "token_prefer_nearest_tie_used": bool(token_prefer_nearest_tie_used),
+                "token_hint_bias_used": float(token_hint_bias_used),
+                "token_force_nearest_on_ambiguous_used": bool(token_force_nearest_on_ambiguous_used),
                 "syntax_check_passed": self._basic_syntax_check(candidate_content),
                 "semantic_check_passed": True,
                 "semantic_blocked_reason": "",

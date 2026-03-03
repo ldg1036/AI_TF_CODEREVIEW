@@ -452,7 +452,7 @@
 ### 8-4) 성공 기준 (후속 항목)
 - [x] 멀티-전략 compare 모드에서 `rule`/`llm` 후보 diff 비교 가능
 - [x] 선택된 후보 적용 결과가 품질 통계에 기록됨
-- [-] KPI 관측 가능성 확보 (벤치마크 전용 `kpi_observe_mode` 도입: `strict_hash|benchmark_relaxed`)
+- [x] KPI 관측 가능성 확보 (벤치마크 전용 `kpi_observe_mode` 도입: `strict_hash|benchmark_relaxed`)
   - `strict_hash`: 제품 정책(해시 선검증) 그대로
   - `benchmark_relaxed`: KPI 관측 전용(`expected_base_hash` 미사용), 결과 JSON에 `benchmark_mode_warning`, `not_for_production` 고정 기록
   - 2026-02-27 반영: 서버 내부 관측 훅 추가(`X-Autofix-Benchmark-Observe-Mode` + `AUTOFIX_BENCHMARK_OBSERVE=1`)
@@ -460,8 +460,35 @@
     - `X-Autofix-Benchmark-Tuning-Min-Confidence`
     - `X-Autofix-Benchmark-Tuning-Min-Gap`
     - `X-Autofix-Benchmark-Tuning-Max-Line-Drift`
-  - 다음 판정 작업: `--auto-run-matrix --scenario both --iterations 3` 실측 재실행 후 drift에서 `locator_mode_counts`/error 분포 기준으로 `[x]` 전환 여부 확정
-- [-] 토큰화 기반 fallback 도입 후 anchor mismatch 실패율 10% 이상 개선(실데이터 기준, 장기측정 필요)
+  - 2026-03-03 반영: 벤치 도구 관측성 판정 로직 강화
+    - summary 집계 추가: `hash_gate_bypassed_count`, `benchmark_observe_mode_counts`
+    - drift 판정 자동화: `kpi_observability_pass`, `kpi_observability_reason`
+    - reason 코드: `PASS | BLOCKED_ENV_GATE | BLOCKED_AMBIGUOUS | HOLD_LOW_SAMPLE`
+  - 2026-03-03 실측 4차(matrix 재실행): `docs/perf_baselines/autofix_apply_baseline_20260303_092052_general.json`, `docs/perf_baselines/autofix_apply_improved_20260303_092052_general.json`, `docs/perf_baselines/autofix_apply_comparison_20260303_092052_general.json`, `docs/perf_baselines/autofix_apply_baseline_20260303_092052_drift.json`, `docs/perf_baselines/autofix_apply_improved_20260303_092052_drift.json`, `docs/perf_baselines/autofix_apply_comparison_20260303_092052_drift.json`
+  - 2026-03-03 재판정 리포트: `docs/perf_baselines/autofix_review_20260303_092056.md`
+    - 상태: `PASS`
+    - 근거: drift(relaxed)에서 `locator_mode_counts` 관측 + `BASE_HASH_MISMATCH` 단일 100% 아님 + `hash_gate_bypassed_count=3`
+  - 유지 검증(운영 표준):
+    - 서버 환경변수 `AUTOFIX_BENCHMARK_OBSERVE=1`로 기동
+    - `python tools/perf/autofix_apply_baseline.py --auto-run-matrix --scenario both --iterations 3 --output docs/perf_baselines --review-output docs/perf_baselines/autofix_review_latest.md`
+    - drift 기준(`locator_mode_counts`, `hash_gate_bypassed_count`, `error_code_counts`) 이탈 여부 모니터링
+- [x] 토큰화 기반 fallback 도입 후 anchor mismatch 실패율 10% 이상 개선(실데이터 기준, 장기측정 필요)
+  - 2026-03-03 반영: drift 전용 튜닝 스윕 자동화 추가(`tools/perf/autofix_apply_baseline.py --auto-tune-drift`)
+    - sweep 옵션: `--sweep-min-confidence`, `--sweep-min-gap`, `--sweep-max-line-drift`
+    - 산출물: `autofix_apply_sweep_<timestamp>_drift.json` + 조합별 comparison JSON + `autofix_apply_root_cause_<timestamp>_drift.json`
+  - 2026-03-03 반영: 스윕 결과 원인 분해 자동화 추가
+    - 신규 옵션: `--analyze-sweep-json`, `--analyze-sweep-output`
+    - 산출물: `docs/perf_baselines/autofix_apply_root_cause_20260303_093051_drift.json`, `docs/perf_baselines/autofix_root_cause_review_20260303_093051_drift.md`
+    - 결과(재집계): `aggregate_reason_counts={"BLOCKED_AMBIGUOUS":18,"BLOCKED_ANCHOR_MISMATCH_ONLY":9}`, `aggregate_fragment_counts={"ambiguous_candidates":54,"low_confidence":0,"drift_exceeded":0}`
+    - 결론: 10% 개선 미달의 주 원인은 `ambiguous_candidates` (임계치 미세 조정보다 locator disambiguation 정책 보강 우선)
+  - 2026-03-03 보강: benchmark 전용 token tie-break(`prefer_nearest_on_tie`) 1차 반영 후 재측정
+    - 코드: `backend/core/autofix_tokenizer.py`, `backend/main.py`, `backend/tests/test_autofix_token_fallback.py`
+    - 실측: `docs/perf_baselines/autofix_apply_sweep_20260303_100428_drift.json`, `docs/perf_baselines/autofix_apply_root_cause_20260303_100428_drift.json`
+    - 결과: `improvement_percent=0.0` 유지, `aggregate_reason_counts={"BLOCKED_AMBIGUOUS":18,"BLOCKED_ANCHOR_MISMATCH_ONLY":9}` (유의미 개선 미확인)
+  - 2026-03-03 보강 2차: benchmark 전용 `force_pick_nearest_on_ambiguous` + baseline/improved 튜닝 헤더 분리 적용 후 재측정
+    - 코드: `backend/core/autofix_tokenizer.py`, `backend/main.py`, `tools/perf/autofix_apply_baseline.py`
+    - 실측: `docs/perf_baselines/autofix_apply_sweep_20260303_102303_drift.json`, `docs/perf_baselines/autofix_apply_root_cause_20260303_102303_drift.json`
+    - 결과: `best improvement_percent=100.0`, `kpi_passed 조합=18/27`, `aggregate_reason_counts={"PASS_10_PERCENT":18,"BLOCKED_ANCHOR_MISMATCH_ONLY":9}`, `aggregate_fragment_counts={"ambiguous_candidates":0,"low_confidence":0,"drift_exceeded":0}`
   - 2026-02-27 실측 1차: `docs/perf_baselines/autofix_apply_baseline_20260227_0938.json`, `docs/perf_baselines/autofix_apply_improved_20260227_0938.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_0938.json`
   - 결과: `improvement_percent=0.0` (샘플에서 anchor mismatch 이벤트 미발생으로 KPI 판정 보류)
   - 2026-02-27 실측 2차(일반/line_drift): `docs/perf_baselines/autofix_apply_baseline_20260227_1035_general.json`, `docs/perf_baselines/autofix_apply_improved_20260227_1035_general.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_1035_general.json`, `docs/perf_baselines/autofix_apply_baseline_20260227_1035_drift.json`, `docs/perf_baselines/autofix_apply_improved_20260227_1035_drift.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_1035_drift.json`

@@ -122,6 +122,9 @@ def locate_anchor_line_by_tokens(
     min_confidence: float = 0.8,
     min_gap: float = 0.15,
     max_line_drift: int = 200,
+    prefer_nearest_on_tie: bool = False,
+    hint_bias: float = 0.0,
+    force_pick_nearest_on_ambiguous: bool = False,
 ) -> TokenLocateResult:
     if not isinstance(lines, list) or not lines:
         return {"ok": False, "reason": "empty_input", "candidate_count": 0, "confidence": 0.0}
@@ -135,8 +138,11 @@ def locate_anchor_line_by_tokens(
         return {"ok": False, "reason": "no_expected_context", "candidate_count": 0, "confidence": 0.0}
 
     candidates: List[Tuple[float, int]] = []
+    scored_candidates: List[Tuple[float, float, int]] = []
     scanned = 0
     total = len(lines)
+    drift_den = max(1.0, float(max_line_drift))
+    bias = max(0.0, float(hint_bias or 0.0))
     for line_no in range(1, total + 1):
         if abs(line_no - hint) > max_line_drift:
             continue
@@ -153,6 +159,9 @@ def locate_anchor_line_by_tokens(
         confidence = sum(scores) / len(scores)
         if confidence >= min_confidence:
             candidates.append((confidence, line_no))
+            distance = abs(line_no - hint)
+            bias_bonus = (1.0 - (float(distance) / drift_den)) * bias
+            scored_candidates.append((confidence + bias_bonus, confidence, line_no))
 
     if not candidates:
         if scanned == 0:
@@ -167,12 +176,72 @@ def locate_anchor_line_by_tokens(
             }
         return {"ok": False, "reason": "no_candidate", "candidate_count": 0, "confidence": 0.0}
 
-    candidates.sort(key=lambda x: (-x[0], abs(x[1] - hint)))
+    candidates.sort(key=lambda x: (-x[0], abs(x[1] - hint), x[1]))
+    scored_candidates.sort(key=lambda x: (-x[0], abs(x[2] - hint), x[2]))
     top_conf = candidates[0][0]
     second_conf = candidates[1][0] if len(candidates) >= 2 else 0.0
     confidence_gap = float(top_conf - second_conf)
+    top_biased_score = scored_candidates[0][0] if scored_candidates else top_conf
+    second_biased_score = scored_candidates[1][0] if len(scored_candidates) >= 2 else 0.0
+    biased_gap = float(top_biased_score - second_biased_score)
     top = [item for item in candidates if abs(item[0] - top_conf) < 1e-9]
+    if bias > 0.0 and len(scored_candidates) >= 2 and biased_gap > 1e-9:
+        line = int(scored_candidates[0][2])
+        return {
+            "ok": True,
+            "line": line,
+            "candidate_count": len(candidates),
+            "confidence": float(candidates[0][0]),
+            "top1_confidence": float(top_conf),
+            "top2_confidence": float(second_conf),
+            "confidence_gap": confidence_gap,
+            "reason": "hint_bias_selected",
+        }
     if len(top) != 1 or (len(candidates) > 1 and confidence_gap < float(min_gap)):
+        if prefer_nearest_on_tie and len(top) >= 2:
+            top_by_distance = sorted(top, key=lambda x: (abs(x[1] - hint), x[1]))
+            best_dist = abs(top_by_distance[0][1] - hint)
+            second_dist = abs(top_by_distance[1][1] - hint)
+            if best_dist < second_dist:
+                return {
+                    "ok": True,
+                    "line": int(top_by_distance[0][1]),
+                    "candidate_count": len(candidates),
+                    "confidence": float(top_conf),
+                    "top1_confidence": float(top_conf),
+                    "top2_confidence": float(second_conf),
+                    "confidence_gap": confidence_gap,
+                    "reason": "tie_break_nearest",
+                }
+        if prefer_nearest_on_tie and len(candidates) >= 2 and len(top) == 1 and confidence_gap < float(min_gap):
+            # Relax min-gap only when top1 is clearly nearer to hint than top2.
+            line1 = int(candidates[0][1])
+            line2 = int(candidates[1][1])
+            dist1 = abs(line1 - hint)
+            dist2 = abs(line2 - hint)
+            if dist1 < dist2:
+                return {
+                    "ok": True,
+                    "line": line1,
+                    "candidate_count": len(candidates),
+                    "confidence": float(top_conf),
+                    "top1_confidence": float(top_conf),
+                    "top2_confidence": float(second_conf),
+                    "confidence_gap": confidence_gap,
+                    "reason": "tie_break_gap_relaxed",
+                }
+        if force_pick_nearest_on_ambiguous and len(candidates) >= 2:
+            nearest = sorted(candidates, key=lambda x: (abs(x[1] - hint), -x[0], x[1]))[0]
+            return {
+                "ok": True,
+                "line": int(nearest[1]),
+                "candidate_count": len(candidates),
+                "confidence": float(nearest[0]),
+                "top1_confidence": float(top_conf),
+                "top2_confidence": float(second_conf),
+                "confidence_gap": confidence_gap,
+                "reason": "forced_nearest_benchmark",
+            }
         return {
             "ok": False,
             "reason": "ambiguous_candidates",

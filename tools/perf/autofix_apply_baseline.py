@@ -235,6 +235,7 @@ def run_once(
     timeout_sec: int,
     perturb_mode: str,
     kpi_observe_mode: str,
+    apply_tuning_headers: bool = False,
     tune_min_confidence: Optional[float] = None,
     tune_min_gap: Optional[float] = None,
     tune_max_line_drift: Optional[int] = None,
@@ -331,17 +332,17 @@ def run_once(
                         **{"X-Autofix-Benchmark-Observe-Mode": str(kpi_observe_mode)},
                         **(
                             {"X-Autofix-Benchmark-Tuning-Min-Confidence": str(tune_min_confidence)}
-                            if tune_min_confidence is not None
+                            if (apply_tuning_headers and tune_min_confidence is not None)
                             else {}
                         ),
                         **(
                             {"X-Autofix-Benchmark-Tuning-Min-Gap": str(tune_min_gap)}
-                            if tune_min_gap is not None
+                            if (apply_tuning_headers and tune_min_gap is not None)
                             else {}
                         ),
                         **(
                             {"X-Autofix-Benchmark-Tuning-Max-Line-Drift": str(tune_max_line_drift)}
-                            if tune_max_line_drift is not None
+                            if (apply_tuning_headers and tune_max_line_drift is not None)
                             else {}
                         ),
                     }
@@ -382,6 +383,7 @@ def run_once(
         )
 
     return {
+        "kpi_observe_mode": str(kpi_observe_mode),
         "analyze": {"status": analyze_status, "wall_ms": analyze_ms, "output_dir": output_dir},
         "prepare": {"status": prepare_status, "wall_ms": prepare_ms, "proposal_id": prepare_payload.get("proposal_id", "")},
         "apply": {
@@ -439,6 +441,8 @@ def _build_summary(runs: List[Dict[str, Any]], mode: str) -> Dict[str, Any]:
         "drift_exceeded": 0,
         "engine_fallback": 0,
     }
+    hash_gate_bypassed_count = 0
+    benchmark_observe_mode_counts: Dict[str, int] = {}
     stats_consistency_mismatch_count = 0
 
     for run in runs:
@@ -466,24 +470,52 @@ def _build_summary(runs: List[Dict[str, Any]], mode: str) -> Dict[str, Any]:
 
         validation = apply_payload.get("validation", {}) if isinstance(apply_payload, dict) else {}
         quality_metrics = apply_payload.get("quality_metrics", {}) if isinstance(apply_payload, dict) else {}
+        if not isinstance(validation, dict):
+            validation = {}
+        if not isinstance(quality_metrics, dict):
+            quality_metrics = {}
         if isinstance(validation, dict):
             locator_mode = _safe_str(validation.get("locator_mode", ""))
-            if not locator_mode and isinstance(quality_metrics, dict):
+            if not locator_mode:
                 locator_mode = _safe_str(quality_metrics.get("locator_mode", ""))
             if locator_mode:
                 _increment(locator_mode_counts, locator_mode)
+            observe_mode = _safe_str(validation.get("benchmark_observe_mode", ""))
+            if not observe_mode:
+                observe_mode = _safe_str(quality_metrics.get("benchmark_observe_mode", ""))
+            if not observe_mode and isinstance(run, dict):
+                observe_mode = _safe_str(run.get("kpi_observe_mode", ""))
+            if observe_mode:
+                _increment(benchmark_observe_mode_counts, observe_mode)
+            hash_gate_bypassed = bool(validation.get("hash_gate_bypassed", False))
+            if not hash_gate_bypassed:
+                hash_gate_bypassed = bool(quality_metrics.get("hash_gate_bypassed", False))
+            # Some failure payloads omit explicit benchmark flags.
+            # In relaxed mode, absence of BASE_HASH_MISMATCH implies hash gate was effectively bypassed.
+            if (
+                not hash_gate_bypassed
+                and observe_mode == OBSERVE_BENCHMARK_RELAXED
+                and error_code != "BASE_HASH_MISMATCH"
+                and bool(error_code)
+            ):
+                hash_gate_bypassed = True
+            if hash_gate_bypassed:
+                hash_gate_bypassed_count += 1
             semantic_reason = _safe_str(validation.get("semantic_blocked_reason", ""))
-            if not semantic_reason and isinstance(quality_metrics, dict):
+            if not semantic_reason:
                 semantic_reason = _safe_str(quality_metrics.get("semantic_blocked_reason", ""))
             if semantic_reason:
                 _increment(semantic_block_reason_counts, semantic_reason)
             engine_reason = _safe_str(validation.get("apply_engine_fallback_reason", ""))
-            if not engine_reason and isinstance(quality_metrics, dict):
+            if not engine_reason:
                 engine_reason = _safe_str(quality_metrics.get("apply_engine_fallback_reason", ""))
             if engine_reason:
                 _increment(apply_engine_reason_counts, engine_reason)
 
-            for err in (validation.get("validation_errors", []) or []):
+            validation_errors = validation.get("validation_errors", []) or []
+            if (not validation_errors) and isinstance(quality_metrics, dict):
+                validation_errors = quality_metrics.get("validation_errors", []) or []
+            for err in validation_errors:
                 message = _safe_str(err).lower()
                 if not message:
                     continue
@@ -539,7 +571,51 @@ def _build_summary(runs: List[Dict[str, Any]], mode: str) -> Dict[str, Any]:
         "semantic_block_reason_counts": semantic_block_reason_counts,
         "apply_engine_fallback_reason_counts": apply_engine_reason_counts,
         "validation_error_fragment_counts": validation_error_fragment_counts,
+        "hash_gate_bypassed_count": hash_gate_bypassed_count,
+        "benchmark_observe_mode_counts": benchmark_observe_mode_counts,
         "stats_consistency_mismatch_count": stats_consistency_mismatch_count,
+    }
+
+
+def _evaluate_observability(summary: Dict[str, Any], min_sample: int = 3) -> Dict[str, Any]:
+    apply_attempts = _safe_int(summary.get("apply_attempts", 0), 0)
+    locator_mode_counts = summary.get("locator_mode_counts", {})
+    error_code_counts = summary.get("error_code_counts", {})
+    hash_gate_bypassed_count = _safe_int(summary.get("hash_gate_bypassed_count", 0), 0)
+    validation_error_fragment_counts = summary.get("validation_error_fragment_counts", {})
+
+    has_locator = isinstance(locator_mode_counts, dict) and len(locator_mode_counts) > 0
+    base_hash_only = (
+        isinstance(error_code_counts, dict)
+        and len(error_code_counts) == 1
+        and _safe_int(error_code_counts.get("BASE_HASH_MISMATCH", 0), 0) == apply_attempts
+        and apply_attempts > 0
+    )
+    bypass_seen = hash_gate_bypassed_count >= 1
+
+    observability_pass = bool(has_locator and not base_hash_only and bypass_seen)
+    reason = "PASS"
+    if not observability_pass:
+        if apply_attempts < max(1, min_sample):
+            reason = "HOLD_LOW_SAMPLE"
+        elif (not bypass_seen) and base_hash_only:
+            reason = "BLOCKED_ENV_GATE"
+        elif has_locator and isinstance(validation_error_fragment_counts, dict):
+            ambiguous = _safe_int(validation_error_fragment_counts.get("ambiguous_candidates", 0), 0)
+            if ambiguous > 0:
+                reason = "BLOCKED_AMBIGUOUS"
+            else:
+                reason = "HOLD_LOW_SAMPLE"
+        else:
+            reason = "HOLD_LOW_SAMPLE"
+
+    return {
+        "kpi_observability_pass": observability_pass,
+        "kpi_observability_reason": reason,
+        "has_locator_mode_counts": has_locator,
+        "base_hash_mismatch_only": base_hash_only,
+        "hash_gate_bypassed_seen": bypass_seen,
+        "apply_attempts": apply_attempts,
     }
 
 
@@ -555,6 +631,7 @@ def _build_comparison_payload(
         improvement_percent = ((baseline_rate - improved_rate) / baseline_rate) * 100.0
     else:
         improvement_percent = 0.0
+    observability = _evaluate_observability(improved_summary if isinstance(improved_summary, dict) else {})
 
     return {
         "generated_at": _dt.datetime.now().isoformat(timespec="seconds"),
@@ -565,6 +642,8 @@ def _build_comparison_payload(
         "improvement_percent": round(improvement_percent, 3),
         "kpi_target_percent": 10.0,
         "kpi_passed": bool(improvement_percent >= 10.0),
+        "kpi_observability_pass": bool(observability.get("kpi_observability_pass", False)),
+        "kpi_observability_reason": str(observability.get("kpi_observability_reason", "HOLD_LOW_SAMPLE")),
     }
 
 
@@ -587,6 +666,171 @@ def _write_json(path: str, payload: Dict[str, Any]) -> str:
 
 def _scenario_to_perturb(scenario: str) -> str:
     return PERTURB_LINE_DRIFT if str(scenario or "") == "drift" else PERTURB_NONE
+
+
+def _parse_float_list(text: str) -> List[float]:
+    raw = [part.strip() for part in str(text or "").split(",")]
+    out: List[float] = []
+    for item in raw:
+        if not item:
+            continue
+        out.append(float(item))
+    return out
+
+
+def _parse_int_list(text: str) -> List[int]:
+    raw = [part.strip() for part in str(text or "").split(",")]
+    out: List[int] = []
+    for item in raw:
+        if not item:
+            continue
+        out.append(int(item))
+    return out
+
+
+def _read_json_file(path: str) -> Dict[str, Any]:
+    with open(path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"invalid json payload (dict required): {path}")
+    return payload
+
+
+def _derive_primary_block_reason(summary: Dict[str, Any]) -> str:
+    if not isinstance(summary, dict):
+        return "HOLD_LOW_SAMPLE"
+    frag = summary.get("validation_error_fragment_counts", {})
+    if isinstance(frag, dict):
+        ambiguous = _safe_int(frag.get("ambiguous_candidates", 0), 0)
+        low_conf = _safe_int(frag.get("low_confidence", 0), 0)
+        drift_exceeded = _safe_int(frag.get("drift_exceeded", 0), 0)
+        if max(ambiguous, low_conf, drift_exceeded) > 0:
+            if ambiguous >= low_conf and ambiguous >= drift_exceeded:
+                return "BLOCKED_AMBIGUOUS"
+            if low_conf >= drift_exceeded:
+                return "BLOCKED_LOW_CONFIDENCE"
+            return "BLOCKED_DRIFT_EXCEEDED"
+    err = summary.get("error_code_counts", {})
+    if isinstance(err, dict):
+        if _safe_int(err.get("ANCHOR_MISMATCH", 0), 0) > 0:
+            return "BLOCKED_ANCHOR_MISMATCH_ONLY"
+        if _safe_int(err.get("BASE_HASH_MISMATCH", 0), 0) > 0:
+            return "BLOCKED_ENV_GATE"
+        if _safe_int(err.get("APPLY_ENGINE_FAILED", 0), 0) > 0:
+            return "BLOCKED_APPLY_ENGINE"
+    return "HOLD_LOW_SAMPLE"
+
+
+def _build_sweep_root_cause_payload(sweep_payload: Dict[str, Any]) -> Dict[str, Any]:
+    rows = sweep_payload.get("rows", []) if isinstance(sweep_payload, dict) else []
+    if not isinstance(rows, list):
+        rows = []
+    aggregate_reason_counts: Dict[str, int] = {}
+    aggregate_fragment_counts = {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0,
+    }
+    analyzed_rows: List[Dict[str, Any]] = []
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        comparison = row.get("comparison", {})
+        if not isinstance(comparison, dict):
+            comparison = {}
+        improved_file = _safe_str(comparison.get("improved_file", ""))
+        improved_payload: Dict[str, Any] = {}
+        improved_summary: Dict[str, Any] = {}
+        if improved_file and os.path.isfile(improved_file):
+            improved_payload = _read_json_file(improved_file)
+            improved_summary = (improved_payload.get("summary", {}) or {})
+            if not isinstance(improved_summary, dict):
+                improved_summary = {}
+
+        frag = improved_summary.get("validation_error_fragment_counts", {})
+        if not isinstance(frag, dict):
+            frag = {}
+        if (
+            _safe_int(frag.get("ambiguous_candidates", 0), 0) == 0
+            and _safe_int(frag.get("low_confidence", 0), 0) == 0
+            and _safe_int(frag.get("drift_exceeded", 0), 0) == 0
+            and isinstance(improved_payload, dict)
+        ):
+            recomputed = {"ambiguous_candidates": 0, "low_confidence": 0, "drift_exceeded": 0}
+            runs = improved_payload.get("runs", [])
+            if isinstance(runs, list):
+                for run in runs:
+                    if not isinstance(run, dict):
+                        continue
+                    apply_payload = run.get("apply", {})
+                    if not isinstance(apply_payload, dict):
+                        continue
+                    validation = apply_payload.get("validation", {})
+                    quality_metrics = apply_payload.get("quality_metrics", {})
+                    if not isinstance(validation, dict):
+                        validation = {}
+                    if not isinstance(quality_metrics, dict):
+                        quality_metrics = {}
+                    errors = validation.get("validation_errors", []) or quality_metrics.get("validation_errors", []) or []
+                    for err in errors:
+                        message = _safe_str(err).lower()
+                        if "ambiguous_candidates" in message:
+                            recomputed["ambiguous_candidates"] += 1
+                        if "low_confidence" in message:
+                            recomputed["low_confidence"] += 1
+                        if "drift_exceeded" in message:
+                            recomputed["drift_exceeded"] += 1
+            frag = recomputed
+        aggregate_fragment_counts["ambiguous_candidates"] += _safe_int(frag.get("ambiguous_candidates", 0), 0)
+        aggregate_fragment_counts["low_confidence"] += _safe_int(frag.get("low_confidence", 0), 0)
+        aggregate_fragment_counts["drift_exceeded"] += _safe_int(frag.get("drift_exceeded", 0), 0)
+
+        observe_pass = bool(comparison.get("kpi_observability_pass", False))
+        improve_pass = bool(comparison.get("kpi_passed", False))
+        if improve_pass:
+            reason = "PASS_10_PERCENT"
+        elif observe_pass:
+            ambiguous = _safe_int(frag.get("ambiguous_candidates", 0), 0)
+            low_conf = _safe_int(frag.get("low_confidence", 0), 0)
+            drift_exceeded = _safe_int(frag.get("drift_exceeded", 0), 0)
+            if ambiguous > 0:
+                reason = "BLOCKED_AMBIGUOUS"
+            elif low_conf > 0:
+                reason = "BLOCKED_LOW_CONFIDENCE"
+            elif drift_exceeded > 0:
+                reason = "BLOCKED_DRIFT_EXCEEDED"
+            else:
+                reason = _derive_primary_block_reason(improved_summary)
+        else:
+            reason = _safe_str(comparison.get("kpi_observability_reason", "")) or "HOLD_LOW_SAMPLE"
+        _increment(aggregate_reason_counts, reason)
+
+        analyzed_rows.append(
+            {
+                "tuning": row.get("tuning", {}),
+                "improvement_percent": _safe_float(comparison.get("improvement_percent", 0.0), 0.0),
+                "kpi_observability_pass": observe_pass,
+                "kpi_10_percent_pass": improve_pass,
+                "reason": reason,
+                "fragment_counts": {
+                    "ambiguous_candidates": _safe_int(frag.get("ambiguous_candidates", 0), 0),
+                    "low_confidence": _safe_int(frag.get("low_confidence", 0), 0),
+                    "drift_exceeded": _safe_int(frag.get("drift_exceeded", 0), 0),
+                },
+                "error_code_counts": improved_summary.get("error_code_counts", {}),
+            }
+        )
+
+    return {
+        "generated_at": _dt.datetime.now().isoformat(timespec="seconds"),
+        "mode": "drift_tuning_sweep_root_cause",
+        "source_sweep_file": _safe_str(sweep_payload.get("_meta_source_file", "")),
+        "row_count": len(analyzed_rows),
+        "aggregate_reason_counts": aggregate_reason_counts,
+        "aggregate_fragment_counts": aggregate_fragment_counts,
+        "rows": analyzed_rows,
+    }
 
 
 def _build_review_markdown(
@@ -614,25 +858,22 @@ def _build_review_markdown(
         lines.append("")
     if drift_comparison:
         improve = _safe_float(drift_comparison.get("improvement_percent", 0.0), 0.0)
-        observe_ok = False
-        if isinstance(drift_improved_summary, dict):
-            locator_counts = drift_improved_summary.get("locator_mode_counts", {})
-            base_hash_counts = drift_improved_summary.get("error_code_counts", {})
-            has_locator = isinstance(locator_counts, dict) and len(locator_counts) > 0
-            base_hash_only = (
-                isinstance(base_hash_counts, dict)
-                and len(base_hash_counts) == 1
-                and _safe_int(base_hash_counts.get("BASE_HASH_MISMATCH", 0), 0)
-                == _safe_int(drift_improved_summary.get("apply_attempts", 0), 0)
-            )
-            observe_ok = bool(has_locator and not base_hash_only)
+        observe_result = _evaluate_observability(drift_improved_summary or {})
+        observe_ok = bool(observe_result.get("kpi_observability_pass", False))
         lines.append("## Drift (benchmark_relaxed)")
         lines.append(f"- baseline_failure_rate: {drift_comparison.get('baseline_failure_rate', 0)}")
         lines.append(f"- improved_failure_rate: {drift_comparison.get('improved_failure_rate', 0)}")
         lines.append(f"- improvement_percent: {improve}")
         lines.append(f"- kpi_observability_pass: {observe_ok}")
+        lines.append(f"- kpi_observability_reason: {observe_result.get('kpi_observability_reason', 'HOLD_LOW_SAMPLE')}")
         lines.append(f"- kpi_10_percent_pass: {bool(improve >= 10.0)}")
         if isinstance(drift_improved_summary, dict):
+            lines.append(
+                f"- hash_gate_bypassed_count: {_safe_int(drift_improved_summary.get('hash_gate_bypassed_count', 0), 0)}"
+            )
+            lines.append(
+                f"- benchmark_observe_mode_counts: {json.dumps(drift_improved_summary.get('benchmark_observe_mode_counts', {}), ensure_ascii=False)}"
+            )
             lines.append(f"- locator_mode_counts: {json.dumps(drift_improved_summary.get('locator_mode_counts', {}), ensure_ascii=False)}")
             lines.append(
                 f"- validation_error_fragment_counts: {json.dumps(drift_improved_summary.get('validation_error_fragment_counts', {}), ensure_ascii=False)}"
@@ -671,6 +912,26 @@ def parse_args() -> argparse.Namespace:
         help="Scenario selector for auto matrix mode",
     )
     parser.add_argument("--auto-run-matrix", action="store_true", help="Run general/drift x baseline/improved matrix")
+    parser.add_argument(
+        "--auto-tune-drift",
+        action="store_true",
+        help="Run drift-only tuning sweep (baseline/improved) and emit best candidate summary",
+    )
+    parser.add_argument(
+        "--sweep-min-confidence",
+        default="0.55,0.65,0.8",
+        help="Comma-separated min-confidence values for --auto-tune-drift",
+    )
+    parser.add_argument(
+        "--sweep-min-gap",
+        default="0.05,0.1,0.15",
+        help="Comma-separated min-gap values for --auto-tune-drift",
+    )
+    parser.add_argument(
+        "--sweep-max-line-drift",
+        default="300,600,900",
+        help="Comma-separated max-line-drift values for --auto-tune-drift",
+    )
     parser.add_argument("--review-output", default="", help="Optional markdown review output path")
     parser.add_argument("--dry-run", action="store_true", help="Print resolved execution plan without calling server APIs")
     parser.add_argument(
@@ -688,11 +949,65 @@ def parse_args() -> argparse.Namespace:
         default="",
         help="Comparison JSON output path (default: docs/perf_baselines/autofix_apply_comparison_<timestamp>.json)",
     )
+    parser.add_argument(
+        "--analyze-sweep-json",
+        default="",
+        help="Analyze an existing drift sweep JSON and generate root-cause summary without re-running API calls",
+    )
+    parser.add_argument(
+        "--analyze-sweep-output",
+        default="",
+        help="Root-cause output JSON path for --analyze-sweep-json",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
+    analyze_sweep_json = _safe_str(getattr(args, "analyze_sweep_json", ""))
+    if analyze_sweep_json:
+        src_abs = os.path.abspath(analyze_sweep_json)
+        if not os.path.isfile(src_abs):
+            raise RuntimeError(f"sweep json not found: {src_abs}")
+        sweep_payload = _read_json_file(src_abs)
+        sweep_payload["_meta_source_file"] = src_abs
+        result = _build_sweep_root_cause_payload(sweep_payload)
+        ts = _timestamp_compact()
+        out_path = _safe_str(getattr(args, "analyze_sweep_output", ""))
+        if not out_path:
+            out_path = os.path.join("docs", "perf_baselines", f"autofix_apply_root_cause_{ts}.json")
+        out_abs = _write_json(out_path, result)
+        print(f"[ok] root-cause written: {out_abs}")
+
+        review_output = _safe_str(getattr(args, "review_output", ""))
+        if not review_output:
+            review_output = os.path.join("docs", "perf_baselines", f"autofix_root_cause_review_{ts}.md")
+        review_lines: List[str] = []
+        review_lines.append("# Autofix KPI Root Cause Review")
+        review_lines.append("")
+        review_lines.append(f"- source_sweep_file: `{src_abs}`")
+        review_lines.append(f"- row_count: {result.get('row_count', 0)}")
+        review_lines.append(f"- aggregate_reason_counts: `{json.dumps(result.get('aggregate_reason_counts', {}), ensure_ascii=False)}`")
+        review_lines.append(
+            f"- aggregate_fragment_counts: `{json.dumps(result.get('aggregate_fragment_counts', {}), ensure_ascii=False)}`"
+        )
+        review_lines.append("")
+        review_lines.append("## Rows")
+        for row in result.get("rows", []):
+            if not isinstance(row, dict):
+                continue
+            tuning = row.get("tuning", {})
+            review_lines.append(
+                f"- c={tuning.get('min_confidence')} g={tuning.get('min_gap')} d={tuning.get('max_line_drift')}: "
+                f"reason={row.get('reason')}, improve={row.get('improvement_percent')}%"
+            )
+        review_abs = os.path.abspath(review_output)
+        os.makedirs(os.path.dirname(review_abs), exist_ok=True)
+        with open(review_abs, "w", encoding="utf-8") as f:
+            f.write("\n".join(review_lines) + "\n")
+        print(f"[ok] root-cause review written: {review_abs}")
+        return 0
+
     selected_files = list(args.selected_files or [])
     if not selected_files and bool(args.dry_run):
         selected_files = ["<auto-discover .ctl files>"]
@@ -726,6 +1041,26 @@ def main() -> int:
         return 0
 
     def _run_payload(mode: str, perturb_mode: str, observe_mode: str, output_path: str) -> Dict[str, Any]:
+        return _run_payload_with_tuning(
+            mode,
+            perturb_mode,
+            observe_mode,
+            output_path,
+            tune_min_confidence=args.tune_min_confidence,
+            tune_min_gap=args.tune_min_gap,
+            tune_max_line_drift=args.tune_max_line_drift,
+        )
+
+    def _run_payload_with_tuning(
+        mode: str,
+        perturb_mode: str,
+        observe_mode: str,
+        output_path: str,
+        *,
+        tune_min_confidence: Optional[float],
+        tune_min_gap: Optional[float],
+        tune_max_line_drift: Optional[int],
+    ) -> Dict[str, Any]:
         runs: List[Dict[str, Any]] = []
         for _ in range(max(1, int(args.iterations))):
             runs.append(
@@ -735,9 +1070,10 @@ def main() -> int:
                     int(args.timeout_sec),
                     perturb_mode,
                     observe_mode,
-                    tune_min_confidence=args.tune_min_confidence,
-                    tune_min_gap=args.tune_min_gap,
-                    tune_max_line_drift=args.tune_max_line_drift,
+                    apply_tuning_headers=(str(mode) == MODE_IMPROVED),
+                    tune_min_confidence=tune_min_confidence,
+                    tune_min_gap=tune_min_gap,
+                    tune_max_line_drift=tune_max_line_drift,
                 )
             )
         payload = {
@@ -755,15 +1091,151 @@ def main() -> int:
             "kpi_observe_mode": str(observe_mode),
             "benchmark_mode_warning": bool(str(observe_mode) == OBSERVE_BENCHMARK_RELAXED),
             "not_for_production": bool(str(observe_mode) == OBSERVE_BENCHMARK_RELAXED),
-            "tune_min_confidence": args.tune_min_confidence,
-            "tune_min_gap": args.tune_min_gap,
-            "tune_max_line_drift": args.tune_max_line_drift,
+            "tune_min_confidence": tune_min_confidence,
+            "tune_min_gap": tune_min_gap,
+            "tune_max_line_drift": tune_max_line_drift,
         }
         written = _write_json(output_path, payload)
         payload["_meta_output_path"] = written
         _write_json(written, payload)
         print(f"[ok] metrics written: {written}")
         return payload
+
+    if bool(args.auto_tune_drift):
+        ts = _timestamp_compact()
+        output_root = out_abs if os.path.isdir(out_abs) else os.path.dirname(out_abs)
+        if not output_root:
+            output_root = os.path.join("docs", "perf_baselines")
+        os.makedirs(output_root, exist_ok=True)
+
+        min_conf_values = _parse_float_list(args.sweep_min_confidence)
+        min_gap_values = _parse_float_list(args.sweep_min_gap)
+        max_drift_values = _parse_int_list(args.sweep_max_line_drift)
+        if not min_conf_values or not min_gap_values or not max_drift_values:
+            raise RuntimeError("auto-tune-drift sweep values must not be empty")
+
+        sweep_rows: List[Dict[str, Any]] = []
+        best_row: Optional[Dict[str, Any]] = None
+        combo_index = 0
+
+        for min_conf in min_conf_values:
+            for min_gap in min_gap_values:
+                for max_drift in max_drift_values:
+                    combo_index += 1
+                    suffix = f"drift_tune_{combo_index:02d}_c{str(min_conf).replace('.', '_')}_g{str(min_gap).replace('.', '_')}_d{max_drift}"
+                    base_path = os.path.join(output_root, f"autofix_apply_baseline_{ts}_{suffix}.json")
+                    imp_path = os.path.join(output_root, f"autofix_apply_improved_{ts}_{suffix}.json")
+                    baseline_payload = _run_payload_with_tuning(
+                        MODE_BASELINE,
+                        _scenario_to_perturb("drift"),
+                        OBSERVE_BENCHMARK_RELAXED,
+                        base_path,
+                        tune_min_confidence=min_conf,
+                        tune_min_gap=min_gap,
+                        tune_max_line_drift=max_drift,
+                    )
+                    improved_payload = _run_payload_with_tuning(
+                        MODE_IMPROVED,
+                        _scenario_to_perturb("drift"),
+                        OBSERVE_BENCHMARK_RELAXED,
+                        imp_path,
+                        tune_min_confidence=min_conf,
+                        tune_min_gap=min_gap,
+                        tune_max_line_drift=max_drift,
+                    )
+                    comparison = _build_comparison_payload(baseline_payload, improved_payload)
+                    comp_path = os.path.join(output_root, f"autofix_apply_comparison_{ts}_{suffix}.json")
+                    _write_json(comp_path, comparison)
+                    print(f"[ok] comparison written: {os.path.abspath(comp_path)}")
+
+                    row = {
+                        "tuning": {
+                            "min_confidence": min_conf,
+                            "min_gap": min_gap,
+                            "max_line_drift": max_drift,
+                        },
+                        "comparison_file": os.path.abspath(comp_path),
+                        "comparison": comparison,
+                    }
+                    sweep_rows.append(row)
+
+                    if best_row is None:
+                        best_row = row
+                    else:
+                        cur_obs = bool(row["comparison"].get("kpi_observability_pass", False))
+                        best_obs = bool(best_row["comparison"].get("kpi_observability_pass", False))
+                        cur_imp = _safe_float(row["comparison"].get("improvement_percent", 0.0), 0.0)
+                        best_imp = _safe_float(best_row["comparison"].get("improvement_percent", 0.0), 0.0)
+                        if (cur_obs and not best_obs) or (cur_obs == best_obs and cur_imp > best_imp):
+                            best_row = row
+
+        sweep_payload = {
+            "generated_at": _dt.datetime.now().isoformat(timespec="seconds"),
+            "server_url": str(args.server_url),
+            "mode": "drift_tuning_sweep",
+            "iterations": max(1, int(args.iterations)),
+            "selected_files": selected_files,
+            "sweep_values": {
+                "min_confidence": min_conf_values,
+                "min_gap": min_gap_values,
+                "max_line_drift": max_drift_values,
+            },
+            "row_count": len(sweep_rows),
+            "rows": sweep_rows,
+            "best": best_row or {},
+        }
+        sweep_path = os.path.join(output_root, f"autofix_apply_sweep_{ts}_drift.json")
+        sweep_abs = _write_json(sweep_path, sweep_payload)
+        print(f"[ok] sweep written: {sweep_abs}")
+        sweep_payload["_meta_source_file"] = sweep_abs
+        root_cause_payload = _build_sweep_root_cause_payload(sweep_payload)
+        root_cause_path = os.path.join(output_root, f"autofix_apply_root_cause_{ts}_drift.json")
+        root_cause_abs = _write_json(root_cause_path, root_cause_payload)
+        print(f"[ok] root-cause written: {root_cause_abs}")
+
+        review_output = str(args.review_output or "").strip()
+        if not review_output:
+            review_output = os.path.join(output_root, f"autofix_review_{ts}.md")
+        lines: List[str] = []
+        lines.append("# Autofix KPI Drift Tuning Sweep")
+        lines.append("")
+        lines.append(f"- generated_at: {_dt.datetime.now().isoformat(timespec='seconds')}")
+        lines.append(f"- row_count: {len(sweep_rows)}")
+        if best_row:
+            bcmp = best_row.get("comparison", {})
+            bt = best_row.get("tuning", {})
+            lines.append("- best_candidate:")
+            lines.append(f"  - min_confidence: {bt.get('min_confidence')}")
+            lines.append(f"  - min_gap: {bt.get('min_gap')}")
+            lines.append(f"  - max_line_drift: {bt.get('max_line_drift')}")
+            lines.append(f"  - kpi_observability_pass: {bcmp.get('kpi_observability_pass')}")
+            lines.append(f"  - kpi_observability_reason: {bcmp.get('kpi_observability_reason')}")
+            lines.append(f"  - improvement_percent: {bcmp.get('improvement_percent')}")
+            lines.append(f"  - kpi_10_percent_pass: {bcmp.get('kpi_passed')}")
+        lines.append("")
+        lines.append("## Sweep Rows")
+        for row in sweep_rows:
+            t = row.get("tuning", {})
+            c = row.get("comparison", {})
+            lines.append(
+                f"- c={t.get('min_confidence')} g={t.get('min_gap')} d={t.get('max_line_drift')}: "
+                f"obs={c.get('kpi_observability_pass')}/{c.get('kpi_observability_reason')}, "
+                f"improve={c.get('improvement_percent')}%"
+            )
+        lines.append("")
+        lines.append("## Root Cause Aggregate")
+        lines.append(
+            f"- aggregate_reason_counts: {json.dumps(root_cause_payload.get('aggregate_reason_counts', {}), ensure_ascii=False)}"
+        )
+        lines.append(
+            f"- aggregate_fragment_counts: {json.dumps(root_cause_payload.get('aggregate_fragment_counts', {}), ensure_ascii=False)}"
+        )
+        review_abs = os.path.abspath(review_output)
+        os.makedirs(os.path.dirname(review_abs), exist_ok=True)
+        with open(review_abs, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines) + "\n")
+        print(f"[ok] review written: {review_abs}")
+        return 0
 
     if bool(args.auto_run_matrix):
         ts = _timestamp_compact()
