@@ -368,3 +368,28 @@ Note on hash gate and KPI observability:
 - Therefore, anchor mismatch KPI should be interpreted with this constraint and validated either:
   - on naturally drifting real sessions where proposal hash still matches (rare), or
   - via dedicated benchmark harness/server test hook that can safely simulate post-hash pre-anchor conditions.
+
+## 8. Structured Instruction Observability (T3-2)
+
+`tools/perf/autofix_apply_baseline.py` now emits instruction-path observability metrics from apply validation/quality payloads.
+
+Core summary metrics:
+- `instruction_apply_rate`
+- `instruction_fallback_rate`
+- `instruction_validation_fail_rate`
+- `instruction_mode_counts`
+- `instruction_fail_stage_distribution`
+
+Rollout decision fields (comparison JSON):
+- `rollout_ready`
+- `rollout_checks`
+- `rollout_criteria`
+
+Current rollout criteria (flag default remains OFF):
+- `instruction_apply_rate >= 0.70`
+- `instruction_validation_fail_rate <= 0.20`
+- `REGRESSION_BLOCKED == 0`
+
+Interpretation:
+- If `rollout_ready=false`, keep `autofix.engine.structured_instruction_enabled=false`.
+- Use `instruction_fail_stage_distribution` + `instruction_validation_fail_by_reason` to prioritize fixes (`validate` -> schema issues, `convert` -> conversion issues, `apply` -> engine/runtime issues).

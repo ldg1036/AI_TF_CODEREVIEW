@@ -621,8 +621,12 @@ class ApiIntegrationTests(unittest.TestCase):
         validation = apply_payload.get("validation", {})
         self.assertEqual(str(validation.get("instruction_mode", "")), "applied")
         self.assertTrue(bool(validation.get("instruction_apply_success", False)))
+        self.assertEqual(str(validation.get("instruction_path_reason", "")), "applied")
+        self.assertEqual(str(validation.get("instruction_failure_stage", "")), "none")
         self.assertIn(str(validation.get("instruction_operation", "")), ("insert", "replace"))
         self.assertGreaterEqual(int(validation.get("instruction_operation_count", 0) or 0), 1)
+        self.assertGreaterEqual(int(validation.get("instruction_candidate_hunk_count", 0) or 0), 1)
+        self.assertGreaterEqual(int(validation.get("instruction_applied_hunk_count", 0) or 0), 1)
         stats_status, stats_payload = self._request(
             "GET",
             "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
@@ -631,6 +635,7 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertGreaterEqual(int(stats_payload.get("instruction_attempt_count", 0) or 0), 1)
         self.assertGreaterEqual(int(stats_payload.get("instruction_apply_success_count", 0) or 0), 1)
         self.assertGreaterEqual(int(stats_payload.get("instruction_operation_total_count", 0) or 0), 1)
+        self.assertGreaterEqual(int((stats_payload.get("instruction_mode_counts", {}) or {}).get("applied", 0) or 0), 1)
 
     def test_autofix_instruction_invalid_falls_back_to_hunks(self):
         self._force_single_internal_violation()
@@ -686,6 +691,8 @@ class ApiIntegrationTests(unittest.TestCase):
         validation = apply_payload.get("validation", {})
         self.assertEqual(str(validation.get("instruction_mode", "")), "fallback_hunks")
         self.assertFalse(bool(validation.get("instruction_apply_success", True)))
+        self.assertEqual(str(validation.get("instruction_path_reason", "")), "validation_failed")
+        self.assertEqual(str(validation.get("instruction_failure_stage", "")), "validate")
         self.assertTrue(len(validation.get("instruction_validation_errors", []) or []) >= 1)
         self.assertGreaterEqual(int(validation.get("instruction_operation_count", 0) or 0), 1)
         stats_status, stats_payload = self._request(
@@ -696,6 +703,130 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertGreaterEqual(int(stats_payload.get("instruction_attempt_count", 0) or 0), 1)
         self.assertGreaterEqual(int(stats_payload.get("instruction_validation_fail_count", 0) or 0), 1)
         self.assertGreaterEqual(int(stats_payload.get("instruction_fallback_to_hunk_count", 0) or 0), 1)
+        self.assertGreaterEqual(int((stats_payload.get("instruction_mode_counts", {}) or {}).get("fallback_hunks", 0) or 0), 1)
+        self.assertTrue(bool(stats_payload.get("instruction_validation_fail_by_reason", {})))
+
+    def test_autofix_instruction_convert_fail_records_stage_and_stats(self):
+        import main as main_module
+
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        self.app.autofix_structured_instruction_enabled = True
+        original_to_hunks = main_module.instruction_to_hunks
+        main_module.instruction_to_hunks = lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("forced_convert_fail"))
+        try:
+            status, analyze_payload = self._request(
+                "POST",
+                "/api/analyze",
+                {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+            )
+            self.assertEqual(status, 200)
+            ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+            prepare_status, prepare_payload = self._request(
+                "POST",
+                "/api/autofix/prepare",
+                {
+                    "file": "sample.ctl",
+                    "object": ai_review.get("object", "sample.ctl"),
+                    "event": ai_review.get("event", "Global"),
+                    "review": ai_review.get("review", ""),
+                    "session_id": analyze_payload.get("output_dir", ""),
+                },
+            )
+            self.assertEqual(prepare_status, 200)
+            apply_status, apply_payload = self._request(
+                "POST",
+                "/api/autofix/apply",
+                {
+                    "proposal_id": prepare_payload.get("proposal_id"),
+                    "session_id": analyze_payload.get("output_dir", ""),
+                    "file": "sample.ctl",
+                    "expected_base_hash": prepare_payload.get("base_hash"),
+                    "apply_mode": "source_ctl",
+                    "block_on_regression": False,
+                },
+            )
+            self.assertEqual(apply_status, 200)
+            validation = apply_payload.get("validation", {})
+            self.assertEqual(str(validation.get("instruction_mode", "")), "fallback_hunks")
+            self.assertEqual(str(validation.get("instruction_failure_stage", "")), "convert")
+            self.assertEqual(str(validation.get("instruction_path_reason", "")), "fallback_hunks")
+            stats_status, stats_payload = self._request(
+                "GET",
+                "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
+            )
+            self.assertEqual(stats_status, 200)
+            self.assertGreaterEqual(int(stats_payload.get("instruction_convert_fail_count", 0) or 0), 1)
+        finally:
+            main_module.instruction_to_hunks = original_to_hunks
+
+    def test_autofix_instruction_engine_fail_records_stage_and_stats(self):
+        import main as main_module
+
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        self.app.autofix_structured_instruction_enabled = True
+        original_apply_with_engine = main_module.apply_with_engine
+        call_state = {"count": 0}
+
+        def _patched_apply_with_engine(*args, **kwargs):
+            call_state["count"] += 1
+            if call_state["count"] == 1:
+                return {"ok": False, "engine_mode": "failed", "fallback_reason": "forced_engine_fail"}
+            return original_apply_with_engine(*args, **kwargs)
+
+        main_module.apply_with_engine = _patched_apply_with_engine
+        try:
+            status, analyze_payload = self._request(
+                "POST",
+                "/api/analyze",
+                {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+            )
+            self.assertEqual(status, 200)
+            ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+            prepare_status, prepare_payload = self._request(
+                "POST",
+                "/api/autofix/prepare",
+                {
+                    "file": "sample.ctl",
+                    "object": ai_review.get("object", "sample.ctl"),
+                    "event": ai_review.get("event", "Global"),
+                    "review": ai_review.get("review", ""),
+                    "session_id": analyze_payload.get("output_dir", ""),
+                },
+            )
+            self.assertEqual(prepare_status, 200)
+            apply_status, apply_payload = self._request(
+                "POST",
+                "/api/autofix/apply",
+                {
+                    "proposal_id": prepare_payload.get("proposal_id"),
+                    "session_id": analyze_payload.get("output_dir", ""),
+                    "file": "sample.ctl",
+                    "expected_base_hash": prepare_payload.get("base_hash"),
+                    "apply_mode": "source_ctl",
+                    "block_on_regression": False,
+                },
+            )
+            self.assertEqual(apply_status, 200)
+            validation = apply_payload.get("validation", {})
+            self.assertEqual(str(validation.get("instruction_mode", "")), "fallback_hunks")
+            self.assertEqual(str(validation.get("instruction_failure_stage", "")), "apply")
+            self.assertEqual(str(validation.get("instruction_path_reason", "")), "engine_failed")
+            stats_status, stats_payload = self._request(
+                "GET",
+                "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
+            )
+            self.assertEqual(stats_status, 200)
+            self.assertGreaterEqual(int(stats_payload.get("instruction_engine_fail_count", 0) or 0), 1)
+        finally:
+            main_module.apply_with_engine = original_apply_with_engine
 
     def test_autofix_compare_proposals_include_structured_instruction_envelope(self):
         self._force_single_internal_violation()

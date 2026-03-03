@@ -11,7 +11,7 @@
 - `[ ] 미완료`: 아직 구현되지 않음
 
 ## 전체 요약
-- 완료: `149`
+- 완료: `150`
 - 부분완료: `1`
 - 미완료: `0`
 - 비고: 상단 요약은 문서 전체 체크마크(`todo.md`) 기준 재집계값이며, GoldenTime 기준 Excel 비교/품질게이트/릴리즈 체크리스트 제거 결정(P1/P2/P3 기준 재정의)을 반영함.
@@ -436,6 +436,7 @@
 - [x] 구조화 수정 지시(JSON) 스키마/적용 계획 문서화 (`docs/autofix_engine_roadmap.md`)
 - [x] parser/토큰 엔진이 실제 patch 생성/적용 담당 (T3-1 실사용 1차 완료: rule/llm 공통 structured instruction(`operations[]`) 생성, feature flag ON 시 instruction-first apply, 실패 시 hunk fallback)
 - [x] 복수 후보(rule/llm) 비교와 결합 가능한 구조로 설계 (compare 후보 공통 structured instruction envelope + selection policy(`instruction_validity_then_syntax_then_rule`) + score/reason 메타 및 프론트 표시 반영)
+- [x] T3-2 관측성/운영판단 고도화 (instruction path/stage 메타 + stats(`instruction_engine_fail_count`, `instruction_convert_fail_count`, `instruction_validation_fail_by_reason`, `instruction_mode_counts`) + perf rollout 기준(`apply_rate>=70%`, `validation_fail_rate<=20%`, `REGRESSION_BLOCKED=0`) 반영)
 
 #### 리스크 / 주의점
 - WinCC OA 문법 커버리지 부족 시 parser 유지보수 부담 증가

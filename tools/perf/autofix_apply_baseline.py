@@ -420,6 +420,10 @@ def _build_summary(runs: List[Dict[str, Any]], mode: str) -> Dict[str, Any]:
             "token_fallback_success_rate": 0.0,
             "token_fallback_ambiguous_rate": 0.0,
             "kpi_anchor_failure_rate": 0.0,
+            "instruction_apply_rate": 0.0,
+            "instruction_fallback_rate": 0.0,
+            "instruction_validation_fail_rate": 0.0,
+            "instruction_fail_stage_distribution": {},
         }
 
     apply_attempts = run_count
@@ -444,6 +448,12 @@ def _build_summary(runs: List[Dict[str, Any]], mode: str) -> Dict[str, Any]:
     hash_gate_bypassed_count = 0
     benchmark_observe_mode_counts: Dict[str, int] = {}
     stats_consistency_mismatch_count = 0
+    instruction_mode_counts: Dict[str, int] = {}
+    instruction_fail_stage_distribution: Dict[str, int] = {}
+    instruction_attempt_count = 0
+    instruction_apply_success_count = 0
+    instruction_fallback_count = 0
+    instruction_validation_fail_count = 0
 
     for run in runs:
         apply_payload = run.get("apply", {}) if isinstance(run, dict) else {}
@@ -533,6 +543,37 @@ def _build_summary(runs: List[Dict[str, Any]], mode: str) -> Dict[str, Any]:
             if locator_token and not attempted:
                 stats_consistency_mismatch_count += 1
 
+            instruction_mode = _safe_str(validation.get("instruction_mode", ""))
+            if not instruction_mode:
+                instruction_mode = _safe_str(quality_metrics.get("instruction_mode", "off"))
+            if not instruction_mode:
+                instruction_mode = "off"
+            _increment(instruction_mode_counts, instruction_mode)
+
+            instruction_path_reason = _safe_str(validation.get("instruction_path_reason", ""))
+            if not instruction_path_reason:
+                instruction_path_reason = _safe_str(quality_metrics.get("instruction_path_reason", "off"))
+            if not instruction_path_reason:
+                instruction_path_reason = "off"
+
+            instruction_failure_stage = _safe_str(validation.get("instruction_failure_stage", ""))
+            if not instruction_failure_stage:
+                instruction_failure_stage = _safe_str(quality_metrics.get("instruction_failure_stage", "none"))
+            if not instruction_failure_stage:
+                instruction_failure_stage = "none"
+            _increment(instruction_fail_stage_distribution, instruction_failure_stage)
+
+            if instruction_mode != "off" or instruction_path_reason not in ("", "off"):
+                instruction_attempt_count += 1
+            if bool(validation.get("instruction_apply_success", False)) or bool(
+                quality_metrics.get("instruction_apply_success", False)
+            ):
+                instruction_apply_success_count += 1
+            if instruction_mode == "fallback_hunks" or instruction_path_reason == "fallback_hunks":
+                instruction_fallback_count += 1
+            if instruction_failure_stage == "validate" or instruction_path_reason == "validation_failed":
+                instruction_validation_fail_count += 1
+
     apply_success_rate = (apply_success_count / apply_attempts) if apply_attempts else 0.0
     actual_anchor_failure_rate = (anchor_mismatch_failure_count / apply_attempts) if apply_attempts else 0.0
     token_fallback_success_rate = (
@@ -548,6 +589,16 @@ def _build_summary(runs: List[Dict[str, Any]], mode: str) -> Dict[str, Any]:
         kpi_anchor_failure_rate = (min(anchor_mismatch_count, apply_attempts) / apply_attempts) if apply_attempts else 0.0
     else:
         kpi_anchor_failure_rate = actual_anchor_failure_rate
+
+    instruction_apply_rate = (
+        instruction_apply_success_count / instruction_attempt_count if instruction_attempt_count else 0.0
+    )
+    instruction_fallback_rate = (
+        instruction_fallback_count / instruction_attempt_count if instruction_attempt_count else 0.0
+    )
+    instruction_validation_fail_rate = (
+        instruction_validation_fail_count / instruction_attempt_count if instruction_attempt_count else 0.0
+    )
 
     return {
         "mode": mode,
@@ -574,6 +625,15 @@ def _build_summary(runs: List[Dict[str, Any]], mode: str) -> Dict[str, Any]:
         "hash_gate_bypassed_count": hash_gate_bypassed_count,
         "benchmark_observe_mode_counts": benchmark_observe_mode_counts,
         "stats_consistency_mismatch_count": stats_consistency_mismatch_count,
+        "instruction_attempt_count": instruction_attempt_count,
+        "instruction_apply_success_count": instruction_apply_success_count,
+        "instruction_fallback_count": instruction_fallback_count,
+        "instruction_validation_fail_count": instruction_validation_fail_count,
+        "instruction_apply_rate": round(instruction_apply_rate, 6),
+        "instruction_fallback_rate": round(instruction_fallback_rate, 6),
+        "instruction_validation_fail_rate": round(instruction_validation_fail_rate, 6),
+        "instruction_mode_counts": instruction_mode_counts,
+        "instruction_fail_stage_distribution": instruction_fail_stage_distribution,
     }
 
 
@@ -632,6 +692,32 @@ def _build_comparison_payload(
     else:
         improvement_percent = 0.0
     observability = _evaluate_observability(improved_summary if isinstance(improved_summary, dict) else {})
+    improved_instruction_apply_rate = _safe_float(improved_summary.get("instruction_apply_rate", 0.0), 0.0)
+    improved_instruction_validation_fail_rate = _safe_float(
+        improved_summary.get("instruction_validation_fail_rate", 0.0), 0.0
+    )
+    improved_regression_blocked = 0
+    if isinstance(improved_summary, dict):
+        err_counts = improved_summary.get("error_code_counts", {})
+        if isinstance(err_counts, dict):
+            improved_regression_blocked = _safe_int(err_counts.get("REGRESSION_BLOCKED", 0), 0)
+    rollout_criteria = {
+        "instruction_apply_rate_min": 0.70,
+        "instruction_validation_fail_rate_max": 0.20,
+        "safety_gate_regression_max": 0,
+    }
+    rollout_checks = {
+        "instruction_apply_rate_ok": bool(improved_instruction_apply_rate >= rollout_criteria["instruction_apply_rate_min"]),
+        "instruction_validation_fail_rate_ok": bool(
+            improved_instruction_validation_fail_rate <= rollout_criteria["instruction_validation_fail_rate_max"]
+        ),
+        "safety_gate_regression_ok": bool(improved_regression_blocked <= rollout_criteria["safety_gate_regression_max"]),
+    }
+    rollout_ready = bool(
+        rollout_checks["instruction_apply_rate_ok"]
+        and rollout_checks["instruction_validation_fail_rate_ok"]
+        and rollout_checks["safety_gate_regression_ok"]
+    )
 
     return {
         "generated_at": _dt.datetime.now().isoformat(timespec="seconds"),
@@ -644,6 +730,16 @@ def _build_comparison_payload(
         "kpi_passed": bool(improvement_percent >= 10.0),
         "kpi_observability_pass": bool(observability.get("kpi_observability_pass", False)),
         "kpi_observability_reason": str(observability.get("kpi_observability_reason", "HOLD_LOW_SAMPLE")),
+        "instruction_apply_rate": round(improved_instruction_apply_rate, 6),
+        "instruction_validation_fail_rate": round(improved_instruction_validation_fail_rate, 6),
+        "instruction_fail_stage_distribution": (
+            dict(improved_summary.get("instruction_fail_stage_distribution", {}))
+            if isinstance(improved_summary.get("instruction_fail_stage_distribution", {}), dict)
+            else {}
+        ),
+        "rollout_criteria": rollout_criteria,
+        "rollout_checks": rollout_checks,
+        "rollout_ready": rollout_ready,
     }
 
 
@@ -867,6 +963,15 @@ def _build_review_markdown(
         lines.append(f"- kpi_observability_pass: {observe_ok}")
         lines.append(f"- kpi_observability_reason: {observe_result.get('kpi_observability_reason', 'HOLD_LOW_SAMPLE')}")
         lines.append(f"- kpi_10_percent_pass: {bool(improve >= 10.0)}")
+        lines.append(f"- instruction_apply_rate: {drift_comparison.get('instruction_apply_rate', 0)}")
+        lines.append(f"- instruction_validation_fail_rate: {drift_comparison.get('instruction_validation_fail_rate', 0)}")
+        lines.append(
+            f"- instruction_fail_stage_distribution: {json.dumps(drift_comparison.get('instruction_fail_stage_distribution', {}), ensure_ascii=False)}"
+        )
+        lines.append(f"- rollout_ready: {bool(drift_comparison.get('rollout_ready', False))}")
+        lines.append(
+            f"- rollout_checks: {json.dumps(drift_comparison.get('rollout_checks', {}), ensure_ascii=False)}"
+        )
         if isinstance(drift_improved_summary, dict):
             lines.append(
                 f"- hash_gate_bypassed_count: {_safe_int(drift_improved_summary.get('hash_gate_bypassed_count', 0), 0)}"

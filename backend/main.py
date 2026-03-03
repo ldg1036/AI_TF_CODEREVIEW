@@ -125,6 +125,10 @@ class AutoFixQualityMetrics(TypedDict, total=False):
     instruction_operation: str
     instruction_operation_count: int
     instruction_apply_success: bool
+    instruction_path_reason: str
+    instruction_failure_stage: str
+    instruction_candidate_hunk_count: int
+    instruction_applied_hunk_count: int
 
 
 class AutoFixApplyError(RuntimeError):
@@ -646,6 +650,10 @@ class CodeInspectorApp:
         instruction_operation: str = "",
         instruction_operation_count: int = 0,
         instruction_apply_success: bool = False,
+        instruction_path_reason: str = "off",
+        instruction_failure_stage: str = "none",
+        instruction_candidate_hunk_count: int = 0,
+        instruction_applied_hunk_count: int = 0,
     ) -> AutoFixQualityMetrics:
         return {
             "proposal_id": str(proposal_id or ""),
@@ -679,6 +687,10 @@ class CodeInspectorApp:
             "instruction_operation": str(instruction_operation or ""),
             "instruction_operation_count": int(instruction_operation_count or 0),
             "instruction_apply_success": bool(instruction_apply_success),
+            "instruction_path_reason": str(instruction_path_reason or "off"),
+            "instruction_failure_stage": str(instruction_failure_stage or "none"),
+            "instruction_candidate_hunk_count": int(instruction_candidate_hunk_count or 0),
+            "instruction_applied_hunk_count": int(instruction_applied_hunk_count or 0),
         }
 
     def _autofix_apply_error(
@@ -969,6 +981,20 @@ class CodeInspectorApp:
         stats.setdefault("instruction_fallback_to_hunk_count", 0)
         stats.setdefault("instruction_validation_fail_count", 0)
         stats.setdefault("instruction_operation_total_count", 0)
+        stats.setdefault("instruction_engine_fail_count", 0)
+        stats.setdefault("instruction_convert_fail_count", 0)
+        mode_counts = stats.setdefault("instruction_mode_counts", {"off": 0, "attempted": 0, "applied": 0, "fallback_hunks": 0})
+        if not isinstance(mode_counts, dict):
+            mode_counts = {"off": 0, "attempted": 0, "applied": 0, "fallback_hunks": 0}
+            stats["instruction_mode_counts"] = mode_counts
+        mode_counts.setdefault("off", 0)
+        mode_counts.setdefault("attempted", 0)
+        mode_counts.setdefault("applied", 0)
+        mode_counts.setdefault("fallback_hunks", 0)
+        validation_fail_by_reason = stats.setdefault("instruction_validation_fail_by_reason", {})
+        if not isinstance(validation_fail_by_reason, dict):
+            validation_fail_by_reason = {}
+            stats["instruction_validation_fail_by_reason"] = validation_fail_by_reason
         engine_counts = stats.setdefault("selected_apply_engine_mode", {"structure_apply": 0, "text_fallback": 0})
         if not isinstance(engine_counts, dict):
             engine_counts = {"structure_apply": 0, "text_fallback": 0}
@@ -2326,6 +2352,18 @@ class CodeInspectorApp:
                 "instruction_operation_total_count": self._safe_int(
                     extra_stats.get("instruction_operation_total_count", 0), 0
                 ),
+                "instruction_engine_fail_count": self._safe_int(
+                    extra_stats.get("instruction_engine_fail_count", 0), 0
+                ),
+                "instruction_convert_fail_count": self._safe_int(
+                    extra_stats.get("instruction_convert_fail_count", 0), 0
+                ),
+                "instruction_mode_counts": dict(extra_stats.get("instruction_mode_counts", {}))
+                if isinstance(extra_stats.get("instruction_mode_counts", {}), dict)
+                else {"off": 0, "attempted": 0, "applied": 0, "fallback_hunks": 0},
+                "instruction_validation_fail_by_reason": dict(extra_stats.get("instruction_validation_fail_by_reason", {}))
+                if isinstance(extra_stats.get("instruction_validation_fail_by_reason", {}), dict)
+                else {},
                 "selected_apply_engine_mode": dict(extra_stats.get("selected_apply_engine_mode", {}))
                 if isinstance(extra_stats.get("selected_apply_engine_mode", {}), dict)
                 else {"structure_apply": 0, "text_fallback": 0},
@@ -2531,6 +2569,12 @@ class CodeInspectorApp:
             instruction_operation = ""
             instruction_operation_count = 0
             instruction_apply_success = False
+            instruction_path_reason = "off"
+            instruction_failure_stage = "none"
+            instruction_candidate_hunk_count = 0
+            instruction_applied_hunk_count = 0
+            instruction_observability_recorded = False
+            instruction_recorded_mode = "off"
             if benchmark_observe_enabled:
                 if benchmark_tuning_min_confidence is not None:
                     token_min_confidence_used = float(benchmark_tuning_min_confidence)
@@ -2559,7 +2603,28 @@ class CodeInspectorApp:
                 payload["instruction_operation"] = str(instruction_operation or "")
                 payload["instruction_operation_count"] = int(instruction_operation_count or 0)
                 payload["instruction_apply_success"] = bool(instruction_apply_success)
+                payload["instruction_path_reason"] = str(instruction_path_reason or "off")
+                payload["instruction_failure_stage"] = str(instruction_failure_stage or "none")
+                payload["instruction_candidate_hunk_count"] = int(instruction_candidate_hunk_count or 0)
+                payload["instruction_applied_hunk_count"] = int(instruction_applied_hunk_count or 0)
                 return payload
+
+            def _record_instruction_observability(final_mode: Optional[str] = None):
+                nonlocal instruction_observability_recorded, instruction_recorded_mode
+                if instruction_observability_recorded:
+                    return
+                mode = str(final_mode or instruction_mode or "off")
+                if mode not in ("off", "attempted", "applied", "fallback_hunks"):
+                    mode = "off"
+                with session["lock"]:
+                    stats = self._autofix_session_stats(session)
+                    mode_counts = stats.get("instruction_mode_counts", {})
+                    if not isinstance(mode_counts, dict):
+                        mode_counts = {"off": 0, "attempted": 0, "applied": 0, "fallback_hunks": 0}
+                        stats["instruction_mode_counts"] = mode_counts
+                    mode_counts[mode] = self._safe_int(mode_counts.get(mode, 0), 0) + 1
+                instruction_recorded_mode = mode
+                instruction_observability_recorded = True
 
             hash_gate_bypassed = False
             if not hash_match and not benchmark_observe_enabled:
@@ -2574,6 +2639,7 @@ class CodeInspectorApp:
                     validation_errors=[],
                 ))
                 self._mark_autofix_proposal_failure(session, proposal, error_code="BASE_HASH_MISMATCH", quality_metrics=quality_metrics)
+                _record_instruction_observability()
                 raise self._autofix_apply_error(
                     "Autofix base hash mismatch. Re-run analysis and prepare a new diff.",
                     error_code="BASE_HASH_MISMATCH",
@@ -2589,6 +2655,8 @@ class CodeInspectorApp:
             structured_instruction_raw = proposal.get("_structured_instruction")
             if self.autofix_structured_instruction_enabled and isinstance(structured_instruction_raw, dict):
                 instruction_mode = "attempted"
+                instruction_path_reason = "attempted"
+                instruction_failure_stage = "none"
                 with session["lock"]:
                     stats = self._autofix_session_stats(session)
                     stats["instruction_attempt_count"] = self._safe_int(
@@ -2621,20 +2689,28 @@ class CodeInspectorApp:
                 if valid_instruction:
                     try:
                         structured_instruction_hunks = instruction_to_hunks(normalized_instruction)
+                        instruction_candidate_hunk_count = len([h for h in structured_instruction_hunks if isinstance(h, dict)])
                         apply_hunks = list(structured_instruction_hunks)
                         instruction_hunks_active = True
                     except Exception as exc:
                         instruction_validation_errors.append(f"instruction_to_hunks failed: {exc}")
                         instruction_mode = "fallback_hunks"
+                        instruction_path_reason = "fallback_hunks"
+                        instruction_failure_stage = "convert"
                         with session["lock"]:
                             stats = self._autofix_session_stats(session)
                             stats["instruction_fallback_to_hunk_count"] = self._safe_int(
                                 stats.get("instruction_fallback_to_hunk_count", 0), 0
                             ) + 1
+                            stats["instruction_convert_fail_count"] = self._safe_int(
+                                stats.get("instruction_convert_fail_count", 0), 0
+                            ) + 1
                         apply_hunks = list(base_hunks)
                         instruction_hunks_active = False
                 else:
                     instruction_mode = "fallback_hunks"
+                    instruction_path_reason = "validation_failed"
+                    instruction_failure_stage = "validate"
                     with session["lock"]:
                         stats = self._autofix_session_stats(session)
                         stats["instruction_validation_fail_count"] = self._safe_int(
@@ -2643,6 +2719,13 @@ class CodeInspectorApp:
                         stats["instruction_fallback_to_hunk_count"] = self._safe_int(
                             stats.get("instruction_fallback_to_hunk_count", 0), 0
                         ) + 1
+                        fail_by_reason = stats.get("instruction_validation_fail_by_reason", {})
+                        if not isinstance(fail_by_reason, dict):
+                            fail_by_reason = {}
+                            stats["instruction_validation_fail_by_reason"] = fail_by_reason
+                        for err in instruction_validation_errors:
+                            reason_key = str(err or "").strip() or "unknown"
+                            fail_by_reason[reason_key] = self._safe_int(fail_by_reason.get(reason_key, 0), 0) + 1
                     apply_hunks = list(base_hunks)
                     instruction_hunks_active = False
 
@@ -2731,6 +2814,7 @@ class CodeInspectorApp:
                     token_fallback_candidates=token_fallback_candidates,
                 ))
                 self._mark_autofix_proposal_failure(session, proposal, error_code="ANCHOR_MISMATCH", quality_metrics=quality_metrics)
+                _record_instruction_observability()
                 raise self._autofix_apply_error(
                     "Autofix anchor mismatch. Source file changed since diff preparation.",
                     error_code="ANCHOR_MISMATCH",
@@ -2772,6 +2856,7 @@ class CodeInspectorApp:
                     error_code="APPLY_ENGINE_FAILED",
                     quality_metrics=quality_metrics,
                 )
+                _record_instruction_observability()
                 raise self._autofix_apply_error(
                     "Autofix apply engine failed: too_many_hunks",
                     error_code="APPLY_ENGINE_FAILED",
@@ -2806,6 +2891,7 @@ class CodeInspectorApp:
                     error_code="APPLY_ENGINE_FAILED",
                     quality_metrics=quality_metrics,
                 )
+                _record_instruction_observability()
                 raise self._autofix_apply_error(
                     "Autofix apply engine failed: overlapping_hunks",
                     error_code="APPLY_ENGINE_FAILED",
@@ -2814,6 +2900,7 @@ class CodeInspectorApp:
 
             candidate_content = str(proposal.get("_candidate_content", ""))
             if not candidate_content:
+                _record_instruction_observability()
                 raise RuntimeError("Autofix proposal candidate content is missing")
 
             engine_result = apply_with_engine(
@@ -2838,6 +2925,14 @@ class CodeInspectorApp:
                 if instruction_hunks_active:
                     instruction_mode = "applied"
                     instruction_apply_success = True
+                    instruction_path_reason = "applied"
+                    instruction_failure_stage = "none"
+                    instruction_applied_hunk_count = self._safe_int(
+                        (engine_result.get("diagnostics", {}) or {}).get("applied_hunk_count", 0),
+                        0,
+                    )
+                    if instruction_applied_hunk_count <= 0:
+                        instruction_applied_hunk_count = len([h for h in structured_instruction_hunks if isinstance(h, dict)])
                     with session["lock"]:
                         stats = self._autofix_session_stats(session)
                         stats["instruction_apply_success_count"] = self._safe_int(
@@ -2849,11 +2944,16 @@ class CodeInspectorApp:
                 if instruction_hunks_active:
                     instruction_mode = "fallback_hunks"
                     instruction_apply_success = False
+                    instruction_path_reason = "engine_failed"
+                    instruction_failure_stage = "apply"
                     instruction_validation_errors.append(f"instruction apply failed: {reason}")
                     with session["lock"]:
                         stats = self._autofix_session_stats(session)
                         stats["instruction_fallback_to_hunk_count"] = self._safe_int(
                             stats.get("instruction_fallback_to_hunk_count", 0), 0
+                        ) + 1
+                        stats["instruction_engine_fail_count"] = self._safe_int(
+                            stats.get("instruction_engine_fail_count", 0), 0
                         ) + 1
                     legacy_engine = apply_with_engine(
                         base_text=current_content,
@@ -2913,6 +3013,7 @@ class CodeInspectorApp:
                         error_code="APPLY_ENGINE_FAILED",
                         quality_metrics=quality_metrics,
                     )
+                    _record_instruction_observability()
                     raise self._autofix_apply_error(
                         f"Autofix apply engine failed: {reason}",
                         error_code="APPLY_ENGINE_FAILED",
@@ -2951,6 +3052,10 @@ class CodeInspectorApp:
                 "instruction_operation": str(instruction_operation or ""),
                 "instruction_operation_count": int(instruction_operation_count or 0),
                 "instruction_apply_success": bool(instruction_apply_success),
+                "instruction_path_reason": str(instruction_path_reason or "off"),
+                "instruction_failure_stage": str(instruction_failure_stage or "none"),
+                "instruction_candidate_hunk_count": int(instruction_candidate_hunk_count or 0),
+                "instruction_applied_hunk_count": int(instruction_applied_hunk_count or 0),
             }
             if not is_ctl_target:
                 validation["syntax_check_passed"] = True
@@ -2978,6 +3083,7 @@ class CodeInspectorApp:
                     error_code="SYNTAX_PRECHECK_FAILED",
                     quality_metrics=quality_metrics,
                 )
+                _record_instruction_observability()
                 raise self._autofix_apply_error(
                     "Autofix syntax precheck failed (brace/parenthesis balance)",
                     error_code="SYNTAX_PRECHECK_FAILED",
@@ -3038,6 +3144,7 @@ class CodeInspectorApp:
                         error_code="SEMANTIC_GUARD_BLOCKED",
                         quality_metrics=quality_metrics,
                     )
+                    _record_instruction_observability()
                     raise self._autofix_apply_error(
                         "Autofix semantic guard blocked high-risk token delta",
                         error_code="SEMANTIC_GUARD_BLOCKED",
@@ -3108,6 +3215,7 @@ class CodeInspectorApp:
                     token_fallback_candidates=token_fallback_candidates,
                 ))
                 self._mark_autofix_proposal_failure(session, proposal, error_code="REGRESSION_BLOCKED", quality_metrics=quality_metrics)
+                _record_instruction_observability()
                 raise self._autofix_apply_error(
                     "Autofix validation failed: CtrlppCheck regression detected",
                     error_code="REGRESSION_BLOCKED",
@@ -3164,6 +3272,7 @@ class CodeInspectorApp:
                     token_fallback_candidates=token_fallback_candidates,
                 ))
                 self._mark_autofix_proposal_failure(session, proposal, error_code="REGRESSION_BLOCKED", quality_metrics=quality_metrics)
+                _record_instruction_observability()
                 raise self._autofix_apply_error(
                     "Autofix validation failed: heuristic regression detected",
                     error_code="REGRESSION_BLOCKED",
@@ -3244,6 +3353,10 @@ class CodeInspectorApp:
                     "instruction_mode": validation.get("instruction_mode", "off"),
                     "instruction_operation": validation.get("instruction_operation", ""),
                     "instruction_apply_success": bool(validation.get("instruction_apply_success", False)),
+                    "instruction_path_reason": validation.get("instruction_path_reason", "off"),
+                    "instruction_failure_stage": validation.get("instruction_failure_stage", "none"),
+                    "instruction_candidate_hunk_count": self._safe_int(validation.get("instruction_candidate_hunk_count", 0), 0),
+                    "instruction_applied_hunk_count": self._safe_int(validation.get("instruction_applied_hunk_count", 0), 0),
                     "heuristic_regression_count": validation["heuristic_regression_count"],
                     "ctrlpp_regression_count": validation["ctrlpp_regression_count"],
                     "errors": validation["errors"],
@@ -3254,6 +3367,7 @@ class CodeInspectorApp:
             audit_log_path = self._append_autofix_audit_entry(target_output_dir, audit_entry)
             self._last_output_dir = target_output_dir
 
+            _record_instruction_observability()
             return {
                 "ok": True,
                 "applied": True,

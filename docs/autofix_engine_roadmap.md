@@ -2,7 +2,7 @@
 
 ## Scope
 
-This document captures post-P1/P2 status and remaining T3 work.
+This document tracks post-P1/P2 status and remaining T3 work.
 
 Implemented baseline:
 - compare mode (`rule` vs `llm`)
@@ -13,7 +13,7 @@ Implemented baseline:
 ## T2: Parser-lite Apply Engine (Implemented)
 
 ### Goal
-Improve apply robustness for WinCC OA `.ctl` with structure-aware matching while preserving current safety checks.
+Improve apply robustness for WinCC OA `.ctl` with structure-aware matching while preserving existing safety checks.
 
 ### Implemented coverage
 - function/event block boundaries
@@ -27,7 +27,7 @@ Improve apply robustness for WinCC OA `.ctl` with structure-aware matching while
 - fail-soft block for unsafe multi-hunk (`too_many_hunks`, `overlapping_hunks`, `hunks_span_multiple_blocks`, `anchor_context_not_unique`)
 - existing `hash/anchor/syntax/heuristic/optional ctrlpp` gates preserved
 
-## T3: Structured Edit Instructions (T3-1 Implemented)
+## T3: Structured Edit Instructions
 
 ### Goal
 Move from full generated code blocks to structured edit intents that can be validated/applied by engine logic.
@@ -35,67 +35,89 @@ Move from full generated code blocks to structured edit intents that can be vali
 ### Instruction shape (v1.1, internal)
 ```json
 {
-  "target": {"file":"sample.ctl","object":"...","event":"Global"},
-  "operations":[
+  "target": {"file": "sample.ctl", "object": "...", "event": "Global"},
+  "operations": [
     {
-      "operation":"insert|replace",
-      "locator":{"kind":"anchor_context","start_line":123,"context_before":"...","context_after":"..."},
-      "payload":{"code":"..."}
+      "operation": "insert|replace",
+      "locator": {
+        "kind": "anchor_context",
+        "start_line": 123,
+        "context_before": "...",
+        "context_after": "..."
+      },
+      "payload": {"code": "..."}
     }
   ],
-  "safety":{"requires_hash_match":true}
+  "safety": {"requires_hash_match": true}
 }
 ```
 
-### Implemented in T3-1 (2026-03-03)
+### T3-1 (Implemented)
 - scope: rule + llm proposal paths
-- operations: `replace`, `insert` only (`delete` not supported)
+- operations: `replace`, `insert` only (`delete` excluded)
 - feature flag: `autofix.engine.structured_instruction_enabled` (default `false`)
 - behavior:
   - flag OFF: legacy hunk apply path unchanged
-  - flag ON + valid instruction: structured instruction(`operations[]`) converted to hunks and applied first
+  - flag ON + valid instruction: instruction converted to hunks and applied first
   - invalid instruction: fail-soft fallback to legacy proposal hunks
 - observability:
-  - apply validation/quality fields: `instruction_mode`, `instruction_validation_errors`,
-    `instruction_operation`, `instruction_operation_count`, `instruction_apply_success`
-  - stats fields:
-    - `instruction_attempt_count`
-    - `instruction_apply_success_count`
-    - `instruction_fallback_to_hunk_count`
-    - `instruction_validation_fail_count`
-    - `instruction_operation_total_count`
+  - apply validation/quality fields: `instruction_mode`, `instruction_validation_errors`, `instruction_operation`, `instruction_operation_count`, `instruction_apply_success`
+  - stats fields: `instruction_attempt_count`, `instruction_apply_success_count`, `instruction_fallback_to_hunk_count`, `instruction_validation_fail_count`, `instruction_operation_total_count`
 
-### Remaining (T3-2)
-- compare UX/selection policy tuning (현재 `instruction_validity_then_syntax_then_rule` 고정)
-- instruction diagnostics 확장(운영 관측성 개선)
-- 단계적 rollout 기준(세션 통계 기반) 문서화
+### T3-2 (Observability / Rollout Decision, Implemented in this batch)
+- apply validation/quality fields added:
+  - `instruction_path_reason` (`applied|validation_failed|engine_failed|fallback_hunks|off`)
+  - `instruction_failure_stage` (`validate|convert|apply|none`)
+  - `instruction_candidate_hunk_count`
+  - `instruction_applied_hunk_count`
+- stats fields added:
+  - `instruction_engine_fail_count`
+  - `instruction_convert_fail_count`
+  - `instruction_validation_fail_by_reason` (dict)
+  - `instruction_mode_counts` (dict)
+- perf baseline summary/comparison added:
+  - `instruction_apply_rate`
+  - `instruction_fallback_rate`
+  - `instruction_validation_fail_rate`
+  - `instruction_fail_stage_distribution`
+  - `rollout_ready`, `rollout_checks`
 
-### Decision-complete status
-1. Schema v1 lock
-   - [x] fields: `target`, `operations[]`, `safety` (legacy single-op normalize 호환)
-   - [x] validation: required fields + enum checks + per-op locator/code checks
+### Rollout criteria (flag default OFF 유지)
+- `instruction_apply_rate >= 0.70`
+- `instruction_validation_fail_rate <= 0.20`
+- `REGRESSION_BLOCKED == 0`
+
+## Decision-complete status
+
+1. Schema lock
+- [x] fields: `target`, `operations[]`, `safety`
+- [x] validation: required fields + enum checks + per-op locator/code checks
+
 2. Runtime integration (feature flag OFF by default)
-   - [x] new flag: `autofix.engine.structured_instruction_enabled`
-   - [x] if ON and instruction parse succeeds: engine consumes structured instruction first
-   - [x] if instruction parse fails: fallback to current unified-diff hunk path
-3. Ownership transfer phases
-   - [x] Phase 1: dual-path (instruction apply + legacy hunk fallback)
-   - [-] Phase 2: parser/token engine primary patch generation/apply owner (운영 튜닝 잔여)
-   - [-] Phase 3: legacy path fallback-only, with explicit diagnostics (T3-2)
-4. Compare mode compatibility
-   - [x] `rule` and `llm` candidates carry the same normalized instruction envelope (both proposals attach `_structured_instruction`; compare selection policy + score/reason metadata exposed)
-   - [x] selection/apply keeps existing `proposal_id` contract
-5. Acceptance criteria
-   - [x] no regression in `hash/anchor/syntax/semantic/heuristic/ctrlpp` safety gates (T3-1 scope tests)
-   - [x] deterministic error mapping for instruction parse/resolve failures (fallback_hunks + validation errors)
-   - [x] stats include instruction-path attempt/success/fallback counts (+ operation totals)
+- [x] `autofix.engine.structured_instruction_enabled`
+- [x] ON + valid instruction: instruction-first apply
+- [x] invalid instruction: fallback to legacy hunk path
 
-## Feature Flags (default OFF, planned)
+3. Ownership transfer phases
+- [x] Phase 1: dual-path (instruction apply + legacy hunk fallback)
+- [x] Phase 2: instruction-first apply + stage-level observability
+- [-] Phase 3: legacy path fallback-only hardening/policy tuning
+
+4. Compare mode compatibility
+- [x] `rule` and `llm` candidates carry normalized instruction envelope
+- [x] selection/apply keeps existing `proposal_id` contract
+
+5. Acceptance criteria
+- [x] no regression in `hash/anchor/syntax/semantic/heuristic/ctrlpp` safety gates
+- [x] deterministic fallback behavior for invalid instructions
+- [x] stats include attempt/success/fallback/validation counts and operation totals
+- [x] observability supports rollout decision by failure stage/reason
+
+## Feature Flags
 - `autofix.engine.parser_lite_enabled`
 - `autofix.engine.structured_instruction_enabled`
 
-## Acceptance for remaining phase
-- no regression in existing apply safety checks
-- reduced anchor mismatch failure rate on real `.ctl` edits
-- deterministic fallback behavior when parser/instruction resolution is ambiguous
-- parser/token engine becomes primary patch generation/apply owner for structured instructions
+## Remaining focus
+- compare UX/policy tuning for instruction-heavy proposals
+- rollout threshold tuning with additional real-data baselines
+- gradual shift of legacy path to fallback-only role
