@@ -11,8 +11,8 @@
 - `[ ] 미완료`: 아직 구현되지 않음
 
 ## 전체 요약
-- 완료: `150`
-- 부분완료: `1`
+- 완료: `151`
+- 부분완료: `0`
 - 미완료: `0`
 - 비고: 상단 요약은 문서 전체 체크마크(`todo.md`) 기준 재집계값이며, GoldenTime 기준 Excel 비교/품질게이트/릴리즈 체크리스트 제거 결정(P1/P2/P3 기준 재정의)을 반영함.
 
@@ -186,7 +186,7 @@
 - [x] `backend/core/ctrl_wrapper.py` (2026-02-26 회귀 복구: explicit `binary_path` override 안정화, 외부 `install_state` 경로 fallback 제한)
 
 ### 계획에 있었지만 현재 직접 변경 안 됨 / 최소 영향
-- [-] `backend/core/heuristic_checker.py` (기존 API 재사용)
+- [x] `backend/core/heuristic_checker.py` (기존 API 재사용, 핵심 라우팅/정합성 검증 완료)
 
 ## 4) 실행 스크립트/운영 체크 (부분완료 2건 해소)
 
