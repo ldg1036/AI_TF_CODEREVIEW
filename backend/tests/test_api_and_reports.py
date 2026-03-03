@@ -622,6 +622,7 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertEqual(str(validation.get("instruction_mode", "")), "applied")
         self.assertTrue(bool(validation.get("instruction_apply_success", False)))
         self.assertIn(str(validation.get("instruction_operation", "")), ("insert", "replace"))
+        self.assertGreaterEqual(int(validation.get("instruction_operation_count", 0) or 0), 1)
         stats_status, stats_payload = self._request(
             "GET",
             "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
@@ -629,6 +630,7 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertEqual(stats_status, 200)
         self.assertGreaterEqual(int(stats_payload.get("instruction_attempt_count", 0) or 0), 1)
         self.assertGreaterEqual(int(stats_payload.get("instruction_apply_success_count", 0) or 0), 1)
+        self.assertGreaterEqual(int(stats_payload.get("instruction_operation_total_count", 0) or 0), 1)
 
     def test_autofix_instruction_invalid_falls_back_to_hunks(self):
         self._force_single_internal_violation()
@@ -685,6 +687,7 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertEqual(str(validation.get("instruction_mode", "")), "fallback_hunks")
         self.assertFalse(bool(validation.get("instruction_apply_success", True)))
         self.assertTrue(len(validation.get("instruction_validation_errors", []) or []) >= 1)
+        self.assertGreaterEqual(int(validation.get("instruction_operation_count", 0) or 0), 1)
         stats_status, stats_payload = self._request(
             "GET",
             "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
@@ -731,6 +734,7 @@ class ApiIntegrationTests(unittest.TestCase):
                 proposal = stored.get(pid, {})
                 self.assertIsInstance(proposal.get("_structured_instruction"), dict)
                 self.assertIsInstance((view or {}).get("instruction_preview"), dict)
+                self.assertGreaterEqual(int(((view or {}).get("instruction_preview", {}) or {}).get("operation_count", 0) or 0), 1)
 
     def test_autofix_compare_selection_prefers_valid_instruction_candidate(self):
         self._force_single_internal_violation()

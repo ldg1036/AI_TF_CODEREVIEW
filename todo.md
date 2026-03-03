@@ -3,7 +3,7 @@
 기준 문서: `WinCC OA 코드리뷰 프로그램 성능 점검 및 LLM Diff 승인형 자동수정 확장 계획`
 
 작성일: 2026-02-25 (업데이트 반영)
-최종 문서 정합화: 2026-02-27 (현재 코드 기준)
+최종 문서 정합화: 2026-03-03 (현재 코드 기준)
 
 ## 상태 범례
 - `[x] 완료`: 계획 의도에 맞는 핵심 동작이 구현/테스트됨
@@ -11,9 +11,9 @@
 - `[ ] 미완료`: 아직 구현되지 않음
 
 ## 전체 요약
-- 완료: `141`
-- 부분완료: `4`
-- 미완료: `2`
+- 완료: `149`
+- 부분완료: `1`
+- 미완료: `0`
 - 비고: 상단 요약은 문서 전체 체크마크(`todo.md`) 기준 재집계값이며, GoldenTime 기준 Excel 비교/품질게이트/릴리즈 체크리스트 제거 결정(P1/P2/P3 기준 재정의)을 반영함.
 
 ## 1) 계획 단계별 체크 (Plan Steps 1~12)
@@ -433,8 +433,8 @@
 - [x] 구조 기반 apply 실패 시 기존 텍스트 패치 fallback 정책 정의
 
 ##### Phase T3 — LLM 제안 구조화 (장기)
-- [-] 구조화 수정 지시(JSON) 스키마/적용 계획 문서화 (`docs/autofix_engine_roadmap.md`)
-- [-] parser/토큰 엔진이 실제 patch 생성/적용 담당 (T3-1 1차 반영: LLM 전용 `replace/insert`, feature flag 기본 OFF, 실패 시 hunk fallback)
+- [x] 구조화 수정 지시(JSON) 스키마/적용 계획 문서화 (`docs/autofix_engine_roadmap.md`)
+- [x] parser/토큰 엔진이 실제 patch 생성/적용 담당 (T3-1 실사용 1차 완료: rule/llm 공통 structured instruction(`operations[]`) 생성, feature flag ON 시 instruction-first apply, 실패 시 hunk fallback)
 - [x] 복수 후보(rule/llm) 비교와 결합 가능한 구조로 설계 (compare 후보 공통 structured instruction envelope + selection policy(`instruction_validity_then_syntax_then_rule`) + score/reason 메타 및 프론트 표시 반영)
 
 #### 리스크 / 주의점

@@ -123,6 +123,7 @@ class AutoFixQualityMetrics(TypedDict, total=False):
     instruction_mode: str
     instruction_validation_errors: List[str]
     instruction_operation: str
+    instruction_operation_count: int
     instruction_apply_success: bool
 
 
@@ -537,35 +538,42 @@ class CodeInspectorApp:
         ]
 
     @staticmethod
-    def _build_structured_instruction_from_first_hunk(
+    def _build_structured_instruction_from_hunks(
         *,
         proposal: Dict,
         file_name: str,
         object_name: str,
         event_name: str,
-        operation: str = "replace",
     ) -> Optional[Dict]:
         hunks = proposal.get("hunks", []) if isinstance(proposal, dict) else []
-        first_hunk = hunks[0] if isinstance(hunks, list) and hunks else None
-        if not isinstance(first_hunk, dict):
+        valid_hunks = [h for h in (hunks or []) if isinstance(h, dict)]
+        if not valid_hunks:
             return None
         try:
+            operations: List[Dict[str, Any]] = []
+            for hunk in valid_hunks:
+                start_line = max(1, int(hunk.get("start_line", 1) or 1))
+                operations.append(
+                    {
+                        "operation": "replace",
+                        "locator": {
+                            "kind": "anchor_context",
+                            "start_line": start_line,
+                            "context_before": str(hunk.get("context_before", "") or ""),
+                            "context_after": str(hunk.get("context_after", "") or ""),
+                        },
+                        "payload": {
+                            "code": str(hunk.get("replacement_text", "") or ""),
+                        },
+                    }
+                )
             instruction_raw = {
                 "target": {
                     "file": str(file_name or ""),
                     "object": str(object_name or ""),
                     "event": str(event_name or "Global"),
                 },
-                "operation": str(operation or "replace"),
-                "locator": {
-                    "kind": "anchor_context",
-                    "start_line": int(first_hunk.get("start_line", 1) or 1),
-                    "context_before": str(first_hunk.get("context_before", "") or ""),
-                    "context_after": str(first_hunk.get("context_after", "") or ""),
-                },
-                "payload": {
-                    "code": str(first_hunk.get("replacement_text", "") or ""),
-                },
+                "operations": operations,
                 "safety": {"requires_hash_match": True},
             }
             return normalize_instruction(instruction_raw)
@@ -636,6 +644,7 @@ class CodeInspectorApp:
         instruction_mode: str = "off",
         instruction_validation_errors: Optional[List[str]] = None,
         instruction_operation: str = "",
+        instruction_operation_count: int = 0,
         instruction_apply_success: bool = False,
     ) -> AutoFixQualityMetrics:
         return {
@@ -668,6 +677,7 @@ class CodeInspectorApp:
             "instruction_mode": str(instruction_mode or "off"),
             "instruction_validation_errors": list(instruction_validation_errors or []),
             "instruction_operation": str(instruction_operation or ""),
+            "instruction_operation_count": int(instruction_operation_count or 0),
             "instruction_apply_success": bool(instruction_apply_success),
         }
 
@@ -876,6 +886,14 @@ class CodeInspectorApp:
             "available": True,
             "valid": bool(valid),
             "operation": str(normalized.get("operation", "") or ""),
+            "operation_count": len(normalized.get("operations", []) or []),
+            "supported_ops": sorted(
+                {
+                    str((op or {}).get("operation", "") or "")
+                    for op in (normalized.get("operations", []) or [])
+                    if isinstance(op, dict)
+                }
+            ),
             "errors": [str(e) for e in (errors or [])],
         }
 
@@ -950,6 +968,7 @@ class CodeInspectorApp:
         stats.setdefault("instruction_apply_success_count", 0)
         stats.setdefault("instruction_fallback_to_hunk_count", 0)
         stats.setdefault("instruction_validation_fail_count", 0)
+        stats.setdefault("instruction_operation_total_count", 0)
         engine_counts = stats.setdefault("selected_apply_engine_mode", {"structure_apply": 0, "text_fallback": 0})
         if not isinstance(engine_counts, dict):
             engine_counts = {"structure_apply": 0, "text_fallback": 0}
@@ -1889,27 +1908,14 @@ class CodeInspectorApp:
         # Preserve insertion-specific hunk shape for anchor checks/backward compatibility.
         proposal["hunks"] = self._build_autofix_hunks_for_insertion(source_lines, new_lines, insert_at, inserted_lines)
         try:
-            context_before = source_lines[insert_at - 2] if insert_at >= 2 and (insert_at - 2) < len(source_lines) else ""
-            context_after = source_lines[insert_at - 1] if insert_at >= 1 and (insert_at - 1) < len(source_lines) else ""
-            instruction_raw = {
-                "target": {
-                    "file": file_name,
-                    "object": str(ai_review.get("object", object_name or "")),
-                    "event": str(ai_review.get("event", event_name or "Global")),
-                },
-                "operation": "insert",
-                "locator": {
-                    "kind": "anchor_context",
-                    "start_line": insert_at,
-                    "context_before": context_before,
-                    "context_after": context_after,
-                },
-                "payload": {
-                    "code": "\n".join(inserted_lines),
-                },
-                "safety": {"requires_hash_match": True},
-            }
-            proposal["_structured_instruction"] = normalize_instruction(instruction_raw)
+            structured = self._build_structured_instruction_from_hunks(
+                proposal=proposal,
+                file_name=file_name,
+                object_name=str(ai_review.get("object", object_name or "")),
+                event_name=str(ai_review.get("event", event_name or "Global")),
+            )
+            if isinstance(structured, dict):
+                proposal["_structured_instruction"] = structured
         except Exception:
             # Fail-soft: keep legacy hunk-only proposal path.
             pass
@@ -2032,12 +2038,11 @@ class CodeInspectorApp:
             },
         )
         try:
-            structured = self._build_structured_instruction_from_first_hunk(
+            structured = self._build_structured_instruction_from_hunks(
                 proposal=proposal,
                 file_name=file_name,
                 object_name=str(object_name or ""),
                 event_name=str(event_name or "Global"),
-                operation="replace",
             )
             if isinstance(structured, dict):
                 proposal["_structured_instruction"] = structured
@@ -2318,6 +2323,9 @@ class CodeInspectorApp:
                 "instruction_validation_fail_count": self._safe_int(
                     extra_stats.get("instruction_validation_fail_count", 0), 0
                 ),
+                "instruction_operation_total_count": self._safe_int(
+                    extra_stats.get("instruction_operation_total_count", 0), 0
+                ),
                 "selected_apply_engine_mode": dict(extra_stats.get("selected_apply_engine_mode", {}))
                 if isinstance(extra_stats.get("selected_apply_engine_mode", {}), dict)
                 else {"structure_apply": 0, "text_fallback": 0},
@@ -2521,6 +2529,7 @@ class CodeInspectorApp:
             instruction_mode = "off"
             instruction_validation_errors: List[str] = []
             instruction_operation = ""
+            instruction_operation_count = 0
             instruction_apply_success = False
             if benchmark_observe_enabled:
                 if benchmark_tuning_min_confidence is not None:
@@ -2548,6 +2557,7 @@ class CodeInspectorApp:
                 payload["instruction_mode"] = str(instruction_mode or "off")
                 payload["instruction_validation_errors"] = list(instruction_validation_errors)
                 payload["instruction_operation"] = str(instruction_operation or "")
+                payload["instruction_operation_count"] = int(instruction_operation_count or 0)
                 payload["instruction_apply_success"] = bool(instruction_apply_success)
                 return payload
 
@@ -2585,7 +2595,24 @@ class CodeInspectorApp:
                         stats.get("instruction_attempt_count", 0), 0
                     ) + 1
                 normalized_instruction = normalize_instruction(structured_instruction_raw)
-                instruction_operation = str(normalized_instruction.get("operation", "") or "")
+                operations = normalized_instruction.get("operations", []) if isinstance(
+                    normalized_instruction.get("operations"), list
+                ) else []
+                op_names = [
+                    str((op or {}).get("operation", "") or "")
+                    for op in operations
+                    if isinstance(op, dict) and str((op or {}).get("operation", "") or "")
+                ]
+                instruction_operation = ",".join(sorted(set(op_names))) if op_names else str(
+                    normalized_instruction.get("operation", "") or ""
+                )
+                instruction_operation_count = len(operations)
+                if instruction_operation_count > 0:
+                    with session["lock"]:
+                        stats = self._autofix_session_stats(session)
+                        stats["instruction_operation_total_count"] = self._safe_int(
+                            stats.get("instruction_operation_total_count", 0), 0
+                        ) + instruction_operation_count
                 valid_instruction, instruction_validation_errors = validate_instruction(normalized_instruction)
                 target_file = str((normalized_instruction.get("target", {}) or {}).get("file", "") or "")
                 if target_file and target_file != normalized_file:
@@ -2922,6 +2949,7 @@ class CodeInspectorApp:
                 "instruction_mode": str(instruction_mode or "off"),
                 "instruction_validation_errors": list(instruction_validation_errors),
                 "instruction_operation": str(instruction_operation or ""),
+                "instruction_operation_count": int(instruction_operation_count or 0),
                 "instruction_apply_success": bool(instruction_apply_success),
             }
             if not is_ctl_target:

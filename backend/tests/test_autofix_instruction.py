@@ -34,6 +34,7 @@ class AutoFixInstructionTests(unittest.TestCase):
         self.assertEqual(errors, [])
         hunks = instruction_to_hunks(instr)
         self.assertEqual(len(hunks), 1)
+        self.assertEqual(len(instr.get("operations", []) or []), 1)
         self.assertEqual(hunks[0]["start_line"], 10)
         self.assertEqual(hunks[0]["replacement_text"], "doWork();")
 
@@ -68,7 +69,7 @@ class AutoFixInstructionTests(unittest.TestCase):
         )
         ok, errors = validate_instruction(instr)
         self.assertFalse(ok)
-        self.assertTrue(any("operation" in e for e in errors))
+        self.assertTrue(any("operations[" in e and ".operation" in e for e in errors))
 
     def test_missing_payload_code_fails_validation(self):
         instr = normalize_instruction(
@@ -81,7 +82,7 @@ class AutoFixInstructionTests(unittest.TestCase):
         )
         ok, errors = validate_instruction(instr)
         self.assertFalse(ok)
-        self.assertTrue(any("payload.code" in e for e in errors))
+        self.assertTrue(any(".payload.code" in e for e in errors))
 
     def test_target_file_can_be_checked_by_caller(self):
         instr = normalize_instruction(
@@ -96,6 +97,34 @@ class AutoFixInstructionTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual(errors, [])
         self.assertNotEqual(instr.get("target", {}).get("file"), "sample.ctl")
+
+    def test_multi_operation_instruction_to_hunks(self):
+        instr = normalize_instruction(
+            {
+                "target": {"file": "sample.ctl", "object": "sample.ctl", "event": "Global"},
+                "operations": [
+                    {
+                        "operation": "insert",
+                        "locator": {"kind": "anchor_context", "start_line": 3, "context_before": "{", "context_after": ""},
+                        "payload": {"code": "// first"},
+                    },
+                    {
+                        "operation": "replace",
+                        "locator": {"kind": "anchor_context", "start_line": 7, "context_before": "a();", "context_after": "b();"},
+                        "payload": {"code": "b();"},
+                    },
+                ],
+                "safety": {"requires_hash_match": True},
+            }
+        )
+        ok, errors = validate_instruction(instr)
+        self.assertTrue(ok)
+        self.assertEqual(errors, [])
+        self.assertEqual(len(instr.get("operations", []) or []), 2)
+        hunks = instruction_to_hunks(instr)
+        self.assertEqual(len(hunks), 2)
+        self.assertEqual(int(hunks[0].get("start_line", 0) or 0), 3)
+        self.assertEqual(int(hunks[1].get("start_line", 0) or 0), 7)
 
 
 if __name__ == "__main__":
