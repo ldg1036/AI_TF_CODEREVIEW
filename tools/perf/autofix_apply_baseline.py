@@ -236,6 +236,7 @@ def run_once(
     perturb_mode: str,
     kpi_observe_mode: str,
     apply_tuning_headers: bool = False,
+    apply_force_structured_instruction: bool = False,
     tune_min_confidence: Optional[float] = None,
     tune_min_gap: Optional[float] = None,
     tune_max_line_drift: Optional[int] = None,
@@ -343,6 +344,11 @@ def run_once(
                         **(
                             {"X-Autofix-Benchmark-Tuning-Max-Line-Drift": str(tune_max_line_drift)}
                             if (apply_tuning_headers and tune_max_line_drift is not None)
+                            else {}
+                        ),
+                        **(
+                            {"X-Autofix-Benchmark-Force-Structured-Instruction": "true"}
+                            if apply_force_structured_instruction
                             else {}
                         ),
                     }
@@ -543,36 +549,56 @@ def _build_summary(runs: List[Dict[str, Any]], mode: str) -> Dict[str, Any]:
             if locator_token and not attempted:
                 stats_consistency_mismatch_count += 1
 
-            instruction_mode = _safe_str(validation.get("instruction_mode", ""))
-            if not instruction_mode:
-                instruction_mode = _safe_str(quality_metrics.get("instruction_mode", "off"))
-            if not instruction_mode:
-                instruction_mode = "off"
-            _increment(instruction_mode_counts, instruction_mode)
+            stats_instruction_attempt = _safe_int(stats_payload.get("instruction_attempt_count", 0), 0)
+            if stats_instruction_attempt <= 0:
+                instruction_mode = _safe_str(validation.get("instruction_mode", ""))
+                if not instruction_mode:
+                    instruction_mode = _safe_str(quality_metrics.get("instruction_mode", "off"))
+                if not instruction_mode:
+                    instruction_mode = "off"
+                _increment(instruction_mode_counts, instruction_mode)
 
-            instruction_path_reason = _safe_str(validation.get("instruction_path_reason", ""))
-            if not instruction_path_reason:
-                instruction_path_reason = _safe_str(quality_metrics.get("instruction_path_reason", "off"))
-            if not instruction_path_reason:
-                instruction_path_reason = "off"
+                instruction_path_reason = _safe_str(validation.get("instruction_path_reason", ""))
+                if not instruction_path_reason:
+                    instruction_path_reason = _safe_str(quality_metrics.get("instruction_path_reason", "off"))
+                if not instruction_path_reason:
+                    instruction_path_reason = "off"
 
-            instruction_failure_stage = _safe_str(validation.get("instruction_failure_stage", ""))
-            if not instruction_failure_stage:
-                instruction_failure_stage = _safe_str(quality_metrics.get("instruction_failure_stage", "none"))
-            if not instruction_failure_stage:
-                instruction_failure_stage = "none"
-            _increment(instruction_fail_stage_distribution, instruction_failure_stage)
+                instruction_failure_stage = _safe_str(validation.get("instruction_failure_stage", ""))
+                if not instruction_failure_stage:
+                    instruction_failure_stage = _safe_str(quality_metrics.get("instruction_failure_stage", "none"))
+                if not instruction_failure_stage:
+                    instruction_failure_stage = "none"
+                _increment(instruction_fail_stage_distribution, instruction_failure_stage)
 
-            if instruction_mode != "off" or instruction_path_reason not in ("", "off"):
-                instruction_attempt_count += 1
-            if bool(validation.get("instruction_apply_success", False)) or bool(
-                quality_metrics.get("instruction_apply_success", False)
-            ):
-                instruction_apply_success_count += 1
-            if instruction_mode == "fallback_hunks" or instruction_path_reason == "fallback_hunks":
-                instruction_fallback_count += 1
-            if instruction_failure_stage == "validate" or instruction_path_reason == "validation_failed":
-                instruction_validation_fail_count += 1
+                if instruction_mode != "off" or instruction_path_reason not in ("", "off"):
+                    instruction_attempt_count += 1
+                if bool(validation.get("instruction_apply_success", False)) or bool(
+                    quality_metrics.get("instruction_apply_success", False)
+                ):
+                    instruction_apply_success_count += 1
+                if instruction_mode == "fallback_hunks" or instruction_path_reason == "fallback_hunks":
+                    instruction_fallback_count += 1
+                if instruction_failure_stage == "validate" or instruction_path_reason == "validation_failed":
+                    instruction_validation_fail_count += 1
+
+        # Prefer session stats counters when present; they capture multi-attempt outcomes
+        # within a run more accurately than a single apply response payload.
+        stats_instruction_attempt = _safe_int(stats_payload.get("instruction_attempt_count", 0), 0)
+        stats_instruction_success = _safe_int(stats_payload.get("instruction_apply_success_count", 0), 0)
+        stats_instruction_fallback = _safe_int(stats_payload.get("instruction_fallback_to_hunk_count", 0), 0)
+        stats_instruction_validate_fail = _safe_int(stats_payload.get("instruction_validation_fail_count", 0), 0)
+        if stats_instruction_attempt > 0:
+            instruction_attempt_count += stats_instruction_attempt
+            instruction_apply_success_count += stats_instruction_success
+            instruction_fallback_count += stats_instruction_fallback
+            instruction_validation_fail_count += stats_instruction_validate_fail
+
+            stats_mode_counts = stats_payload.get("instruction_mode_counts", {})
+            if isinstance(stats_mode_counts, dict):
+                for mode_key, mode_val in stats_mode_counts.items():
+                    key = _safe_str(mode_key) or "<empty>"
+                    instruction_mode_counts[key] = _safe_int(instruction_mode_counts.get(key, 0), 0) + _safe_int(mode_val, 0)
 
     apply_success_rate = (apply_success_count / apply_attempts) if apply_attempts else 0.0
     actual_anchor_failure_rate = (anchor_mismatch_failure_count / apply_attempts) if apply_attempts else 0.0
@@ -1011,6 +1037,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--tune-min-gap", type=float, default=None, help="Benchmark-only token locator min confidence gap override")
     parser.add_argument("--tune-max-line-drift", type=int, default=None, help="Benchmark-only token locator max line drift override")
     parser.add_argument(
+        "--benchmark-force-structured-instruction",
+        action="store_true",
+        help="Benchmark-only: force structured instruction path when AUTOFIX_BENCHMARK_OBSERVE=1 and observe mode is benchmark_relaxed",
+    )
+    parser.add_argument(
         "--scenario",
         choices=["general", "drift", "both"],
         default="both",
@@ -1114,6 +1145,11 @@ def main() -> int:
         return 0
 
     selected_files = list(args.selected_files or [])
+    if (bool(args.auto_run_matrix) or bool(args.auto_tune_drift)) and not selected_files:
+        raise RuntimeError(
+            "auto-run modes require explicit --selected-files for reproducible P1 targets "
+            "(auto-discover may produce no P1 violations)"
+        )
     if not selected_files and bool(args.dry_run):
         selected_files = ["<auto-discover .ctl files>"]
     elif not selected_files:
@@ -1134,6 +1170,7 @@ def main() -> int:
             "tune_min_confidence": args.tune_min_confidence,
             "tune_min_gap": args.tune_min_gap,
             "tune_max_line_drift": args.tune_max_line_drift,
+            "benchmark_force_structured_instruction": bool(args.benchmark_force_structured_instruction),
             "scenario": str(args.scenario),
             "auto_run_matrix": bool(args.auto_run_matrix),
             "output": out_abs,
@@ -1176,6 +1213,9 @@ def main() -> int:
                     perturb_mode,
                     observe_mode,
                     apply_tuning_headers=(str(mode) == MODE_IMPROVED),
+                    apply_force_structured_instruction=(
+                        bool(args.benchmark_force_structured_instruction) and str(mode) == MODE_IMPROVED
+                    ),
                     tune_min_confidence=tune_min_confidence,
                     tune_min_gap=tune_min_gap,
                     tune_max_line_drift=tune_max_line_drift,
@@ -1199,6 +1239,7 @@ def main() -> int:
             "tune_min_confidence": tune_min_confidence,
             "tune_min_gap": tune_min_gap,
             "tune_max_line_drift": tune_max_line_drift,
+            "benchmark_force_structured_instruction": bool(args.benchmark_force_structured_instruction),
         }
         written = _write_json(output_path, payload)
         payload["_meta_output_path"] = written

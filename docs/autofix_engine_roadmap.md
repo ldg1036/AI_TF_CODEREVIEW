@@ -1,4 +1,4 @@
-# Autofix Engine Roadmap (T2/T3)
+﻿# Autofix Engine Roadmap (T2/T3)
 
 ## Scope
 
@@ -82,10 +82,30 @@ Move from full generated code blocks to structured edit intents that can be vali
   - `instruction_fail_stage_distribution`
   - `rollout_ready`, `rollout_checks`
 
-### Rollout criteria (flag default OFF 유지)
+### Rollout criteria (flag default OFF)
 - `instruction_apply_rate >= 0.70`
 - `instruction_validation_fail_rate <= 0.20`
 - `REGRESSION_BLOCKED == 0`
+
+### Latest measured decision (2026-03-03)
+- matrix with fixed P1 fixture (`autofix_apply_comparison_20260303_142844_general.json`, `autofix_apply_comparison_20260303_142844_drift.json`):
+  - reproducible general/drift generation succeeded
+  - drift: `kpi_observability_pass=true`, `improvement_percent=0.0`, `instruction_apply_rate=0.0`, `rollout_ready=false`
+- drift tuning (`autofix_apply_sweep_20260303_134930_drift.json`):
+  - `best improvement_percent=100.0` (`18/27` pass for 10% KPI)
+  - rollout criteria not met in non-forced path because `instruction_apply_rate` remained below threshold
+- drift tuning re-run with benchmark structured-force (`autofix_apply_sweep_20260303_141411_drift.json`):
+  - `best improvement_percent=100.0` (`18/27` pass for 10% KPI)
+  - best candidate (`c=0.55`, `g=0.05`, `d=300`) shows:
+    - `instruction_apply_rate=1.0`
+    - `instruction_validation_fail_rate=0.0`
+    - `rollout_ready=true`
+  - note: this is benchmark-only (`AUTOFIX_BENCHMARK_OBSERVE=1` + forced structured header), not default runtime policy
+- drift tuning with fixed fixture (`autofix_apply_sweep_20260303_143447_drift.json`):
+  - `best improvement_percent=0.0` (`0/27` pass for 10% KPI)
+  - root cause aggregate: `BLOCKED_ANCHOR_MISMATCH_ONLY=27`
+- operational verdict:
+  - keep `autofix.engine.structured_instruction_enabled=false` by default
 
 ## Decision-complete status
 
@@ -119,5 +139,9 @@ Move from full generated code blocks to structured edit intents that can be vali
 
 ## Remaining focus
 - compare UX/policy tuning for instruction-heavy proposals
-- rollout threshold tuning with additional real-data baselines
+- instruction-path apply-rate uplift (convert/apply success share increase)
+- rollout threshold re-validation with additional real-data baselines
 - gradual shift of legacy path to fallback-only role
+
+
+

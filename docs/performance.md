@@ -1,4 +1,4 @@
-# Performance Baselines and Quality Gates
+﻿# Performance Baselines and Quality Gates
 
 Last Updated: 2026-02-27 (current implementation baseline reflected)
 
@@ -240,8 +240,9 @@ set AUTOFIX_BENCHMARK_OBSERVE=1
 python tools/perf/autofix_apply_baseline.py `
   --auto-run-matrix `
   --scenario both `
-  --discover-count 1 `
+  --selected-files BenchmarkP1Fixture.ctl `
   --iterations 3 `
+  --benchmark-force-structured-instruction `
   --tune-min-confidence 0.55 `
   --tune-min-gap 0.05 `
   --tune-max-line-drift 900 `
@@ -257,14 +258,19 @@ Run drift scenario with benchmark-relaxed mode across tuning combinations and au
 set AUTOFIX_BENCHMARK_OBSERVE=1
 python tools/perf/autofix_apply_baseline.py `
   --auto-tune-drift `
-  --discover-count 1 `
+  --selected-files BenchmarkP1Fixture.ctl `
   --iterations 3 `
+  --benchmark-force-structured-instruction `
   --sweep-min-confidence 0.55,0.65,0.8 `
   --sweep-min-gap 0.05,0.1,0.15 `
   --sweep-max-line-drift 300,600,900 `
   --output docs/perf_baselines `
   --review-output docs/perf_baselines/autofix_review_latest.md
 ```
+
+Benchmark-only structured-path note:
+- `--benchmark-force-structured-instruction` sends `X-Autofix-Benchmark-Force-Structured-Instruction: true`.
+- It is effective only when `AUTOFIX_BENCHMARK_OBSERVE=1` and observe mode is `benchmark_relaxed`.
 
 Generated artifacts:
 - `autofix_apply_sweep_<timestamp>_drift.json` (all combinations + best candidate)
@@ -299,6 +305,7 @@ Notes:
   - `general(strict_hash)`: baseline/improved each 3 iterations
   - `drift(benchmark_relaxed)`: baseline/improved each 3 iterations
   - same selected-files and same iteration count for both modes
+  - for operational verdict, use explicit P1-positive fixture (e.g. `BenchmarkP1Fixture.ctl`)
 - Response validation includes:
   - `token_min_confidence_used`
   - `token_min_gap_used`
@@ -354,13 +361,56 @@ Generated artifacts:
 - `docs/perf_baselines/autofix_apply_comparison_20260227_1042_drift.json`
 - `docs/perf_baselines/autofix_apply_sweep_20260303_102303_drift.json`
 - `docs/perf_baselines/autofix_apply_root_cause_20260303_102303_drift.json`
+- `docs/perf_baselines/autofix_apply_baseline_20260303_134902_general.json`
+- `docs/perf_baselines/autofix_apply_improved_20260303_134902_general.json`
+- `docs/perf_baselines/autofix_apply_comparison_20260303_134902_general.json`
+- `docs/perf_baselines/autofix_apply_baseline_20260303_134902_drift.json`
+- `docs/perf_baselines/autofix_apply_improved_20260303_134902_drift.json`
+- `docs/perf_baselines/autofix_apply_comparison_20260303_134902_drift.json`
+- `docs/perf_baselines/autofix_apply_sweep_20260303_134930_drift.json`
+- `docs/perf_baselines/autofix_apply_root_cause_20260303_134930_drift.json`
+- `docs/perf_baselines/autofix_apply_baseline_20260303_141411_general.json` (general matrix blocked snapshot)
+- `docs/perf_baselines/autofix_apply_sweep_20260303_141411_drift.json`
+- `docs/perf_baselines/autofix_apply_root_cause_20260303_141411_drift.json`
+- `docs/perf_baselines/autofix_apply_baseline_20260303_142844_general.json`
+- `docs/perf_baselines/autofix_apply_improved_20260303_142844_general.json`
+- `docs/perf_baselines/autofix_apply_comparison_20260303_142844_general.json`
+- `docs/perf_baselines/autofix_apply_baseline_20260303_142844_drift.json`
+- `docs/perf_baselines/autofix_apply_improved_20260303_142844_drift.json`
+- `docs/perf_baselines/autofix_apply_comparison_20260303_142844_drift.json`
+- `docs/perf_baselines/autofix_apply_sweep_20260303_143447_drift.json`
+- `docs/perf_baselines/autofix_apply_root_cause_20260303_143447_drift.json`
 - `docs/perf_baselines/autofix_review_latest.md`
+- `docs/perf_baselines/autofix_review_tuning.md`
 
-Current comparison result (latest drift tuning sweep):
-- `best improvement_percent = 100.0`
-- `kpi_passed combinations = 18/27`
-- `aggregate_reason_counts = {"PASS_10_PERCENT": 18, "BLOCKED_ANCHOR_MISMATCH_ONLY": 9}`
-- `aggregate_fragment_counts = {"ambiguous_candidates": 0, "low_confidence": 0, "drift_exceeded": 0}`
+Current comparison result (latest matrix + drift tuning):
+- matrix general/drift with fixed fixture (`BenchmarkP1Fixture.ctl`)
+  - `autofix_apply_comparison_20260303_142844_general.json`
+    - `baseline_failure_rate = 0.0`
+    - `improved_failure_rate = 0.0`
+    - `instruction_apply_rate = 0.0`
+    - `rollout_ready = false`
+  - `autofix_apply_comparison_20260303_142844_drift.json`
+    - `kpi_observability_pass = true`
+    - `improvement_percent = 0.0`
+    - `instruction_apply_rate = 0.0`
+    - `rollout_ready = false`
+- drift tuning sweep re-run with benchmark structured-force (`autofix_apply_sweep_20260303_141411_drift.json`)
+  - `best improvement_percent = 100.0`
+  - `kpi_passed combinations = 18/27`
+  - best candidate (`c=0.55`, `g=0.05`, `d=300`):
+    - `instruction_apply_rate = 1.0`
+    - `instruction_validation_fail_rate = 0.0`
+    - `rollout_ready = true`
+  - note: this verdict is benchmark-only (`AUTOFIX_BENCHMARK_OBSERVE=1` + `--benchmark-force-structured-instruction`)
+- drift tuning sweep with fixed fixture (`autofix_apply_sweep_20260303_143447_drift.json`)
+  - `best improvement_percent = 0.0`
+  - `kpi_passed combinations = 0/27`
+  - `aggregate_reason_counts = {"BLOCKED_ANCHOR_MISMATCH_ONLY": 27}`
+  - this is now the reproducible fixture-based baseline for tuning comparisons
+- historical issue (resolved for matrix reproducibility)
+  - `autofix_apply_baseline_20260303_141411_general.json` failed with `No P1 violation found`
+  - fixed by enforcing explicit `--selected-files` with P1-positive fixture
 
 Note on hash gate and KPI observability:
 - Current `autofix/apply` flow validates proposal base hash before anchor/token fallback.
@@ -393,3 +443,15 @@ Current rollout criteria (flag default remains OFF):
 Interpretation:
 - If `rollout_ready=false`, keep `autofix.engine.structured_instruction_enabled=false`.
 - Use `instruction_fail_stage_distribution` + `instruction_validation_fail_by_reason` to prioritize fixes (`validate` -> schema issues, `convert` -> conversion issues, `apply` -> engine/runtime issues).
+
+Latest decision snapshot (2026-03-03):
+- default benchmark matrix verdict: `NOT_READY` (flag default remains OFF)
+  - reason: `instruction_apply_rate` was below rollout threshold in drift matrix (`0.0 < 0.70`)
+- drift tuning with benchmark structured-force (`autofix_apply_sweep_20260303_141411_drift.json`):
+  - best-candidate verdict: `READY` (`instruction_apply_rate=1.0`, `instruction_validation_fail_rate=0.0`, `rollout_ready=true`)
+  - caveat: benchmark-only condition (`AUTOFIX_BENCHMARK_OBSERVE=1` + force header), not production default path
+- latest fixture-based tuning (`autofix_apply_sweep_20260303_143447_drift.json`):
+  - verdict: `NOT_READY` (`improvement_percent=0.0`, `BLOCKED_ANCHOR_MISMATCH_ONLY=27/27`)
+- next focus:
+  - reduce anchor-mismatch dominant failures in fixture drift scenario before rollout re-evaluation
+

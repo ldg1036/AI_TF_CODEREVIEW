@@ -1,4 +1,4 @@
-﻿# WinCC OA 코드리뷰 프로그램 계획 대비 구현 현황 TODO
+# WinCC OA 코드리뷰 프로그램 계획 대비 구현 현황 TODO
 
 기준 문서: `WinCC OA 코드리뷰 프로그램 성능 점검 및 LLM Diff 승인형 자동수정 확장 계획`
 
@@ -469,9 +469,16 @@
   - 2026-03-03 재판정 리포트: `docs/perf_baselines/autofix_review_20260303_092056.md`
     - 상태: `PASS`
     - 근거: drift(relaxed)에서 `locator_mode_counts` 관측 + `BASE_HASH_MISMATCH` 단일 100% 아님 + `hash_gate_bypassed_count=3`
+  - 2026-03-03 실측 5차(matrix 재실행): `docs/perf_baselines/autofix_apply_baseline_20260303_134902_general.json`, `docs/perf_baselines/autofix_apply_improved_20260303_134902_general.json`, `docs/perf_baselines/autofix_apply_comparison_20260303_134902_general.json`, `docs/perf_baselines/autofix_apply_baseline_20260303_134902_drift.json`, `docs/perf_baselines/autofix_apply_improved_20260303_134902_drift.json`, `docs/perf_baselines/autofix_apply_comparison_20260303_134902_drift.json`
+  - 2026-03-03 최신 판정 리포트: `docs/perf_baselines/autofix_review_latest.md`
+    - 상태: `PASS` (관측성)
+    - 근거: `kpi_observability_pass=true`, `hash_gate_bypassed_count=3`, `benchmark_observe_mode_counts={"benchmark_relaxed":3}`
+  - 2026-03-03 실측 6차(matrix 재실행, fixture 고정): `docs/perf_baselines/autofix_apply_baseline_20260303_142844_general.json`, `docs/perf_baselines/autofix_apply_improved_20260303_142844_general.json`, `docs/perf_baselines/autofix_apply_comparison_20260303_142844_general.json`, `docs/perf_baselines/autofix_apply_baseline_20260303_142844_drift.json`, `docs/perf_baselines/autofix_apply_improved_20260303_142844_drift.json`, `docs/perf_baselines/autofix_apply_comparison_20260303_142844_drift.json`
+    - 상태: `PASS` (관측성), general/drift 모두 정상 생성
+    - 근거: P1-positive fixture `BenchmarkP1Fixture.ctl` 고정으로 `No P1 violation found` 재현성 이슈 해소
   - 유지 검증(운영 표준):
     - 서버 환경변수 `AUTOFIX_BENCHMARK_OBSERVE=1`로 기동
-    - `python tools/perf/autofix_apply_baseline.py --auto-run-matrix --scenario both --iterations 3 --output docs/perf_baselines --review-output docs/perf_baselines/autofix_review_latest.md`
+    - `python tools/perf/autofix_apply_baseline.py --auto-run-matrix --scenario both --iterations 3 --selected-files BenchmarkP1Fixture.ctl --output docs/perf_baselines --review-output docs/perf_baselines/autofix_review_latest.md`
     - drift 기준(`locator_mode_counts`, `hash_gate_bypassed_count`, `error_code_counts`) 이탈 여부 모니터링
 - [x] 토큰화 기반 fallback 도입 후 anchor mismatch 실패율 10% 이상 개선(실데이터 기준, 장기측정 필요)
   - 2026-03-03 반영: drift 전용 튜닝 스윕 자동화 추가(`tools/perf/autofix_apply_baseline.py --auto-tune-drift`)
@@ -490,6 +497,18 @@
     - 코드: `backend/core/autofix_tokenizer.py`, `backend/main.py`, `tools/perf/autofix_apply_baseline.py`
     - 실측: `docs/perf_baselines/autofix_apply_sweep_20260303_102303_drift.json`, `docs/perf_baselines/autofix_apply_root_cause_20260303_102303_drift.json`
     - 결과: `best improvement_percent=100.0`, `kpi_passed 조합=18/27`, `aggregate_reason_counts={"PASS_10_PERCENT":18,"BLOCKED_ANCHOR_MISMATCH_ONLY":9}`, `aggregate_fragment_counts={"ambiguous_candidates":0,"low_confidence":0,"drift_exceeded":0}`
+  - 2026-03-03 운영판단 확정 실측: `docs/perf_baselines/autofix_apply_sweep_20260303_134930_drift.json`, `docs/perf_baselines/autofix_apply_root_cause_20260303_134930_drift.json`, `docs/perf_baselines/autofix_review_tuning.md`
+    - 결과: `best improvement_percent=100.0`, `PASS_10_PERCENT=18/27`, `BLOCKED_ANCHOR_MISMATCH_ONLY=9`
+    - 운영판단: 기본 경로 기준 `rollout_ready=false` 유지 (`instruction_apply_rate=0.0`, threshold `>=0.70` 미달)
+  - 2026-03-03 운영판단 보강 실측(benchmark structured-force): `docs/perf_baselines/autofix_apply_sweep_20260303_141411_drift.json`, `docs/perf_baselines/autofix_apply_root_cause_20260303_141411_drift.json`, `docs/perf_baselines/autofix_review_tuning.md`
+    - 결과: `best improvement_percent=100.0`, `PASS_10_PERCENT=18/27`, best 후보(`c=0.55`, `g=0.05`, `d=300`)에서 `instruction_apply_rate=1.0`, `rollout_ready=true`
+    - 주의: `AUTOFIX_BENCHMARK_OBSERVE=1` + `--benchmark-force-structured-instruction` 조건의 벤치마크 전용 판정이며, 기본 운영 flag 판단과 분리
+  - 2026-03-03 운영판단 보강 실측(고정 fixture): `docs/perf_baselines/autofix_apply_sweep_20260303_143447_drift.json`, `docs/perf_baselines/autofix_apply_root_cause_20260303_143447_drift.json`, `docs/perf_baselines/autofix_review_tuning.md`
+    - 결과: `best improvement_percent=0.0`, `PASS_10_PERCENT=0/27`, `aggregate_reason_counts={"BLOCKED_ANCHOR_MISMATCH_ONLY":27}`
+    - 해석: 재현성은 확보되었으나, 고정 fixture 기준 tuning 효과는 확인되지 않아 운영 기본값 `OFF` 유지
+  - 2026-03-03 matrix 재실행(general) 차단 이력: `docs/perf_baselines/autofix_apply_baseline_20260303_141411_general.json`
+    - 원인: auto-discover `.ctl` 데이터셋에서 P1 타깃 미검출
+    - 조치: `tools/perf/autofix_apply_baseline.py` auto-run 모드에서 `--selected-files` 필수화 + `BenchmarkP1Fixture.ctl` 고정
   - 2026-02-27 실측 1차: `docs/perf_baselines/autofix_apply_baseline_20260227_0938.json`, `docs/perf_baselines/autofix_apply_improved_20260227_0938.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_0938.json`
   - 결과: `improvement_percent=0.0` (샘플에서 anchor mismatch 이벤트 미발생으로 KPI 판정 보류)
   - 2026-02-27 실측 2차(일반/line_drift): `docs/perf_baselines/autofix_apply_baseline_20260227_1035_general.json`, `docs/perf_baselines/autofix_apply_improved_20260227_1035_general.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_1035_general.json`, `docs/perf_baselines/autofix_apply_baseline_20260227_1035_drift.json`, `docs/perf_baselines/autofix_apply_improved_20260227_1035_drift.json`, `docs/perf_baselines/autofix_apply_comparison_20260227_1035_drift.json`
@@ -507,3 +526,4 @@
   - `checker_vs_api_mismatch_rate=0.0%`
 - [x] `STYLE-HEADER-01` negative false positive 해소(타겟 규칙 기준 비검출 확인)
 - [x] `SEC-01`/`DB-ERR-01`/`EXC-DP-01` escape 보정 완료(엔진 regex 정규화 + 규칙 패턴 표준화 적용)
+
