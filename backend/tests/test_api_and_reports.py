@@ -1285,6 +1285,117 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertEqual(apply_status, 400)
         self.assertIn("Min-Confidence", str(apply_payload.get("error", "")))
 
+    def test_autofix_apply_force_structured_header_ignored_without_observe_gate(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        self.app.autofix_structured_instruction_enabled = False
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        previous = os.environ.get("AUTOFIX_BENCHMARK_OBSERVE")
+        try:
+            os.environ.pop("AUTOFIX_BENCHMARK_OBSERVE", None)
+            apply_status, apply_payload = self._request(
+                "POST",
+                "/api/autofix/apply",
+                {
+                    "proposal_id": prepare_payload.get("proposal_id"),
+                    "session_id": analyze_payload.get("output_dir", ""),
+                    "file": "sample.ctl",
+                    "expected_base_hash": prepare_payload.get("base_hash"),
+                    "apply_mode": "source_ctl",
+                    "block_on_regression": False,
+                },
+                headers={
+                    "X-Autofix-Benchmark-Observe-Mode": "benchmark_relaxed",
+                    "X-Autofix-Benchmark-Force-Structured-Instruction": "true",
+                },
+            )
+        finally:
+            if previous is None:
+                os.environ.pop("AUTOFIX_BENCHMARK_OBSERVE", None)
+            else:
+                os.environ["AUTOFIX_BENCHMARK_OBSERVE"] = previous
+        self.assertEqual(apply_status, 200)
+        validation = apply_payload.get("validation", {})
+        self.assertEqual(str(validation.get("instruction_mode", "off")), "off")
+        self.assertFalse(bool(validation.get("benchmark_structured_instruction_forced", True)))
+
+    def test_autofix_apply_force_structured_header_applied_with_observe_gate(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 조건 검증을 추가하세요.\n\n"
+            "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
+        )
+        self.app.autofix_structured_instruction_enabled = False
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        previous = os.environ.get("AUTOFIX_BENCHMARK_OBSERVE")
+        try:
+            os.environ["AUTOFIX_BENCHMARK_OBSERVE"] = "1"
+            apply_status, apply_payload = self._request(
+                "POST",
+                "/api/autofix/apply",
+                {
+                    "proposal_id": prepare_payload.get("proposal_id"),
+                    "session_id": analyze_payload.get("output_dir", ""),
+                    "file": "sample.ctl",
+                    "expected_base_hash": prepare_payload.get("base_hash"),
+                    "apply_mode": "source_ctl",
+                    "block_on_regression": False,
+                },
+                headers={
+                    "X-Autofix-Benchmark-Observe-Mode": "benchmark_relaxed",
+                    "X-Autofix-Benchmark-Force-Structured-Instruction": "true",
+                },
+            )
+        finally:
+            if previous is None:
+                os.environ.pop("AUTOFIX_BENCHMARK_OBSERVE", None)
+            else:
+                os.environ["AUTOFIX_BENCHMARK_OBSERVE"] = previous
+        self.assertEqual(apply_status, 200)
+        validation = apply_payload.get("validation", {})
+        self.assertTrue(bool(validation.get("benchmark_structured_instruction_forced", False)))
+        self.assertIn(str(validation.get("instruction_mode", "off")), ("applied", "fallback_hunks"))
+        self.assertNotEqual(str(validation.get("instruction_path_reason", "off")), "off")
+
     def test_autofix_prepare_rule_generator_without_review(self):
         self._force_single_internal_violation()
         status, analyze_payload = self._request(

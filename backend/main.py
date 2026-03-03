@@ -120,6 +120,7 @@ class AutoFixQualityMetrics(TypedDict, total=False):
     token_prefer_nearest_tie_used: bool
     token_hint_bias_used: float
     token_force_nearest_on_ambiguous_used: bool
+    benchmark_structured_instruction_forced: bool
     instruction_mode: str
     instruction_validation_errors: List[str]
     instruction_operation: str
@@ -2506,6 +2507,7 @@ class CodeInspectorApp:
         benchmark_tuning_min_confidence: Optional[float] = None,
         benchmark_tuning_min_gap: Optional[float] = None,
         benchmark_tuning_max_line_drift: Optional[int] = None,
+        benchmark_force_structured_instruction: bool = False,
     ) -> Dict:
         if str(apply_mode or "source_ctl") != "source_ctl":
             raise ValueError("apply_mode must be 'source_ctl'")
@@ -2564,6 +2566,7 @@ class CodeInspectorApp:
             token_prefer_nearest_tie_used = False
             token_hint_bias_used = 0.0
             token_force_nearest_on_ambiguous_used = False
+            benchmark_structured_instruction_forced = False
             instruction_mode = "off"
             instruction_validation_errors: List[str] = []
             instruction_operation = ""
@@ -2589,6 +2592,7 @@ class CodeInspectorApp:
                     token_prefer_nearest_tie_used = True
                     token_hint_bias_used = 0.03
                     token_force_nearest_on_ambiguous_used = True
+                benchmark_structured_instruction_forced = bool(benchmark_force_structured_instruction)
 
             def _with_tuning_metrics(payload: AutoFixQualityMetrics) -> AutoFixQualityMetrics:
                 payload["token_min_confidence_used"] = float(token_min_confidence_used)
@@ -2598,6 +2602,7 @@ class CodeInspectorApp:
                 payload["token_prefer_nearest_tie_used"] = bool(token_prefer_nearest_tie_used)
                 payload["token_hint_bias_used"] = float(token_hint_bias_used)
                 payload["token_force_nearest_on_ambiguous_used"] = bool(token_force_nearest_on_ambiguous_used)
+                payload["benchmark_structured_instruction_forced"] = bool(benchmark_structured_instruction_forced)
                 payload["instruction_mode"] = str(instruction_mode or "off")
                 payload["instruction_validation_errors"] = list(instruction_validation_errors)
                 payload["instruction_operation"] = str(instruction_operation or "")
@@ -2653,7 +2658,10 @@ class CodeInspectorApp:
             structured_instruction_hunks: List[Dict[str, Any]] = []
             instruction_hunks_active = False
             structured_instruction_raw = proposal.get("_structured_instruction")
-            if self.autofix_structured_instruction_enabled and isinstance(structured_instruction_raw, dict):
+            structured_instruction_enabled_for_request = bool(
+                self.autofix_structured_instruction_enabled or benchmark_structured_instruction_forced
+            )
+            if structured_instruction_enabled_for_request and isinstance(structured_instruction_raw, dict):
                 instruction_mode = "attempted"
                 instruction_path_reason = "attempted"
                 instruction_failure_stage = "none"
@@ -3032,6 +3040,7 @@ class CodeInspectorApp:
                 "token_prefer_nearest_tie_used": bool(token_prefer_nearest_tie_used),
                 "token_hint_bias_used": float(token_hint_bias_used),
                 "token_force_nearest_on_ambiguous_used": bool(token_force_nearest_on_ambiguous_used),
+                "benchmark_structured_instruction_forced": bool(benchmark_structured_instruction_forced),
                 "syntax_check_passed": self._basic_syntax_check(candidate_content),
                 "semantic_check_passed": True,
                 "semantic_blocked_reason": "",

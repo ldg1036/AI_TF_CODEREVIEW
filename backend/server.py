@@ -136,7 +136,8 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
             "Content-Type, X-Autofix-Benchmark-Observe-Mode, "
             "X-Autofix-Benchmark-Tuning-Min-Confidence, "
             "X-Autofix-Benchmark-Tuning-Min-Gap, "
-            "X-Autofix-Benchmark-Tuning-Max-Line-Drift",
+            "X-Autofix-Benchmark-Tuning-Max-Line-Drift, "
+            "X-Autofix-Benchmark-Force-Structured-Instruction",
         )
 
     @staticmethod
@@ -453,6 +454,7 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
         tune_min_confidence_header = self.headers.get("X-Autofix-Benchmark-Tuning-Min-Confidence", None)
         tune_min_gap_header = self.headers.get("X-Autofix-Benchmark-Tuning-Min-Gap", None)
         tune_max_drift_header = self.headers.get("X-Autofix-Benchmark-Tuning-Max-Line-Drift", None)
+        force_structured_header = self.headers.get("X-Autofix-Benchmark-Force-Structured-Instruction", None)
 
         if not isinstance(proposal_id, str) or not proposal_id.strip():
             raise ValueError("proposal_id must be a non-empty string")
@@ -473,6 +475,7 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
         benchmark_tuning_min_confidence = None
         benchmark_tuning_min_gap = None
         benchmark_tuning_max_line_drift = None
+        benchmark_force_structured_instruction = False
         if tune_min_confidence_header not in (None, ""):
             try:
                 benchmark_tuning_min_confidence = float(tune_min_confidence_header)
@@ -494,6 +497,16 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
                 raise ValueError("X-Autofix-Benchmark-Tuning-Max-Line-Drift must be an integer")
             if not (10 <= benchmark_tuning_max_line_drift <= 2000):
                 raise ValueError("X-Autofix-Benchmark-Tuning-Max-Line-Drift must be within [10, 2000]")
+        if force_structured_header not in (None, ""):
+            normalized_force = str(force_structured_header or "").strip().lower()
+            if normalized_force in ("1", "true", "yes", "on"):
+                benchmark_force_structured_instruction = True
+            elif normalized_force in ("0", "false", "no", "off"):
+                benchmark_force_structured_instruction = False
+            else:
+                raise ValueError(
+                    "X-Autofix-Benchmark-Force-Structured-Instruction must be a boolean-like value"
+                )
 
         logger.info("Autofix apply start id=%s proposal_id=%s", request_id, proposal_id)
         result = self.app.apply_autofix_proposal(
@@ -508,6 +521,7 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
             benchmark_tuning_min_confidence=benchmark_tuning_min_confidence,
             benchmark_tuning_min_gap=benchmark_tuning_min_gap,
             benchmark_tuning_max_line_drift=benchmark_tuning_max_line_drift,
+            benchmark_force_structured_instruction=benchmark_force_structured_instruction,
         )
         result.setdefault("request_id", request_id)
         self._send_json(HTTPStatus.OK, result)
