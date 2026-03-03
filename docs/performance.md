@@ -37,6 +37,55 @@ Related stats from `GET /api/autofix/stats`:
 - `multi_hunk_success_count`
 - `multi_hunk_blocked_count`
 
+## P1 Detail Guidance Template (Frontend)
+
+P1 issue detail (`원인/영향/권장조치`) now uses template priority:
+- `rule_id` exact template (first)
+- `rule_id` prefix template (fallback)
+- generic message fallback (last)
+
+Phase-1 exact templates are applied for:
+- `CLEAN-DUP-01`, `CLEAN-DEAD-01`
+- `HARD-01`, `HARD-02`, `HARD-03`
+- `CFG-01`, `CFG-ERR-01`
+- `STYLE-NAME-01`, `STYLE-INDENT-01`, `STYLE-HEADER-01`, `STD-01`
+- `EXC-TRY-01`
+- `COMP-01`, `COMP-02`
+- existing special cases: `PERF-01`, `PERF-05`
+
+Critical severity keeps the rule-specific impact text and appends urgency:
+- `(긴급도: 치명, 즉시 수정 필요)`
+
+Phase-2 exact templates are additionally applied for:
+- `SEC-01`
+- `SAFE-DIV-01`
+- `VAL-01`
+- `LOG-LEVEL-01`, `LOG-DBG-01`
+- `PERF-02`, `PERF-02-WHERE-DPT-IN-01`, `PERF-03`, `PERF-03-ACTIVE-DELAY-01`
+- `PERF-EV-01`, `PERF-DPSET-BATCH-01`, `PERF-DPGET-BATCH-01`
+- `PERF-SETVALUE-BATCH-01`, `PERF-SETMULTIVALUE-ADOPT-01`, `PERF-GETVALUE-BATCH-01`, `PERF-GETMULTIVALUE-ADOPT-01`, `PERF-AGG-01`
+
+Alias handling (frontend-only normalization) is enabled for representative `cfg-*` IDs:
+- `cfg-perf-01`, `cfg-perf-02`, `cfg-perf-02-dpt-in-01`, `cfg-perf-03-active-delay-01`
+- `cfg-log-dbg-01`, `cfg-log-level-01`
+- `cfg-db-01`, `cfg-db-02`
+- `cfg-dup-act-01`, `cfg-getmultivalue-adopt-01`
+
+## REVIEWED-P1 Sync Policy
+
+- P1 row rendering is aligned to `*_REVIEWED.txt` TODO blocks first.
+- Default P1 list hides `violation-only` rows and shows REVIEWED-based rows (`synced/review-only/partial`) only.
+- REVIEW-ONLY/partial rows are grouped by `file + normalized message` to avoid repeated list rows for the same TODO text.
+- For meta-missing REVIEWED blocks, frontend applies a two-step mapping: `rule_id inference` then `safe proximity match` (same file, ±25 lines, single-candidate only).
+- Message normalization for REVIEW-ONLY grouping strips comment/review prefixes and punctuation to collapse semantically identical TODO texts.
+- Proximity matching includes cross-family conflict guards (`dpGet batch` vs `getMultiValue`, `dpSet batch` vs `setMultiValue`) to reduce wrong rule binding.
+- For `synced` rows, table message uses matched violation message as source-of-truth; REVIEWED TODO text is shown only as auxiliary detail when they differ.
+- Annotated TODO blocks include a machine-readable meta line:
+  - `// [META] issue_id=...; rule_id=...; line=...; file=...`
+- Frontend displays sync status for P1 detail:
+  - `synced`, `review-only`, `violation-only`, `partial`
+- Public API schema remains unchanged; synchronization is done via REVIEWED text format + frontend parser.
+
 ## 1. What To Measure
 
 ### UI (frontend responsiveness)

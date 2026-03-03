@@ -671,7 +671,7 @@
   {
     "id": "legacy-check_consecutive_dpset",
     "order": 240,
-    "enabled": true,
+    "enabled": false,
     "file_types": [
       "Client",
       "Server"

@@ -187,11 +187,16 @@ class Reporter:
         suggestion_text = self._normalize_comment_message(suggestion)
         if suggestion_text.startswith("//"):
             suggestion_text = suggestion_text[2:].strip()
+        issue_id = str(violation.get("issue_id", "") or "").replace(";", ",")
+        rule_id = str(violation.get("rule_id", "") or "").replace(";", ",")
+        line_no = self._to_int(violation.get("line", 0), 0)
+        file_name = str(violation.get("file", "") or violation.get("object", "") or "").replace(";", ",")
         review_suffix = f" - {suggestion_text}" if suggestion_text and suggestion_text != message else ""
         lines = [
             f"{indent}// >>TODO",
             f"{indent}// {message}",
             f"{indent}// [REVIEW] {severity}{review_suffix}",
+            f"{indent}// [META] issue_id={issue_id}; rule_id={rule_id}; line={line_no}; file={file_name}",
         ]
         for ai_review in violation.get("_accepted_ai_reviews", []) or []:
             lines.extend(self._render_ai_code_comment_lines(ai_review, indent))

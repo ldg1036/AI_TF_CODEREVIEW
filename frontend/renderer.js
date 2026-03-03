@@ -61,6 +61,7 @@ let currentHighlightedLine = null;
 let currentHighlightedLineNear = false;
 let currentViewerLines = [];
 const functionScopeCacheByFile = new Map();
+const reviewedTodoCacheByFile = new Map();
 let workspaceRowIndex = [];
 let workspaceRenderToken = 0;
 let workspaceFilteredRows = [];
@@ -371,9 +372,41 @@ function basenamePath(value) {
     return parts[parts.length - 1] || text;
 }
 
+function fileIdentityKey(value) {
+    const text = String(value || "").trim();
+    if (!text) return "";
+    return text.replace(/\\/g, "/").toLowerCase();
+}
+
 function positiveLineOrZero(value) {
     const line = Number.parseInt(value, 10);
     return Number.isFinite(line) && line > 0 ? line : 0;
+}
+
+const P1_RULE_ALIAS_MAP = {
+    "cfg-perf-01": "PERF-01",
+    "cfg-perf-02": "PERF-02",
+    "cfg-perf-02-dpt-in-01": "PERF-02-WHERE-DPT-IN-01",
+    "cfg-perf-03-active-delay-01": "PERF-03-ACTIVE-DELAY-01",
+    "cfg-hard-01": "HARD-01",
+    "cfg-clean-dup-01": "CLEAN-DUP-01",
+    "cfg-log-dbg-01": "LOG-DBG-01",
+    "cfg-log-level-01": "LOG-LEVEL-01",
+    "cfg-db-01": "DB-01",
+    "cfg-db-02": "DB-02",
+    "cfg-active-01": "ACTIVE-01",
+    "cfg-dup-act-01": "DUP-ACT-01",
+    "cfg-getmultivalue-adopt-01": "PERF-GETMULTIVALUE-ADOPT-01",
+};
+
+function normalizeP1RuleId(ruleId) {
+    const raw = String(ruleId || "").trim();
+    if (!raw) return "UNKNOWN";
+    const lowered = raw.toLowerCase();
+    if (P1_RULE_ALIAS_MAP[lowered]) {
+        return String(P1_RULE_ALIAS_MAP[lowered]);
+    }
+    return raw.toUpperCase();
 }
 
 function currentViewerLineCount() {
@@ -490,6 +523,122 @@ function resolveFunctionScopeForViolation(fileName, lineNo) {
     return scope;
 }
 
+function parseReviewedMetaLine(lineText) {
+    const text = String(lineText || "");
+    const m = text.match(/^\/\/\s*\[META\]\s*(.+)$/i);
+    if (!m || !m[1]) return null;
+    const meta = {};
+    String(m[1]).split(";").forEach((entry) => {
+        const token = String(entry || "").trim();
+        if (!token) return;
+        const sep = token.indexOf("=");
+        if (sep <= 0) return;
+        const key = token.slice(0, sep).trim().toLowerCase();
+        const value = token.slice(sep + 1).trim();
+        meta[key] = value;
+    });
+    return meta;
+}
+
+function parseReviewedSeverity(reviewLine) {
+    const text = String(reviewLine || "");
+    const m = text.match(/^\/\/\s*\[REVIEW\]\s*([A-Za-z]+)/i);
+    return m && m[1] ? m[1] : "Info";
+}
+
+function parseReviewedTodoBlocks(content, fileName = "") {
+    const lines = String(content || "").split("\n");
+    const blocks = [];
+    for (let i = 0; i < lines.length; i += 1) {
+        const raw = String(lines[i] || "");
+        if (!/^\/\/\s*>>TODO/i.test(raw.trim())) continue;
+
+        const block = {
+            file: basenamePath(fileName),
+            todo_line: i + 1,
+            message: "",
+            review_line: "",
+            severity: "Info",
+            meta: {},
+        };
+
+        let j = i + 1;
+        while (j < lines.length) {
+            const lraw = String(lines[j] || "");
+            const ltrim = lraw.trim();
+            if (!ltrim.startsWith("//")) break;
+
+            if (/^\/\/\s*\[REVIEW\]/i.test(ltrim)) {
+                block.review_line = ltrim;
+                block.severity = parseReviewedSeverity(ltrim);
+            } else if (/^\/\/\s*\[META\]/i.test(ltrim)) {
+                const meta = parseReviewedMetaLine(ltrim);
+                if (meta && typeof meta === "object") {
+                    block.meta = meta;
+                }
+            } else if (!/^\/\/\s*>>TODO/i.test(ltrim) && !block.message) {
+                block.message = ltrim.replace(/^\/\/\s*/, "").trim();
+            }
+            j += 1;
+        }
+        blocks.push(block);
+        i = Math.max(i, j - 1);
+    }
+    return blocks;
+}
+
+function normalizeReviewedMessageKey(message) {
+    return String(message || "")
+        .replace(/^\/\/\s*/g, "")
+        .replace(/\[review\]\s*warning\s*-\s*/gi, "")
+        .replace(/\[review\]\s*info\s*-\s*/gi, "")
+        .replace(/[()[\]{}.,:;!?'"`]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+}
+
+function p1RulePrefixGroup(ruleId) {
+    const normalized = normalizeP1RuleId(ruleId);
+    if (!normalized || normalized === "UNKNOWN") return "UNKNOWN";
+    const idx = normalized.indexOf("-");
+    return idx > 0 ? normalized.slice(0, idx) : normalized;
+}
+
+function inferRuleIdFromReviewedBlock(block) {
+    const meta = (block && block.meta && typeof block.meta === "object") ? block.meta : {};
+    const metaRule = normalizeP1RuleId(meta.rule_id);
+    if (metaRule !== "UNKNOWN") {
+        return { inferredRuleId: metaRule, confidence: 1.0, source: "meta" };
+    }
+    const reviewLine = String((block && block.review_line) || "").toLowerCase();
+    const message = String((block && block.message) || "").toLowerCase();
+    const text = `${reviewLine} ${message}`;
+
+    const rules = [
+        { pattern: /dpget|반복\s*구간\s*dpget|일괄\/캐시\s*처리\s*권장/, ruleId: "PERF-DPGET-BATCH-01", confidence: 0.9 },
+        { pattern: /dpsetwait|dpsettimed/, ruleId: "PERF-05", confidence: 0.9 },
+        { pattern: /연속\s*dpset|반복\s*구간\s*dpset|dpset.*일괄|dpset.*배치|배치\/동기\/조건부 업데이트/, ruleId: "PERF-DPSET-BATCH-01", confidence: 0.88 },
+        { pattern: /active\/?enable|enable\/?active|active.*조건|enable.*조건/, ruleId: "ACTIVE-01", confidence: 0.88 },
+        { pattern: /try\/catch|getlasterror|예외 처리/, ruleId: "EXC-TRY-01", confidence: 0.85 },
+        { pattern: /setmultivalue|다중\s*set\s*업데이트/, ruleId: "PERF-SETMULTIVALUE-ADOPT-01", confidence: 0.86 },
+        { pattern: /getmultivalue|다중\s*get\s*업데이트/, ruleId: "PERF-GETMULTIVALUE-ADOPT-01", confidence: 0.86 },
+        { pattern: /dp query.*_dpt.*in/, ruleId: "PERF-02-WHERE-DPT-IN-01", confidence: 0.82 },
+        { pattern: /dp query|전체 범위 조회/, ruleId: "PERF-02", confidence: 0.8 },
+        { pattern: /divide by zero|0.*나눗셈|분모.*0/, ruleId: "SAFE-DIV-01", confidence: 0.82 },
+        { pattern: /유효성|범위|형식.*검증/, ruleId: "VAL-01", confidence: 0.78 },
+        { pattern: /디버그 로그|debug/, ruleId: "LOG-DBG-01", confidence: 0.78 },
+        { pattern: /로그 레벨/, ruleId: "LOG-LEVEL-01", confidence: 0.78 },
+        { pattern: /중복 동작|중복 처리/, ruleId: "DUP-ACT-01", confidence: 0.8 },
+    ];
+    for (const entry of rules) {
+        if (entry.pattern.test(text)) {
+            return { inferredRuleId: entry.ruleId, confidence: entry.confidence, source: "review_text" };
+        }
+    }
+    return { inferredRuleId: "UNKNOWN", confidence: 0, source: "none" };
+}
+
 async function fetchFileContentPayload(fileName, options = {}) {
     if (!fileName) throw new Error("file name is required");
     const preferSource = !!(options && options.preferSource);
@@ -507,6 +656,7 @@ async function fetchFileContentPayload(fileName, options = {}) {
 
 async function prepareFunctionScopeCacheForSelectedFiles(selectedFiles) {
     functionScopeCacheByFile.clear();
+    reviewedTodoCacheByFile.clear();
     const files = Array.isArray(selectedFiles)
         ? selectedFiles.map((name) => basenamePath(name)).filter((name) => !!name)
         : [];
@@ -519,8 +669,17 @@ async function prepareFunctionScopeCacheForSelectedFiles(selectedFiles) {
         // eslint-disable-next-line no-await-in-loop
         await Promise.all(batch.map(async (fileName) => {
             try {
-                const payload = await fetchFileContentPayload(fileName, { preferSource: true });
-                cacheFunctionScopesForFile(fileName, String(payload.content || ""));
+                const [sourcePayload, viewPayload] = await Promise.all([
+                    fetchFileContentPayload(fileName, { preferSource: true }),
+                    fetchFileContentPayload(fileName, { preferSource: false }),
+                ]);
+                cacheFunctionScopesForFile(fileName, String((sourcePayload && sourcePayload.content) || ""));
+                if (viewPayload && String(viewPayload.source || "") === "reviewed") {
+                    reviewedTodoCacheByFile.set(
+                        basenamePath(fileName),
+                        parseReviewedTodoBlocks(String(viewPayload.content || ""), fileName),
+                    );
+                }
             } catch (_) {
                 // unresolved scope fallback
             }
@@ -1178,6 +1337,344 @@ function buildP2DetailBlocks(violation) {
     };
 }
 
+function buildP1DetailBlocks(violation) {
+    const rawRuleId = String((violation && violation.rule_id) || "unknown");
+    const message = String((violation && violation.message) || "").trim();
+    const severityRaw = String((violation && violation.severity) || "warning");
+    const severity = severityFilterKey(severityRaw);
+    const lineNo = positiveLineOrZero(violation && violation.line);
+    const fileName = basenamePath(violation && (violation.file || violation.file_name || violation.filename || violation.object));
+
+    const ruleUpper = normalizeP1RuleId(rawRuleId);
+    const msgLower = message.toLowerCase();
+
+    let cause = message || "P1 정적 규칙 분석에서 개선이 필요한 코드 패턴이 감지되었습니다.";
+    let impact = "코드 품질 및 유지보수성 저하 가능성이 있습니다.";
+    let action = "규칙 의도에 맞게 로직을 정리하고 동일 패턴을 함께 점검하세요.";
+
+    const exactTemplates = {
+        "CLEAN-DUP-01": {
+            cause: "동일/유사 코드가 반복되어 중복 패턴이 감지되었습니다.",
+            impact: "수정 누락 가능성이 커지고 유지보수 비용이 증가할 수 있습니다.",
+            action: "공통 로직을 함수/헬퍼로 추출해 중복 코드를 제거하세요.",
+        },
+        "CLEAN-DEAD-01": {
+            cause: "도달 불가 또는 미사용 코드가 감지되었습니다.",
+            impact: "가독성이 저하되고 코드 의도를 오해할 가능성이 있습니다.",
+            action: "불필요 코드를 제거하고 참조/호출 영향 범위를 함께 점검하세요.",
+        },
+        "HARD-01": {
+            cause: "하드코딩된 문자열/값 사용이 감지되었습니다.",
+            impact: "환경 변경 시 수정 범위가 커지고 운영 유연성이 저하될 수 있습니다.",
+            action: "상수 또는 Config 기반으로 분리하고 의미 있는 이름을 부여하세요.",
+        },
+        "HARD-02": {
+            cause: "하드코딩된 값 사용 패턴이 감지되었습니다.",
+            impact: "배포 환경별 조건 대응이 어려워지고 변경 리스크가 증가할 수 있습니다.",
+            action: "값을 설정/상수화하고 변경 가능한 파라미터로 분리하세요.",
+        },
+        "HARD-03": {
+            cause: "하드코딩 값 의존 패턴이 감지되었습니다.",
+            impact: "운영 정책 변경 시 코드 수정이 반복되어 장애 가능성이 높아질 수 있습니다.",
+            action: "Config/상수 테이블로 이관해 값 변경이 코드 수정 없이 가능하도록 정리하세요.",
+        },
+        "CFG-01": {
+            cause: "config 계약 또는 키 정합성 불일치 가능성이 감지되었습니다.",
+            impact: "런타임 설정 오동작으로 기능 실패가 발생할 수 있습니다.",
+            action: "config 키/타입/기본값을 점검하고 누락 케이스에 대한 방어 분기를 추가하세요.",
+        },
+        "CFG-ERR-01": {
+            cause: "config 로드/검증 오류 처리 누락 가능성이 감지되었습니다.",
+            impact: "설정 오류가 연쇄 장애로 전파될 수 있습니다.",
+            action: "config 오류 처리 경로를 명시하고 실패 시 안전한 기본 동작을 정의하세요.",
+        },
+        "STYLE-NAME-01": {
+            cause: "명명 규칙 위반 가능성이 감지되었습니다.",
+            impact: "코드 의도 파악이 어려워져 협업 비용이 증가할 수 있습니다.",
+            action: "프로젝트 명명 규칙에 맞게 식별자 이름을 정리하세요.",
+        },
+        "STYLE-INDENT-01": {
+            cause: "들여쓰기/정렬 규칙 위반 가능성이 감지되었습니다.",
+            impact: "가독성이 저하되고 리뷰 효율이 떨어질 수 있습니다.",
+            action: "일관된 들여쓰기 규칙으로 정리하고 블록 구조를 명확히 맞추세요.",
+        },
+        "STYLE-HEADER-01": {
+            cause: "헤더/주석 스타일 규칙 위반 가능성이 감지되었습니다.",
+            impact: "파일 목적/변경 이력 파악이 어려워질 수 있습니다.",
+            action: "프로젝트 표준 헤더/주석 포맷을 적용하세요.",
+        },
+        "STD-01": {
+            cause: "코딩 표준 규칙 위반 가능성이 감지되었습니다.",
+            impact: "팀 내 일관성이 깨져 유지보수 효율이 저하될 수 있습니다.",
+            action: "표준 가이드에 맞춰 코드 스타일과 구조를 정리하세요.",
+        },
+        "EXC-TRY-01": {
+            cause: "예외 가능 구간에 대한 보호 처리 부족이 감지되었습니다.",
+            impact: "실패가 상위 로직으로 전파되어 복구 지연이 발생할 수 있습니다.",
+            action: "try-catch와 오류 로깅/복구 분기를 추가해 예외 경로를 명시적으로 처리하세요.",
+        },
+        "COMP-01": {
+            cause: "복잡도 과다 패턴이 감지되었습니다.",
+            impact: "이해/테스트 난이도가 올라가 결함 유입률이 증가할 수 있습니다.",
+            action: "함수를 분리하고 분기 구조를 단순화해 복잡도를 낮추세요.",
+        },
+        "COMP-02": {
+            cause: "분기 과밀 또는 과도한 복합 조건 패턴이 감지되었습니다.",
+            impact: "수정 시 사이드이펙트 가능성이 커질 수 있습니다.",
+            action: "조건식을 분해하고 조기 반환 패턴으로 로직 흐름을 단순화하세요.",
+        },
+        "PERF-01": {
+            cause: "Callback 내부에서 delay 호출 패턴이 감지되었습니다.",
+            impact: "콜백 처리 지연으로 이벤트 누락/응답성 저하가 발생해 안정성 이슈로 이어질 수 있습니다.",
+            action: "Callback 내부 delay 호출을 제거하고, 비동기 스케줄링 또는 타이머 분리 구조로 전환하세요.",
+        },
+        "PERF-05": {
+            cause: "dpSetTimed로 대체 가능한 호출 패턴이 감지되었습니다.",
+            impact: "불필요한 호출 방식으로 인해 타이밍 제어 부정확/부하 증가가 발생할 수 있습니다.",
+            action: "주기성/지연 호출은 dpSetTimed 기반으로 전환하고, 기존 호출 시점/간격을 함께 정리하세요.",
+        },
+        "SEC-01": {
+            cause: "SQL/쿼리 문자열 구성 시 입력값 검증 부족 패턴이 감지되었습니다.",
+            impact: "비정상 입력이 쿼리에 반영되어 보안 취약점으로 이어질 수 있습니다.",
+            action: "입력값 검증/정규화와 파라미터화된 쿼리 사용으로 주입 위험을 차단하세요.",
+        },
+        "DB-01": {
+            cause: "문자열 기반 SQL 조합 패턴이 감지되었습니다.",
+            impact: "쿼리 가독성/안정성이 저하되고 입력값 결합 실수로 장애 위험이 증가할 수 있습니다.",
+            action: "쿼리를 파라미터 바인딩 방식으로 전환하고 문자열 결합 SQL 작성을 줄이세요.",
+        },
+        "DB-02": {
+            cause: "쿼리 주석/설명 누락 가능성이 감지되었습니다.",
+            impact: "쿼리 의도 파악이 어려워 유지보수/장애 대응 시간이 증가할 수 있습니다.",
+            action: "중요 쿼리 구간에 목적/조건을 설명하는 주석을 보강하고 규칙에 맞게 관리하세요.",
+        },
+        "SAFE-DIV-01": {
+            cause: "0으로 나눗셈이 발생할 수 있는 연산 패턴이 감지되었습니다.",
+            impact: "런타임 오류 또는 비정상 값 전파로 연쇄 장애가 발생할 수 있습니다.",
+            action: "분모 0 가드 조건과 예외 분기 처리를 추가해 안전하게 계산하세요.",
+        },
+        "VAL-01": {
+            cause: "입력/중간값 유효성 검증 부족 패턴이 감지되었습니다.",
+            impact: "잘못된 값이 후속 로직으로 전파되어 오동작 가능성이 커질 수 있습니다.",
+            action: "범위/형식/널 여부 검증을 명시적으로 추가하고 실패 분기를 정의하세요.",
+        },
+        "LOG-LEVEL-01": {
+            cause: "로그 레벨 사용이 상황 대비 부적절한 패턴이 감지되었습니다.",
+            impact: "운영 시 중요 이벤트 누락 또는 노이즈 증가로 모니터링 품질이 저하될 수 있습니다.",
+            action: "상황에 맞는 로그 레벨을 재분류하고 핵심 이벤트는 일관된 레벨로 기록하세요.",
+        },
+        "LOG-DBG-01": {
+            cause: "디버그 로그 과다/잔존 패턴이 감지되었습니다.",
+            impact: "로그 노이즈 증가로 장애 원인 추적 효율이 저하될 수 있습니다.",
+            action: "불필요한 디버그 로그를 제거하고 운영용 로그만 남기도록 정리하세요.",
+        },
+        "PERF-02": {
+            cause: "반복/루프 구간 비효율 호출 패턴이 감지되었습니다.",
+            impact: "불필요한 반복 호출로 응답 지연 및 자원 사용량이 증가할 수 있습니다.",
+            action: "반복 구간 호출을 묶음 처리하고 호출 횟수를 최소화하세요.",
+        },
+        "PERF-02-WHERE-DPT-IN-01": {
+            cause: "WHERE 절 DPT IN 사용 최적화 대상 패턴이 감지되었습니다.",
+            impact: "조회 조건이 비효율적으로 구성되어 처리 시간이 증가할 수 있습니다.",
+            action: "DPT IN 조건을 활용해 조회 범위를 최적화하고 불필요한 탐색을 줄이세요.",
+        },
+        "PERF-03": {
+            cause: "지연/차단성 호출 패턴이 감지되었습니다.",
+            impact: "이벤트 처리 스레드 지연으로 시스템 응답성이 저하될 수 있습니다.",
+            action: "차단성 호출을 비동기 처리로 전환하고 호출 시점을 분리하세요.",
+        },
+        "PERF-03-ACTIVE-DELAY-01": {
+            cause: "active 컨텍스트에서 delay 사용 패턴이 감지되었습니다.",
+            impact: "실시간 이벤트 처리 지연으로 기능 안정성이 저하될 수 있습니다.",
+            action: "active 경로에서 delay를 제거하고 타이머/스케줄러 기반 흐름으로 대체하세요.",
+        },
+        "PERF-EV-01": {
+            cause: "이벤트 교환 호출 과다 패턴이 감지되었습니다.",
+            impact: "이벤트 트래픽 증가로 처리 지연과 부하 상승이 발생할 수 있습니다.",
+            action: "이벤트 교환 횟수를 줄이고 필요 이벤트만 선별해 전달하도록 정리하세요.",
+        },
+        "ACTIVE-01": {
+            cause: "상태 변경 호출 전 Active/Enable 조건 확인 누락 가능성이 감지되었습니다.",
+            impact: "비활성 상태에서도 변경 호출이 실행되어 예기치 않은 동작이 발생할 수 있습니다.",
+            action: "상태 변경 전에 Active/Enable 가드 조건을 명시하고 false 경로 처리 로직을 추가하세요.",
+        },
+        "DUP-ACT-01": {
+            cause: "동일 대상에 대한 중복 동작 처리(가드) 부재 가능성이 감지되었습니다.",
+            impact: "불필요한 중복 호출로 성능 저하 및 상태 불일치 가능성이 증가할 수 있습니다.",
+            action: "중복 방지 가드(변경 감지/플래그)와 조건 분기를 추가해 동일 동작 반복을 차단하세요.",
+        },
+        "PERF-DPSET-BATCH-01": {
+            cause: "dpSet 배치화 미적용 패턴이 감지되었습니다.",
+            impact: "개별 호출 반복으로 처리 시간이 증가할 수 있습니다.",
+            action: "가능한 구간은 dpSet 배치 호출로 전환하세요.",
+        },
+        "PERF-DPGET-BATCH-01": {
+            cause: "dpGet 배치화 미적용 패턴이 감지되었습니다.",
+            impact: "개별 조회 반복으로 응답 지연이 발생할 수 있습니다.",
+            action: "조회 구간을 배치 요청으로 묶어 I/O 비용을 줄이세요.",
+        },
+        "PERF-SETVALUE-BATCH-01": {
+            cause: "setValue 반복 호출 패턴이 감지되었습니다.",
+            impact: "호출 누적으로 불필요한 부하가 발생할 수 있습니다.",
+            action: "setValue 호출을 배치 처리 가능한 방식으로 전환하세요.",
+        },
+        "PERF-SETMULTIVALUE-ADOPT-01": {
+            cause: "다중 set 업데이트 패턴이 감지되었습니다.",
+            impact: "반복 업데이트로 처리 효율이 저하될 수 있습니다.",
+            action: "setMultiValue API를 적용해 다중 업데이트를 통합 처리하세요.",
+        },
+        "PERF-GETVALUE-BATCH-01": {
+            cause: "getValue 반복 조회 패턴이 감지되었습니다.",
+            impact: "반복 조회로 조회 지연과 자원 소모가 증가할 수 있습니다.",
+            action: "getValue 호출을 배치/통합 조회 방식으로 전환하세요.",
+        },
+        "PERF-GETMULTIVALUE-ADOPT-01": {
+            cause: "다중 get 조회 패턴이 감지되었습니다.",
+            impact: "개별 조회 반복으로 성능 저하가 발생할 수 있습니다.",
+            action: "getMultiValue API를 적용해 다중 조회를 통합 처리하세요.",
+        },
+        "PERF-AGG-01": {
+            cause: "수동 집계/루프 기반 집계 패턴이 감지되었습니다.",
+            impact: "연산 비용 증가로 처리 지연이 누적될 수 있습니다.",
+            action: "집계 로직을 공통/배치 처리로 단순화해 반복 연산을 줄이세요.",
+        },
+    };
+
+    const prefixTemplates = [
+        ["PERF-", {
+            cause: "반복 호출/업데이트 패턴으로 인한 비효율 가능성이 감지되었습니다.",
+            impact: "불필요한 호출 누적으로 응답 지연 및 리소스 사용량 증가가 발생할 수 있습니다.",
+            action: "반복 호출을 묶음 처리하거나 배치 방식으로 변경하고, 동일 구간 호출 횟수를 줄이세요.",
+        }],
+        ["SEC-", {
+            cause: "입력값 검증 또는 보안 방어 로직이 충분하지 않은 패턴이 감지되었습니다.",
+            impact: "비정상 입력으로 인한 오동작 또는 보안 취약점으로 이어질 수 있습니다.",
+            action: "입력값 검증/정규화와 방어 로직을 추가하고, 외부 입력 경로를 우선 점검하세요.",
+        }],
+        ["DB-", {
+            cause: "데이터 조회/갱신 쿼리 관리 규칙 위반 가능성이 감지되었습니다.",
+            impact: "쿼리 변경 영향 추적이 어려워지고 운영 안정성이 저하될 수 있습니다.",
+            action: "쿼리 작성 방식을 표준화하고 바인딩/주석/오류처리 규칙을 보강하세요.",
+        }],
+        ["SAFE-", {
+            cause: "안전성 관련 보호 조건이 부족한 코드 패턴이 감지되었습니다.",
+            impact: "예외 상황에서 런타임 오류나 예기치 않은 상태 전이가 발생할 수 있습니다.",
+            action: "가드 조건과 실패 분기 처리를 보강하고, 예외 경로를 명시적으로 처리하세요.",
+        }],
+        ["VAL-", {
+            cause: "값 유효성 검증이 누락되었거나 불충분한 패턴이 감지되었습니다.",
+            impact: "잘못된 데이터 전파로 기능 오작동 및 디버깅 비용 증가가 발생할 수 있습니다.",
+            action: "입력/중간값 검증을 추가하고 범위/형식 체크를 명확히 분리하세요.",
+        }],
+        ["LOG-", {
+            cause: "로그 처리 규칙 위반 가능성이 감지되었습니다.",
+            impact: "운영 이슈 추적성이 저하되어 장애 분석 시간이 증가할 수 있습니다.",
+            action: "로그 레벨과 메시지 포맷을 규칙에 맞게 정리하고 핵심 분기 로그를 보완하세요.",
+        }],
+        ["CLEAN-", {
+            cause: "코드 정리(클린업) 규칙 위반 가능성이 감지되었습니다.",
+            impact: "가독성과 유지보수성이 저하될 수 있습니다.",
+            action: "중복/미사용/불필요 코드를 정리하고 공통 로직으로 통합하세요.",
+        }],
+        ["HARD-", {
+            cause: "하드코딩 지양 규칙 위반 가능성이 감지되었습니다.",
+            impact: "환경/요구사항 변경 대응이 어려워질 수 있습니다.",
+            action: "하드코딩 값을 설정/상수화하고 코드 의존도를 낮추세요.",
+        }],
+        ["CFG-", {
+            cause: "설정(config) 정합성 규칙 위반 가능성이 감지되었습니다.",
+            impact: "런타임 설정 오류로 기능 오작동이 발생할 수 있습니다.",
+            action: "config 키/기본값/오류처리 분기를 점검해 설정 계약을 맞추세요.",
+        }],
+        ["STYLE-", {
+            cause: "코딩 스타일 규칙 위반 가능성이 감지되었습니다.",
+            impact: "협업 가독성과 일관성이 저하될 수 있습니다.",
+            action: "팀 스타일 가이드에 맞게 명명/들여쓰기/헤더를 정리하세요.",
+        }],
+        ["EXC-", {
+            cause: "예외 처리 규칙 위반 가능성이 감지되었습니다.",
+            impact: "실패 전파로 장애 분석/복구 시간이 증가할 수 있습니다.",
+            action: "예외 처리와 로그/복구 분기를 명시적으로 보강하세요.",
+        }],
+        ["ACTIVE-", {
+            cause: "활성 상태/실행 조건 검증 규칙 위반 가능성이 감지되었습니다.",
+            impact: "비활성 구간에서 동작이 수행되어 상태 불일치가 발생할 수 있습니다.",
+            action: "Active/Enable 조건 가드와 실패 경로 처리를 명시적으로 추가하세요.",
+        }],
+        ["DUP-", {
+            cause: "중복 동작 방지 규칙 위반 가능성이 감지되었습니다.",
+            impact: "중복 호출 누적으로 성능 저하와 예기치 않은 동작이 발생할 수 있습니다.",
+            action: "중복 방지 가드와 변경 감지 조건을 추가해 반복 동작을 줄이세요.",
+        }],
+        ["COMP-", {
+            cause: "복잡도 관리 규칙 위반 가능성이 감지되었습니다.",
+            impact: "코드 이해도 저하로 결함 유입 위험이 높아질 수 있습니다.",
+            action: "함수 분리, 분기 단순화, 조기 반환으로 복잡도를 낮추세요.",
+        }],
+    ];
+
+    const exact = exactTemplates[ruleUpper];
+    if (exact) {
+        cause = message || exact.cause;
+        impact = exact.impact;
+        action = exact.action;
+    } else {
+        for (const [prefix, tpl] of prefixTemplates) {
+            if (ruleUpper.startsWith(prefix)) {
+                cause = message || tpl.cause;
+                impact = tpl.impact;
+                action = tpl.action;
+                break;
+            }
+        }
+        if (!exact && ruleUpper === "UNKNOWN" && (msgLower.includes("성능") || msgLower.includes("update"))) {
+            cause = message || "반복 호출/업데이트 패턴으로 인한 비효율 가능성이 감지되었습니다.";
+            impact = "불필요한 호출 누적으로 응답 지연 및 리소스 사용량 증가가 발생할 수 있습니다.";
+            action = "반복 호출을 묶음 처리하거나 배치 방식으로 변경하고, 동일 구간 호출 횟수를 줄이세요.";
+        }
+    }
+
+    if (severity === "critical") {
+        impact = `${impact} (긴급도: 치명, 즉시 수정 필요)`;
+    }
+
+    const evidenceParts = [];
+    if (fileName) evidenceParts.push(fileName);
+    if (lineNo > 0) evidenceParts.push(`line ${lineNo}`);
+    evidenceParts.push(`rule_id=${ruleUpper || "unknown"}`);
+    const evidence = evidenceParts.join(", ");
+
+    return {
+        cause: `원인: ${truncateMiddle(cause, 160)}`,
+        impact: `영향: ${truncateMiddle(impact, 160)}`,
+        action: `권장조치: ${truncateMiddle(action, 120)} (근거: ${evidence})`,
+        raw: "",
+    };
+}
+
+function renderDetailDescriptionBlocks(container, blocks) {
+    const title = document.createElement("p");
+    const titleStrong = document.createElement("strong");
+    titleStrong.textContent = "설명:";
+    title.appendChild(titleStrong);
+    container.appendChild(title);
+
+    [blocks.cause, blocks.impact, blocks.action].forEach((line) => {
+        const p = document.createElement("p");
+        p.style.marginTop = "4px";
+        p.textContent = line;
+        container.appendChild(p);
+    });
+    if (blocks.raw) {
+        const raw = document.createElement("p");
+        raw.style.marginTop = "6px";
+        raw.style.fontSize = "12px";
+        raw.style.color = "#666";
+        raw.textContent = blocks.raw;
+        container.appendChild(raw);
+    }
+}
+
 function localizeCtrlppSeverity(severity) {
     const sev = String(severity || "").toLowerCase();
     if (sev === "error") return "오류";
@@ -1533,190 +2030,325 @@ function buildWorkspaceRowIndex() {
     const p1Groups = analysisData.violations.P1 || [];
     const p2List = analysisData.violations.P2 || [];
     const p3List = analysisData.violations.P3 || [];
-    const jumpTargetGroups = new Map();
-    const fallbackDedup = new Map();
-    const unresolvedFallbackStats = new Map();
-    const fallbackCandidates = [];
-
+    const flattenedP1 = [];
     p1Groups.forEach((group) => {
-        (group.violations || []).forEach((v) => {
+        (group.violations || []).forEach((v, index) => {
             const violation = { ...v, object: group.object };
             violation.file = violation.file || group.object;
-            const source = v.priority_origin || "P1";
-            const sourceKey = sourceFilterKey(source);
-            const fileKey = basenamePath(violation.file || group.object || "");
-            const ruleIdKey = String(violation.rule_id || "");
-            const messageKey = String(violation.message || "");
-            const lineValue = positiveLineOrZero(violation.line);
-            const fnScope = resolveFunctionScopeForViolation(violation.file || group.object || "", lineValue);
-            const fnScopeName = String((fnScope && fnScope.name) || "Global");
-            const fnScopeStart = positiveLineOrZero(fnScope && fnScope.start);
-            const fnScopeEnd = positiveLineOrZero(fnScope && fnScope.end);
-            const fnScopeResolved = !!(fnScopeStart > 0 && fnScopeEnd > 0);
-
-            const candidate = {
+            violation.priority_origin = violation.priority_origin || "P1";
+            const flatKey = String(violation.issue_id || `${basenamePath(violation.file || group.object || "")}:${positiveLineOrZero(violation.line)}:${String(violation.rule_id || "")}:${index}`);
+            flattenedP1.push({
+                flatKey,
                 violation,
-                eventName: group.event,
+                eventName: String(group.event || "Global"),
                 rowObject: group.object,
-                severity: v.severity,
-                message: v.message,
-                source,
-                sourceKey,
-                fileKey,
-                ruleIdKey,
-                messageKey,
-                lineValue,
-                fnScopeName,
-                fnScopeStart,
-                fnScopeEnd,
-                fnScopeResolved,
-            };
+                fileKey: basenamePath(violation.file || group.object || ""),
+            });
+        });
+    });
+    const mappingDiagnostics = {
+        violation_total: flattenedP1.length,
+        violation_unknown_rule_count: 0,
+        violation_cfg_rule_count: 0,
+        violation_cfg_alias_mapped_count: 0,
+        violation_cfg_alias_unmapped_ids: new Set(),
+        reviewed_block_total: 0,
+        reviewed_unknown_rule_count: 0,
+        reviewed_unknown_with_no_line_count: 0,
+        reviewed_inferred_rule_count: 0,
+        reviewed_inferred_match_success_count: 0,
+        reviewed_inferred_match_ambiguous_count: 0,
+        reviewed_unknown_after_infer_count: 0,
+        review_only_grouped_row_count: 0,
+        review_only_grouped_collapsed_count: 0,
+        synced_message_mismatch_count: 0,
+        synced_rule_message_conflict_samples: [],
+    };
+    flattenedP1.forEach((item) => {
+        const rawRuleId = String(item && item.violation && item.violation.rule_id || "").trim();
+        const normalizedRuleId = normalizeP1RuleId(rawRuleId);
+        if (!rawRuleId || normalizedRuleId === "UNKNOWN") {
+            mappingDiagnostics.violation_unknown_rule_count += 1;
+        }
+        if (/^cfg-/i.test(rawRuleId)) {
+            mappingDiagnostics.violation_cfg_rule_count += 1;
+            if (normalizedRuleId !== rawRuleId.toUpperCase()) {
+                mappingDiagnostics.violation_cfg_alias_mapped_count += 1;
+            } else {
+                mappingDiagnostics.violation_cfg_alias_unmapped_ids.add(rawRuleId);
+            }
+        }
+    });
 
-            if (lineValue > 0) {
-                const jumpKey = [sourceKey, fileKey, lineValue].join("||");
-                const existingJump = jumpTargetGroups.get(jumpKey);
-                if (existingJump) {
-                    existingJump.count += 1;
-                    existingJump.lines.push(lineValue);
-                    if (ruleIdKey && !existingJump.ruleIds.includes(ruleIdKey)) existingJump.ruleIds.push(ruleIdKey);
-                    if (messageKey && !existingJump.messages.includes(messageKey)) existingJump.messages.push(messageKey);
-                    const issueId = String(violation.issue_id || "");
-                    if (issueId && !existingJump.issueIds.includes(issueId)) existingJump.issueIds.push(issueId);
-                    existingJump.severity = pickHigherSeverity(existingJump.severity, candidate.severity);
-                    return;
+    const byIssueId = new Map();
+    const bySecondary = new Map();
+    flattenedP1.forEach((item) => {
+        const issueId = String(item.violation.issue_id || "").trim();
+        if (issueId) {
+            if (!byIssueId.has(issueId)) byIssueId.set(issueId, []);
+            byIssueId.get(issueId).push(item);
+        }
+        const secKey = [
+            fileIdentityKey(item.fileKey),
+            positiveLineOrZero(item.violation.line),
+            normalizeP1RuleId(item.violation.rule_id),
+            String(item.violation.message || "").trim(),
+        ].join("||");
+        if (!bySecondary.has(secKey)) bySecondary.set(secKey, []);
+        bySecondary.get(secKey).push(item);
+    });
+
+    const usedFlatKeys = new Set();
+    const p1Rows = [];
+    let syncedCount = 0;
+    let reviewOnlyCount = 0;
+    let violationOnlyCount = 0;
+    const reviewOnlyGrouped = new Map();
+
+    const pushP1Row = (baseViolation, eventName, syncState, originLabel, matchedItems = [], overrideMessage = "", syncReason = "") => {
+        const lines = matchedItems
+            .map((item) => positiveLineOrZero(item.violation && item.violation.line))
+            .filter((line) => line > 0);
+        const baseLines = Array.isArray(baseViolation._duplicate_lines) ? baseViolation._duplicate_lines : [];
+        const uniqueLines = Array.from(new Set(lines.concat(baseLines).map((line) => positiveLineOrZero(line)).filter((line) => line > 0))).sort((a, b) => a - b);
+        const primaryLine = positiveLineOrZero(baseViolation._primary_line || baseViolation.line) || uniqueLines[0] || 0;
+        const groupedRules = Array.from(
+            new Set(matchedItems.map((item) => String(item.violation && item.violation.rule_id || "").trim()).filter(Boolean)),
+        );
+        const baseGroupedRules = Array.isArray(baseViolation._group_rule_ids) ? baseViolation._group_rule_ids : [];
+        groupedRules.push(...baseGroupedRules.map((value) => String(value || "").trim()).filter(Boolean));
+        if (!groupedRules.length && baseViolation.rule_id) groupedRules.push(String(baseViolation.rule_id));
+        const groupedMessages = Array.from(
+            new Set(matchedItems.map((item) => String(item.violation && item.violation.message || "").trim()).filter(Boolean)),
+        );
+        const baseGroupedMessages = Array.isArray(baseViolation._group_messages) ? baseViolation._group_messages : [];
+        groupedMessages.push(...baseGroupedMessages.map((value) => String(value || "").trim()).filter(Boolean));
+        if (!groupedMessages.length && overrideMessage) groupedMessages.push(overrideMessage);
+        if (!groupedMessages.length && baseViolation.message) groupedMessages.push(String(baseViolation.message));
+        const groupedIssues = Array.from(
+            new Set(matchedItems.map((item) => String(item.violation && item.violation.issue_id || "").trim()).filter(Boolean)),
+        );
+        const baseGroupedIssues = Array.isArray(baseViolation._group_issue_ids) ? baseViolation._group_issue_ids : [];
+        groupedIssues.push(...baseGroupedIssues.map((value) => String(value || "").trim()).filter(Boolean));
+        if (!groupedIssues.length && baseViolation.issue_id) groupedIssues.push(String(baseViolation.issue_id));
+        const duplicateCountFromBase = Number.parseInt(baseViolation._duplicate_count, 10);
+        const duplicateCount = Number.isFinite(duplicateCountFromBase) && duplicateCountFromBase > 0
+            ? duplicateCountFromBase
+            : Math.max(1, matchedItems.length || 1);
+        const groupingMode = String(baseViolation._grouping_mode || "reviewed_block");
+
+        const enriched = {
+            ...baseViolation,
+            priority_origin: "P1",
+            line: primaryLine || baseViolation.line || 0,
+            _duplicate_count: duplicateCount,
+            _duplicate_lines: uniqueLines,
+            _primary_line: primaryLine,
+            _grouping_mode: groupingMode,
+            _group_rule_ids: Array.from(new Set(groupedRules)),
+            _group_messages: Array.from(new Set(groupedMessages)),
+            _group_issue_ids: Array.from(new Set(groupedIssues)),
+            _sync_state: syncState,
+            _sync_origin: originLabel,
+            _sync_reason: syncReason || "",
+        };
+        const rowMessage = String(baseViolation.message || overrideMessage || "");
+        p1Rows.push({
+            source: "P1",
+            object: basenamePath(baseViolation.file || baseViolation.object || "Global") || "Global",
+            severity: baseViolation.severity || "Info",
+            message: rowMessage,
+            onClick: async () => {
+                showDetail(enriched, eventName || "Global");
+                const jumpResult = await jumpCodeViewerToViolation(enriched);
+                showDetail(enriched, eventName || "Global", { jumpResult });
+            },
+        });
+    };
+
+    // REVIEWED truth-first rows
+    reviewedTodoCacheByFile.forEach((blocks, reviewedFile) => {
+        const fileBlocks = Array.isArray(blocks) ? blocks : [];
+        mappingDiagnostics.reviewed_block_total += fileBlocks.length;
+        fileBlocks.forEach((block, idx) => {
+            const meta = (block && block.meta && typeof block.meta === "object") ? block.meta : {};
+            const issueId = String(meta.issue_id || "").trim();
+            const ruleId = String(meta.rule_id || "").trim();
+            const lineNo = positiveLineOrZero(meta.line || 0);
+            const normalizedRuleId = normalizeP1RuleId(ruleId);
+            const inferred = inferRuleIdFromReviewedBlock(block);
+            const inferredRuleId = normalizeP1RuleId(inferred.inferredRuleId);
+            if (inferredRuleId !== "UNKNOWN" && inferred.source !== "meta") {
+                mappingDiagnostics.reviewed_inferred_rule_count += 1;
+            }
+            if (!ruleId || normalizedRuleId === "UNKNOWN") {
+                mappingDiagnostics.reviewed_unknown_rule_count += 1;
+                if (lineNo <= 0) {
+                    mappingDiagnostics.reviewed_unknown_with_no_line_count += 1;
                 }
-                jumpTargetGroups.set(jumpKey, {
-                    count: 1,
-                    lines: [lineValue],
-                    primaryLine: lineValue,
-                    representativeViolation: candidate.violation,
-                    eventName: candidate.eventName,
-                    rowObject: candidate.rowObject,
-                    severity: candidate.severity,
-                    message: candidate.message,
-                    source: candidate.source,
-                    fileKey: candidate.fileKey,
-                    ruleIds: ruleIdKey ? [ruleIdKey] : [],
-                    messages: messageKey ? [messageKey] : [],
-                    issueIds: String(violation.issue_id || "") ? [String(violation.issue_id || "")] : [],
+            }
+            const effectiveRuleId = normalizedRuleId !== "UNKNOWN" ? normalizedRuleId : inferredRuleId;
+            const blockMessage = String(block.message || "").trim();
+            const secondaryKey = [
+                fileIdentityKey(meta.file || reviewedFile),
+                lineNo,
+                effectiveRuleId,
+                blockMessage,
+            ].join("||");
+
+            let matched = [];
+            let matchedReason = "";
+            if (issueId && byIssueId.has(issueId)) {
+                matched = (byIssueId.get(issueId) || []).filter((item) => !usedFlatKeys.has(item.flatKey));
+                if (matched.length) matchedReason = "meta_exact";
+            }
+            if (!matched.length && (lineNo > 0 || ruleId || blockMessage) && bySecondary.has(secondaryKey)) {
+                matched = (bySecondary.get(secondaryKey) || []).filter((item) => !usedFlatKeys.has(item.flatKey));
+                if (matched.length) matchedReason = "secondary_exact";
+            }
+            if (!matched.length && effectiveRuleId !== "UNKNOWN") {
+                const targetFile = fileIdentityKey(meta.file || reviewedFile);
+                const targetLine = lineNo > 0 ? lineNo : positiveLineOrZero(block.todo_line);
+                const inferredPrefix = p1RulePrefixGroup(effectiveRuleId);
+                const proximityCandidates = flattenedP1.filter((item) => {
+                    if (usedFlatKeys.has(item.flatKey)) return false;
+                    if (fileIdentityKey(item.fileKey) !== targetFile) return false;
+                    const itemRule = normalizeP1RuleId(item.violation.rule_id);
+                    if (itemRule === "UNKNOWN") return false;
+                    const isDpGetVsGetMultiConflict = (
+                        (effectiveRuleId === "PERF-DPGET-BATCH-01" && itemRule === "PERF-GETMULTIVALUE-ADOPT-01")
+                        || (effectiveRuleId === "PERF-GETMULTIVALUE-ADOPT-01" && itemRule === "PERF-DPGET-BATCH-01")
+                    );
+                    const isDpSetVsSetMultiConflict = (
+                        (effectiveRuleId === "PERF-DPSET-BATCH-01" && itemRule === "PERF-SETMULTIVALUE-ADOPT-01")
+                        || (effectiveRuleId === "PERF-SETMULTIVALUE-ADOPT-01" && itemRule === "PERF-DPSET-BATCH-01")
+                    );
+                    if (isDpGetVsGetMultiConflict || isDpSetVsSetMultiConflict) return false;
+                    const itemPrefix = p1RulePrefixGroup(itemRule);
+                    if (!(itemRule === effectiveRuleId || itemPrefix === inferredPrefix)) return false;
+                    const itemLine = positiveLineOrZero(item.violation.line);
+                    if (targetLine <= 0 || itemLine <= 0) return false;
+                    return Math.abs(itemLine - targetLine) <= 25;
                 });
-                return;
+                if (proximityCandidates.length === 1) {
+                    matched = proximityCandidates;
+                    matchedReason = "inferred_proximity";
+                    mappingDiagnostics.reviewed_inferred_match_success_count += 1;
+                } else if (proximityCandidates.length > 1) {
+                    mappingDiagnostics.reviewed_inferred_match_ambiguous_count += 1;
+                }
             }
 
-            fallbackCandidates.push(candidate);
-            if (!fnScopeResolved) {
-                const statKey = [sourceKey, fileKey, ruleIdKey, messageKey].join("||");
-                const stat = unresolvedFallbackStats.get(statKey);
-                if (!stat) {
-                    unresolvedFallbackStats.set(statKey, { count: 1, minLine: 0, maxLine: 0 });
-                } else {
-                    stat.count += 1;
+            if (matched.length) {
+                matched.forEach((item) => usedFlatKeys.add(item.flatKey));
+                const top = matched[0];
+                const representative = {
+                    ...top.violation,
+                    file: top.violation.file || reviewedFile,
+                    object: top.violation.object || top.rowObject || reviewedFile,
+                    message: top.violation.message || blockMessage,
+                    line: positiveLineOrZero(top.violation.line) || lineNo || positiveLineOrZero(block.todo_line),
+                    rule_id: top.violation.rule_id || effectiveRuleId || ruleId,
+                    issue_id: top.violation.issue_id || issueId,
+                    severity: top.violation.severity || block.severity || "Info",
+                    _reviewed_original_message: blockMessage || "",
+                };
+                if (normalizeReviewedMessageKey(blockMessage) && normalizeReviewedMessageKey(top.violation.message || "") && normalizeReviewedMessageKey(blockMessage) !== normalizeReviewedMessageKey(top.violation.message || "")) {
+                    mappingDiagnostics.synced_message_mismatch_count += 1;
+                    if (mappingDiagnostics.synced_rule_message_conflict_samples.length < 10) {
+                        mappingDiagnostics.synced_rule_message_conflict_samples.push({
+                            file: basenamePath(top.violation.file || reviewedFile),
+                            line: positiveLineOrZero(top.violation.line),
+                            rule_id: normalizeP1RuleId(top.violation.rule_id),
+                            violation_message: String(top.violation.message || ""),
+                            reviewed_message: String(blockMessage || ""),
+                        });
+                    }
+                }
+                pushP1Row(representative, top.eventName || "Global", "synced", "mixed", matched, "", matchedReason);
+                syncedCount += 1;
+            } else {
+                const state = issueId ? "review-only" : "partial";
+                const displayMessage = blockMessage || "REVIEWED TODO 항목";
+                const reviewFile = basenamePath(meta.file || reviewedFile);
+                const reviewKey = [
+                    fileIdentityKey(reviewFile),
+                    normalizeReviewedMessageKey(displayMessage),
+                ].join("||");
+                if (!reviewOnlyGrouped.has(reviewKey)) {
+                    reviewOnlyGrouped.set(reviewKey, {
+                        file: reviewFile,
+                        message: displayMessage,
+                        severity: block.severity || "Info",
+                        lines: [],
+                        issueIds: [],
+                        ruleIds: [],
+                        states: new Set(),
+                        blockIndexes: [],
+                    });
+                }
+                const grouped = reviewOnlyGrouped.get(reviewKey);
+                if (lineNo > 0) grouped.lines.push(lineNo);
+                if (positiveLineOrZero(block.todo_line) > 0) grouped.lines.push(positiveLineOrZero(block.todo_line));
+                const syntheticIssueId = issueId || `REVIEW-ONLY-${reviewedFile}-${idx + 1}`;
+                grouped.issueIds.push(syntheticIssueId);
+                grouped.ruleIds.push(effectiveRuleId || "UNKNOWN");
+                grouped.states.add(state);
+                grouped.blockIndexes.push(idx + 1);
+                reviewOnlyCount += 1;
+                if ((effectiveRuleId || "UNKNOWN") === "UNKNOWN") {
+                    mappingDiagnostics.reviewed_unknown_after_infer_count += 1;
                 }
             }
         });
     });
 
-    jumpTargetGroups.forEach((entry) => {
-        const uniqueLines = Array.from(new Set((entry.lines || []).map((line) => positiveLineOrZero(line)).filter((line) => line > 0))).sort((a, b) => a - b);
-        const primaryLine = positiveLineOrZero(entry.primaryLine) || uniqueLines[0] || 0;
-        const violationWithCount = {
-            ...entry.representativeViolation,
-            _duplicate_count: entry.count,
+    reviewOnlyGrouped.forEach((grouped) => {
+        const uniqueLines = Array.from(new Set((grouped.lines || []).map((line) => positiveLineOrZero(line)).filter((line) => line > 0))).sort((a, b) => a - b);
+        const uniqueIssues = Array.from(new Set((grouped.issueIds || []).map((id) => String(id || "").trim()).filter(Boolean)));
+        const uniqueRules = Array.from(new Set((grouped.ruleIds || []).map((id) => String(id || "").trim()).filter(Boolean)));
+        const uniqueBlocks = Array.from(new Set((grouped.blockIndexes || []).map((n) => Number.parseInt(n, 10)).filter((n) => Number.isFinite(n) && n > 0))).sort((a, b) => a - b);
+        const state = grouped.states.has("partial") ? "partial" : "review-only";
+        mappingDiagnostics.review_only_grouped_row_count += 1;
+        mappingDiagnostics.review_only_grouped_collapsed_count += Math.max(0, uniqueIssues.length - 1);
+        const synthetic = {
+            priority_origin: "P1",
+            issue_id: uniqueIssues[0] || `REVIEW-ONLY-${grouped.file || "UNKNOWN"}-1`,
+            rule_id: uniqueRules[0] || "UNKNOWN",
+            severity: grouped.severity || "Info",
+            message: grouped.message || "REVIEWED TODO 항목",
+            file: grouped.file || "",
+            object: grouped.file || "Global",
+            line: uniqueLines[0] || 0,
+            _grouping_mode: "review_only_message",
+            _group_rule_ids: uniqueRules,
+            _group_messages: [grouped.message || "REVIEWED TODO 항목"],
+            _group_issue_ids: uniqueIssues,
+            _duplicate_count: Math.max(1, uniqueIssues.length),
             _duplicate_lines: uniqueLines,
-            _primary_line: primaryLine,
-            _function_scope_name: "line-target",
-            _function_scope_start: 0,
-            _function_scope_end: 0,
-            _function_scope_resolved: false,
-            _dedup_mode: "jump_target",
-            _grouping_mode: "jump_target",
-            _group_rule_ids: Array.isArray(entry.ruleIds) ? entry.ruleIds : [],
-            _group_messages: Array.isArray(entry.messages) ? entry.messages : [],
-            _group_issue_ids: Array.isArray(entry.issueIds) ? entry.issueIds : [],
+            _primary_line: uniqueLines[0] || 0,
+            _reviewed_block_indexes: uniqueBlocks,
         };
-        if (primaryLine > 0) {
-            violationWithCount.line = primaryLine;
-        }
-        nextRows.push({
-            source: entry.source || "P1",
-            object: entry.rowObject || violationWithCount.object || "Global",
-            severity: entry.severity,
-            message: entry.message,
-            onClick: async () => {
-                showDetail(violationWithCount, entry.eventName);
-                const jumpResult = await jumpCodeViewerToViolation(violationWithCount);
-                showDetail(violationWithCount, entry.eventName, { jumpResult });
-            },
-        });
+        pushP1Row(synthetic, "Global", state, "reviewed", [], grouped.message || "REVIEWED TODO 항목", "review_only");
     });
 
-    fallbackCandidates.forEach((item) => {
-        const fnScopeRange = item.fnScopeResolved ? `${item.fnScopeStart}-${item.fnScopeEnd}` : "unresolved";
-        const dedupMode = item.fnScopeResolved ? "strong" : "none";
-        const dedupKey = dedupMode === "strong"
-            ? [item.sourceKey, item.fileKey, item.fnScopeName, fnScopeRange, item.ruleIdKey, item.messageKey].join("||")
-            : [item.sourceKey, item.fileKey, "scope:unresolved:none", item.ruleIdKey, item.messageKey, `${item.lineValue || 0}:${String(item.violation.issue_id || "") || "no-issue-id"}`].join("||");
+    // Violation-only rows are intentionally hidden from default list to keep REVIEWED truth-first UX.
+    const leftovers = flattenedP1.filter((item) => !usedFlatKeys.has(item.flatKey));
+    violationOnlyCount = leftovers.length;
 
-        const existing = fallbackDedup.get(dedupKey);
-        if (existing) {
-            existing.count += 1;
-            if (item.lineValue > 0) existing.lines.push(item.lineValue);
-            return;
-        }
-
-        fallbackDedup.set(dedupKey, {
-            count: 1,
-            lines: item.lineValue > 0 ? [item.lineValue] : [],
-            primaryLine: item.lineValue > 0 ? item.lineValue : 0,
-            functionScopeName: item.fnScopeName,
-            functionScopeStart: item.fnScopeStart,
-            functionScopeEnd: item.fnScopeEnd,
-            functionScopeResolved: item.fnScopeResolved,
-            dedupMode,
-            representativeViolation: item.violation,
-            eventName: item.eventName,
-            rowObject: item.rowObject,
-            severity: item.severity,
-            message: item.message,
-            source: item.source,
+    if (p1Rows.length > 0) {
+        console.debug("[P1 sync]", {
+            synced_count: syncedCount,
+            review_only_count: reviewOnlyCount,
+            violation_only_count: violationOnlyCount,
+            rows: p1Rows.length,
         });
-    });
-
-    fallbackDedup.forEach((entry) => {
-        const uniqueLines = Array.from(
-            new Set((Array.isArray(entry.lines) ? entry.lines : []).map((line) => positiveLineOrZero(line)).filter((line) => line > 0)),
-        ).sort((a, b) => a - b);
-        const primaryLine = positiveLineOrZero(entry.primaryLine) || uniqueLines[0] || 0;
-        const violationWithCount = {
-            ...entry.representativeViolation,
-            _duplicate_count: entry.count,
-            _duplicate_lines: uniqueLines,
-            _primary_line: primaryLine,
-            _function_scope_name: entry.functionScopeName || "Global",
-            _function_scope_start: positiveLineOrZero(entry.functionScopeStart),
-            _function_scope_end: positiveLineOrZero(entry.functionScopeEnd),
-            _function_scope_resolved: !!entry.functionScopeResolved,
-            _dedup_mode: String(entry.dedupMode || "none"),
-            _grouping_mode: String(entry.dedupMode || "none"),
-            _group_rule_ids: entry.representativeViolation && entry.representativeViolation.rule_id ? [String(entry.representativeViolation.rule_id)] : [],
-            _group_messages: entry.representativeViolation && entry.representativeViolation.message ? [String(entry.representativeViolation.message)] : [],
-            _group_issue_ids: entry.representativeViolation && entry.representativeViolation.issue_id ? [String(entry.representativeViolation.issue_id)] : [],
-        };
-        if (primaryLine > 0) {
-            violationWithCount.line = primaryLine;
-        }
-        nextRows.push({
-            source: entry.source || "P1",
-            object: entry.rowObject || violationWithCount.object || "Global",
-            severity: entry.severity,
-            message: entry.message,
-            onClick: async () => {
-                showDetail(violationWithCount, entry.eventName);
-                const jumpResult = await jumpCodeViewerToViolation(violationWithCount);
-                showDetail(violationWithCount, entry.eventName, { jumpResult });
-            },
+        console.debug("[P1 mapping diagnostics]", {
+            ...mappingDiagnostics,
+            violation_cfg_alias_unmapped_ids: Array.from(mappingDiagnostics.violation_cfg_alias_unmapped_ids).sort(),
         });
-    });
+    }
+    nextRows.push(...p1Rows);
 
     p2List.forEach((v) => {
         const objectName = String(v.object || "Global");
@@ -1789,6 +2421,26 @@ function showDetail(violation, eventName, options = {}) {
         p.append(` ${value}`);
         violationDetail.appendChild(p);
     });
+    if (detailSourceKey === "p1" && violation && violation._sync_state) {
+        const sync = document.createElement("p");
+        const syncStrong = document.createElement("strong");
+        syncStrong.textContent = "정합성:";
+        sync.appendChild(syncStrong);
+        sync.append(` ${String(violation._sync_state)} (원본: ${String(violation._sync_origin || "mixed")})`);
+        violationDetail.appendChild(sync);
+        const reviewedOriginalMessage = String(violation._reviewed_original_message || "").trim();
+        const representativeMessage = String(violation.message || "").trim();
+        if (String(violation._sync_state) === "synced"
+            && reviewedOriginalMessage
+            && normalizeReviewedMessageKey(reviewedOriginalMessage) !== normalizeReviewedMessageKey(representativeMessage)) {
+            const reviewedInfo = document.createElement("p");
+            const reviewedStrong = document.createElement("strong");
+            reviewedStrong.textContent = "REVIEWED 원문:";
+            reviewedInfo.appendChild(reviewedStrong);
+            reviewedInfo.append(` ${truncateMiddle(reviewedOriginalMessage, 160)}`);
+            violationDetail.appendChild(reviewedInfo);
+        }
+    }
     violationDetail.appendChild(document.createElement("hr"));
     const duplicateCount = Math.max(1, Number.parseInt(violation._duplicate_count, 10) || 1);
       if (detailSourceKey === "p1" && duplicateCount > 1) {
@@ -1853,6 +2505,13 @@ function showDetail(violation, eventName, options = {}) {
                   msgInfo.textContent = `추가 메시지: ${groupedMessages.length - 1}건`;
                   violationDetail.appendChild(msgInfo);
               }
+          } else if (groupingMode === "review_only_message") {
+              const reviewInfo = document.createElement("p");
+              reviewInfo.style.marginTop = "2px";
+              reviewInfo.style.fontSize = "12px";
+              reviewInfo.style.color = "#666";
+              reviewInfo.textContent = "REVIEWED 블록 기준 묶음(파일+메시지)";
+              violationDetail.appendChild(reviewInfo);
           }
 
           const functionScopeName = String(violation._function_scope_name || "Global");
@@ -1889,30 +2548,36 @@ function showDetail(violation, eventName, options = {}) {
             lines.textContent = `검출 라인: ${previewLines.join(", ")}${suffix}`;
             violationDetail.appendChild(lines);
         }
+        const reviewGroupingMode = String(violation._grouping_mode || violation._dedup_mode || "none");
+        if (reviewGroupingMode === "review_only_message") {
+            const blockIndexes = Array.from(
+                new Set(
+                    (Array.isArray(violation._reviewed_block_indexes) ? violation._reviewed_block_indexes : [])
+                        .map((v) => Number.parseInt(v, 10))
+                        .filter((n) => Number.isFinite(n) && n > 0),
+                ),
+            ).sort((a, b) => a - b);
+            if (blockIndexes.length > 0) {
+                const blockLimit = 12;
+                const blockPreview = blockIndexes.slice(0, blockLimit);
+                const blockSuffix = blockIndexes.length > blockLimit
+                    ? ` ... (+${blockIndexes.length - blockLimit}개)`
+                    : "";
+                const blockInfo = document.createElement("p");
+                blockInfo.style.marginTop = "2px";
+                blockInfo.style.fontSize = "12px";
+                blockInfo.style.color = "#666";
+                blockInfo.textContent = `REVIEWED 블록: ${blockPreview.join(", ")}${blockSuffix}`;
+                violationDetail.appendChild(blockInfo);
+            }
+        }
     }
+    const isP1 = detailSourceKey === "p1";
     const isP2 = detailSourceKey === "p2";
     if (isP2) {
-        const title = document.createElement("p");
-        const titleStrong = document.createElement("strong");
-        titleStrong.textContent = "설명:";
-        title.appendChild(titleStrong);
-        violationDetail.appendChild(title);
-
-        const blocks = buildP2DetailBlocks(violation);
-        [blocks.cause, blocks.impact, blocks.action].forEach((line) => {
-            const p = document.createElement("p");
-            p.style.marginTop = "4px";
-            p.textContent = line;
-            violationDetail.appendChild(p);
-        });
-        if (blocks.raw) {
-            const raw = document.createElement("p");
-            raw.style.marginTop = "6px";
-            raw.style.fontSize = "12px";
-            raw.style.color = "#666";
-            raw.textContent = blocks.raw;
-            violationDetail.appendChild(raw);
-        }
+        renderDetailDescriptionBlocks(violationDetail, buildP2DetailBlocks(violation));
+    } else if (isP1) {
+        renderDetailDescriptionBlocks(violationDetail, buildP1DetailBlocks(violation));
     } else {
         const desc = document.createElement("p");
         const descLabel = document.createElement("strong");

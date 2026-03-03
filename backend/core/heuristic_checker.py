@@ -2764,6 +2764,25 @@ class HeuristicChecker(
 
     def check_dpget_batch_optimization(self, code: str) -> List[Dict]:
         findings = []
+        seen_lines = set()
+        max_gap = 4
+        min_count = 2
+
+        def _emit(line_no: int) -> None:
+            if line_no in seen_lines:
+                return
+            seen_lines.add(line_no)
+            findings.append(
+                {
+                    "rule_id": "PERF-DPGET-BATCH-01",
+                    "rule_item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+                    "severity": "Warning",
+                    "line": line_no,
+                    "message": "반복 구간 dpGet 일괄/캐시 처리 권장.",
+                }
+            )
+
+        # loop-inside detection
         for match in re.finditer(r"\b(?:while|for)\s*\([^\)]*\)\s*\{", code, re.IGNORECASE):
             open_brace = code.find("{", match.start())
             if open_brace < 0:
@@ -2774,27 +2793,67 @@ class HeuristicChecker(
 
             block = code[open_brace : close_brace + 1]
             dpget_count = len(re.findall(r"\bdpGet\s*\(", block))
-            if dpget_count <= 1:
+            if dpget_count < min_count:
                 continue
-
-            has_cache = bool(re.search(r"\b(mappingHasKey|cache|memo|lookup)\b", block, re.IGNORECASE))
-            if has_cache:
+            if re.search(r"\b(mappingHasKey|cache|memo|lookup)\b", block, re.IGNORECASE):
                 continue
+            _emit(self._line_from_offset(code, match.start(), base_line=1))
 
-            findings.append(
-                {
-                    "rule_id": "PERF-DPGET-BATCH-01",
-                    "rule_item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
-                    "severity": "Warning",
-                    "line": self._line_from_offset(code, match.start(), base_line=1),
-                    "message": "반복 구간 dpGet 일괄/캐시 처리 권장.",
-                }
-            )
-            break
+        # outside-loop clustered detection
+        lines = code.splitlines()
+        loop_ranges = self._collect_loop_line_ranges(code)
+
+        def _in_loop(line_no: int) -> bool:
+            return any(start <= line_no <= end for start, end in loop_ranges)
+
+        dpget_lines = [idx for idx, line in enumerate(lines, 1) if re.search(r"\bdpGet\s*\(", line) and not _in_loop(idx)]
+        if len(dpget_lines) < min_count:
+            return findings
+
+        cluster = [dpget_lines[0]]
+
+        def _emit_cluster(cluster_lines: List[int]) -> None:
+            if len(cluster_lines) < min_count:
+                return
+            start_line = cluster_lines[0]
+            end_line = cluster_lines[-1]
+            window_start = max(1, start_line - 1)
+            window_end = min(len(lines), end_line + 2)
+            block = "\n".join(lines[window_start - 1 : window_end])
+            if re.search(r"\b(mappingHasKey|cache|memo|lookup)\b", block, re.IGNORECASE):
+                return
+            _emit(start_line)
+
+        for line_no in dpget_lines[1:]:
+            if line_no - cluster[-1] <= max_gap:
+                cluster.append(line_no)
+                continue
+            _emit_cluster(cluster)
+            cluster = [line_no]
+        _emit_cluster(cluster)
         return findings
 
     def check_dpset_batch_optimization(self, code: str) -> List[Dict]:
         findings = []
+        seen_lines = set()
+        max_gap = 4
+        min_count = 2
+
+        def _emit(line_no: int) -> None:
+            if line_no in seen_lines:
+                return
+            seen_lines.add(line_no)
+            findings.append(
+                {
+                    "rule_id": "PERF-DPSET-BATCH-01",
+                    "rule_item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+                    "severity": "Warning",
+                    "line": line_no,
+                    "message": "반복 구간 dpSet 일괄/배치 처리 권장.",
+                }
+            )
+
+        # loop-inside detection
         for match in re.finditer(r"\b(?:while|for)\s*\([^\)]*\)\s*\{", code, re.IGNORECASE):
             open_brace = code.find("{", match.start())
             if open_brace < 0:
@@ -2805,26 +2864,49 @@ class HeuristicChecker(
 
             block = code[open_brace : close_brace + 1]
             dpset_count = len(re.findall(r"\bdpSet\s*\(", block))
-            if dpset_count < 2:
+            if dpset_count < min_count:
                 continue
 
-            has_batch_hint = bool(
-                re.search(r"\b(dpSetWait|dpSetTimed|batch|group)\b", block, re.IGNORECASE)
-            )
+            has_batch_hint = bool(re.search(r"\b(dpSetWait|dpSetTimed|batch|group)\b", block, re.IGNORECASE))
             has_guard = bool(re.search(r"(!=|changed|old|prev)", block, re.IGNORECASE))
             if has_batch_hint or has_guard:
                 continue
+            _emit(self._line_from_offset(code, match.start(), base_line=1))
 
-            findings.append(
-                {
-                    "rule_id": "PERF-DPSET-BATCH-01",
-                    "rule_item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
-                    "severity": "Warning",
-                    "line": self._line_from_offset(code, match.start(), base_line=1),
-                    "message": "반복 구간 dpSet 일괄/배치 처리 권장.",
-                }
-            )
-            break
+        # outside-loop clustered detection
+        lines = code.splitlines()
+        loop_ranges = self._collect_loop_line_ranges(code)
+
+        def _in_loop(line_no: int) -> bool:
+            return any(start <= line_no <= end for start, end in loop_ranges)
+
+        dpset_lines = [idx for idx, line in enumerate(lines, 1) if re.search(r"\bdpSet\s*\(", line) and not _in_loop(idx)]
+        if len(dpset_lines) < min_count:
+            return findings
+
+        cluster = [dpset_lines[0]]
+
+        def _emit_cluster(cluster_lines: List[int]) -> None:
+            if len(cluster_lines) < min_count:
+                return
+            start_line = cluster_lines[0]
+            end_line = cluster_lines[-1]
+            window_start = max(1, start_line - 1)
+            window_end = min(len(lines), end_line + 2)
+            block = "\n".join(lines[window_start - 1 : window_end])
+            has_batch_hint = bool(re.search(r"\b(dpSetWait|dpSetTimed|batch|group)\b", block, re.IGNORECASE))
+            has_guard = bool(re.search(r"(!=|changed|old|prev)", block, re.IGNORECASE))
+            if has_batch_hint or has_guard:
+                return
+            _emit(start_line)
+
+        for line_no in dpset_lines[1:]:
+            if line_no - cluster[-1] <= max_gap:
+                cluster.append(line_no)
+                continue
+            _emit_cluster(cluster)
+            cluster = [line_no]
+        _emit_cluster(cluster)
         return findings
 
     def check_try_catch_for_risky_ops(self, code: str) -> List[Dict]:
@@ -3164,7 +3246,6 @@ class HeuristicChecker(
             self.check_try_catch_for_risky_ops,
             self.check_division_zero_guard,
             self.check_manual_aggregation_pattern,
-            self.check_consecutive_dpset,
             self.check_memory_leaks_advanced,
             self.check_input_validation,
             self.check_coding_standards_advanced,
