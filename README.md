@@ -1,4 +1,4 @@
-﻿﻿# WinCC OA Code Inspector
+﻿# WinCC OA Code Inspector
 
 > Structure note (2026-02-27)
 > - Canonical project paths are root directories: `Config`, `CodeReview_Data`, `docs`.
@@ -67,6 +67,7 @@ Required:
 2. `python -m unittest backend.tests.test_todo_rule_mining -v`
 3. `python -m unittest backend.tests.test_winccoa_context_server -v`
 4. `python -m py_compile backend/main.py backend/server.py backend/core/analysis_pipeline.py`
+5. `python backend/tools/check_config_rule_alignment.py --json`
 
 Optional (change-dependent):
 1. Ctrlpp integration: `python tools/run_ctrlpp_integration_smoke.py --allow-missing-binary --skip-unittest`

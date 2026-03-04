@@ -6,10 +6,23 @@ This project uses a strict text encoding rule to prevent broken Korean text, too
 
 ## Policy
 
-- All text source files must be saved as `UTF-8` (without BOM unless a specific tool requires BOM).
+- All text source files must be saved as `UTF-8`.
 - Default line ending for project files is `LF`.
 - PowerShell scripts (`.ps1`) may use `CRLF`.
 - Do not save project files in `CP949`, `EUC-KR`, or mixed encodings.
+
+
+## Config Encoding Management (`Config/*.json`)
+
+- Canonical encoding for config JSON files is **UTF-8 without BOM**.
+- `UTF-8 with BOM` can be read by current tooling (`utf-8-sig`) but must be treated as transitional input only.
+- New/edited config files must be written in UTF-8 without BOM to avoid cross-tool drift.
+- Never commit CP949/EUC-KR encoded JSON files.
+
+### BOM Handling Rule
+
+- Allow: reading legacy BOM files during migration.
+- Disallow: introducing new BOM bytes (`EF BB BF`) in `Config/*.json` during normal edits.
 
 ## Why This Is Required
 
@@ -98,6 +111,40 @@ print(f"bad_count={len(bad)}")
 for item in bad[:50]:
     print(item[0], item[1])
 '@ | python -
+```
+
+
+### Config JSON/BOM check (repo-local)
+
+```bash
+python - <<'PY'
+from pathlib import Path
+
+root = Path('.').resolve()
+config_dir = root / 'Config'
+json_files = sorted(config_dir.glob('*.json'))
+
+bad_utf8 = []
+with_bom = []
+for p in json_files:
+    raw = p.read_bytes()
+    if raw.startswith(b'\xef\xbb\xbf'):
+        with_bom.append(str(p.relative_to(root)))
+    try:
+        raw.decode('utf-8')
+    except UnicodeDecodeError:
+        bad_utf8.append(str(p.relative_to(root)))
+
+print(f'json_count={len(json_files)}')
+print(f'bad_utf8={bad_utf8}')
+print(f'with_bom={with_bom}')
+PY
+```
+
+### Drift check for review applicability mapping
+
+```bash
+python backend/tools/check_config_rule_alignment.py --json
 ```
 
 ## Recovery Procedure (If Encoding Breaks Again)

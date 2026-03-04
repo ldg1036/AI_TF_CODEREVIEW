@@ -143,6 +143,7 @@ Required (default):
 2. `python -m unittest backend.tests.test_todo_rule_mining -v`
 3. `python -m unittest backend.tests.test_winccoa_context_server -v`
 4. `python -m py_compile backend/main.py backend/server.py backend/core/analysis_pipeline.py`
+5. `python backend/tools/check_config_rule_alignment.py --json`
 
 Optional (change-dependent, fail-soft where applicable):
 
