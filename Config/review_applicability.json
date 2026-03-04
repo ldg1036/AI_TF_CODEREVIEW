@@ -83,28 +83,6 @@
         "SEC-01"
       ]
     },
-    "Loop? ?? ?? ??": {
-      "required_rule_ids": [
-        "PERF-03",
-        "PERF-03-ACTIVE-DELAY-01"
-      ]
-    },
-    "???? ?? ?? ??": {
-      "required_rule_ids": [
-        "LOG-DBG-01",
-        "LOG-LEVEL-01"
-      ]
-    },
-    "DP Query ??? ??": {
-      "required_rule_ids": [
-        "PERF-02",
-        "PERF-02-WHERE-DPT-IN-01",
-        "DB-01",
-        "DB-02",
-        "DB-ERR-01",
-        "SEC-01"
-      ]
-    },
     "Loop문 내에 처리 조건": {
       "required_rule_ids": [
         "PERF-03",

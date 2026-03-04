@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
@@ -86,6 +87,81 @@ def _collect_nan_item_rows(parsed_rows: list[dict]) -> list[dict]:
     return rows
 
 
+def _collect_review_applicability_key_issues(items: dict[str, Any]) -> list[dict[str, Any]]:
+    issues: list[dict[str, Any]] = []
+    broken_key_pattern = re.compile(r"�|\?{2,}")
+    for key in items:
+        if broken_key_pattern.search(key):
+            issues.append({"item": key, "reason": "broken_text_pattern"})
+    return issues
+
+
+def _collect_review_applicability_duplicate_semantics(items: dict[str, Any]) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, ...], list[str]] = defaultdict(list)
+    for item, cfg in items.items():
+        if not isinstance(cfg, dict):
+            continue
+        required_rule_ids = cfg.get("required_rule_ids") or []
+        if not isinstance(required_rule_ids, list):
+            continue
+        normalized_rule_ids = tuple(sorted({str(rule_id).strip() for rule_id in required_rule_ids if str(rule_id).strip()}))
+        if not normalized_rule_ids:
+            continue
+        grouped[normalized_rule_ids].append(item)
+
+    duplicates: list[dict[str, Any]] = []
+    for required_rule_ids, keys in grouped.items():
+        if len(keys) <= 1:
+            continue
+        duplicates.append(
+            {
+                "items": sorted(keys),
+                "required_rule_ids": list(required_rule_ids),
+                "reason": "duplicate_required_rule_ids",
+            }
+        )
+    return duplicates
+
+
+def _collect_review_applicability_unknown_rule_ids(items: dict[str, Any], known_rule_ids: set[str]) -> list[dict[str, Any]]:
+    issues: list[dict[str, Any]] = []
+    for item, cfg in items.items():
+        if not isinstance(cfg, dict):
+            continue
+        required_rule_ids = cfg.get("required_rule_ids") or []
+        if not isinstance(required_rule_ids, list):
+            continue
+        for rule_id in required_rule_ids:
+            rid = str(rule_id).strip()
+            if rid and rid not in known_rule_ids:
+                issues.append({"item": item, "rule_id": rid, "reason": "unreferenced_rule_id"})
+    return issues
+
+
+
+
+def _iter_rule_ids_from_obj(obj: Any):
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if "rule_id" in str(key).lower():
+                rid = str(value).strip()
+                if rid:
+                    yield rid
+            yield from _iter_rule_ids_from_obj(value)
+    elif isinstance(obj, list):
+        for value in obj:
+            yield from _iter_rule_ids_from_obj(value)
+
+
+def _collect_known_rule_ids(p1_rows: list[dict]) -> set[str]:
+    known_rule_ids: set[str] = set()
+    for row in p1_rows:
+        if not isinstance(row, dict):
+            continue
+        known_rule_ids.update(_iter_rule_ids_from_obj(row))
+    return known_rule_ids
+
+
 def run(root: Path) -> dict:
     config_dir = root / "Config"
     parsed_path = config_dir / "parsed_rules.json"
@@ -99,6 +175,13 @@ def run(root: Path) -> dict:
     parsed_items_by_type = _build_parsed_items_by_type(parsed_rows)
     mismatches = _collect_mismatches(p1_rows, parsed_items_by_type)
     nan_item_rows = _collect_nan_item_rows(parsed_rows)
+    review_applicability_items = review_applicability.get("items", {}) if isinstance(review_applicability, dict) else {}
+    if not isinstance(review_applicability_items, dict):
+        review_applicability_items = {}
+    known_rule_ids = _collect_known_rule_ids(p1_rows)
+    review_key_issues = _collect_review_applicability_key_issues(review_applicability_items)
+    review_duplicate_semantics = _collect_review_applicability_duplicate_semantics(review_applicability_items)
+    review_unknown_rule_ids = _collect_review_applicability_unknown_rule_ids(review_applicability_items, known_rule_ids)
 
     enabled_p1_rows = [r for r in p1_rows if isinstance(r, dict) and r.get("enabled", True)]
     detector_counts = Counter((r.get("detector") or {}).get("kind") for r in enabled_p1_rows)
@@ -114,13 +197,19 @@ def run(root: Path) -> dict:
         "mismatch_row_count": len(mismatches),
         "mismatch_unique_rule_count": len({(m.get("rule_id"), m.get("id")) for m in mismatches}),
         "nan_item_row_count": len(nan_item_rows),
-        "review_applicability_item_count": len(review_applicability.get("items", {})) if isinstance(review_applicability, dict) and isinstance(review_applicability.get("items"), dict) else None,
+        "review_applicability_item_count": len(review_applicability_items),
+        "review_applicability_broken_key_count": len(review_key_issues),
+        "review_applicability_duplicate_semantic_count": len(review_duplicate_semantics),
+        "review_applicability_unknown_rule_id_count": len(review_unknown_rule_ids),
     }
 
     return {
         "summary": summary,
         "mismatches": mismatches,
         "nan_item_rows": nan_item_rows,
+        "review_applicability_key_issues": review_key_issues,
+        "review_applicability_duplicate_semantics": review_duplicate_semantics,
+        "review_applicability_unknown_rule_ids": review_unknown_rule_ids,
     }
 
 
@@ -133,9 +222,17 @@ def main() -> int:
     root = Path(args.root).resolve() if args.root else Path(__file__).resolve().parents[2]
     result = run(root)
 
+    has_review_applicability_quality_error = any(
+        [
+            result["review_applicability_key_issues"],
+            result["review_applicability_duplicate_semantics"],
+            result["review_applicability_unknown_rule_ids"],
+        ]
+    )
+
     if args.json_output:
         print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0
+        return 1 if has_review_applicability_quality_error else 0
 
     s = result["summary"]
     print("[Config Rule Alignment]")
@@ -149,6 +246,9 @@ def main() -> int:
     print(f"- mismatch rows: {s['mismatch_row_count']} (unique rules: {s['mismatch_unique_rule_count']})")
     print(f"- parsed_rules item=NaN rows: {s['nan_item_row_count']}")
     print(f"- review_applicability items: {s['review_applicability_item_count']}")
+    print(f"- review_applicability broken keys: {s['review_applicability_broken_key_count']}")
+    print(f"- review_applicability duplicate semantics: {s['review_applicability_duplicate_semantic_count']}")
+    print(f"- review_applicability unknown rule_ids: {s['review_applicability_unknown_rule_id_count']}")
 
     if result["mismatches"]:
         print("\n[Mismatches]")
@@ -161,7 +261,24 @@ def main() -> int:
         for row in result["nan_item_rows"]:
             print(f"- idx={row['idx']} type={row['type']} item={row['item']} first_check={row['first_check']}")
 
-    return 0
+    if result["review_applicability_key_issues"]:
+        print("\n[review_applicability key issues]")
+        for issue in result["review_applicability_key_issues"]:
+            print(f"- item={issue['item']} reason={issue['reason']}")
+
+    if result["review_applicability_duplicate_semantics"]:
+        print("\n[review_applicability duplicate semantics]")
+        for issue in result["review_applicability_duplicate_semantics"]:
+            print(
+                f"- items={issue['items']} required_rule_ids={issue['required_rule_ids']} reason={issue['reason']}"
+            )
+
+    if result["review_applicability_unknown_rule_ids"]:
+        print("\n[review_applicability unknown rule_ids]")
+        for issue in result["review_applicability_unknown_rule_ids"]:
+            print(f"- item={issue['item']} rule_id={issue['rule_id']} reason={issue['reason']}")
+
+    return 1 if has_review_applicability_quality_error else 0
 
 
 if __name__ == "__main__":
