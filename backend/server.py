@@ -1,6 +1,8 @@
 ﻿import json
 import logging
 import os
+import shutil
+import subprocess
 from pathlib import Path
 import sys
 import threading
@@ -699,6 +701,90 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
             },
         )
 
+    def _playwright_dependency_status(self) -> Dict[str, Any]:
+        node_bin = shutil.which("node")
+        if not node_bin:
+            return {
+                "available": False,
+                "node_available": False,
+                "package_available": False,
+                "required_for": ["ui_benchmark"],
+                "message": "node binary not found",
+            }
+
+        try:
+            proc = subprocess.run(
+                [node_bin, "-e", "require.resolve('playwright')"],
+                cwd=BASE_DIR,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=3,
+                check=False,
+            )
+        except Exception as exc:
+            return {
+                "available": False,
+                "node_available": True,
+                "package_available": False,
+                "required_for": ["ui_benchmark"],
+                "message": f"playwright package check failed: {exc}",
+            }
+
+        package_available = proc.returncode == 0
+        return {
+            "available": bool(package_available),
+            "node_available": True,
+            "package_available": bool(package_available),
+            "required_for": ["ui_benchmark"],
+            "message": "playwright package available" if package_available else "playwright package is not installed",
+        }
+
+    def _build_dependency_health_payload(self) -> Dict[str, Any]:
+        excel_available = bool(self.app.reporter.is_excel_support_available())
+        openpyxl_status = {
+            "available": excel_available,
+            "required_for": ["excel_report", "template_coverage"],
+            "message": "openpyxl available" if excel_available else "openpyxl is not installed",
+        }
+
+        ctrl_binary = ""
+        try:
+            ctrl_binary = str(self.app.ctrl_tool._find_binary() or "")
+        except Exception:
+            ctrl_binary = ""
+        ctrl_ready = bool(ctrl_binary)
+        ctrl_status = {
+            "available": ctrl_ready,
+            "binary_path": ctrl_binary,
+            "auto_install_on_missing": bool(getattr(self.app.ctrl_tool, "auto_install_on_missing", False)),
+            "required_for": ["ctrlpp_analysis", "ctrlpp_regression"],
+            "message": "CtrlppCheck binary available" if ctrl_ready else "CtrlppCheck binary not found",
+        }
+
+        playwright_status = self._playwright_dependency_status()
+        capabilities = {
+            "excel_report": {"ready": bool(openpyxl_status["available"]), "dependencies": ["openpyxl"]},
+            "template_coverage": {"ready": bool(openpyxl_status["available"]), "dependencies": ["openpyxl"]},
+            "ctrlpp_analysis": {"ready": bool(ctrl_status["available"]), "dependencies": ["ctrlppcheck"]},
+            "ui_benchmark": {"ready": bool(playwright_status["available"]), "dependencies": ["playwright"]},
+        }
+        ready_count = sum(1 for item in capabilities.values() if bool(item.get("ready", False)))
+        return {
+            "status": "ok" if ready_count == len(capabilities) else "degraded",
+            "generated_at_ms": self._epoch_ms(),
+            "dependencies": {
+                "openpyxl": openpyxl_status,
+                "ctrlppcheck": ctrl_status,
+                "playwright": playwright_status,
+            },
+            "capabilities": capabilities,
+            "summary": {
+                "ready_capabilities": ready_count,
+                "total_capabilities": len(capabilities),
+            },
+        }
+
     def _resolve_latest_verification_summary(self) -> Dict[str, Any]:
         report_dir = Path(str(getattr(self.app.reporter, "output_base_dir", "") or "")).resolve()
         if not report_dir.exists() or not report_dir.is_dir():
@@ -740,6 +826,10 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path == "/api/health/deps":
+            self._send_json(HTTPStatus.OK, self._build_dependency_health_payload())
+            return
+
         if parsed.path == "/api/verification/latest":
             try:
                 self._send_json(HTTPStatus.OK, self._resolve_latest_verification_summary())

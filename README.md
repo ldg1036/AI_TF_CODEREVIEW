@@ -38,6 +38,7 @@ Last validated: 2026-02-27
 - `/api/analyze` `metrics` 응답 제공 (optional dependency 상태 포함: `metrics.optional_dependencies`)
 - `/api/analyze` `summary.verification_level` 제공 (`CORE_ONLY` 또는 `CORE+REPORT`)
 - async analyze progress API: `POST /api/analyze/start`, `GET /api/analyze/status?job_id=...`
+- dependency preflight API: `GET /api/health/deps` (`openpyxl` / `CtrlppCheck` / `Playwright` 상태 + capability readiness)
 - 파일 단위 bounded parallel 분석
 - `.pnl/.xml -> *_txt` 변환 캐시 (`mtime + size`)
 - Excel 기본 동기 생성 + 선택적 지연 생성(`defer_excel_reports`) + flush API

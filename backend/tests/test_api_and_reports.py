@@ -118,6 +118,28 @@ class ApiIntegrationTests(unittest.TestCase):
         names = [item["name"] for item in payload["files"]]
         self.assertIn("sample.ctl", names)
 
+    def test_get_api_health_deps(self):
+        status, payload = self._request("GET", "/api/health/deps")
+        self.assertEqual(status, 200)
+        self.assertIn("status", payload)
+        self.assertIn(payload["status"], {"ok", "degraded"})
+        self.assertIn("dependencies", payload)
+        deps = payload["dependencies"]
+        self.assertIn("openpyxl", deps)
+        self.assertIn("ctrlppcheck", deps)
+        self.assertIn("playwright", deps)
+        self.assertIn("capabilities", payload)
+        self.assertIn("summary", payload)
+        self.assertIn("ready_capabilities", payload["summary"])
+        self.assertIn("total_capabilities", payload["summary"])
+
+    def test_get_api_health_deps_ctrlpp_missing_in_test_env(self):
+        status, payload = self._request("GET", "/api/health/deps")
+        self.assertEqual(status, 200)
+        ctrlpp = payload.get("dependencies", {}).get("ctrlppcheck", {})
+        self.assertFalse(bool(ctrlpp.get("available", True)))
+        self.assertEqual(str(ctrlpp.get("binary_path", "")), "")
+
     def test_get_api_verification_latest_returns_most_recent_summary(self):
         older = os.path.join(self.data_dir, "verification_summary_20260101_010101.json")
         newer = os.path.join(self.data_dir, "verification_summary_20260101_020202.json")
