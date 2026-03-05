@@ -1,15 +1,14 @@
 import argparse
 import datetime
+import importlib
+from importlib.util import find_spec
 import json
 import math
 import os
 import re
+import subprocess
+import sys
 from typing import Dict, List, Tuple
-
-try:
-    from openpyxl import load_workbook
-except ImportError:  # pragma: no cover
-    load_workbook = None
 
 
 def _normalize(text: str) -> str:
@@ -42,8 +41,35 @@ def _load_config(project_root: str) -> Dict:
     return payload if isinstance(payload, dict) else {}
 
 
-def _extract_template_rows(template_path: str) -> List[Dict]:
-    wb = load_workbook(template_path, data_only=True)
+def _resolve_load_workbook(project_root: str, ensure_openpyxl: bool = False):
+    module = find_spec("openpyxl")
+    if module is None and ensure_openpyxl:
+        req_path = os.path.join(project_root, "requirements-dev.txt")
+        install_cmd = [sys.executable, "-m", "pip", "install"]
+        if os.path.exists(req_path):
+            install_cmd.extend(["-r", req_path])
+        else:
+            install_cmd.append("openpyxl>=3.1.0")
+        try:
+            subprocess.run(install_cmd, check=True)
+        except subprocess.CalledProcessError as exc:
+            raise RuntimeError(
+                "openpyxl auto-install failed. Check network/proxy settings or install manually with: "
+                "pip install -r requirements-dev.txt"
+            ) from exc
+        module = find_spec("openpyxl")
+
+    if module is None:
+        raise RuntimeError(
+            "openpyxl is required. Install with: pip install -r requirements-dev.txt "
+            "or run this tool with --ensure-openpyxl"
+        )
+
+    return importlib.import_module("openpyxl").load_workbook
+
+
+def _extract_template_rows(template_path: str, load_workbook_fn) -> List[Dict]:
+    wb = load_workbook_fn(template_path, data_only=True)
     ws = wb.active
 
     start_row = 16
@@ -118,9 +144,30 @@ def _analyze_one(rule_items: List[Dict], template_rows: List[Dict]) -> Dict:
     }
 
 
-def analyze_template_coverage(project_root: str) -> Tuple[str, Dict]:
-    if load_workbook is None:
-        raise RuntimeError("openpyxl is required. Install with: pip install openpyxl")
+def _write_coverage_report(project_root: str, payload: Dict) -> str:
+    output_dir = os.path.join(project_root, "CodeReview_Report")
+    os.makedirs(output_dir, exist_ok=True)
+    stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_path = os.path.join(output_dir, f"template_coverage_{stamp}.json")
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+    return output_path
+
+
+def analyze_template_coverage(project_root: str, ensure_openpyxl: bool = False, fail_soft: bool = False) -> Tuple[str, Dict]:
+    try:
+        load_workbook_fn = _resolve_load_workbook(project_root, ensure_openpyxl=ensure_openpyxl)
+    except RuntimeError as exc:
+        if not fail_soft:
+            raise
+        payload = {
+            "generated_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "status": "skipped_optional_missing",
+            "reason": str(exc),
+            "missing_dependency": "openpyxl",
+            "coverage": {},
+        }
+        return _write_coverage_report(project_root, payload), payload
 
     config = _load_config(project_root)
     paths = config.get("paths", {}) if isinstance(config.get("paths"), dict) else {}
@@ -137,8 +184,8 @@ def analyze_template_coverage(project_root: str) -> Tuple[str, Dict]:
         raise FileNotFoundError(f"Server template not found: {server_template}")
 
     rules_by_type = _load_rules_by_type(parsed_rules_path)
-    client_rows = _extract_template_rows(client_template)
-    server_rows = _extract_template_rows(server_template)
+    client_rows = _extract_template_rows(client_template, load_workbook_fn)
+    server_rows = _extract_template_rows(server_template, load_workbook_fn)
 
     result = {
         "generated_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -153,27 +200,42 @@ def analyze_template_coverage(project_root: str) -> Tuple[str, Dict]:
         },
     }
 
-    output_dir = os.path.join(project_root, "CodeReview_Report")
-    os.makedirs(output_dir, exist_ok=True)
-    stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_path = os.path.join(output_dir, f"template_coverage_{stamp}.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(result, f, ensure_ascii=False, indent=2)
-
-    return output_path, result
+    return _write_coverage_report(project_root, result), result
 
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze template coverage against parsed review rules")
     parser.add_argument("--project-root", default=None, help="Project root path (default: auto-detect)")
+    parser.add_argument(
+        "--ensure-openpyxl",
+        action="store_true",
+        help="Automatically install openpyxl (via requirements-dev.txt) when missing",
+    )
+    parser.add_argument(
+        "--fail-soft",
+        action="store_true",
+        help="Return a skipped_optional_missing report instead of exiting when optional dependencies are missing",
+    )
     args = parser.parse_args()
 
     project_root = os.path.abspath(args.project_root) if args.project_root else _find_project_root()
-    output_path, result = analyze_template_coverage(project_root)
+    try:
+        output_path, result = analyze_template_coverage(
+            project_root,
+            ensure_openpyxl=bool(args.ensure_openpyxl),
+            fail_soft=bool(args.fail_soft),
+        )
+    except RuntimeError as exc:
+        print(f"[!] {exc}")
+        raise SystemExit(1) from exc
+
+    print(f"[+] Coverage report saved: {output_path}")
+    if str(result.get("status", "")) == "skipped_optional_missing":
+        print(f"[!] fail-soft skip: {result.get('reason', '')}")
+        return
 
     client = result["coverage"]["Client"]
     server = result["coverage"]["Server"]
-    print(f"[+] Coverage report saved: {output_path}")
     print(
         "[Client] rules={rule_count}, matched={matched_rule_count}, coverage={rule_coverage_pct}%".format(**client)
     )
