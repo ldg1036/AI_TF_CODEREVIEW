@@ -112,6 +112,10 @@ class Reporter:
             return fallback
 
     @staticmethod
+    def is_excel_support_available() -> bool:
+        return load_workbook is not None
+
+    @staticmethod
     def _perf_now() -> float:
         return time.perf_counter()
 
