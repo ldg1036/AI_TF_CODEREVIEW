@@ -38,6 +38,7 @@ Last validated: 2026-02-27
 - `/api/analyze` `metrics` 응답 제공 (optional dependency 상태 포함: `metrics.optional_dependencies`)
 - `/api/analyze` `summary.verification_level` 제공 (`CORE_ONLY` 또는 `CORE+REPORT`)
 - async analyze progress API: `POST /api/analyze/start`, `GET /api/analyze/status?job_id=...`
+- dependency preflight API: `GET /api/health/deps` (`openpyxl` / `CtrlppCheck` / `Playwright` 상태 + capability readiness)
 - 파일 단위 bounded parallel 분석
 - `.pnl/.xml -> *_txt` 변환 캐시 (`mtime + size`)
 - Excel 기본 동기 생성 + 선택적 지연 생성(`defer_excel_reports`) + flush API
@@ -79,6 +80,8 @@ Optional (change-dependent):
 1. Ctrlpp integration: `python tools/run_ctrlpp_integration_smoke.py --allow-missing-binary --skip-unittest`
 2. Frontend/perf: `node --check frontend/renderer.js`, `node tools/playwright_ui_benchmark.js --help`
 3. Rules/config: `python backend/tools/check_config_rule_alignment.py --json`, `python backend/tools/analyze_template_coverage.py`
+   - `openpyxl`가 없는 환경에서는 `python backend/tools/analyze_template_coverage.py --ensure-openpyxl`로 자동 설치 후 실행 가능
+   - 네트워크/설치 제한 환경에서는 `python backend/tools/analyze_template_coverage.py --fail-soft`로 optional missing 상태 리포트를 생성 가능
 
 ## Quick Start
 

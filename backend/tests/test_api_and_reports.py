@@ -47,6 +47,7 @@ class ApiIntegrationTests(unittest.TestCase):
 
         self.app = CodeInspectorApp()
         self.app.data_dir = self.data_dir
+        self.app.reporter.output_base_dir = self.data_dir
         self.app.ctrl_tool.auto_install_on_missing = False
         self.app.ctrl_tool.config_binary_path = ""
         self.app.ctrl_tool.state_binary_path = ""
@@ -116,6 +117,48 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertEqual(status, 200)
         names = [item["name"] for item in payload["files"]]
         self.assertIn("sample.ctl", names)
+
+    def test_get_api_health_deps(self):
+        status, payload = self._request("GET", "/api/health/deps")
+        self.assertEqual(status, 200)
+        self.assertIn("status", payload)
+        self.assertIn(payload["status"], {"ok", "degraded"})
+        self.assertIn("dependencies", payload)
+        deps = payload["dependencies"]
+        self.assertIn("openpyxl", deps)
+        self.assertIn("ctrlppcheck", deps)
+        self.assertIn("playwright", deps)
+        self.assertIn("capabilities", payload)
+        self.assertIn("summary", payload)
+        self.assertIn("ready_capabilities", payload["summary"])
+        self.assertIn("total_capabilities", payload["summary"])
+
+    def test_get_api_health_deps_ctrlpp_missing_in_test_env(self):
+        status, payload = self._request("GET", "/api/health/deps")
+        self.assertEqual(status, 200)
+        ctrlpp = payload.get("dependencies", {}).get("ctrlppcheck", {})
+        self.assertFalse(bool(ctrlpp.get("available", True)))
+        self.assertEqual(str(ctrlpp.get("binary_path", "")), "")
+
+    def test_get_api_verification_latest_returns_most_recent_summary(self):
+        older = os.path.join(self.data_dir, "verification_summary_20260101_010101.json")
+        newer = os.path.join(self.data_dir, "verification_summary_20260101_020202.json")
+        with open(older, "w", encoding="utf-8") as f:
+            json.dump({"summary": {"passed": 1, "failed": 0}}, f)
+        with open(newer, "w", encoding="utf-8") as f:
+            json.dump({"summary": {"passed": 2, "failed": 1}}, f)
+        os.utime(older, (1000, 1000))
+        os.utime(newer, (2000, 2000))
+
+        status, payload = self._request("GET", "/api/verification/latest")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload.get("summary", {}).get("passed"), 2)
+        self.assertEqual(str(payload.get("source_file", "")), "verification_summary_20260101_020202.json")
+
+    def test_get_api_verification_latest_without_summary_returns_404(self):
+        status, payload = self._request("GET", "/api/verification/latest")
+        self.assertEqual(status, 404)
+        self.assertIn("error", payload)
 
     def test_post_api_analyze_selected_files(self):
         status, payload = self._request(
