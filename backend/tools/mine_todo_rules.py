@@ -242,6 +242,57 @@ def _classify_new_todo_candidates(candidates: Sequence[Dict]) -> List[Dict]:
     return classified
 
 
+
+def _build_rule_proposal_template(new_todo_policy_rows: Sequence[Dict], output_dir: Path) -> str:
+    lines = [
+        "# Rule Proposal from TODO Mining",
+        "",
+        "## Context",
+        "- Source: TODO mining (`backend/tools/mine_todo_rules.py`)",
+        f"- Output directory: `{output_dir}`",
+        "",
+        "## Candidate Summary",
+        f"- NEW-* candidates: {len(new_todo_policy_rows)}",
+        f"- Static-target candidates: {sum(1 for row in new_todo_policy_rows if row.get('category') == '정적화 대상')}",
+        f"- Manual-review candidates: {sum(1 for row in new_todo_policy_rows if row.get('category') == '수동 검토 유지')}",
+        "",
+        "## Proposed Rule Additions (NEW-* only)",
+    ]
+
+    if not new_todo_policy_rows:
+        lines.extend(["- No NEW-* candidates in this run.", ""])
+    else:
+        for row in new_todo_policy_rows:
+            lines.extend(
+                [
+                    f"### {row.get('suggested_rule_id', '')} ({row.get('category', '')})",
+                    f"- Normalized TODO: `{row.get('normalized_todo_text', '')}`",
+                    f"- Frequency: {row.get('frequency', 0)}",
+                    f"- Suggested detection strategy: `{row.get('suggested_detection_strategy', '')}`",
+                    f"- Confidence: `{row.get('confidence', '')}`",
+                    "- Draft detector plan:",
+                    "  - [ ] regex/composite/flow 중 1개 선택",
+                    "  - [ ] 최소 재현 fixture 추가",
+                    "  - [ ] false-positive/false-negative 기준 정의",
+                    "",
+                ]
+            )
+
+    lines.extend(
+        [
+            "## Validation Checklist",
+            "- [ ] `python -m unittest backend.tests.test_todo_rule_mining -v`",
+            "- [ ] `python backend/tools/check_config_rule_alignment.py --json`",
+            "- [ ] 변경된 규칙/매핑이 있으면 template coverage 확인",
+            "",
+            "## Notes",
+            "- 본 템플릿은 자동 초안입니다. 최종 rule_id/rule_item/검출전략은 리뷰 후 확정하세요.",
+            "",
+        ]
+    )
+
+    return "\n".join(lines)
+
 def mine_todo_rules(
     input_dir: str,
     output_dir: str = "",
@@ -401,6 +452,12 @@ def mine_todo_rules(
         rows=new_todo_policy_rows,
     )
 
+    proposal_template_path = out_root / "rule_proposal_template.md"
+    proposal_template_path.write_text(
+        _build_rule_proposal_template(new_todo_policy_rows, out_root),
+        encoding="utf-8",
+    )
+
     return {
         "summary": summary,
         "manifest_rows": manifest_rows,
@@ -408,6 +465,7 @@ def mine_todo_rules(
         "new_todo_policy_rows": new_todo_policy_rows,
         "error_rows": read_errors,
         "output_dir": str(out_root),
+        "rule_proposal_template": str(proposal_template_path),
     }
 
 
