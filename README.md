@@ -60,6 +60,7 @@ API note:
 - UI benchmark: `tools/playwright_ui_benchmark.js`
 - HTTP baseline: `tools/http_perf_baseline.py`
 - Ctrlpp smoke: `tools/run_ctrlpp_integration_smoke.py`
+- Autofix root-cause summary: `python tools/perf/autofix_root_cause_summary.py --input-glob "docs/perf_baselines/autofix_apply_improved_*.json"`
 
 ## Release Verification (P1/P2/P3)
 
