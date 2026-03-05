@@ -2264,6 +2264,33 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertFalse(bool(summary.get("ctrlpp_preflight_ready", False)))
         self.assertTrue("ctrlpp" in str(summary.get("ctrlpp_preflight_message", "")).lower())
 
+
+    def test_optional_dependency_metrics_when_live_ai_disabled(self):
+        status, payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": False, "mode": "Static"},
+        )
+        self.assertEqual(status, 200)
+        optional_deps = payload.get("metrics", {}).get("optional_dependencies", {})
+        ollama = optional_deps.get("ollama", {})
+        self.assertFalse(bool(ollama.get("enabled_by_request", True)))
+        self.assertFalse(bool(ollama.get("used_in_run", True)))
+
+    def test_optional_dependency_metrics_when_ctrlpp_requested_without_binary(self):
+        status, payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_ctrlppcheck": True, "mode": "Static"},
+        )
+        self.assertEqual(status, 200)
+        optional_deps = payload.get("metrics", {}).get("optional_dependencies", {})
+        ctrlpp = optional_deps.get("ctrlppcheck", {})
+        self.assertTrue(bool(ctrlpp.get("enabled_by_request", False)))
+        self.assertIn(bool(ctrlpp.get("preflight_attempted", False)), {False, True})
+        self.assertFalse(bool(ctrlpp.get("available", True)))
+        self.assertFalse(bool(ctrlpp.get("used_in_run", True)))
+
     def test_post_api_analyze_ctrlpp_toggle_type_validation(self):
         status, payload = self._request(
             "POST",
