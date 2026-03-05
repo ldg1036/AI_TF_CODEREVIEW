@@ -1129,7 +1129,20 @@ class CodeInspectorApp:
         reporter.output_dir = output_dir
         reporter.timestamp = reporter_timestamp or os.path.basename(str(output_dir or "").rstrip("\\/"))
         with self._excel_report_semaphore:
-            excel_meta = reporter.fill_excel_checklist(report_data, file_type=file_type, output_filename=output_filename) or {}
+            excel_meta = reporter.fill_excel_checklist(
+                report_data,
+                file_type=file_type,
+                output_filename=output_filename,
+                report_meta={
+                    "verification_level": "CORE+REPORT" if reporter.is_excel_support_available() else "CORE_ONLY",
+                    "optional_dependencies": {
+                        "openpyxl": {
+                            "available": bool(reporter.is_excel_support_available()),
+                            "required_for": ["excel_report", "template_coverage"],
+                        }
+                    },
+                },
+            ) or {}
         output_path = os.path.join(output_dir, output_filename)
         return {
             "output_path": output_path,
@@ -1685,6 +1698,15 @@ class CodeInspectorApp:
                     file_report,
                     file_type=file_type,
                     output_filename=excel_name,
+                    report_meta={
+                        "verification_level": "CORE+REPORT" if active_reporter.is_excel_support_available() else "CORE_ONLY",
+                        "optional_dependencies": {
+                            "openpyxl": {
+                                "available": bool(active_reporter.is_excel_support_available()),
+                                "required_for": ["excel_report", "template_coverage"],
+                            }
+                        },
+                    },
                 ) or {}
             self._metrics_apply_excel_report_meta(metrics, sync_excel_meta if isinstance(sync_excel_meta, dict) else {})
 

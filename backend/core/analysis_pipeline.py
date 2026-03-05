@@ -389,8 +389,15 @@ class DirectoryAnalysisPipeline:
         logger.info("Generating combined HTML report for %d files...", len(all_file_results))
         html_report_started = self.app._perf_now()
         combined_report = self.app.build_combined_report(all_file_results)
+        excel_support = bool(runtime.request_reporter.is_excel_support_available())
+        report_meta = {
+            "verification_level": "CORE+REPORT" if excel_support else "CORE_ONLY",
+            "optional_dependencies": {
+                "openpyxl": {"available": excel_support, "required_for": ["excel_report", "template_coverage"]}
+            },
+        }
         with self.app._reporter_semaphore:
-            runtime.request_reporter.generate_html_report(combined_report, "combined_analysis_report.html")
+            runtime.request_reporter.generate_html_report(combined_report, "combined_analysis_report.html", report_meta=report_meta)
         self.app._metrics_add_timing(runtime.metrics, "report", self.app._elapsed_ms(html_report_started))
         logger.info("Analysis Completed. Results saved in: %s", runtime.request_reporter.output_dir)
 
@@ -408,6 +415,12 @@ class DirectoryAnalysisPipeline:
         payload["summary"]["ctrlpp_preflight_attempted"] = bool(runtime.ctrlpp_preflight.get("attempted", False))
         payload["summary"]["ctrlpp_preflight_ready"] = bool(runtime.ctrlpp_preflight.get("ready", False))
         payload["summary"]["ctrlpp_preflight_message"] = str(runtime.ctrlpp_preflight.get("message", "") or "")
+
+        excel_support = bool(runtime.request_reporter.is_excel_support_available())
+        payload["summary"]["verification_level"] = "CORE+REPORT" if excel_support else "CORE_ONLY"
+        runtime.metrics["optional_dependencies"] = {
+            "openpyxl": {"available": excel_support, "required_for": ["excel_report", "template_coverage"]}
+        }
 
         excel_files, reviewed_txt = self._scan_report_artifacts(runtime.request_reporter.output_dir)
         payload["report_paths"] = {
@@ -480,6 +493,7 @@ class DirectoryAnalysisPipeline:
                 "p1_total": 0,
                 "p2_total": 0,
                 "p3_total": 0,
+                "verification_level": "CORE_ONLY",
             },
             "violations": {"P1": [], "P2": [], "P3": []},
             "report_paths": {"html": "", "excel": [], "reviewed_txt": []},
@@ -487,6 +501,9 @@ class DirectoryAnalysisPipeline:
             "errors": [],
         }
         metrics["timings_ms"]["total"] = self.app._elapsed_ms(total_started)
+        metrics["optional_dependencies"] = {
+            "openpyxl": {"available": False, "required_for": ["excel_report", "template_coverage"]}
+        }
         payload["metrics"] = metrics
         return payload
 
