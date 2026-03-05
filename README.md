@@ -62,6 +62,9 @@ API note:
 
 ## Release Verification (P1/P2/P3)
 
+Prerequisite (report/template validation):
+- `pip install -r requirements-dev.txt` (`openpyxl` for Excel/template checks)
+
 Required:
 1. `python -m unittest backend.tests.test_api_and_reports -v`
 2. `python -m unittest backend.tests.test_todo_rule_mining -v`
