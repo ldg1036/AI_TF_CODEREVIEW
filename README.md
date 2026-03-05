@@ -80,6 +80,7 @@ Optional (change-dependent):
 2. Frontend/perf: `node --check frontend/renderer.js`, `node tools/playwright_ui_benchmark.js --help`
 3. Rules/config: `python backend/tools/check_config_rule_alignment.py --json`, `python backend/tools/analyze_template_coverage.py`
    - `openpyxl`가 없는 환경에서는 `python backend/tools/analyze_template_coverage.py --ensure-openpyxl`로 자동 설치 후 실행 가능
+   - 네트워크/설치 제한 환경에서는 `python backend/tools/analyze_template_coverage.py --fail-soft`로 optional missing 상태 리포트를 생성 가능
 
 ## Quick Start
 
