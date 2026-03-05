@@ -17,6 +17,7 @@ const criticalText = document.getElementById("critical-issues");
 const warningText = document.getElementById("warning-issues");
 const scoreBar = document.getElementById("score-bar");
 const scoreText = document.getElementById("score-text");
+const verificationBadge = document.getElementById("verification-badge");
 const codeViewer = document.getElementById("code-viewer");
 
 const resultTableWrap = document.querySelector(".result-table");
@@ -1132,12 +1133,45 @@ async function loadCodeViewer(fileName, options = {}) {
     }
 }
 
+
+function updateVerificationBadge() {
+    if (!verificationBadge) return;
+    const level = String((analysisData.summary && analysisData.summary.verification_level) || "").trim().toUpperCase();
+    const optionalDeps = (analysisData.metrics && analysisData.metrics.optional_dependencies) || {};
+    const openpyxlAvailable = !!(optionalDeps.openpyxl && optionalDeps.openpyxl.available);
+
+    verificationBadge.classList.remove(
+        "verification-badge--core-only",
+        "verification-badge--core-report",
+        "verification-badge--full",
+        "verification-badge--unknown"
+    );
+
+    if (level === "CORE_ONLY") {
+        verificationBadge.textContent = "검증 레벨: CORE_ONLY";
+        verificationBadge.classList.add("verification-badge--core-only");
+    } else if (level === "CORE+REPORT") {
+        verificationBadge.textContent = "검증 레벨: CORE+REPORT";
+        verificationBadge.classList.add("verification-badge--core-report");
+    } else if (level === "FULL_WITH_OPTIONALS") {
+        verificationBadge.textContent = "검증 레벨: FULL_WITH_OPTIONALS";
+        verificationBadge.classList.add("verification-badge--full");
+    } else {
+        verificationBadge.textContent = "검증 레벨: UNKNOWN";
+        verificationBadge.classList.add("verification-badge--unknown");
+    }
+
+    const openpyxlText = openpyxlAvailable ? "available" : "missing";
+    verificationBadge.title = `verification_level=${level || "UNKNOWN"}, openpyxl=${openpyxlText}`;
+}
+
 function updateDashboard() {
     totalText.textContent = analysisData.summary.total || 0;
     criticalText.textContent = analysisData.summary.critical || 0;
     warningText.textContent = analysisData.summary.warning || 0;
     scoreBar.style.width = `${analysisData.summary.score || 0}%`;
     scoreText.textContent = `점수: ${analysisData.summary.score || 0}/100`;
+    updateVerificationBadge();
 }
 
 function initFilterControls() {
