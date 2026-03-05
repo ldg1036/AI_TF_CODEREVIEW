@@ -35,7 +35,8 @@ Last validated: 2026-02-27
 - `P3`: AI(LLM) 리뷰 (선택/Fail-soft)
 
 ### 2) 성능/운영 최적화
-- `/api/analyze` `metrics` 응답 제공
+- `/api/analyze` `metrics` 응답 제공 (optional dependency 상태 포함: `metrics.optional_dependencies`)
+- `/api/analyze` `summary.verification_level` 제공 (`CORE_ONLY` 또는 `CORE+REPORT`)
 - async analyze progress API: `POST /api/analyze/start`, `GET /api/analyze/status?job_id=...`
 - 파일 단위 bounded parallel 분석
 - `.pnl/.xml -> *_txt` 변환 캐시 (`mtime + size`)
