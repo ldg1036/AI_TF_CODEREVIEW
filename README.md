@@ -72,6 +72,7 @@ Required:
 3. `python -m unittest backend.tests.test_winccoa_context_server -v`
 4. `python -m py_compile backend/main.py backend/server.py backend/core/analysis_pipeline.py`
 5. `python backend/tools/check_config_rule_alignment.py --json`
+6. `python backend/tools/run_verification_profile.py --profile core --include-report` (writes `CodeReview_Report/verification_summary_*.json`)
 
 Optional (change-dependent):
 1. Ctrlpp integration: `python tools/run_ctrlpp_integration_smoke.py --allow-missing-binary --skip-unittest`
