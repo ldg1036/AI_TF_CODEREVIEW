@@ -98,5 +98,5 @@ Ctrlpp integration change:
 
 ## Agent Notes
 
-- This repository is currently not a Git repository in the inspected path, so GitHub/PR workflows are not the default path here.
+- This repository is tracked with Git; when requested, follow the local commit and PR workflow.
 - Prefer the project-specific WinCC OA skills (Ctrlpp smoke, UI benchmark, HTTP perf baseline, config alignment, template coverage, TODO rule miner) when available.

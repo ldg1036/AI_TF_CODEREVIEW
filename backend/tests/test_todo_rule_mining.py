@@ -166,5 +166,17 @@ class TodoRuleMiningPolicyTests(unittest.TestCase):
         self.assertTrue((self.output_dir / "new_todo_policy.csv").exists())
 
 
+    def test_rule_proposal_template_generated_for_new_candidates(self):
+        self._write_text("manual.txt", "// TODO: reason 확인 필요?")
+        result = mine_todo_rules(str(self.input_dir), output_dir=str(self.output_dir), min_frequency=1)
+
+        template_path = Path(result["rule_proposal_template"])
+        self.assertTrue(template_path.exists())
+        content = template_path.read_text(encoding="utf-8")
+        self.assertIn("Rule Proposal from TODO Mining", content)
+        self.assertIn("Proposed Rule Additions (NEW-* only)", content)
+        self.assertIn("Validation Checklist", content)
+
+
 if __name__ == "__main__":
     unittest.main()

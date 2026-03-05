@@ -83,6 +83,8 @@ class PipelineRuntime:
     analysis_targets: List[str]
     use_deferred_excel: bool
     use_live_ai: bool
+    requested_ctrlpp: bool
+    ai_provider: str
     mcp_context: Any
     progress_cb: Optional[Callable[[Dict[str, Any]], None]]
     enable_ctrlppcheck_effective: Optional[bool]
@@ -192,6 +194,8 @@ class DirectoryAnalysisPipeline:
             analysis_targets=analysis_targets,
             use_deferred_excel=use_deferred_excel,
             use_live_ai=use_live_ai,
+            requested_ctrlpp=bool(requested_ctrlpp),
+            ai_provider=str(getattr(self.app.ai_tool, "provider", "") or "").strip().lower(),
             mcp_context=mcp_context,
             progress_cb=progress_cb,
             enable_ctrlppcheck_effective=effective_enable_ctrlppcheck,
@@ -389,8 +393,15 @@ class DirectoryAnalysisPipeline:
         logger.info("Generating combined HTML report for %d files...", len(all_file_results))
         html_report_started = self.app._perf_now()
         combined_report = self.app.build_combined_report(all_file_results)
+        excel_support = bool(runtime.request_reporter.is_excel_support_available())
+        report_meta = {
+            "verification_level": "CORE+REPORT" if excel_support else "CORE_ONLY",
+            "optional_dependencies": {
+                "openpyxl": {"available": excel_support, "required_for": ["excel_report", "template_coverage"]}
+            },
+        }
         with self.app._reporter_semaphore:
-            runtime.request_reporter.generate_html_report(combined_report, "combined_analysis_report.html")
+            runtime.request_reporter.generate_html_report(combined_report, "combined_analysis_report.html", report_meta=report_meta)
         self.app._metrics_add_timing(runtime.metrics, "report", self.app._elapsed_ms(html_report_started))
         logger.info("Analysis Completed. Results saved in: %s", runtime.request_reporter.output_dir)
 
@@ -408,6 +419,34 @@ class DirectoryAnalysisPipeline:
         payload["summary"]["ctrlpp_preflight_attempted"] = bool(runtime.ctrlpp_preflight.get("attempted", False))
         payload["summary"]["ctrlpp_preflight_ready"] = bool(runtime.ctrlpp_preflight.get("ready", False))
         payload["summary"]["ctrlpp_preflight_message"] = str(runtime.ctrlpp_preflight.get("message", "") or "")
+
+        excel_support = bool(runtime.request_reporter.is_excel_support_available())
+        payload["summary"]["verification_level"] = "CORE+REPORT" if excel_support else "CORE_ONLY"
+        llm_calls = self.app._safe_int(runtime.metrics.get("llm_calls", 0), 0)
+        ctrlpp_calls = self.app._safe_int(runtime.metrics.get("ctrlpp_calls", 0), 0)
+        ai_provider = str(runtime.ai_provider or "").lower()
+        runtime.metrics["optional_dependencies"] = {
+            "openpyxl": {
+                "available": excel_support,
+                "enabled_by_request": True,
+                "used_in_run": bool(excel_support),
+                "required_for": ["excel_report", "template_coverage"],
+            },
+            "ollama": {
+                "available": ai_provider == "ollama",
+                "enabled_by_request": bool(runtime.use_live_ai),
+                "used_in_run": bool(llm_calls > 0),
+                "provider": ai_provider or "unknown",
+                "required_for": ["p3_live_ai"],
+            },
+            "ctrlppcheck": {
+                "available": bool(runtime.ctrlpp_preflight.get("ready", False)),
+                "enabled_by_request": bool(runtime.requested_ctrlpp),
+                "used_in_run": bool(ctrlpp_calls > 0),
+                "preflight_attempted": bool(runtime.ctrlpp_preflight.get("attempted", False)),
+                "required_for": ["p2_ctrlpp"],
+            },
+        }
 
         excel_files, reviewed_txt = self._scan_report_artifacts(runtime.request_reporter.output_dir)
         payload["report_paths"] = {
@@ -480,6 +519,7 @@ class DirectoryAnalysisPipeline:
                 "p1_total": 0,
                 "p2_total": 0,
                 "p3_total": 0,
+                "verification_level": "CORE_ONLY",
             },
             "violations": {"P1": [], "P2": [], "P3": []},
             "report_paths": {"html": "", "excel": [], "reviewed_txt": []},
@@ -487,6 +527,28 @@ class DirectoryAnalysisPipeline:
             "errors": [],
         }
         metrics["timings_ms"]["total"] = self.app._elapsed_ms(total_started)
+        metrics["optional_dependencies"] = {
+            "openpyxl": {
+                "available": False,
+                "enabled_by_request": True,
+                "used_in_run": False,
+                "required_for": ["excel_report", "template_coverage"],
+            },
+            "ollama": {
+                "available": False,
+                "enabled_by_request": False,
+                "used_in_run": False,
+                "provider": "unknown",
+                "required_for": ["p3_live_ai"],
+            },
+            "ctrlppcheck": {
+                "available": False,
+                "enabled_by_request": False,
+                "used_in_run": False,
+                "preflight_attempted": False,
+                "required_for": ["p2_ctrlpp"],
+            },
+        }
         payload["metrics"] = metrics
         return payload
 

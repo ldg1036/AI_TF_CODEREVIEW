@@ -35,7 +35,8 @@ Last validated: 2026-02-27
 - `P3`: AI(LLM) 리뷰 (선택/Fail-soft)
 
 ### 2) 성능/운영 최적화
-- `/api/analyze` `metrics` 응답 제공
+- `/api/analyze` `metrics` 응답 제공 (optional dependency 상태 포함: `metrics.optional_dependencies` - `openpyxl`/`ollama`/`ctrlppcheck`)
+- `/api/analyze` `summary.verification_level` 제공 (`CORE_ONLY` 또는 `CORE+REPORT`)
 - async analyze progress API: `POST /api/analyze/start`, `GET /api/analyze/status?job_id=...`
 - 파일 단위 bounded parallel 분석
 - `.pnl/.xml -> *_txt` 변환 캐시 (`mtime + size`)
@@ -59,8 +60,12 @@ API note:
 - UI benchmark: `tools/playwright_ui_benchmark.js`
 - HTTP baseline: `tools/http_perf_baseline.py`
 - Ctrlpp smoke: `tools/run_ctrlpp_integration_smoke.py`
+- Autofix root-cause summary: `python tools/perf/autofix_root_cause_summary.py --input-glob "docs/perf_baselines/autofix_apply_improved_*.json"`
 
 ## Release Verification (P1/P2/P3)
+
+Prerequisite (report/template validation):
+- `pip install -r requirements-dev.txt` (`openpyxl` for Excel/template checks)
 
 Required:
 1. `python -m unittest backend.tests.test_api_and_reports -v`
@@ -68,6 +73,7 @@ Required:
 3. `python -m unittest backend.tests.test_winccoa_context_server -v`
 4. `python -m py_compile backend/main.py backend/server.py backend/core/analysis_pipeline.py`
 5. `python backend/tools/check_config_rule_alignment.py --json`
+6. `python backend/tools/run_verification_profile.py --profile core --include-report` (writes `CodeReview_Report/verification_summary_*.json`)
 
 Optional (change-dependent):
 1. Ctrlpp integration: `python tools/run_ctrlpp_integration_smoke.py --allow-missing-binary --skip-unittest`

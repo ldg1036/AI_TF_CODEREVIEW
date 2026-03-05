@@ -19,6 +19,17 @@ from main import CodeInspectorApp
 from core.reporter import Reporter
 from server import BASE_DIR, CodeInspectorHandler
 
+try:
+    from openpyxl import load_workbook as _openpyxl_load_workbook
+except ImportError:
+    _openpyxl_load_workbook = None
+
+
+def _require_openpyxl(testcase):
+    if _openpyxl_load_workbook is None:
+        testcase.skipTest("openpyxl is not installed; skipping Excel report validation tests")
+    return _openpyxl_load_workbook
+
 
 class ApiIntegrationTests(unittest.TestCase):
     def setUp(self):
@@ -119,6 +130,16 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertIn("p1_total", payload["summary"])
         self.assertIn("p2_total", payload["summary"])
         self.assertIn("p3_total", payload["summary"])
+        self.assertIn("verification_level", payload["summary"])
+        self.assertIn(payload["summary"]["verification_level"], {"CORE_ONLY", "CORE+REPORT"})
+        self.assertIn("optional_dependencies", payload.get("metrics", {}))
+        optional_deps = payload.get("metrics", {}).get("optional_dependencies", {})
+        self.assertIn("openpyxl", optional_deps)
+        self.assertIn("ollama", optional_deps)
+        self.assertIn("ctrlppcheck", optional_deps)
+        self.assertIn("enabled_by_request", optional_deps.get("openpyxl", {}))
+        self.assertIn("used_in_run", optional_deps.get("ollama", {}))
+        self.assertIn("preflight_attempted", optional_deps.get("ctrlppcheck", {}))
         self.assertIn("metrics", payload)
         self.assertIn("timings_ms", payload["metrics"])
         self.assertIn("total", payload["metrics"]["timings_ms"])
@@ -2243,6 +2264,33 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertFalse(bool(summary.get("ctrlpp_preflight_ready", False)))
         self.assertTrue("ctrlpp" in str(summary.get("ctrlpp_preflight_message", "")).lower())
 
+
+    def test_optional_dependency_metrics_when_live_ai_disabled(self):
+        status, payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": False, "mode": "Static"},
+        )
+        self.assertEqual(status, 200)
+        optional_deps = payload.get("metrics", {}).get("optional_dependencies", {})
+        ollama = optional_deps.get("ollama", {})
+        self.assertFalse(bool(ollama.get("enabled_by_request", True)))
+        self.assertFalse(bool(ollama.get("used_in_run", True)))
+
+    def test_optional_dependency_metrics_when_ctrlpp_requested_without_binary(self):
+        status, payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_ctrlppcheck": True, "mode": "Static"},
+        )
+        self.assertEqual(status, 200)
+        optional_deps = payload.get("metrics", {}).get("optional_dependencies", {})
+        ctrlpp = optional_deps.get("ctrlppcheck", {})
+        self.assertTrue(bool(ctrlpp.get("enabled_by_request", False)))
+        self.assertIn(bool(ctrlpp.get("preflight_attempted", False)), {False, True})
+        self.assertFalse(bool(ctrlpp.get("available", True)))
+        self.assertFalse(bool(ctrlpp.get("used_in_run", True)))
+
     def test_post_api_analyze_ctrlpp_toggle_type_validation(self):
         status, payload = self._request(
             "POST",
@@ -2593,7 +2641,14 @@ class ReportQualityTests(unittest.TestCase):
 
     def test_html_report_contains_rows_and_severity_class(self):
         data = self._sample_report_data()
-        self.reporter.generate_html_report(data, "quality.html")
+        self.reporter.generate_html_report(
+            data,
+            "quality.html",
+            report_meta={
+                "verification_level": "CORE+REPORT",
+                "optional_dependencies": {"openpyxl": {"available": False}},
+            },
+        )
         report_path = os.path.join(self.reporter.output_dir, "quality.html")
 
         self.assertTrue(os.path.exists(report_path))
@@ -2603,8 +2658,11 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("<table>", html)
         self.assertIn('class="critical"', html)
         self.assertIn("query scope too wide", html)
+        self.assertIn("검증 레벨", html)
+        self.assertIn("CORE+REPORT", html)
 
     def test_excel_report_creates_unmatched_sheet_and_marks_ng(self):
+        _require_openpyxl(self)
         data = self._sample_report_data()
         output_name = "quality.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
@@ -2612,7 +2670,7 @@ class ReportQualityTests(unittest.TestCase):
         output_path = os.path.join(self.reporter.output_dir, output_name)
         self.assertTrue(os.path.exists(output_path))
 
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(output_path)
         active = wb.active
@@ -2622,6 +2680,7 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("미분류_위반사항", wb.sheetnames)
 
     def test_excel_report_returns_timing_metrics_and_template_cache_hits(self):
+        _require_openpyxl(self)
         data = self._sample_report_data()
         first = self.reporter.fill_excel_checklist(data, file_type="Server", output_filename="quality_cache_1.xlsx")
         second = self.reporter.fill_excel_checklist(data, file_type="Server", output_filename="quality_cache_2.xlsx")
@@ -2640,7 +2699,7 @@ class ReportQualityTests(unittest.TestCase):
         output_name = "quality_sheets.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
 
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         output_path = os.path.join(self.reporter.output_dir, output_name)
         wb = load_workbook(output_path)
@@ -2653,7 +2712,7 @@ class ReportQualityTests(unittest.TestCase):
         output_name = "quality_p2_only.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
 
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         output_path = os.path.join(self.reporter.output_dir, output_name)
         wb = load_workbook(output_path)
@@ -2697,7 +2756,7 @@ class ReportQualityTests(unittest.TestCase):
         }
         output_name = "quality_event_ng.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
         ws = wb.active
@@ -2731,7 +2790,7 @@ class ReportQualityTests(unittest.TestCase):
         }
         output_name = "quality_style_ng.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
         ws = wb.active
@@ -2765,7 +2824,7 @@ class ReportQualityTests(unittest.TestCase):
         }
         output_name = "quality_clean_ng.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
         ws = wb.active
@@ -2799,7 +2858,7 @@ class ReportQualityTests(unittest.TestCase):
         }
         output_name = "quality_cfg_ng.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
         ws = wb.active
@@ -2833,7 +2892,7 @@ class ReportQualityTests(unittest.TestCase):
         }
         output_name = "quality_event_dpget_ng.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
         ws = wb.active
@@ -2867,7 +2926,7 @@ class ReportQualityTests(unittest.TestCase):
         }
         output_name = "quality_event_dpset_batch_ng.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
         ws = wb.active
@@ -2901,7 +2960,7 @@ class ReportQualityTests(unittest.TestCase):
         }
         output_name = "quality_cfg_safe_div_ng.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
         ws = wb.active
@@ -2935,7 +2994,7 @@ class ReportQualityTests(unittest.TestCase):
         }
         output_name = "quality_event_setvalue_ng.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
         ws = wb.active
@@ -2969,7 +3028,7 @@ class ReportQualityTests(unittest.TestCase):
         }
         output_name = "quality_event_setmultivalue_ng.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
         ws = wb.active
@@ -3003,7 +3062,7 @@ class ReportQualityTests(unittest.TestCase):
         }
         output_name = "quality_event_getvalue_ng.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
         ws = wb.active
@@ -3037,7 +3096,7 @@ class ReportQualityTests(unittest.TestCase):
         }
         output_name = "quality_style_idx_ng.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
         ws = wb.active
@@ -3071,7 +3130,7 @@ class ReportQualityTests(unittest.TestCase):
         }
         output_name = "quality_hard03_ng.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
         ws = wb.active
@@ -3080,12 +3139,35 @@ class ReportQualityTests(unittest.TestCase):
         status_col = self._find_status_col(ws)
         self.assertEqual(ws.cell(row, status_col).value, "NG")
 
+
+    def test_excel_report_writes_verification_meta_sheet(self):
+        _require_openpyxl(self)
+        data = self._sample_report_data()
+        output_name = "quality_verify_meta.xlsx"
+        self.reporter.fill_excel_checklist(
+            data,
+            file_type="Server",
+            output_filename=output_name,
+            report_meta={
+                "verification_level": "CORE+REPORT",
+                "optional_dependencies": {"openpyxl": {"available": True}},
+            },
+        )
+
+        load_workbook = _require_openpyxl(self)
+        wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
+        self.assertIn("검증메타", wb.sheetnames)
+        ws = wb["검증메타"]
+        rows = {str(ws.cell(r, 1).value): str(ws.cell(r, 2).value) for r in range(2, ws.max_row + 1)}
+        self.assertEqual(rows.get("verification_level"), "CORE+REPORT")
+        self.assertEqual(rows.get("openpyxl"), "available")
+
     def test_detail_sheet_row_count_matches_findings(self):
         data = self._sample_report_data()
         output_name = "quality_detail_rows.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
 
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         output_path = os.path.join(self.reporter.output_dir, output_name)
         wb = load_workbook(output_path)
@@ -3098,7 +3180,7 @@ class ReportQualityTests(unittest.TestCase):
         output_name = "quality_verify_sheet.xlsx"
         self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
 
-        from openpyxl import load_workbook
+        load_workbook = _require_openpyxl(self)
 
         output_path = os.path.join(self.reporter.output_dir, output_name)
         wb = load_workbook(output_path)
