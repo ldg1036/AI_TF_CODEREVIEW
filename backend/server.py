@@ -1,6 +1,7 @@
 ﻿import json
 import logging
 import os
+from pathlib import Path
 import sys
 import threading
 import time
@@ -698,6 +699,32 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
             },
         )
 
+    def _resolve_latest_verification_summary(self) -> Dict[str, Any]:
+        report_dir = Path(str(getattr(self.app.reporter, "output_base_dir", "") or "")).resolve()
+        if not report_dir.exists() or not report_dir.is_dir():
+            raise FileNotFoundError(f"verification report directory not found: {report_dir}")
+
+        candidates = sorted(
+            report_dir.glob("verification_summary_*.json"),
+            key=lambda item: item.stat().st_mtime,
+            reverse=True,
+        )
+        if not candidates:
+            raise FileNotFoundError("verification summary not found")
+
+        latest = candidates[0]
+        try:
+            payload = json.loads(latest.read_text(encoding="utf-8"))
+        except Exception as exc:
+            raise RuntimeError(f"failed to read verification summary: {latest.name}: {exc}") from exc
+
+        if not isinstance(payload, dict):
+            raise RuntimeError(f"invalid verification summary payload: {latest.name}")
+
+        payload.setdefault("source_file", latest.name)
+        payload.setdefault("source_path", str(latest))
+        return payload
+
     def _handle_analyze_status(self) -> None:
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)
@@ -713,6 +740,15 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path == "/api/verification/latest":
+            try:
+                self._send_json(HTTPStatus.OK, self._resolve_latest_verification_summary())
+            except FileNotFoundError as exc:
+                self._send_json(HTTPStatus.NOT_FOUND, {"error": str(exc)})
+            except RuntimeError as exc:
+                self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc)})
+            return
+
         if parsed.path == "/api/analyze/status":
             try:
                 self._handle_analyze_status()

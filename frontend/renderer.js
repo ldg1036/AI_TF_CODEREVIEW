@@ -18,6 +18,7 @@ const warningText = document.getElementById("warning-issues");
 const scoreBar = document.getElementById("score-bar");
 const scoreText = document.getElementById("score-text");
 const verificationBadge = document.getElementById("verification-badge");
+const verificationProfileCard = document.getElementById("verification-profile-card");
 const codeViewer = document.getElementById("code-viewer");
 
 const resultTableWrap = document.querySelector(".result-table");
@@ -1163,6 +1164,55 @@ function updateVerificationBadge() {
 
     const openpyxlText = openpyxlAvailable ? "available" : "missing";
     verificationBadge.title = `verification_level=${level || "UNKNOWN"}, openpyxl=${openpyxlText}`;
+}
+
+function updateVerificationProfileCard(payload = null, errorMessage = "") {
+    if (!verificationProfileCard) return;
+    verificationProfileCard.classList.remove(
+        "verification-profile-card--ok",
+        "verification-profile-card--degraded",
+        "verification-profile-card--failed",
+        "verification-profile-card--unknown"
+    );
+
+    if (!payload || typeof payload !== "object") {
+        verificationProfileCard.classList.add("verification-profile-card--unknown");
+        verificationProfileCard.textContent = "검증 프로파일: 없음";
+        verificationProfileCard.title = errorMessage || "검증 프로파일 결과 파일이 없습니다.";
+        return;
+    }
+
+    const summary = payload.summary || {};
+    const failed = Number(summary.failed || 0);
+    const skipped = Number(summary.skipped_optional_missing || 0);
+    const passed = Number(summary.passed || 0);
+    if (failed > 0) {
+        verificationProfileCard.classList.add("verification-profile-card--failed");
+        verificationProfileCard.textContent = `검증 프로파일: 실패 ${failed}`;
+    } else if (skipped > 0) {
+        verificationProfileCard.classList.add("verification-profile-card--degraded");
+        verificationProfileCard.textContent = `검증 프로파일: 통과 ${passed}, 스킵 ${skipped}`;
+    } else {
+        verificationProfileCard.classList.add("verification-profile-card--ok");
+        verificationProfileCard.textContent = `검증 프로파일: 통과 ${passed}`;
+    }
+
+    const sourceFile = String(payload.source_file || "");
+    verificationProfileCard.title = sourceFile ? `latest=${sourceFile}` : "최신 검증 프로파일";
+}
+
+async function loadLatestVerificationProfile() {
+    try {
+        const response = await fetch("/api/verification/latest");
+        const payload = await response.json();
+        if (!response.ok) {
+            updateVerificationProfileCard(null, payload.error || `검증 프로파일 조회 실패 (${response.status})`);
+            return;
+        }
+        updateVerificationProfileCard(payload, "");
+    } catch (err) {
+        updateVerificationProfileCard(null, (err && err.message) || String(err));
+    }
 }
 
 function updateDashboard() {
@@ -3089,6 +3139,7 @@ async function applyAnalyzePayload(payload) {
     renderWorkspace();
     updateExcelJobUiFromAnalysis();
     updateAiContextHelpText();
+    await loadLatestVerificationProfile();
     navWorkspace.onclick();
 
     if (selected.length > 0) {
@@ -3207,6 +3258,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     syncAiContextToggle();
     updateExcelJobUiFromAnalysis();
     updateDashboard();
+    await loadLatestVerificationProfile();
     setCodeViewerText("// 파일을 선택하면 원본 코드와 위반 항목을 확인할 수 있습니다.");
     try {
         await loadFiles();
