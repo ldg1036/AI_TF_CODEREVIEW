@@ -28,6 +28,7 @@ class Reporter:
     DETAIL_SHEET_NAME = "상세결과"
     VERIFY_SHEET_NAME = "검증 결과"
     CTRLPP_SHEET_NAME = "CtrlppCheck_결과"
+    VERIFY_META_SHEET_NAME = "검증메타"
 
     MANUAL_REVIEW_MESSAGE = "자동 체크 불가 (수동 확인 권장)"
     RULE_ID_ITEM_MAP = {
@@ -381,7 +382,7 @@ class Reporter:
         else:
             cell.font = Font(color="333333")
 
-    def generate_html_report(self, report_data: dict, filename: str = "analysis_report.html"):
+    def generate_html_report(self, report_data: dict, filename: str = "analysis_report.html", report_meta: dict = None):
         self._ensure_output_dir()
         output_path = os.path.join(self.output_dir, filename)
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -415,6 +416,10 @@ class Reporter:
 
         title = "WinCC OA 코드 분석 결과"
         target = self._escape(report_data.get("file", ""))
+        meta = report_meta if isinstance(report_meta, dict) else {}
+        verification_level = str(meta.get("verification_level", "UNKNOWN") or "UNKNOWN")
+        optional_deps = meta.get("optional_dependencies", {}) if isinstance(meta.get("optional_dependencies", {}), dict) else {}
+        openpyxl_status = "available" if bool((optional_deps.get("openpyxl") or {}).get("available", False)) else "missing"
 
         html_content = f"""<!DOCTYPE html>
 <html lang="ko">
@@ -440,6 +445,7 @@ class Reporter:
   <h1>{title}</h1>
   <p><strong>생성 일시:</strong> {now}</p>
   <p><strong>대상:</strong> {target}</p>
+  <p><strong>검증 레벨:</strong> {self._escape(verification_level)} (openpyxl: {self._escape(openpyxl_status)})</p>
   <h2>1. 정적분석 결과 (P1)</h2>
   <table>
     <tr><th>객체</th><th>이벤트</th><th>심각도</th><th>규칙 항목</th><th>상세 메시지</th></tr>
@@ -561,7 +567,7 @@ class Reporter:
         with open(output_path, "w", encoding="utf-8") as f:
             f.write("\n".join(annotated_lines))
 
-    def fill_excel_checklist(self, report_data: dict, file_type: str = "Client", output_filename: str = None):
+    def fill_excel_checklist(self, report_data: dict, file_type: str = "Client", output_filename: str = None, report_meta: dict = None):
         metrics = {
             "generated": False,
             "template_cache_hit": False,
@@ -599,6 +605,11 @@ class Reporter:
         wb = load_workbook(output_path)
         metrics["timings_ms"]["load"] = self._elapsed_ms(load_started)
         ws = wb.active
+
+        meta = report_meta if isinstance(report_meta, dict) else {}
+        verification_level = str(meta.get("verification_level", "CORE_ONLY") or "CORE_ONLY")
+        optional_deps = meta.get("optional_dependencies", {}) if isinstance(meta.get("optional_dependencies", {}), dict) else {}
+        openpyxl_status = "available" if bool((optional_deps.get("openpyxl") or {}).get("available", False)) else "missing"
 
         p1_violations = self._flatten_internal_violations(report_data)
         p2_violations = self._flatten_global_violations(report_data)
@@ -743,6 +754,15 @@ class Reporter:
             for v in p2_violations
         ]
         self._replace_sheet(wb, self.CTRLPP_SHEET_NAME, ctrlpp_headers, ctrlpp_rows)
+
+        meta_headers = ["항목", "값"]
+        meta_rows = [
+            ["verification_level", verification_level],
+            ["openpyxl", openpyxl_status],
+            ["generated_at", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+            ["file", str(report_data.get("file", ""))],
+        ]
+        self._replace_sheet(wb, self.VERIFY_META_SHEET_NAME, meta_headers, meta_rows)
 
         save_started = self._perf_now()
         wb.save(output_path)

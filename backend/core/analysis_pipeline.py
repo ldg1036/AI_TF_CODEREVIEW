@@ -389,8 +389,15 @@ class DirectoryAnalysisPipeline:
         logger.info("Generating combined HTML report for %d files...", len(all_file_results))
         html_report_started = self.app._perf_now()
         combined_report = self.app.build_combined_report(all_file_results)
+        excel_support = bool(runtime.request_reporter.is_excel_support_available())
+        report_meta = {
+            "verification_level": "CORE+REPORT" if excel_support else "CORE_ONLY",
+            "optional_dependencies": {
+                "openpyxl": {"available": excel_support, "required_for": ["excel_report", "template_coverage"]}
+            },
+        }
         with self.app._reporter_semaphore:
-            runtime.request_reporter.generate_html_report(combined_report, "combined_analysis_report.html")
+            runtime.request_reporter.generate_html_report(combined_report, "combined_analysis_report.html", report_meta=report_meta)
         self.app._metrics_add_timing(runtime.metrics, "report", self.app._elapsed_ms(html_report_started))
         logger.info("Analysis Completed. Results saved in: %s", runtime.request_reporter.output_dir)
 

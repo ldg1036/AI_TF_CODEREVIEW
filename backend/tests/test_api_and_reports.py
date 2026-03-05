@@ -2608,7 +2608,14 @@ class ReportQualityTests(unittest.TestCase):
 
     def test_html_report_contains_rows_and_severity_class(self):
         data = self._sample_report_data()
-        self.reporter.generate_html_report(data, "quality.html")
+        self.reporter.generate_html_report(
+            data,
+            "quality.html",
+            report_meta={
+                "verification_level": "CORE+REPORT",
+                "optional_dependencies": {"openpyxl": {"available": False}},
+            },
+        )
         report_path = os.path.join(self.reporter.output_dir, "quality.html")
 
         self.assertTrue(os.path.exists(report_path))
@@ -2618,6 +2625,8 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("<table>", html)
         self.assertIn('class="critical"', html)
         self.assertIn("query scope too wide", html)
+        self.assertIn("검증 레벨", html)
+        self.assertIn("CORE+REPORT", html)
 
     def test_excel_report_creates_unmatched_sheet_and_marks_ng(self):
         _require_openpyxl(self)
@@ -3096,6 +3105,29 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIsNotNone(row)
         status_col = self._find_status_col(ws)
         self.assertEqual(ws.cell(row, status_col).value, "NG")
+
+
+    def test_excel_report_writes_verification_meta_sheet(self):
+        _require_openpyxl(self)
+        data = self._sample_report_data()
+        output_name = "quality_verify_meta.xlsx"
+        self.reporter.fill_excel_checklist(
+            data,
+            file_type="Server",
+            output_filename=output_name,
+            report_meta={
+                "verification_level": "CORE+REPORT",
+                "optional_dependencies": {"openpyxl": {"available": True}},
+            },
+        )
+
+        load_workbook = _require_openpyxl(self)
+        wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
+        self.assertIn("검증메타", wb.sheetnames)
+        ws = wb["검증메타"]
+        rows = {str(ws.cell(r, 1).value): str(ws.cell(r, 2).value) for r in range(2, ws.max_row + 1)}
+        self.assertEqual(rows.get("verification_level"), "CORE+REPORT")
+        self.assertEqual(rows.get("openpyxl"), "available")
 
     def test_detail_sheet_row_count_matches_findings(self):
         data = self._sample_report_data()
