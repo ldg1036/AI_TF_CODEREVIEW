@@ -1,0 +1,529 @@
+{
+  "generated_at": "2026-03-03T14:35:54",
+  "mode": "drift_tuning_sweep_root_cause",
+  "source_sweep_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_sweep_20260303_143447_drift.json",
+  "row_count": 27,
+  "aggregate_reason_counts": {
+    "BLOCKED_ANCHOR_MISMATCH_ONLY": 27
+  },
+  "aggregate_fragment_counts": {
+    "ambiguous_candidates": 0,
+    "low_confidence": 0,
+    "drift_exceeded": 0
+  },
+  "rows": [
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.05,
+        "max_line_drift": 300
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.05,
+        "max_line_drift": 600
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.05,
+        "max_line_drift": 900
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.1,
+        "max_line_drift": 300
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.1,
+        "max_line_drift": 600
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.1,
+        "max_line_drift": 900
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.15,
+        "max_line_drift": 300
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.15,
+        "max_line_drift": 600
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.15,
+        "max_line_drift": 900
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.05,
+        "max_line_drift": 300
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.05,
+        "max_line_drift": 600
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.05,
+        "max_line_drift": 900
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.1,
+        "max_line_drift": 300
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.1,
+        "max_line_drift": 600
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.1,
+        "max_line_drift": 900
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.15,
+        "max_line_drift": 300
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.15,
+        "max_line_drift": 600
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.15,
+        "max_line_drift": 900
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.05,
+        "max_line_drift": 300
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.05,
+        "max_line_drift": 600
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.05,
+        "max_line_drift": 900
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.1,
+        "max_line_drift": 300
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.1,
+        "max_line_drift": 600
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.1,
+        "max_line_drift": 900
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.15,
+        "max_line_drift": 300
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.15,
+        "max_line_drift": 600
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.15,
+        "max_line_drift": 900
+      },
+      "improvement_percent": 0.0,
+      "kpi_observability_pass": true,
+      "kpi_10_percent_pass": false,
+      "reason": "BLOCKED_ANCHOR_MISMATCH_ONLY",
+      "fragment_counts": {
+        "ambiguous_candidates": 0,
+        "low_confidence": 0,
+        "drift_exceeded": 0
+      },
+      "error_code_counts": {
+        "ANCHOR_MISMATCH": 3
+      }
+    }
+  ]
+}

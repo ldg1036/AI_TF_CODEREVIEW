@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-03-03T14:28:49",
+  "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_142844_drift.json",
+  "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_142844_drift.json",
+  "baseline_failure_rate": 1.0,
+  "improved_failure_rate": 1.0,
+  "improvement_percent": 0.0,
+  "kpi_target_percent": 10.0,
+  "kpi_passed": false,
+  "kpi_observability_pass": true,
+  "kpi_observability_reason": "PASS",
+  "instruction_apply_rate": 0.0,
+  "instruction_validation_fail_rate": 0.0,
+  "instruction_fail_stage_distribution": {
+    "none": 3
+  },
+  "rollout_criteria": {
+    "instruction_apply_rate_min": 0.7,
+    "instruction_validation_fail_rate_max": 0.2,
+    "safety_gate_regression_max": 0
+  },
+  "rollout_checks": {
+    "instruction_apply_rate_ok": false,
+    "instruction_validation_fail_rate_ok": true,
+    "safety_gate_regression_ok": true
+  },
+  "rollout_ready": false
+}

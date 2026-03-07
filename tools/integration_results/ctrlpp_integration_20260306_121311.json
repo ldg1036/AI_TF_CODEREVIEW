@@ -1,0 +1,23 @@
+{
+  "tool": "ctrlpp_integration_smoke",
+  "started_at": "2026-03-06T12:13:11Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "config": {
+    "binary": "",
+    "sample_file": "",
+    "skip_direct": false,
+    "skip_unittest": true,
+    "test_name": "backend.tests.test_api_and_reports.ApiIntegrationTests.test_autofix_apply_ctrlpp_regression_check_real_binary_optional",
+    "timeout_sec": 180,
+    "allow_missing_binary": true
+  },
+  "binary": {
+    "requested": null,
+    "resolved": null,
+    "exists": false
+  },
+  "direct_smoke": null,
+  "unittest_harness": null,
+  "status": "binary_not_found",
+  "message": "CtrlppCheck binary not found. Configure CTRLPPCHECK_PATH or Config/config.json ctrlppcheck.binary_path."
+}

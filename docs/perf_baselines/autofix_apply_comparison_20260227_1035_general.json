@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-02-27T10:33:02",
+  "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260227_1035_general.json",
+  "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260227_1035_general.json",
+  "baseline_failure_rate": 0.0,
+  "improved_failure_rate": 0.0,
+  "improvement_percent": 0.0,
+  "kpi_target_percent": 10.0,
+  "kpi_passed": false
+}

@@ -1,0 +1,75 @@
+{
+  "tool": "ctrlpp_integration_smoke",
+  "started_at": "2026-02-25T01:04:14Z",
+  "project_root": "C:\\Users\\Administrator\\Desktop\\Coder_Wincc-main",
+  "config": {
+    "binary": "",
+    "sample_file": "",
+    "skip_direct": false,
+    "skip_unittest": false,
+    "test_name": "backend.tests.test_api_and_reports.ApiIntegrationTests.test_autofix_apply_ctrlpp_regression_check_real_binary_optional",
+    "timeout_sec": 180,
+    "allow_missing_binary": false
+  },
+  "binary": {
+    "requested": null,
+    "resolved": "C:\\Users\\Administrator\\Desktop\\Coder_Wincc-main\\tools\\CtrlppCheck\\v1.0.2\\extract\\WinCCOA_QualityChecks\\bin\\ctrlppcheck\\ctrlppcheck.exe",
+    "exists": true
+  },
+  "direct_smoke": {
+    "ok": true,
+    "infra_error": false,
+    "finding_count": 2,
+    "finding_type_counts": {
+      "information": 1,
+      "style": 1
+    },
+    "messages_tail": [
+      "Void function without void return type.",
+      "Use throwError() instead of DebugN() functions"
+    ],
+    "sample_file": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmp1d1hqs0d\\ctrlpp_integration_smoke_sample.ctl",
+    "elapsed_ms": 2663,
+    "raw_findings_preview": [
+      {
+        "type": "information",
+        "severity": "information",
+        "rule_id": "voidReturnValueMissingInformation",
+        "line": 1,
+        "message": "Void function without void return type.",
+        "verbose": "Void function without void return type.",
+        "file": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\tmp1d1hqs0d\\ctrlpp_integration_smoke_sample.ctl",
+        "source": "CtrlppCheck",
+        "priority_origin": "P2"
+      },
+      {
+        "type": "style",
+        "severity": "style",
+        "rule_id": "badFunc_style_DebugN",
+        "line": 5,
+        "message": "Use throwError() instead of DebugN() functions",
+        "verbose": "Use throwError() instead of DebugN() functions",
+        "file": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\tmp1d1hqs0d\\ctrlpp_integration_smoke_sample.ctl",
+        "source": "CtrlppCheck",
+        "priority_origin": "P2"
+      }
+    ]
+  },
+  "unittest_harness": {
+    "ok": true,
+    "timed_out": false,
+    "elapsed_ms": 5570,
+    "returncode": 0,
+    "command": [
+      "C:\\Users\\Administrator\\anaconda3\\python.exe",
+      "-m",
+      "unittest",
+      "backend.tests.test_api_and_reports.ApiIntegrationTests.test_autofix_apply_ctrlpp_regression_check_real_binary_optional"
+    ],
+    "stdout_tail": "[*] Excel Submission report generated: C:\\Users\\Administrator\\Desktop\\Coder_Wincc-main\\backend\\..\\CodeReview_Report\\20260225_100418_079594\\CodeReview_Submission_sample_20260225_100418_079594.xlsx\n",
+    "stderr_tail": "127.0.0.1 - - [25/Feb/2026 10:04:18] \"POST /api/analyze HTTP/1.1\" 200 -\n127.0.0.1 - - [25/Feb/2026 10:04:18] \"POST /api/autofix/prepare HTTP/1.1\" 200 -\n127.0.0.1 - - [25/Feb/2026 10:04:22] \"POST /api/autofix/apply HTTP/1.1\" 200 -\n.\n----------------------------------------------------------------------\nRan 1 test in 4.767s\n\nOK\n",
+    "status": "passed"
+  },
+  "status": "passed",
+  "finished_at": "2026-02-25T01:04:22Z"
+}

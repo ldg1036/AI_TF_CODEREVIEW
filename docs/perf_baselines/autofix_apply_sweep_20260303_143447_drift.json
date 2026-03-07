@@ -1,0 +1,1037 @@
+{
+  "generated_at": "2026-03-03T14:35:54",
+  "server_url": "http://127.0.0.1:8765",
+  "mode": "drift_tuning_sweep",
+  "iterations": 3,
+  "selected_files": [
+    "BenchmarkP1Fixture.ctl"
+  ],
+  "sweep_values": {
+    "min_confidence": [
+      0.55,
+      0.65,
+      0.8
+    ],
+    "min_gap": [
+      0.05,
+      0.1,
+      0.15
+    ],
+    "max_line_drift": [
+      300,
+      600,
+      900
+    ]
+  },
+  "row_count": 27,
+  "rows": [
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.05,
+        "max_line_drift": 300
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_01_c0_55_g0_05_d300.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:34:50",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_01_c0_55_g0_05_d300.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_01_c0_55_g0_05_d300.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.05,
+        "max_line_drift": 600
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_02_c0_55_g0_05_d600.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:34:52",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_02_c0_55_g0_05_d600.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_02_c0_55_g0_05_d600.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.05,
+        "max_line_drift": 900
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_03_c0_55_g0_05_d900.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:34:55",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_03_c0_55_g0_05_d900.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_03_c0_55_g0_05_d900.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.1,
+        "max_line_drift": 300
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_04_c0_55_g0_1_d300.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:34:58",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_04_c0_55_g0_1_d300.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_04_c0_55_g0_1_d300.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.1,
+        "max_line_drift": 600
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_05_c0_55_g0_1_d600.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:00",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_05_c0_55_g0_1_d600.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_05_c0_55_g0_1_d600.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.1,
+        "max_line_drift": 900
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_06_c0_55_g0_1_d900.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:02",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_06_c0_55_g0_1_d900.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_06_c0_55_g0_1_d900.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.15,
+        "max_line_drift": 300
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_07_c0_55_g0_15_d300.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:05",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_07_c0_55_g0_15_d300.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_07_c0_55_g0_15_d300.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.15,
+        "max_line_drift": 600
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_08_c0_55_g0_15_d600.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:07",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_08_c0_55_g0_15_d600.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_08_c0_55_g0_15_d600.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.55,
+        "min_gap": 0.15,
+        "max_line_drift": 900
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_09_c0_55_g0_15_d900.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:10",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_09_c0_55_g0_15_d900.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_09_c0_55_g0_15_d900.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.05,
+        "max_line_drift": 300
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_10_c0_65_g0_05_d300.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:12",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_10_c0_65_g0_05_d300.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_10_c0_65_g0_05_d300.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.05,
+        "max_line_drift": 600
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_11_c0_65_g0_05_d600.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:15",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_11_c0_65_g0_05_d600.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_11_c0_65_g0_05_d600.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.05,
+        "max_line_drift": 900
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_12_c0_65_g0_05_d900.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:17",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_12_c0_65_g0_05_d900.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_12_c0_65_g0_05_d900.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.1,
+        "max_line_drift": 300
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_13_c0_65_g0_1_d300.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:19",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_13_c0_65_g0_1_d300.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_13_c0_65_g0_1_d300.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.1,
+        "max_line_drift": 600
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_14_c0_65_g0_1_d600.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:22",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_14_c0_65_g0_1_d600.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_14_c0_65_g0_1_d600.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.1,
+        "max_line_drift": 900
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_15_c0_65_g0_1_d900.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:24",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_15_c0_65_g0_1_d900.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_15_c0_65_g0_1_d900.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.15,
+        "max_line_drift": 300
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_16_c0_65_g0_15_d300.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:26",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_16_c0_65_g0_15_d300.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_16_c0_65_g0_15_d300.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.15,
+        "max_line_drift": 600
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_17_c0_65_g0_15_d600.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:29",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_17_c0_65_g0_15_d600.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_17_c0_65_g0_15_d600.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.65,
+        "min_gap": 0.15,
+        "max_line_drift": 900
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_18_c0_65_g0_15_d900.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:32",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_18_c0_65_g0_15_d900.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_18_c0_65_g0_15_d900.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.05,
+        "max_line_drift": 300
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_19_c0_8_g0_05_d300.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:34",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_19_c0_8_g0_05_d300.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_19_c0_8_g0_05_d300.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.05,
+        "max_line_drift": 600
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_20_c0_8_g0_05_d600.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:36",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_20_c0_8_g0_05_d600.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_20_c0_8_g0_05_d600.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.05,
+        "max_line_drift": 900
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_21_c0_8_g0_05_d900.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:39",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_21_c0_8_g0_05_d900.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_21_c0_8_g0_05_d900.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.1,
+        "max_line_drift": 300
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_22_c0_8_g0_1_d300.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:41",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_22_c0_8_g0_1_d300.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_22_c0_8_g0_1_d300.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.1,
+        "max_line_drift": 600
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_23_c0_8_g0_1_d600.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:44",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_23_c0_8_g0_1_d600.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_23_c0_8_g0_1_d600.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.1,
+        "max_line_drift": 900
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_24_c0_8_g0_1_d900.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:46",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_24_c0_8_g0_1_d900.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_24_c0_8_g0_1_d900.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.15,
+        "max_line_drift": 300
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_25_c0_8_g0_15_d300.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:49",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_25_c0_8_g0_15_d300.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_25_c0_8_g0_15_d300.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.15,
+        "max_line_drift": 600
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_26_c0_8_g0_15_d600.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:51",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_26_c0_8_g0_15_d600.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_26_c0_8_g0_15_d600.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    },
+    {
+      "tuning": {
+        "min_confidence": 0.8,
+        "min_gap": 0.15,
+        "max_line_drift": 900
+      },
+      "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_27_c0_8_g0_15_d900.json",
+      "comparison": {
+        "generated_at": "2026-03-03T14:35:54",
+        "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_27_c0_8_g0_15_d900.json",
+        "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_27_c0_8_g0_15_d900.json",
+        "baseline_failure_rate": 1.0,
+        "improved_failure_rate": 1.0,
+        "improvement_percent": 0.0,
+        "kpi_target_percent": 10.0,
+        "kpi_passed": false,
+        "kpi_observability_pass": true,
+        "kpi_observability_reason": "PASS",
+        "instruction_apply_rate": 0.0,
+        "instruction_validation_fail_rate": 0.0,
+        "instruction_fail_stage_distribution": {
+          "none": 3
+        },
+        "rollout_criteria": {
+          "instruction_apply_rate_min": 0.7,
+          "instruction_validation_fail_rate_max": 0.2,
+          "safety_gate_regression_max": 0
+        },
+        "rollout_checks": {
+          "instruction_apply_rate_ok": false,
+          "instruction_validation_fail_rate_ok": true,
+          "safety_gate_regression_ok": true
+        },
+        "rollout_ready": false
+      }
+    }
+  ],
+  "best": {
+    "tuning": {
+      "min_confidence": 0.55,
+      "min_gap": 0.05,
+      "max_line_drift": 300
+    },
+    "comparison_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_comparison_20260303_143447_drift_tune_01_c0_55_g0_05_d300.json",
+    "comparison": {
+      "generated_at": "2026-03-03T14:34:50",
+      "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_01_c0_55_g0_05_d300.json",
+      "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260303_143447_drift_tune_01_c0_55_g0_05_d300.json",
+      "baseline_failure_rate": 1.0,
+      "improved_failure_rate": 1.0,
+      "improvement_percent": 0.0,
+      "kpi_target_percent": 10.0,
+      "kpi_passed": false,
+      "kpi_observability_pass": true,
+      "kpi_observability_reason": "PASS",
+      "instruction_apply_rate": 0.0,
+      "instruction_validation_fail_rate": 0.0,
+      "instruction_fail_stage_distribution": {
+        "none": 3
+      },
+      "rollout_criteria": {
+        "instruction_apply_rate_min": 0.7,
+        "instruction_validation_fail_rate_max": 0.2,
+        "safety_gate_regression_max": 0
+      },
+      "rollout_checks": {
+        "instruction_apply_rate_ok": false,
+        "instruction_validation_fail_rate_ok": true,
+        "safety_gate_regression_ok": true
+      },
+      "rollout_ready": false
+    }
+  }
+}

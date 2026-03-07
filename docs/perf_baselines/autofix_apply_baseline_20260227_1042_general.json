@@ -1,0 +1,376 @@
+{
+  "generated_at": "2026-02-27T10:40:40",
+  "server_url": "http://127.0.0.1:8765",
+  "mode": "baseline",
+  "perturb_anchor_mode": "none",
+  "kpi_observe_mode": "strict_hash",
+  "selected_files": [
+    "GoldenTime.ctl"
+  ],
+  "iterations": 3,
+  "runs": [
+    {
+      "analyze": {
+        "status": 200,
+        "wall_ms": 34,
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\backend\\..\\CodeReview_Report\\20260227_104038_703902"
+      },
+      "prepare": {
+        "status": 200,
+        "wall_ms": 24,
+        "proposal_id": "7ab7045e4d274715aac051a282aea57a"
+      },
+      "apply": {
+        "status": 200,
+        "wall_ms": 74,
+        "ok": true,
+        "error_code": "",
+        "validation": {
+          "anchors_match": true,
+          "hash_match": true,
+          "syntax_check_passed": true,
+          "semantic_check_passed": true,
+          "semantic_blocked_reason": "no_risk_delta",
+          "semantic_violation_count": 0,
+          "heuristic_regression_count": 0,
+          "ctrlpp_regression_count": 0,
+          "errors": [],
+          "locator_mode": "anchor_exact",
+          "apply_engine_mode": "text_fallback",
+          "apply_engine_fallback_reason": "no_enclosing_block",
+          "token_fallback_attempted": false,
+          "token_fallback_confidence": 0.0,
+          "token_fallback_candidates": 0
+        }
+      },
+      "stats": {
+        "status": 200,
+        "wall_ms": 18,
+        "payload": {
+          "ok": true,
+          "session_id": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_104038_703902",
+          "output_dir": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_104038_703902",
+          "proposal_count": 6,
+          "latest_by_file_count": 1,
+          "by_status": {
+            "Rejected": 5,
+            "Applied": 1
+          },
+          "by_generator": {
+            "rule": 6
+          },
+          "by_generator_status": {
+            "rule": {
+              "Rejected": 5,
+              "Applied": 1
+            }
+          },
+          "quality_summary": {
+            "applied_count": 1,
+            "blocked_count": 5,
+            "heuristic_regression_blocked_count": 0,
+            "ctrlpp_regression_blocked_count": 0,
+            "failure_error_codes": {
+              "SEMANTIC_GUARD_BLOCKED": 5
+            }
+          },
+          "prepare_compare_count": 0,
+          "prepare_compare_generated_candidates_total": 0,
+          "selected_generator_counts": {
+            "rule": 0,
+            "llm": 0
+          },
+          "compare_apply_count": 0,
+          "anchor_mismatch_count": 0,
+          "token_fallback_attempt_count": 0,
+          "token_fallback_success_count": 0,
+          "token_fallback_ambiguous_count": 0,
+          "apply_engine_structure_success_count": 0,
+          "apply_engine_text_fallback_count": 1,
+          "multi_hunk_attempt_count": 0,
+          "multi_hunk_success_count": 0,
+          "multi_hunk_blocked_count": 0,
+          "semantic_guard_checked_count": 6,
+          "semantic_guard_blocked_count": 5,
+          "selected_apply_engine_mode": {
+            "structure_apply": 0,
+            "text_fallback": 1
+          }
+        }
+      },
+      "perturbation": {
+        "mode": "none",
+        "changed": false,
+        "reason": "no_perturbation",
+        "anchor_line": 15
+      },
+      "target": {
+        "candidate_count": 9,
+        "chosen_index_1based": 6,
+        "object": "GoldenTime.ctl",
+        "event": "Global",
+        "issue_id": "P1-STYLE-NAME-01-557729ea6d",
+        "semantic_blocked_candidates_skipped": 5
+      }
+    },
+    {
+      "analyze": {
+        "status": 200,
+        "wall_ms": 42,
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\backend\\..\\CodeReview_Report\\20260227_104039_230700"
+      },
+      "prepare": {
+        "status": 200,
+        "wall_ms": 27,
+        "proposal_id": "06aa745ddbe0441f9d0c13caf33ddd76"
+      },
+      "apply": {
+        "status": 200,
+        "wall_ms": 63,
+        "ok": true,
+        "error_code": "",
+        "validation": {
+          "anchors_match": true,
+          "hash_match": true,
+          "syntax_check_passed": true,
+          "semantic_check_passed": true,
+          "semantic_blocked_reason": "no_risk_delta",
+          "semantic_violation_count": 0,
+          "heuristic_regression_count": 0,
+          "ctrlpp_regression_count": 0,
+          "errors": [],
+          "locator_mode": "anchor_exact",
+          "apply_engine_mode": "text_fallback",
+          "apply_engine_fallback_reason": "no_enclosing_block",
+          "token_fallback_attempted": false,
+          "token_fallback_confidence": 0.0,
+          "token_fallback_candidates": 0
+        }
+      },
+      "stats": {
+        "status": 200,
+        "wall_ms": 13,
+        "payload": {
+          "ok": true,
+          "session_id": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_104039_230700",
+          "output_dir": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_104039_230700",
+          "proposal_count": 6,
+          "latest_by_file_count": 1,
+          "by_status": {
+            "Rejected": 5,
+            "Applied": 1
+          },
+          "by_generator": {
+            "rule": 6
+          },
+          "by_generator_status": {
+            "rule": {
+              "Rejected": 5,
+              "Applied": 1
+            }
+          },
+          "quality_summary": {
+            "applied_count": 1,
+            "blocked_count": 5,
+            "heuristic_regression_blocked_count": 0,
+            "ctrlpp_regression_blocked_count": 0,
+            "failure_error_codes": {
+              "SEMANTIC_GUARD_BLOCKED": 5
+            }
+          },
+          "prepare_compare_count": 0,
+          "prepare_compare_generated_candidates_total": 0,
+          "selected_generator_counts": {
+            "rule": 0,
+            "llm": 0
+          },
+          "compare_apply_count": 0,
+          "anchor_mismatch_count": 0,
+          "token_fallback_attempt_count": 0,
+          "token_fallback_success_count": 0,
+          "token_fallback_ambiguous_count": 0,
+          "apply_engine_structure_success_count": 0,
+          "apply_engine_text_fallback_count": 1,
+          "multi_hunk_attempt_count": 0,
+          "multi_hunk_success_count": 0,
+          "multi_hunk_blocked_count": 0,
+          "semantic_guard_checked_count": 6,
+          "semantic_guard_blocked_count": 5,
+          "selected_apply_engine_mode": {
+            "structure_apply": 0,
+            "text_fallback": 1
+          }
+        }
+      },
+      "perturbation": {
+        "mode": "none",
+        "changed": false,
+        "reason": "no_perturbation",
+        "anchor_line": 15
+      },
+      "target": {
+        "candidate_count": 9,
+        "chosen_index_1based": 6,
+        "object": "GoldenTime.ctl",
+        "event": "Global",
+        "issue_id": "P1-STYLE-NAME-01-557729ea6d",
+        "semantic_blocked_candidates_skipped": 5
+      }
+    },
+    {
+      "analyze": {
+        "status": 200,
+        "wall_ms": 43,
+        "output_dir": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\backend\\..\\CodeReview_Report\\20260227_104039_757843"
+      },
+      "prepare": {
+        "status": 200,
+        "wall_ms": 36,
+        "proposal_id": "df487d7fbb9f4ffead14396f21582d34"
+      },
+      "apply": {
+        "status": 200,
+        "wall_ms": 100,
+        "ok": true,
+        "error_code": "",
+        "validation": {
+          "anchors_match": true,
+          "hash_match": true,
+          "syntax_check_passed": true,
+          "semantic_check_passed": true,
+          "semantic_blocked_reason": "no_risk_delta",
+          "semantic_violation_count": 0,
+          "heuristic_regression_count": 0,
+          "ctrlpp_regression_count": 0,
+          "errors": [],
+          "locator_mode": "anchor_exact",
+          "apply_engine_mode": "text_fallback",
+          "apply_engine_fallback_reason": "no_enclosing_block",
+          "token_fallback_attempted": false,
+          "token_fallback_confidence": 0.0,
+          "token_fallback_candidates": 0
+        }
+      },
+      "stats": {
+        "status": 200,
+        "wall_ms": 20,
+        "payload": {
+          "ok": true,
+          "session_id": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_104039_757843",
+          "output_dir": "c:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_104039_757843",
+          "proposal_count": 6,
+          "latest_by_file_count": 1,
+          "by_status": {
+            "Rejected": 5,
+            "Applied": 1
+          },
+          "by_generator": {
+            "rule": 6
+          },
+          "by_generator_status": {
+            "rule": {
+              "Rejected": 5,
+              "Applied": 1
+            }
+          },
+          "quality_summary": {
+            "applied_count": 1,
+            "blocked_count": 5,
+            "heuristic_regression_blocked_count": 0,
+            "ctrlpp_regression_blocked_count": 0,
+            "failure_error_codes": {
+              "SEMANTIC_GUARD_BLOCKED": 5
+            }
+          },
+          "prepare_compare_count": 0,
+          "prepare_compare_generated_candidates_total": 0,
+          "selected_generator_counts": {
+            "rule": 0,
+            "llm": 0
+          },
+          "compare_apply_count": 0,
+          "anchor_mismatch_count": 0,
+          "token_fallback_attempt_count": 0,
+          "token_fallback_success_count": 0,
+          "token_fallback_ambiguous_count": 0,
+          "apply_engine_structure_success_count": 0,
+          "apply_engine_text_fallback_count": 1,
+          "multi_hunk_attempt_count": 0,
+          "multi_hunk_success_count": 0,
+          "multi_hunk_blocked_count": 0,
+          "semantic_guard_checked_count": 6,
+          "semantic_guard_blocked_count": 5,
+          "selected_apply_engine_mode": {
+            "structure_apply": 0,
+            "text_fallback": 1
+          }
+        }
+      },
+      "perturbation": {
+        "mode": "none",
+        "changed": false,
+        "reason": "no_perturbation",
+        "anchor_line": 15
+      },
+      "target": {
+        "candidate_count": 9,
+        "chosen_index_1based": 6,
+        "object": "GoldenTime.ctl",
+        "event": "Global",
+        "issue_id": "P1-STYLE-NAME-01-557729ea6d",
+        "semantic_blocked_candidates_skipped": 5
+      }
+    }
+  ],
+  "summary": {
+    "mode": "baseline",
+    "run_count": 3,
+    "apply_attempts": 3,
+    "apply_success_count": 3,
+    "anchor_mismatch_failure_count": 0,
+    "anchor_mismatch_count": 0,
+    "token_fallback_attempt_count": 0,
+    "token_fallback_success_count": 0,
+    "token_fallback_ambiguous_count": 0,
+    "apply_engine_structure_success_count": 0,
+    "apply_engine_text_fallback_count": 3,
+    "apply_success_rate": 1.0,
+    "anchor_mismatch_failure_rate": 0.0,
+    "token_fallback_success_rate": 0.0,
+    "token_fallback_ambiguous_rate": 0.0,
+    "kpi_anchor_failure_rate": 0.0,
+    "error_code_counts": {},
+    "locator_mode_counts": {
+      "anchor_exact": 3
+    },
+    "semantic_block_reason_counts": {
+      "no_risk_delta": 3
+    },
+    "apply_engine_fallback_reason_counts": {
+      "no_enclosing_block": 3
+    },
+    "validation_error_fragment_counts": {
+      "ambiguous_candidates": 0,
+      "low_confidence": 0,
+      "drift_exceeded": 0,
+      "engine_fallback": 0
+    },
+    "stats_consistency_mismatch_count": 0
+  },
+  "_meta": {
+    "kpi_observe_mode": "strict_hash",
+    "benchmark_mode_warning": false,
+    "not_for_production": false
+  },
+  "_meta_output_path": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260227_1042_general.json",
+  "comparison": {
+    "generated_at": "2026-02-27T10:40:40",
+    "baseline_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260227_1042_general.json",
+    "improved_file": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260227_1042_general.json",
+    "baseline_failure_rate": 0.0,
+    "improved_failure_rate": 0.0,
+    "improvement_percent": 0.0,
+    "kpi_target_percent": 10.0,
+    "kpi_passed": false
+  }
+}

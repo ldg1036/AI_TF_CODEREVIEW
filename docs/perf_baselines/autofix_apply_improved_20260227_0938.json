@@ -1,0 +1,264 @@
+{
+  "generated_at": "2026-02-27T09:39:13",
+  "server_url": "http://127.0.0.1:8765",
+  "mode": "improved",
+  "selected_files": [
+    "GoldenTime.ctl"
+  ],
+  "iterations": 3,
+  "runs": [
+    {
+      "analyze": {
+        "status": 200,
+        "wall_ms": 244,
+        "output_dir": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\backend\\..\\CodeReview_Report\\20260227_093912_765444"
+      },
+      "prepare": {
+        "status": 200,
+        "wall_ms": 18,
+        "proposal_id": "200c7802256c455eb288394623ff1aa5"
+      },
+      "apply": {
+        "status": 200,
+        "wall_ms": 74,
+        "ok": true,
+        "error_code": "",
+        "validation": {
+          "anchors_match": true,
+          "hash_match": true,
+          "syntax_check_passed": true,
+          "heuristic_regression_count": 0,
+          "ctrlpp_regression_count": 0,
+          "errors": [],
+          "locator_mode": "anchor",
+          "apply_engine_mode": "text_fallback",
+          "apply_engine_fallback_reason": "no enclosing block for line 15",
+          "token_fallback_attempted": false,
+          "token_fallback_confidence": 0.0,
+          "token_fallback_candidates": 0
+        }
+      },
+      "stats": {
+        "status": 200,
+        "wall_ms": 17,
+        "payload": {
+          "ok": true,
+          "session_id": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_093912_765444",
+          "output_dir": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_093912_765444",
+          "proposal_count": 1,
+          "latest_by_file_count": 1,
+          "by_status": {
+            "Applied": 1
+          },
+          "by_generator": {
+            "rule": 1
+          },
+          "by_generator_status": {
+            "rule": {
+              "Applied": 1
+            }
+          },
+          "quality_summary": {
+            "applied_count": 1,
+            "blocked_count": 0,
+            "heuristic_regression_blocked_count": 0,
+            "ctrlpp_regression_blocked_count": 0,
+            "failure_error_codes": {}
+          },
+          "prepare_compare_count": 0,
+          "prepare_compare_generated_candidates_total": 0,
+          "selected_generator_counts": {
+            "rule": 0,
+            "llm": 0
+          },
+          "compare_apply_count": 0,
+          "anchor_mismatch_count": 0,
+          "token_fallback_attempt_count": 0,
+          "token_fallback_success_count": 0,
+          "token_fallback_ambiguous_count": 0,
+          "apply_engine_structure_success_count": 0,
+          "apply_engine_text_fallback_count": 1,
+          "selected_apply_engine_mode": {
+            "structure_apply": 0,
+            "text_fallback": 1
+          }
+        }
+      }
+    },
+    {
+      "analyze": {
+        "status": 200,
+        "wall_ms": 184,
+        "output_dir": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\backend\\..\\CodeReview_Report\\20260227_093913_118702"
+      },
+      "prepare": {
+        "status": 200,
+        "wall_ms": 23,
+        "proposal_id": "2d7b31cc947b449284cc06b5ad6ff04d"
+      },
+      "apply": {
+        "status": 200,
+        "wall_ms": 62,
+        "ok": true,
+        "error_code": "",
+        "validation": {
+          "anchors_match": true,
+          "hash_match": true,
+          "syntax_check_passed": true,
+          "heuristic_regression_count": 0,
+          "ctrlpp_regression_count": 0,
+          "errors": [],
+          "locator_mode": "anchor",
+          "apply_engine_mode": "text_fallback",
+          "apply_engine_fallback_reason": "no enclosing block for line 25",
+          "token_fallback_attempted": false,
+          "token_fallback_confidence": 0.0,
+          "token_fallback_candidates": 0
+        }
+      },
+      "stats": {
+        "status": 200,
+        "wall_ms": 21,
+        "payload": {
+          "ok": true,
+          "session_id": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_093913_118702",
+          "output_dir": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_093913_118702",
+          "proposal_count": 1,
+          "latest_by_file_count": 1,
+          "by_status": {
+            "Applied": 1
+          },
+          "by_generator": {
+            "rule": 1
+          },
+          "by_generator_status": {
+            "rule": {
+              "Applied": 1
+            }
+          },
+          "quality_summary": {
+            "applied_count": 1,
+            "blocked_count": 0,
+            "heuristic_regression_blocked_count": 0,
+            "ctrlpp_regression_blocked_count": 0,
+            "failure_error_codes": {}
+          },
+          "prepare_compare_count": 0,
+          "prepare_compare_generated_candidates_total": 0,
+          "selected_generator_counts": {
+            "rule": 0,
+            "llm": 0
+          },
+          "compare_apply_count": 0,
+          "anchor_mismatch_count": 0,
+          "token_fallback_attempt_count": 0,
+          "token_fallback_success_count": 0,
+          "token_fallback_ambiguous_count": 0,
+          "apply_engine_structure_success_count": 0,
+          "apply_engine_text_fallback_count": 1,
+          "selected_apply_engine_mode": {
+            "structure_apply": 0,
+            "text_fallback": 1
+          }
+        }
+      }
+    },
+    {
+      "analyze": {
+        "status": 200,
+        "wall_ms": 167,
+        "output_dir": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\backend\\..\\CodeReview_Report\\20260227_093913_395191"
+      },
+      "prepare": {
+        "status": 200,
+        "wall_ms": 21,
+        "proposal_id": "7f2d9b1f58ea4569ba3dede236c06bb5"
+      },
+      "apply": {
+        "status": 200,
+        "wall_ms": 79,
+        "ok": true,
+        "error_code": "",
+        "validation": {
+          "anchors_match": true,
+          "hash_match": true,
+          "syntax_check_passed": true,
+          "heuristic_regression_count": 0,
+          "ctrlpp_regression_count": 0,
+          "errors": [],
+          "locator_mode": "anchor",
+          "apply_engine_mode": "text_fallback",
+          "apply_engine_fallback_reason": "no enclosing block for line 28",
+          "token_fallback_attempted": false,
+          "token_fallback_confidence": 0.0,
+          "token_fallback_candidates": 0
+        }
+      },
+      "stats": {
+        "status": 200,
+        "wall_ms": 10,
+        "payload": {
+          "ok": true,
+          "session_id": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_093913_395191",
+          "output_dir": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260227_093913_395191",
+          "proposal_count": 1,
+          "latest_by_file_count": 1,
+          "by_status": {
+            "Applied": 1
+          },
+          "by_generator": {
+            "rule": 1
+          },
+          "by_generator_status": {
+            "rule": {
+              "Applied": 1
+            }
+          },
+          "quality_summary": {
+            "applied_count": 1,
+            "blocked_count": 0,
+            "heuristic_regression_blocked_count": 0,
+            "ctrlpp_regression_blocked_count": 0,
+            "failure_error_codes": {}
+          },
+          "prepare_compare_count": 0,
+          "prepare_compare_generated_candidates_total": 0,
+          "selected_generator_counts": {
+            "rule": 0,
+            "llm": 0
+          },
+          "compare_apply_count": 0,
+          "anchor_mismatch_count": 0,
+          "token_fallback_attempt_count": 0,
+          "token_fallback_success_count": 0,
+          "token_fallback_ambiguous_count": 0,
+          "apply_engine_structure_success_count": 0,
+          "apply_engine_text_fallback_count": 1,
+          "selected_apply_engine_mode": {
+            "structure_apply": 0,
+            "text_fallback": 1
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "mode": "improved",
+    "run_count": 3,
+    "apply_attempts": 3,
+    "apply_success_count": 3,
+    "anchor_mismatch_failure_count": 0,
+    "anchor_mismatch_count": 0,
+    "token_fallback_attempt_count": 0,
+    "token_fallback_success_count": 0,
+    "token_fallback_ambiguous_count": 0,
+    "apply_engine_structure_success_count": 0,
+    "apply_engine_text_fallback_count": 3,
+    "apply_success_rate": 1.0,
+    "anchor_mismatch_failure_rate": 0.0,
+    "token_fallback_success_rate": 0.0,
+    "token_fallback_ambiguous_rate": 0.0,
+    "kpi_anchor_failure_rate": 0.0
+  },
+  "_meta_output_path": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_improved_20260227_0938.json"
+}

@@ -1,0 +1,60 @@
+{
+  "tool": "playwright_ui_real_smoke",
+  "started_at": "2026-03-07T07:48:11.998Z",
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "target_file_preference": "BenchmarkP1Fixture.ctl",
+    "timeout_ms": 120000,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "backend": {
+    "started_server": true,
+    "discovered_file_count": 4,
+    "selected_target_file": "BenchmarkP1Fixture.ctl"
+  },
+  "run": {
+    "selection": {
+      "selectedFile": "BenchmarkP1Fixture.ctl",
+      "availableCount": 4
+    },
+    "beforeClick": {
+      "buttonFound": true,
+      "buttonRect": {
+        "x": 765,
+        "y": 62.484375,
+        "width": 118,
+        "height": 35,
+        "top": 62.484375,
+        "right": 883,
+        "bottom": 97.484375,
+        "left": 765
+      },
+      "interceptingNode": {
+        "tag": "BUTTON",
+        "id": "btn-analyze",
+        "className": ""
+      }
+    },
+    "afterRun": {
+      "rows": 5,
+      "totalIssues": "5",
+      "criticalIssues": "0",
+      "warningIssues": "4",
+      "workspaceVisible": false,
+      "resultBodyVisible": true,
+      "progressPanelVisible": true
+    },
+    "elapsed_ms": 1137
+  },
+  "ok": false,
+  "error": "Error: Real-server UI smoke assertions failed\n    at main (D:\\AI_TF_CODEREVIEW-main\\tools\\perf\\playwright_ui_real_smoke.js:345:13)",
+  "finished_at": "2026-03-07T07:48:18.588Z"
+}

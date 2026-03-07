@@ -1,0 +1,14 @@
+{
+  "tool": "playwright_ui_benchmark",
+  "updated_at": "2026-03-06T22:05:00+09:00",
+  "thresholds": {
+    "analyzeUiMs": 300,
+    "resultTableScrollMs": 1050,
+    "codeJumpMs": 100,
+    "codeViewerScrollMs": 500
+  },
+  "source": {
+    "baseline_doc": "docs/performance.md",
+    "reason": "Promote the existing tuned local p95 thresholds into the benchmark driver's default quality gate."
+  }
+}

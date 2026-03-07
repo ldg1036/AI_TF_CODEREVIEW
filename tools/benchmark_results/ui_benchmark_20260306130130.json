@@ -1,0 +1,100 @@
+{
+  "tool": "playwright_ui_benchmark",
+  "started_at": "2026-03-06T13:01:30.529Z",
+  "config": {
+    "files": 5,
+    "violations_per_file": 20,
+    "code_lines": 500,
+    "iterations": 1,
+    "host": "127.0.0.1",
+    "port": 4173,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "dataset": {
+    "total_files": 5,
+    "total_p1_groups": 5,
+    "total_p1_violations": 100,
+    "total_p2": 5,
+    "total_p3": 10
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "analyzeUiMs": 108,
+      "tableSnapshot": {
+        "renderedRows": 15,
+        "totalIssues": "0",
+        "workspaceVisible": true
+      },
+      "tableScroll": {
+        "ms": 831,
+        "steps": 25,
+        "maxRenderedRows": 15,
+        "minRenderedRows": 15,
+        "scrollHeight": 496,
+        "clientHeight": 200
+      },
+      "codeJump": {
+        "ms": 47,
+        "visibleRowsBeforeClick": 15,
+        "highlightedLine": 0,
+        "renderedLines": 46,
+        "codeScrollTop": 0
+      },
+      "codeScroll": {
+        "ms": 364,
+        "steps": 11,
+        "maxRenderedLines": 46,
+        "scrollHeight": 11261,
+        "clientHeight": 395
+      }
+    }
+  ],
+  "summary": {
+    "analyzeUiMs": {
+      "min": 108,
+      "avg": 108,
+      "median": 108,
+      "p95": 108,
+      "max": 108
+    },
+    "resultTableScrollMs": {
+      "min": 831,
+      "avg": 831,
+      "median": 831,
+      "p95": 831,
+      "max": 831
+    },
+    "codeJumpMs": {
+      "min": 47,
+      "avg": 47,
+      "median": 47,
+      "p95": 47,
+      "max": 47
+    },
+    "codeViewerScrollMs": {
+      "min": 364,
+      "avg": 364,
+      "median": 364,
+      "p95": 364,
+      "max": 364
+    },
+    "maxVisibleResultRows": 15,
+    "maxVisibleCodeLines": 46
+  },
+  "thresholds": {
+    "maxAnalyzeMs": null,
+    "maxTableScrollMs": null,
+    "maxCodeJumpMs": null,
+    "maxCodeScrollMs": null
+  },
+  "threshold_failures": [],
+  "finished_at": "2026-03-06T13:01:32.688Z"
+}

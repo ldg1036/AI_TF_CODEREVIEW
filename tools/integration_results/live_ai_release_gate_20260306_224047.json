@@ -1,0 +1,30 @@
+{
+  "tool": "live_ai_release_gate",
+  "target_file": "BenchmarkP1Fixture.ctl",
+  "with_context": true,
+  "context": {
+    "requested": true,
+    "available": true
+  },
+  "status": "passed",
+  "summary": {
+    "successful_file_count": 1,
+    "failed_file_count": 0,
+    "p1_total": 1,
+    "p2_total": 0,
+    "p3_total": 1,
+    "verification_level": "CORE+REPORT",
+    "output_dir": "D:\\AI_TF_CODEREVIEW-main\\backend\\..\\CodeReview_Report\\20260306_224315_776032"
+  },
+  "p3_preview": [
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "object": "BenchmarkP1Fixture.ctl",
+      "event": "Global",
+      "review": "요약: setValue 함수 호출 결과에 대한 예외 처리를 추가하여 예외 가능성을 줄임.\n\n코드:\n```cpp\ntry {\n    setValue(\"A.B.C1\", v1);\n    setValue(\"A.B.C2\", v2);\n    setValue(\"A.B.C3\", v3);\n    dpSet(\"SYS.A.C1\", v1);\n    dpSet(\"SYS.A.C2\", v2);\n} catch (Exception e) {\n    DebugTN(e.message());\n}\n```",
+      "source": "live",
+      "status": "Pending",
+      "parent_issue_id": "P1-EXC-DP-01-37fdad7a39"
+    }
+  ]
+}

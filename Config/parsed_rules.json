@@ -1,0 +1,567 @@
+﻿[
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+    "raw_criteria": " \n  1) 일괄 dpGet/ dpSet 처리가 되었는가?\n    - Event Manager에 처리 요청 이벤트가 많을 수록 부하 상승\n   \n  2) 값 변경이 있는 경우에만 dpSet 처리하도록 하였는가?\n    -  Event Manager에 처리 요청 이벤트가 많을 수록 부하 상승 (EV 부하 최소화)\n     : 동일한 값으로 dpSet 처리는 로직에서 제외 처리\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "일괄 dpGet/ dpSet 처리가 되었는가?\n    - Event Manager에 처리 요청 이벤트가 많을 수록 부하 상승"
+      },
+      {
+        "id": 2,
+        "content": "값 변경이 있는 경우에만 dpSet 처리하도록 하였는가?\n    -  Event Manager에 처리 요청 이벤트가 많을 수록 부하 상승 (EV 부하 최소화)\n     : 동일한 값으로 dpSet 처리는 로직에서 제외 처리"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "적절한 DP 처리 함수 사용",
+    "raw_criteria": "\n  1) DP 감시 유형에 맞는 DP 함수를 처리하였는가?\n\n    - [유형1] 변경 즉시 처리해야하는 경우 (비동기 처리)\n      : dpConnect or dpQueryConnectSingle의 callback 함수에서 처리\n\n    - [유형2] 주기적으로 해당 시간의 값을 처리 해야하는 경우\n      : Loop(while) 구문에 dpGet, dpQuery로 데이터 처리\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DP 감시 유형에 맞는 DP 함수를 처리하였는가?\n\n    - [유형1] 변경 즉시 처리해야하는 경우 (비동기 처리)\n      : dpConnect or dpQueryConnectSingle의 callback 함수에서 처리\n\n    - [유형2] 주기적으로 해당 시간의 값을 처리 해야하는 경우\n      : Loop(while) 구문에 dpGet, dpQuery로 데이터 처리"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "비동기 처리(dpConnect, dpQueryConnectSingle) 시 Callback 함수 병목 요소 최소화",
+    "raw_criteria": "  2) 비동기 처리(dpConnect, dpQueryConnectSingle) 시, Callback함수의 병목 요소는 없는가?\n     - Callback함수 내 이벤트 처리의 병목 발생 요소 최소화\n      : delay() 사용 지양\n      : 처리 시간 소요되는 작업은 별도 스레드/큐 사용 필요",
+    "check_points": [
+      {
+        "id": 2,
+        "content": "비동기 처리(dpConnect, dpQueryConnectSingle) 시, Callback함수의 병목 요소는 없는가?\n     - Callback함수 내 이벤트 처리의 병목 발생 요소 최소화\n      : delay() 사용 지양\n      : 처리 시간 소요되는 작업은 별도 스레드/큐 사용 필요"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "DP Query 최적화 구현",
+    "raw_criteria": "  \n   1) DP Query의 FROM절의 범위를 최소화하여 작성하였는가?\n     - FROM절 범위를 최소화 하지 않을 경우 Event Manager 부하 원인     \n      : \"**\" or \"*.*\" 등 전체를 포함하는 쿼리는 지양\n\n   2) DP Query의 Where절에 DP Type조건을 기준(\"=\")에 맞게 작성하였는가? \n     - Where에서 \"=\" 이 가장 성능 좋음 & IN 절 Bug 로 인한 사용 지양  \n     - Where 절에 pseudo Code 추가하여 DPT 조건을 작성 필요 (DPT Type 삭제→추가 시 필요)\n        e.g) WHERE _DPT=”AI” AND 202506181339=202506181339\n     - DPT 2개 이상 → 각 DPT별로 개별 쿼리 작성          \n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DP Query의 FROM절의 범위를 최소화하여 작성하였는가?\n     - FROM절 범위를 최소화 하지 않을 경우 Event Manager 부하 원인     \n      : \"**\" or \"*.*\" 등 전체를 포함하는 쿼리는 지양"
+      },
+      {
+        "id": 2,
+        "content": "DP Query의 Where절에 DP Type조건을 기준(\"=\")에 맞게 작성하였는가? \n     - Where에서 \"=\" 이 가장 성능 좋음 & IN 절 Bug 로 인한 사용 지양  \n     - Where 절에 pseudo Code 추가하여 DPT 조건을 작성 필요 (DPT Type 삭제→추가 시 필요)\n        e.g) WHERE _DPT=”AI” AND 202506181339=202506181339\n     - DPT 2개 이상 → 각 DPT별로 개별 쿼리 작성"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "Raima DB 증가 방지",
+    "raw_criteria": "  1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가?\n     - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가?\n     - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "메모리 누수 체크",
+    "raw_criteria": "\n  1) 가변 길이(mapping, dyn) 타입의 변수를 재사용 시 Clear 하였는가?\n     - 초기화 누락 시 메모리 누수 발생 \n       : 반복문 또는 전역변수로 재사용되는 경우 사용 시 Clear 필요\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "가변 길이(mapping, dyn) 타입의 변수를 재사용 시 Clear 하였는가?\n     - 초기화 누락 시 메모리 누수 발생 \n       : 반복문 또는 전역변수로 재사용되는 경우 사용 시 Clear 필요"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "DB",
+    "sub_category": "DB Query 작성 기준",
+    "item": "바인딩 쿼리 처리",
+    "raw_criteria": "\n  1) DB Query를 바인딩 쿼리로 작성하였는가?\n     - Query Parsing 최소화 및 실행 계획 재사용을 통한 성능 향상 위해 바인딩 쿼리 사용\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DB Query를 바인딩 쿼리로 작성하였는가?\n     - Query Parsing 최소화 및 실행 계획 재사용을 통한 성능 향상 위해 바인딩 쿼리 사용"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "DB",
+    "sub_category": "DB Query 작성 기준",
+    "item": "쿼리 주석 처리",
+    "raw_criteria": "\n  1) DB Query에 주석을 추가하였는가?\n    - DB Query에 기능, 날짜, 작성 주체(HWC) 정보를 주석으로 작성\n      e.g) 기능명_날짜_HWC\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DB Query에 주석을 추가하였는가?\n    - DB Query에 기능, 날짜, 작성 주체(HWC) 정보를 주석으로 작성\n      e.g) 기능명_날짜_HWC"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "DB",
+    "sub_category": "DB Query 작성 기준",
+    "item": "쿼리 검증",
+    "raw_criteria": "  1) 쿼리 검증 결과서를 작성하였는가?\n    - Query 성능 확인 (첨부파일 참고)",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "쿼리 검증 결과서를 작성하였는가?\n    - Query 성능 확인 (첨부파일 참고)"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "DB",
+    "sub_category": "예외처리",
+    "item": "DB Query Error",
+    "raw_criteria": "\n   1) DB Query가 실패한 경우 로깅 기능을 구현하였는가?\n     - [로깅 유형1] 표준라이브러리 사용 시, writeLog() 함수 사용\n     - [로깅 유형2] 표준라이브러리 미 사용 시, DebugTN() 함수 사용",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DB Query가 실패한 경우 로깅 기능을 구현하였는가?\n     - [로깅 유형1] 표준라이브러리 사용 시, writeLog() 함수 사용\n     - [로깅 유형2] 표준라이브러리 미 사용 시, DebugTN() 함수 사용"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "예외처리",
+    "item": "중복 동작 처리",
+    "raw_criteria": "  1) 이벤트 동작 시 Logic이 종료 전에 중복 동작이 안되도록 구현하였는가?",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "이벤트 동작 시 Logic이 종료 전에 중복 동작이 안되도록 구현하였는가?"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "예외처리",
+    "item": "DP 함수 예외 처리 ",
+    "raw_criteria": "\n  1) DP 함수를 호출한 경우 결과에 따라 예외처리를 하였는가?\n    (e.g : dpSet, dpSetTimed,  dpGet, dpQuery, dpQueryConnectSinlge)\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DP 함수를 호출한 경우 결과에 따라 예외처리를 하였는가?\n    (e.g : dpSet, dpSetTimed,  dpGet, dpQuery, dpQueryConnectSinlge)"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "예외처리",
+    "item": "Try, Catch 예외처리",
+    "raw_criteria": "  1) 함수 내에 Try, Catch 예외 처리가 되어 있는가?\n\n  2)  반복문 내에 예외 처리가 추가 되어 있는가?",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "함수 내에 Try, Catch 예외 처리가 되어 있는가?"
+      },
+      {
+        "id": 2,
+        "content": "반복문 내에 예외 처리가 추가 되어 있는가?"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "스크립트 개선",
+    "item": "하드코딩 지양",
+    "raw_criteria": "\n  1) 하드코딩을 사용하지 않았는가?\n     : Tag, 파라미터 등과 같이 서버별로 변경될 수 있는 값은 config로 처리 \n       (하드 코딩으로 작성되어 있는 경우 Define or config로 변경 필요)\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "하드코딩을 사용하지 않았는가?\n     : Tag, 파라미터 등과 같이 서버별로 변경될 수 있는 값은 config로 처리 \n       (하드 코딩으로 작성되어 있는 경우 Define or config로 변경 필요)"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx",
+    "type": "Client",
+    "sheet": "(클라이언트) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "스크립트 개선",
+    "item": "불필요한 코드 지양",
+    "raw_criteria": "\n  1) 불필요한 기능 / 변수 / 연산 등이 없는가?\n    - 필요 없는 기능, 변수, 연산이 있는 경우 코드 삭제 필요\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "불필요한 기능 / 변수 / 연산 등이 없는가?\n    - 필요 없는 기능, 변수, 연산이 있는 경우 코드 삭제 필요"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "스크립트 Active 동작 조건 확인",
+    "raw_criteria": "\n  1) 스크립트 동작 Active 조건이 맞는 경우에만 Logic 수행\n     - 이중화(P,S) 프로젝트 환경에서 Passive 서버의 중복 실행으로 문제될 수 있는 구문은 Active 조건 처리 필요\n       e.g) DB 중복 데이터 저장, dpSet 중복 실행 등\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "스크립트 동작 Active 조건이 맞는 경우에만 Logic 수행\n     - 이중화(P,S) 프로젝트 환경에서 Passive 서버의 중복 실행으로 문제될 수 있는 구문은 Active 조건 처리 필요\n       e.g) DB 중복 데이터 저장, dpSet 중복 실행 등"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "Loop문 내에 처리 조건",
+    "raw_criteria": "\n  1) 반복문(while) 내부에 delay 처리를 하였는가?\n    - delay 없이 무한 루프 실행 시 CPU를 지속적으로 점유하여 부하율 증가\n \n  2) delay 처리를 Active 조건문 밖에 배치하였는가?\n    - Active 조건 안에 delay를 작성하면 Passive 서버에는 적용되지 않아 Event Manager 부하 발생\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "반복문(while) 내부에 delay 처리를 하였는가?\n    - delay 없이 무한 루프 실행 시 CPU를 지속적으로 점유하여 부하율 증가"
+      },
+      {
+        "id": 2,
+        "content": "delay 처리를 Active 조건문 밖에 배치하였는가?\n    - Active 조건 안에 delay를 작성하면 Passive 서버에는 적용되지 않아 Event Manager 부하 발생"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+    "raw_criteria": " \n  1) 일괄 dpGet/ dpSet 처리가 되었는가?\n    - Event Manager에 처리 요청 이벤트가 많을 수록 부하 상승\n   \n  2) 값 변경이 있는 경우에만 dpSet 처리하도록 하였는가?\n    -  Event Manager에 처리 요청 이벤트가 많을 수록 부하 상승 (EV 부하 최소화)\n     : 동일한 값으로 dpSet 처리는 로직에서 제외 처리\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "일괄 dpGet/ dpSet 처리가 되었는가?\n    - Event Manager에 처리 요청 이벤트가 많을 수록 부하 상승"
+      },
+      {
+        "id": 2,
+        "content": "값 변경이 있는 경우에만 dpSet 처리하도록 하였는가?\n    -  Event Manager에 처리 요청 이벤트가 많을 수록 부하 상승 (EV 부하 최소화)\n     : 동일한 값으로 dpSet 처리는 로직에서 제외 처리"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "적절한 DP 처리 함수 사용",
+    "raw_criteria": "\n  1) DP 감시 유형에 맞는 DP 함수를 처리하였는가?\n\n    - [유형1] 변경 즉시 처리해야하는 경우 (비동기 처리)\n      : dpConnect or dpQueryConnectSingle의 callback 함수에서 처리\n\n    - [유형2] 주기적으로 해당 시간의 값을 처리 해야하는 경우\n      : Loop(while) 구문에 dpGet, dpQuery로 데이터 처리\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DP 감시 유형에 맞는 DP 함수를 처리하였는가?\n\n    - [유형1] 변경 즉시 처리해야하는 경우 (비동기 처리)\n      : dpConnect or dpQueryConnectSingle의 callback 함수에서 처리\n\n    - [유형2] 주기적으로 해당 시간의 값을 처리 해야하는 경우\n      : Loop(while) 구문에 dpGet, dpQuery로 데이터 처리"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "비동기 처리(dpConnect, dpQueryConnectSingle) 시 Callback 함수 병목 요소 최소화",
+    "raw_criteria": "  2) 비동기 처리(dpConnect, dpQueryConnectSingle) 시, Callback함수의 병목 요소는 없는가?\n     - Callback함수 내 이벤트 처리의 병목 발생 요소 최소화\n      : delay() 사용 지양\n      : 처리 시간 소요되는 작업은 별도 스레드/큐 사용 필요",
+    "check_points": [
+      {
+        "id": 2,
+        "content": "비동기 처리(dpConnect, dpQueryConnectSingle) 시, Callback함수의 병목 요소는 없는가?\n     - Callback함수 내 이벤트 처리의 병목 발생 요소 최소화\n      : delay() 사용 지양\n      : 처리 시간 소요되는 작업은 별도 스레드/큐 사용 필요"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "DP Query 최적화 구현",
+    "raw_criteria": "  \n   1) DP Query의 FROM절의 범위를 최소화하여 작성하였는가?\n     - FROM절 범위를 최소화 하지 않을 경우 Event Manager 부하 원인     \n      : \"**\" or \"*.*\" 등 전체를 포함하는 쿼리는 지양\n\n   2) DP Query의 Where절에 DP Type조건을 기준(\"=\")에 맞게 작성하였는가? \n     - Where에서 \"=\" 이 가장 성능 좋음 & IN 절 Bug 로 인한 사용 지양  \n     - Where 절에 pseudo Code 추가하여 DPT 조건을 작성 필요 (DPT Type 삭제→추가 시 필요)\n        e.g) WHERE _DPT=”AI” AND 202506181339=202506181339\n     - DPT 2개 이상 → 각 DPT별로 개별 쿼리 작성          \n\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DP Query의 FROM절의 범위를 최소화하여 작성하였는가?\n     - FROM절 범위를 최소화 하지 않을 경우 Event Manager 부하 원인     \n      : \"**\" or \"*.*\" 등 전체를 포함하는 쿼리는 지양"
+      },
+      {
+        "id": 2,
+        "content": "DP Query의 Where절에 DP Type조건을 기준(\"=\")에 맞게 작성하였는가? \n     - Where에서 \"=\" 이 가장 성능 좋음 & IN 절 Bug 로 인한 사용 지양  \n     - Where 절에 pseudo Code 추가하여 DPT 조건을 작성 필요 (DPT Type 삭제→추가 시 필요)\n        e.g) WHERE _DPT=”AI” AND 202506181339=202506181339\n     - DPT 2개 이상 → 각 DPT별로 개별 쿼리 작성"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "Raima DB 증가 방지",
+    "raw_criteria": "  1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가?\n     - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가?\n     - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "성능",
+    "sub_category": "시스템 부하 \n및 \n성능 최적화",
+    "item": "메모리 누수 체크",
+    "raw_criteria": "\n  1) 가변 길이(mapping, dyn) 타입의 변수를 재사용 시 Clear 하였는가?\n     - 초기화 누락 시 메모리 누수 발생 \n       : 반복문 또는 전역변수로 재사용되는 경우 사용 시 Clear 필요\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "가변 길이(mapping, dyn) 타입의 변수를 재사용 시 Clear 하였는가?\n     - 초기화 누락 시 메모리 누수 발생 \n       : 반복문 또는 전역변수로 재사용되는 경우 사용 시 Clear 필요"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "DB",
+    "sub_category": "DB Query 작성 기준",
+    "item": "바인딩 쿼리 처리",
+    "raw_criteria": "\n  1) DB Query를 바인딩 쿼리로 작성하였는가?\n     - Query Parsing 최소화 및 실행 계획 재사용을 통한 성능 향상 위해 바인딩 쿼리 사용\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DB Query를 바인딩 쿼리로 작성하였는가?\n     - Query Parsing 최소화 및 실행 계획 재사용을 통한 성능 향상 위해 바인딩 쿼리 사용"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "DB",
+    "sub_category": "DB Query 작성 기준",
+    "item": "쿼리 주석 처리",
+    "raw_criteria": "\n  1) DB Query에 주석을 추가하였는가?\n    - DB Query에 기능, 날짜, 작성 주체(HWC) 정보를 주석으로 작성\n      e.g) 기능명_날짜_HWC\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DB Query에 주석을 추가하였는가?\n    - DB Query에 기능, 날짜, 작성 주체(HWC) 정보를 주석으로 작성\n      e.g) 기능명_날짜_HWC"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "DB",
+    "sub_category": "DB Query 작성 기준",
+    "item": "쿼리 검증",
+    "raw_criteria": "  1) 쿼리 검증 결과서를 작성하였는가?\n    - Query 성능 확인 (첨부파일 참고)",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "쿼리 검증 결과서를 작성하였는가?\n    - Query 성능 확인 (첨부파일 참고)"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "DB",
+    "sub_category": "예외처리",
+    "item": "DB Query Error",
+    "raw_criteria": "\n   1) DB Connection 이 끊긴 경우 Reconnection 처리를 하였는가?\n \n   2) DB Query가 실패한 경우 로깅 기능을 구현하였는가?\n     - [로깅 유형1] 표준라이브러리 사용 시, writeLog() 함수 사용\n     - [로깅 유형2] 표준라이브러리 미 사용 시, DebugTN() 함수 사용\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DB Connection 이 끊긴 경우 Reconnection 처리를 하였는가?"
+      },
+      {
+        "id": 2,
+        "content": "DB Query가 실패한 경우 로깅 기능을 구현하였는가?\n     - [로깅 유형1] 표준라이브러리 사용 시, writeLog() 함수 사용\n     - [로깅 유형2] 표준라이브러리 미 사용 시, DebugTN() 함수 사용"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "예외처리",
+    "item": "DP 함수 예외 처리 ",
+    "raw_criteria": "\n  1) DP 함수를 호출한 경우 결과에 따라 예외처리를 하였는가?\n    (e.g : dpSet, dpSetTimed,  dpGet, dpQuery, dpQueryConnectSinlge)\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "DP 함수를 호출한 경우 결과에 따라 예외처리를 하였는가?\n    (e.g : dpSet, dpSetTimed,  dpGet, dpQuery, dpQueryConnectSinlge)"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "예외처리",
+    "item": "Try, Catch 예외처리",
+    "raw_criteria": "  1) 함수 내에 Try, Catch 예외 처리가 되어 있는가?\n\n  2)  반복문 내에 예외 처리가 추가 되어 있는가?",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "함수 내에 Try, Catch 예외 처리가 되어 있는가?"
+      },
+      {
+        "id": 2,
+        "content": "반복문 내에 예외 처리가 추가 되어 있는가?"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "스트립트 개선",
+    "item": "스크립트 이력 작성 확인",
+    "raw_criteria": "\n  1) 스크립트 및 라이브러리 버전 이력을 작성하였는가?\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "스크립트 및 라이브러리 버전 이력을 작성하였는가?"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "스트립트 개선",
+    "item": "명명 규칙 및 코딩 스타일 준수 확인",
+    "raw_criteria": "  1) 명칭으로 역할 및 용도를 파악할 수 있는가?\n     \n  2) 코드 명명 규칙을 준수하였는가? \n    - 변경되지 않는 상수 값은 대문자로 작성\n    - 적절한 접두사, 접미사를 사용하여 작성\n\n  3) 코딩 스타일을 준수하여 작성하였는가?\n    - 들여쓰기 준수하여 작성\n    - 각 Logic별 흐름을 주석으로 작성\n    - 함수의 용도와 매개변수 내용을 주석으로 작성",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "명칭으로 역할 및 용도를 파악할 수 있는가?"
+      },
+      {
+        "id": 2,
+        "content": "코드 명명 규칙을 준수하였는가? \n    - 변경되지 않는 상수 값은 대문자로 작성\n    - 적절한 접두사, 접미사를 사용하여 작성"
+      },
+      {
+        "id": 3,
+        "content": "코딩 스타일을 준수하여 작성하였는가?\n    - 들여쓰기 준수하여 작성\n    - 각 Logic별 흐름을 주석으로 작성\n    - 함수의 용도와 매개변수 내용을 주석으로 작성"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "스트립트 개선",
+    "item": "config 항목 정합성 확인",
+    "raw_criteria": "\n  1) config 항목별 처리 로직이 올바른가?\n    - 필수 항목 config → Error 로그 출력 후 스크립트 종료\n    - 선택 항목 config → 기본값 적용 후 스크립트 실행\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "config 항목별 처리 로직이 올바른가?\n    - 필수 항목 config → Error 로그 출력 후 스크립트 종료\n    - 선택 항목 config → 기본값 적용 후 스크립트 실행"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "스트립트 개선",
+    "item": "하드코딩 지양",
+    "raw_criteria": "\n  1) 하드코딩을 사용하지 않았는가?\n     : Tag, 파라미터 등과 같이 서버별로 변경될 수 있는 값은 config로 처리 \n       (하드 코딩으로 작성되어 있는 경우 config로 변경 필요)\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "하드코딩을 사용하지 않았는가?\n     : Tag, 파라미터 등과 같이 서버별로 변경될 수 있는 값은 config로 처리 \n       (하드 코딩으로 작성되어 있는 경우 config로 변경 필요)"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "스트립트 개선",
+    "item": "디버깅용 로그 작성 확인",
+    "raw_criteria": "  1) 이력(INFO), 에러(WARN,ERR), 디버깅(DBG1, DBG2) 조건에 맞는 로그가 작성되었는지 확인",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "이력(INFO), 에러(WARN,ERR), 디버깅(DBG1, DBG2) 조건에 맞는 로그가 작성되었는지 확인"
+      }
+    ]
+  },
+  {
+    "file": "(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx",
+    "type": "Server",
+    "sheet": "(서버) 코드 리뷰 결과서",
+    "category": "공통",
+    "sub_category": "스트립트 개선",
+    "item": "불필요한 코드 지양",
+    "raw_criteria": "\n  1) 불필요한 기능 / 변수 / 연산 등이 없는가?\n    - 필요 없는 기능, 변수, 연산이 있는 경우 코드 삭제 필요\n",
+    "check_points": [
+      {
+        "id": 1,
+        "content": "불필요한 기능 / 변수 / 연산 등이 없는가?\n    - 필요 없는 기능, 변수, 연산이 있는 경우 코드 삭제 필요"
+      }
+    ]
+  }
+]

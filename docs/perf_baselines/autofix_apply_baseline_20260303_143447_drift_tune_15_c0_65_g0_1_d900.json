@@ -1,0 +1,436 @@
+{
+  "generated_at": "2026-03-03T14:35:23",
+  "server_url": "http://127.0.0.1:8765",
+  "mode": "baseline",
+  "perturb_anchor_mode": "line_drift",
+  "kpi_observe_mode": "benchmark_relaxed",
+  "selected_files": [
+    "BenchmarkP1Fixture.ctl"
+  ],
+  "iterations": 3,
+  "runs": [
+    {
+      "kpi_observe_mode": "benchmark_relaxed",
+      "analyze": {
+        "status": 200,
+        "wall_ms": 131,
+        "output_dir": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\backend\\..\\CodeReview_Report\\20260303_143522_288860"
+      },
+      "prepare": {
+        "status": 200,
+        "wall_ms": 16,
+        "proposal_id": "39d30eb0418c4df5b79ffcae30ef347d"
+      },
+      "apply": {
+        "status": 409,
+        "wall_ms": 29,
+        "ok": false,
+        "error_code": "ANCHOR_MISMATCH",
+        "validation": {},
+        "quality_metrics": {
+          "proposal_id": "39d30eb0418c4df5b79ffcae30ef347d",
+          "generator_type": "rule",
+          "anchors_match": false,
+          "hash_match": false,
+          "syntax_check_passed": true,
+          "heuristic_regression_count": 0,
+          "ctrlpp_regression_count": 0,
+          "applied": false,
+          "rejected_reason": "anchor mismatch",
+          "validation_errors": [
+            "context_after mismatch at line 3",
+            "token fallback failed at line 3: no_candidate"
+          ],
+          "locator_mode": "anchor_exact",
+          "apply_engine_mode": "",
+          "apply_engine_fallback_reason": "",
+          "token_fallback_attempted": true,
+          "token_fallback_confidence": 0.0,
+          "token_fallback_candidates": 0,
+          "semantic_check_passed": true,
+          "semantic_blocked_reason": "",
+          "semantic_violation_count": 0,
+          "token_min_confidence_used": 0.8,
+          "token_min_gap_used": 0.15,
+          "token_max_line_drift_used": 50,
+          "benchmark_tuning_applied": false,
+          "token_prefer_nearest_tie_used": false,
+          "token_hint_bias_used": 0.0,
+          "token_force_nearest_on_ambiguous_used": false
+        }
+      },
+      "stats": {
+        "status": 200,
+        "wall_ms": 1,
+        "payload": {
+          "ok": true,
+          "session_id": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260303_143522_288860",
+          "output_dir": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260303_143522_288860",
+          "proposal_count": 5,
+          "latest_by_file_count": 1,
+          "by_status": {
+            "Rejected": 5
+          },
+          "by_generator": {
+            "rule": 5
+          },
+          "by_generator_status": {
+            "rule": {
+              "Rejected": 5
+            }
+          },
+          "quality_summary": {
+            "applied_count": 0,
+            "blocked_count": 5,
+            "heuristic_regression_blocked_count": 0,
+            "ctrlpp_regression_blocked_count": 0,
+            "failure_error_codes": {
+              "SEMANTIC_GUARD_BLOCKED": 4,
+              "ANCHOR_MISMATCH": 1
+            }
+          },
+          "prepare_compare_count": 0,
+          "prepare_compare_generated_candidates_total": 0,
+          "selected_generator_counts": {
+            "rule": 0,
+            "llm": 0
+          },
+          "compare_apply_count": 0,
+          "anchor_mismatch_count": 5,
+          "token_fallback_attempt_count": 5,
+          "token_fallback_success_count": 4,
+          "token_fallback_ambiguous_count": 0,
+          "apply_engine_structure_success_count": 0,
+          "apply_engine_text_fallback_count": 0,
+          "multi_hunk_attempt_count": 0,
+          "multi_hunk_success_count": 0,
+          "multi_hunk_blocked_count": 0,
+          "semantic_guard_checked_count": 4,
+          "semantic_guard_blocked_count": 4,
+          "selected_apply_engine_mode": {
+            "structure_apply": 0,
+            "text_fallback": 0
+          }
+        }
+      },
+      "perturbation": {
+        "mode": "line_drift",
+        "changed": true,
+        "reason": "blank_line_inserted_before_anchor",
+        "anchor_line": 3,
+        "inserted_index_1based": 3,
+        "encoding": "utf-8"
+      },
+      "target": {
+        "candidate_count": 6,
+        "chosen_index_1based": 5,
+        "object": "BenchmarkP1Fixture.ctl",
+        "event": "Global",
+        "issue_id": "P1-STYLE-NAME-01-2518735d37",
+        "semantic_blocked_candidates_skipped": 4
+      }
+    },
+    {
+      "kpi_observe_mode": "benchmark_relaxed",
+      "analyze": {
+        "status": 200,
+        "wall_ms": 175,
+        "output_dir": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\backend\\..\\CodeReview_Report\\20260303_143522_684017"
+      },
+      "prepare": {
+        "status": 200,
+        "wall_ms": 15,
+        "proposal_id": "3ff1ee8c533e4373b210c987c783e60b"
+      },
+      "apply": {
+        "status": 409,
+        "wall_ms": 16,
+        "ok": false,
+        "error_code": "ANCHOR_MISMATCH",
+        "validation": {},
+        "quality_metrics": {
+          "proposal_id": "3ff1ee8c533e4373b210c987c783e60b",
+          "generator_type": "rule",
+          "anchors_match": false,
+          "hash_match": false,
+          "syntax_check_passed": true,
+          "heuristic_regression_count": 0,
+          "ctrlpp_regression_count": 0,
+          "applied": false,
+          "rejected_reason": "anchor mismatch",
+          "validation_errors": [
+            "context_after mismatch at line 3",
+            "token fallback failed at line 3: no_candidate"
+          ],
+          "locator_mode": "anchor_exact",
+          "apply_engine_mode": "",
+          "apply_engine_fallback_reason": "",
+          "token_fallback_attempted": true,
+          "token_fallback_confidence": 0.0,
+          "token_fallback_candidates": 0,
+          "semantic_check_passed": true,
+          "semantic_blocked_reason": "",
+          "semantic_violation_count": 0,
+          "token_min_confidence_used": 0.8,
+          "token_min_gap_used": 0.15,
+          "token_max_line_drift_used": 50,
+          "benchmark_tuning_applied": false,
+          "token_prefer_nearest_tie_used": false,
+          "token_hint_bias_used": 0.0,
+          "token_force_nearest_on_ambiguous_used": false
+        }
+      },
+      "stats": {
+        "status": 200,
+        "wall_ms": 25,
+        "payload": {
+          "ok": true,
+          "session_id": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260303_143522_684017",
+          "output_dir": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260303_143522_684017",
+          "proposal_count": 5,
+          "latest_by_file_count": 1,
+          "by_status": {
+            "Rejected": 5
+          },
+          "by_generator": {
+            "rule": 5
+          },
+          "by_generator_status": {
+            "rule": {
+              "Rejected": 5
+            }
+          },
+          "quality_summary": {
+            "applied_count": 0,
+            "blocked_count": 5,
+            "heuristic_regression_blocked_count": 0,
+            "ctrlpp_regression_blocked_count": 0,
+            "failure_error_codes": {
+              "SEMANTIC_GUARD_BLOCKED": 4,
+              "ANCHOR_MISMATCH": 1
+            }
+          },
+          "prepare_compare_count": 0,
+          "prepare_compare_generated_candidates_total": 0,
+          "selected_generator_counts": {
+            "rule": 0,
+            "llm": 0
+          },
+          "compare_apply_count": 0,
+          "anchor_mismatch_count": 5,
+          "token_fallback_attempt_count": 5,
+          "token_fallback_success_count": 4,
+          "token_fallback_ambiguous_count": 0,
+          "apply_engine_structure_success_count": 0,
+          "apply_engine_text_fallback_count": 0,
+          "multi_hunk_attempt_count": 0,
+          "multi_hunk_success_count": 0,
+          "multi_hunk_blocked_count": 0,
+          "semantic_guard_checked_count": 4,
+          "semantic_guard_blocked_count": 4,
+          "selected_apply_engine_mode": {
+            "structure_apply": 0,
+            "text_fallback": 0
+          }
+        }
+      },
+      "perturbation": {
+        "mode": "line_drift",
+        "changed": true,
+        "reason": "blank_line_inserted_before_anchor",
+        "anchor_line": 3,
+        "inserted_index_1based": 3,
+        "encoding": "utf-8"
+      },
+      "target": {
+        "candidate_count": 6,
+        "chosen_index_1based": 5,
+        "object": "BenchmarkP1Fixture.ctl",
+        "event": "Global",
+        "issue_id": "P1-STYLE-NAME-01-2518735d37",
+        "semantic_blocked_candidates_skipped": 4
+      }
+    },
+    {
+      "kpi_observe_mode": "benchmark_relaxed",
+      "analyze": {
+        "status": 200,
+        "wall_ms": 140,
+        "output_dir": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\backend\\..\\CodeReview_Report\\20260303_143523_094193"
+      },
+      "prepare": {
+        "status": 200,
+        "wall_ms": 16,
+        "proposal_id": "51df853f9284447db05a3069c32bc0ad"
+      },
+      "apply": {
+        "status": 409,
+        "wall_ms": 14,
+        "ok": false,
+        "error_code": "ANCHOR_MISMATCH",
+        "validation": {},
+        "quality_metrics": {
+          "proposal_id": "51df853f9284447db05a3069c32bc0ad",
+          "generator_type": "rule",
+          "anchors_match": false,
+          "hash_match": false,
+          "syntax_check_passed": true,
+          "heuristic_regression_count": 0,
+          "ctrlpp_regression_count": 0,
+          "applied": false,
+          "rejected_reason": "anchor mismatch",
+          "validation_errors": [
+            "context_after mismatch at line 3",
+            "token fallback failed at line 3: no_candidate"
+          ],
+          "locator_mode": "anchor_exact",
+          "apply_engine_mode": "",
+          "apply_engine_fallback_reason": "",
+          "token_fallback_attempted": true,
+          "token_fallback_confidence": 0.0,
+          "token_fallback_candidates": 0,
+          "semantic_check_passed": true,
+          "semantic_blocked_reason": "",
+          "semantic_violation_count": 0,
+          "token_min_confidence_used": 0.8,
+          "token_min_gap_used": 0.15,
+          "token_max_line_drift_used": 50,
+          "benchmark_tuning_applied": false,
+          "token_prefer_nearest_tie_used": false,
+          "token_hint_bias_used": 0.0,
+          "token_force_nearest_on_ambiguous_used": false
+        }
+      },
+      "stats": {
+        "status": 200,
+        "wall_ms": 1,
+        "payload": {
+          "ok": true,
+          "session_id": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260303_143523_094193",
+          "output_dir": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\CodeReview_Report\\20260303_143523_094193",
+          "proposal_count": 5,
+          "latest_by_file_count": 1,
+          "by_status": {
+            "Rejected": 5
+          },
+          "by_generator": {
+            "rule": 5
+          },
+          "by_generator_status": {
+            "rule": {
+              "Rejected": 5
+            }
+          },
+          "quality_summary": {
+            "applied_count": 0,
+            "blocked_count": 5,
+            "heuristic_regression_blocked_count": 0,
+            "ctrlpp_regression_blocked_count": 0,
+            "failure_error_codes": {
+              "SEMANTIC_GUARD_BLOCKED": 4,
+              "ANCHOR_MISMATCH": 1
+            }
+          },
+          "prepare_compare_count": 0,
+          "prepare_compare_generated_candidates_total": 0,
+          "selected_generator_counts": {
+            "rule": 0,
+            "llm": 0
+          },
+          "compare_apply_count": 0,
+          "anchor_mismatch_count": 5,
+          "token_fallback_attempt_count": 5,
+          "token_fallback_success_count": 4,
+          "token_fallback_ambiguous_count": 0,
+          "apply_engine_structure_success_count": 0,
+          "apply_engine_text_fallback_count": 0,
+          "multi_hunk_attempt_count": 0,
+          "multi_hunk_success_count": 0,
+          "multi_hunk_blocked_count": 0,
+          "semantic_guard_checked_count": 4,
+          "semantic_guard_blocked_count": 4,
+          "selected_apply_engine_mode": {
+            "structure_apply": 0,
+            "text_fallback": 0
+          }
+        }
+      },
+      "perturbation": {
+        "mode": "line_drift",
+        "changed": true,
+        "reason": "blank_line_inserted_before_anchor",
+        "anchor_line": 3,
+        "inserted_index_1based": 3,
+        "encoding": "utf-8"
+      },
+      "target": {
+        "candidate_count": 6,
+        "chosen_index_1based": 5,
+        "object": "BenchmarkP1Fixture.ctl",
+        "event": "Global",
+        "issue_id": "P1-STYLE-NAME-01-2518735d37",
+        "semantic_blocked_candidates_skipped": 4
+      }
+    }
+  ],
+  "summary": {
+    "mode": "baseline",
+    "run_count": 3,
+    "apply_attempts": 3,
+    "apply_success_count": 0,
+    "anchor_mismatch_failure_count": 3,
+    "anchor_mismatch_count": 15,
+    "token_fallback_attempt_count": 15,
+    "token_fallback_success_count": 12,
+    "token_fallback_ambiguous_count": 0,
+    "apply_engine_structure_success_count": 0,
+    "apply_engine_text_fallback_count": 0,
+    "apply_success_rate": 0.0,
+    "anchor_mismatch_failure_rate": 1.0,
+    "token_fallback_success_rate": 0.8,
+    "token_fallback_ambiguous_rate": 0.0,
+    "kpi_anchor_failure_rate": 1.0,
+    "error_code_counts": {
+      "ANCHOR_MISMATCH": 3
+    },
+    "locator_mode_counts": {
+      "anchor_exact": 3
+    },
+    "semantic_block_reason_counts": {},
+    "apply_engine_fallback_reason_counts": {},
+    "validation_error_fragment_counts": {
+      "ambiguous_candidates": 0,
+      "low_confidence": 0,
+      "drift_exceeded": 0,
+      "engine_fallback": 0
+    },
+    "hash_gate_bypassed_count": 3,
+    "benchmark_observe_mode_counts": {
+      "benchmark_relaxed": 3
+    },
+    "stats_consistency_mismatch_count": 0,
+    "instruction_attempt_count": 0,
+    "instruction_apply_success_count": 0,
+    "instruction_fallback_count": 0,
+    "instruction_validation_fail_count": 0,
+    "instruction_apply_rate": 0.0,
+    "instruction_fallback_rate": 0.0,
+    "instruction_validation_fail_rate": 0.0,
+    "instruction_mode_counts": {
+      "off": 3
+    },
+    "instruction_fail_stage_distribution": {
+      "none": 3
+    }
+  },
+  "_meta": {
+    "kpi_observe_mode": "benchmark_relaxed",
+    "benchmark_mode_warning": true,
+    "not_for_production": true,
+    "tune_min_confidence": 0.65,
+    "tune_min_gap": 0.1,
+    "tune_max_line_drift": 900,
+    "benchmark_force_structured_instruction": true
+  },
+  "_meta_output_path": "C:\\Users\\Administrator\\Desktop\\AI_TF_CodeReview\\docs\\perf_baselines\\autofix_apply_baseline_20260303_143447_drift_tune_15_c0_65_g0_1_d900.json"
+}
