@@ -104,6 +104,13 @@ function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
+function writeJsonReport(outputPath, payload) {
+  // Prepend UTF-8 BOM so Windows-hosted tooling like PowerShell Get-Content
+  // shows Korean UI labels without mojibake.
+  const body = `\uFEFF${JSON.stringify(payload, null, 2)}`;
+  fs.writeFileSync(outputPath, body, "utf-8");
+}
+
 function httpGetJson(url) {
   return new Promise((resolve, reject) => {
     const req = http.get(url, (res) => {
@@ -196,6 +203,116 @@ function pickTargetFile(files, preferredName) {
   return selectable[0].name;
 }
 
+async function readExcelUiState(page) {
+  return page.evaluate(() => {
+    const button = document.getElementById("btn-flush-excel");
+    const statusNode = document.getElementById("excel-job-status");
+    const downloadButtons = Array.from(
+      document.querySelectorAll("#excel-download-list .excel-download-button"),
+    );
+    return {
+      present: !!button,
+      disabled: !!(button && button.disabled),
+      button_text: String((button && button.textContent) || "").trim(),
+      status_text: String((statusNode && statusNode.textContent) || "").trim(),
+      download_button_count: downloadButtons.length,
+      download_labels: downloadButtons.map((node) => String(node.textContent || "").trim()),
+    };
+  });
+}
+
+async function runExcelSmoke(page, { timeoutMs }) {
+  const initial = await readExcelUiState(page);
+  if (!initial.present) {
+    return {
+      attempted: false,
+      clicked: false,
+      completed: false,
+      skipped_reason: "excel controls not found",
+      initial,
+      final: initial,
+      download_triggered: false,
+      suggested_filename: "",
+      download_error: "",
+    };
+  }
+
+  if (initial.download_button_count > 0) {
+    return {
+      attempted: false,
+      clicked: false,
+      completed: true,
+      skipped_reason: "excel files already available",
+      initial,
+      final: initial,
+      download_triggered: false,
+      suggested_filename: "",
+      download_error: "",
+    };
+  }
+
+  if (initial.disabled) {
+    return {
+      attempted: false,
+      clicked: false,
+      completed: false,
+      skipped_reason: initial.status_text || "excel generate button disabled",
+      initial,
+      final: initial,
+      download_triggered: false,
+      suggested_filename: "",
+      download_error: "",
+    };
+  }
+
+  await page.click("#btn-flush-excel", { timeout: Math.min(timeoutMs, 15000) });
+
+  try {
+    await page.waitForFunction(
+      () => {
+        const count = document.querySelectorAll("#excel-download-list .excel-download-button").length;
+        const statusText = String((document.getElementById("excel-job-status")?.textContent) || "");
+        return count > 0 || statusText.includes("Excel 실패");
+      },
+      { timeout: timeoutMs },
+    );
+  } catch (_err) {
+    // final state below captures timeout outcomes
+  }
+
+  const final = await readExcelUiState(page);
+  let downloadTriggered = false;
+  let suggestedFilename = "";
+  let downloadError = "";
+
+  if (final.download_button_count > 0) {
+    try {
+      const firstButton = page.locator("#excel-download-list .excel-download-button").first();
+      const downloadPromise = page.waitForEvent("download", {
+        timeout: Math.min(timeoutMs, 30000),
+      });
+      await firstButton.click();
+      const download = await downloadPromise;
+      suggestedFilename = String(download.suggestedFilename() || "");
+      downloadTriggered = true;
+    } catch (err) {
+      downloadError = String((err && err.message) || err || "download failed");
+    }
+  }
+
+  return {
+    attempted: true,
+    clicked: true,
+    completed: final.download_button_count > 0,
+    skipped_reason: "",
+    initial,
+    final,
+    download_triggered: downloadTriggered,
+    suggested_filename: suggestedFilename,
+    download_error: downloadError,
+  };
+}
+
 async function runSmoke(page, { baseUrl, timeoutMs, targetFile }) {
   await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#file-list input[data-file]", { timeout: timeoutMs });
@@ -241,9 +358,96 @@ async function runSmoke(page, { baseUrl, timeoutMs, targetFile }) {
     { timeout: timeoutMs },
   );
 
+  await page.click("#result-body tr.result-item-row", { timeout: Math.min(timeoutMs, 15000) });
+  await page.click("#inspector-tab-ai", { timeout: Math.min(timeoutMs, 15000) });
+
+  const aiOnDemand = await page.evaluate(async () => {
+    const isVisible = (node) => {
+      if (!node) return false;
+      const style = window.getComputedStyle(node);
+      return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
+    };
+    const pickGenerateButton = () => {
+      const primary = document.getElementById("btn-ai-generate");
+      const empty = document.getElementById("btn-ai-generate-empty");
+      if (isVisible(primary)) return primary;
+      if (isVisible(empty)) return empty;
+      if (primary) return primary;
+      if (empty) return empty;
+      return null;
+    };
+    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const waitForCompletion = async (button, maxMs = 40000) => {
+      const startedAt = Date.now();
+      while (Date.now() - startedAt < maxMs) {
+        const text = String((button && button.textContent) || "").trim();
+        const processing = text.includes("추가 분석 중");
+        const statusNode = document.getElementById("ai-status-inline");
+        const statusText = String((statusNode && statusNode.textContent) || "").trim();
+        const hasOutcomeStatus =
+          statusText.includes("추가 AI 분석 완료") ||
+          statusText.includes("추가 AI 분석 실패") ||
+          statusText.includes("결과를 찾지 못했습니다");
+        if (!processing && hasOutcomeStatus) {
+          return { done: true, statusText };
+        }
+        if (!processing && button && !button.disabled && !text.includes("추가 분석 중")) {
+          return { done: true, statusText };
+        }
+        await wait(250);
+      }
+      return { done: false, statusText: String((document.getElementById("ai-status-inline")?.textContent) || "").trim() };
+    };
+
+    const button = pickGenerateButton();
+    if (!button) {
+      return {
+        attempted: false,
+        clicked: false,
+        completed: false,
+        skipped_reason: "generate button not found",
+        button_id: "",
+        button_text_before: "",
+        button_text_after: "",
+        status_text: "",
+      };
+    }
+    const buttonTextBefore = String(button.textContent || "").trim();
+    const buttonId = String(button.id || "");
+    try {
+      button.click();
+      const completion = await waitForCompletion(button);
+      return {
+        attempted: true,
+        clicked: true,
+        completed: !!completion.done,
+        skipped_reason: "",
+        button_id: buttonId,
+        button_text_before: buttonTextBefore,
+        button_text_after: String((button && button.textContent) || "").trim(),
+        status_text: String(completion.statusText || ""),
+      };
+    } catch (err) {
+      return {
+        attempted: true,
+        clicked: false,
+        completed: false,
+        skipped_reason: String((err && err.message) || err || "unknown"),
+        button_id: buttonId,
+        button_text_before: buttonTextBefore,
+        button_text_after: String((button && button.textContent) || "").trim(),
+        status_text: String((document.getElementById("ai-status-inline")?.textContent) || "").trim(),
+      };
+    }
+  });
+
+  const excelOnDemand = await runExcelSmoke(page, { timeoutMs });
+
   return {
     selection,
     beforeClick,
+    aiOnDemand,
+    excelOnDemand,
     afterRun: await page.evaluate(() => ({
       rows: document.querySelectorAll("#result-body tr.result-item-row").length,
       totalIssues: document.getElementById("total-issues") ? String(document.getElementById("total-issues").textContent || "") : "",
@@ -330,17 +534,28 @@ async function main() {
       args: opts.noSandbox ? ["--no-sandbox"] : [],
     });
     report.environment.browser = await browser.version();
-    context = await browser.newContext();
+    context = await browser.newContext({ acceptDownloads: true });
     const page = await context.newPage();
     const runStarted = Date.now();
     report.run = await runSmoke(page, { baseUrl, timeoutMs: opts.timeoutMs, targetFile });
     report.run.elapsed_ms = Date.now() - runStarted;
+    const aiAttempted = !!(report.run.aiOnDemand && report.run.aiOnDemand.attempted);
+    const aiFlowHealthy = !aiAttempted || !!(report.run.aiOnDemand.clicked && report.run.aiOnDemand.completed);
+    const excelAttempted = !!(report.run.excelOnDemand && report.run.excelOnDemand.attempted);
+    const excelSkipped = !!(report.run.excelOnDemand && report.run.excelOnDemand.skipped_reason);
+    const excelFlowHealthy =
+      !excelAttempted ||
+      (!!report.run.excelOnDemand.completed &&
+        Number(report.run.excelOnDemand.final?.download_button_count || 0) > 0 &&
+        !!report.run.excelOnDemand.download_triggered);
     report.ok =
       !!report.run.afterRun.workspaceVisible &&
       Number.parseInt(report.run.afterRun.totalIssues || "0", 10) > 0 &&
       Number(report.run.afterRun.rows || 0) > 0 &&
       report.run.beforeClick.interceptingNode &&
-      report.run.beforeClick.interceptingNode.id === "btn-analyze";
+      report.run.beforeClick.interceptingNode.id === "btn-analyze" &&
+      aiFlowHealthy &&
+      (excelSkipped || excelFlowHealthy);
     if (!report.ok) {
       throw new Error("Real-server UI smoke assertions failed");
     }
@@ -359,7 +574,7 @@ async function main() {
     report.finished_at = new Date().toISOString();
     const outputPath = path.isAbsolute(opts.output) ? opts.output : path.join(projectRoot, opts.output);
     ensureDir(path.dirname(outputPath));
-    fs.writeFileSync(outputPath, JSON.stringify(report, null, 2), "utf-8");
+    writeJsonReport(outputPath, report);
     console.log(`report: ${outputPath}`);
   }
 }

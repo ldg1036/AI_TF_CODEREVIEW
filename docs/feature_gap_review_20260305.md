@@ -1,45 +1,60 @@
-# WinCC OA 자동 코드리뷰 프로그램 보완점 점검 (2026-03-05)
+# WinCC OA 자동 코드리뷰 프로그램 보완 기능 점검 (2026-03-05, 2026-03-08 업데이트 반영)
 
 ## 점검 범위
-- 백엔드 API/리포트 회귀 테스트
-- WinCC OA 컨텍스트 서버 테스트
-- 정적 문법/설정 정합성 점검
-- Ctrlpp 연동 스모크(바이너리 미설치 환경 fail-soft)
-- 프론트엔드 JS 문법/벤치마크 실행 가능성 점검
 
-## 실행 결과 요약
-1. 핵심 API 회귀 테스트 94건이 통과했고 20건은 의존성/환경 조건으로 skip 되었습니다.
-2. 컨텍스트 서버 테스트 6건이 모두 통과했습니다.
-3. 설정-룰 정합성 점검에서 mismatch 0건으로 확인되었습니다.
-4. `analyze_template_coverage.py`는 `openpyxl` 미설치로 실행 실패했습니다.
-5. Ctrlpp 스모크는 바이너리 미설치 상황을 정상 감지하고 리포트를 남기며 종료(성공 처리)했습니다.
-6. 프론트엔드 문법 점검 및 UI 벤치마크 CLI 도움말은 정상 동작했습니다.
+- 백엔드 API / 리포트 생성 테스트
+- WinCC OA context server 테스트
+- 정적 문법 / 설정 정합성 점검
+- Ctrlpp fail-soft smoke
+- 프론트엔드 문법, UI benchmark, UI real smoke
+- 운영 비교 뷰와 분석 diff 기능 점검
+- 대용량 heuristic 스캔 최적화 회귀 점검
 
-## 부족/보완 필요 기능 (우선순위)
+## 현재 상태 요약
 
-### P1 (높음)
-- **의존성 사전진단(Preflight) 통합 노출 강화**
-  - 현재 `openpyxl` 또는 Ctrlpp 바이너리 미존재를 각각 실행 시점에 개별적으로 확인합니다.
-  - 서버 시작 시점 또는 `/api/health` 확장으로 "리포트 생성 가능/불가", "Ctrlpp 실행 가능/불가", "Playwright 벤치 가능/불가"를 한 번에 JSON으로 제공하면 운영자가 즉시 상태를 파악할 수 있습니다.
+### 완료된 항목
 
-- **검증 프로파일 원클릭 실행 결과를 UI에서 직접 확인하는 경로 강화**
-  - 도구들은 이미 존재하지만, 운영 관점에서는 "현재 환경에서 어떤 검증이 빠졌는지"를 한 화면에서 보는 기능이 유용합니다.
-  - 특히 fail-soft 스킵 항목(예: optional missing)을 UI 리포트에 시각적으로 분리하면 신뢰성이 올라갑니다.
+- `GET /api/health/deps` 제공
+- async analyze API 제공
+  - `POST /api/analyze/start`
+  - `GET /api/analyze/status`
+- Ctrlpp fail-soft preflight 반영
+- UI benchmark / UI real smoke 도구 제공
+- 최근 benchmark / smoke 결과 비교 뷰 제공
+- 최근 2회 분석 결과 diff 비교 제공
 
-### P2 (중간)
-- **템플릿 커버리지 분석의 fail-soft 모드 제공**
-  - 현재는 `openpyxl`가 없으면 예외 종료됩니다.
-  - CSV/JSON 기반 축소 리포트를 출력하는 degrade 모드를 제공하면 CI나 최소 환경에서도 커버리지 추세 확인이 가능합니다.
+### 2026-03-08 재검증 결과
 
-- **벤치마크 결과 비교 자동화 강화**
-  - UI benchmark는 help/실행은 가능하나, 기준선 대비 증감(회귀 여부)을 자동으로 판정해 PR 게이트에 넣는 스크립트/문서가 더 보강되면 좋습니다.
+- `backend.tests.test_api_and_reports`: 125 passed, 1 skipped
+- `backend.tests.test_todo_rule_mining`: 11 passed
+- `backend.tests.test_winccoa_context_server`: 6 passed
+- `py_compile` 통과
+- config/rule alignment mismatch `0`
+- template coverage `Client 15/15`, `Server 20/20`
+- Ctrlpp smoke 성공
+- UI benchmark 성공
+- UI real smoke 성공
 
-### P3 (낮음)
-- **운영자 관점 체크리스트 문서 추가**
-  - 현재 개발자 중심 실행 커맨드는 풍부하지만, "신규 환경 세팅 후 최소 검증 5단계" 같은 운영 체크리스트 문서가 있으면 온보딩 속도가 개선됩니다.
+## 남은 보완 과제
 
-## 권장 후속 액션
-1. `backend/server.py` 또는 별도 도구에 dependency preflight API 추가
-2. `backend/tools/analyze_template_coverage.py`에 `--fail-soft` 또는 `--output-json-only` 옵션 추가
-3. `tools/run_verification_profile.py` 산출물을 프론트엔드 대시보드/리포트에 연결
-4. UI benchmark 결과를 기준선 JSON과 비교하는 간단한 threshold 게이트 추가
+### P1
+
+- heuristic 전용 성능 baseline 보강
+  - HTTP end-to-end timing만으로는 report/Excel 비용과 heuristic 비용이 섞여 보인다
+- 운영 UI에서 규칙 활성/비활성, optional dependency 상태 가시성 강화
+
+### P2
+
+- 규칙 관리 UI
+  - 활성/비활성, 추가, 수정
+- 분석 diff의 사용자 선택형 비교
+  - 현재는 최근 2회 자동 비교만 제공
+
+### P3
+
+- Python 부트스트랩 가이드
+- 인코딩 진단 가이드
+
+## 결론
+
+2026-03-05 시점의 주요 구조 보완 항목은 대부분 구현됐다. 현재 남은 과제는 기능 부재보다 운영 가시성과 성능 계측 정교화에 가깝다.

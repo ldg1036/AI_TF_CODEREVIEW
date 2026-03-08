@@ -1,0 +1,59 @@
+{
+  "tool": "playwright_ui_real_smoke",
+  "started_at": "2026-03-08T08:33:03.340Z",
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "target_file_preference": "BenchmarkP1Fixture.ctl",
+    "timeout_ms": 120000,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "backend": {
+    "started_server": false,
+    "discovered_file_count": 4,
+    "selected_target_file": "BenchmarkP1Fixture.ctl"
+  },
+  "run": {
+    "selection": {
+      "selectedFile": "BenchmarkP1Fixture.ctl",
+      "availableCount": 4
+    },
+    "beforeClick": {
+      "buttonFound": true,
+      "buttonRect": {
+        "x": 765,
+        "y": 61.5,
+        "width": 118,
+        "height": 35,
+        "top": 61.5,
+        "right": 883,
+        "bottom": 96.5,
+        "left": 765
+      },
+      "interceptingNode": {
+        "tag": "BUTTON",
+        "id": "btn-analyze",
+        "className": ""
+      }
+    },
+    "afterRun": {
+      "rows": 6,
+      "totalIssues": "6",
+      "criticalIssues": "0",
+      "warningIssues": "5",
+      "workspaceVisible": true,
+      "resultBodyVisible": true,
+      "progressPanelVisible": false
+    },
+    "elapsed_ms": 917
+  },
+  "ok": true,
+  "finished_at": "2026-03-08T08:33:04.487Z"
+}

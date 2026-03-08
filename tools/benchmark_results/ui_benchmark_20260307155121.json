@@ -1,0 +1,163 @@
+{
+  "tool": "playwright_ui_benchmark",
+  "started_at": "2026-03-07T15:51:22.160Z",
+  "config": {
+    "files": 20,
+    "violations_per_file": 120,
+    "code_lines": 6000,
+    "iterations": 3,
+    "host": "127.0.0.1",
+    "port": 4173,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "dataset": {
+    "total_files": 20,
+    "total_p1_groups": 20,
+    "total_p1_violations": 2400,
+    "total_p2": 20,
+    "total_p3": 40
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "analyzeUiMs": 253,
+      "tableSnapshot": {
+        "renderedRows": 20,
+        "totalIssues": "0",
+        "workspaceVisible": true
+      },
+      "tableScroll": {
+        "ms": 829,
+        "steps": 25,
+        "maxRenderedRows": 20,
+        "minRenderedRows": 20,
+        "scrollHeight": 1979,
+        "clientHeight": 220
+      },
+      "codeJump": {
+        "ms": 47,
+        "visibleRowsBeforeClick": 20,
+        "highlightedLine": 119,
+        "renderedLines": 41,
+        "codeScrollTop": 2930
+      },
+      "codeScroll": {
+        "ms": 363,
+        "steps": 11,
+        "maxRenderedLines": 41,
+        "scrollHeight": 134536,
+        "clientHeight": 282
+      }
+    },
+    {
+      "iteration": 2,
+      "analyzeUiMs": 221,
+      "tableSnapshot": {
+        "renderedRows": 20,
+        "totalIssues": "0",
+        "workspaceVisible": true
+      },
+      "tableScroll": {
+        "ms": 831,
+        "steps": 25,
+        "maxRenderedRows": 20,
+        "minRenderedRows": 20,
+        "scrollHeight": 1979,
+        "clientHeight": 220
+      },
+      "codeJump": {
+        "ms": 34,
+        "visibleRowsBeforeClick": 20,
+        "highlightedLine": 119,
+        "renderedLines": 41,
+        "codeScrollTop": 2930
+      },
+      "codeScroll": {
+        "ms": 362,
+        "steps": 11,
+        "maxRenderedLines": 41,
+        "scrollHeight": 134536,
+        "clientHeight": 282
+      }
+    },
+    {
+      "iteration": 3,
+      "analyzeUiMs": 239,
+      "tableSnapshot": {
+        "renderedRows": 20,
+        "totalIssues": "0",
+        "workspaceVisible": true
+      },
+      "tableScroll": {
+        "ms": 831,
+        "steps": 25,
+        "maxRenderedRows": 20,
+        "minRenderedRows": 20,
+        "scrollHeight": 1979,
+        "clientHeight": 220
+      },
+      "codeJump": {
+        "ms": 35,
+        "visibleRowsBeforeClick": 20,
+        "highlightedLine": 119,
+        "renderedLines": 41,
+        "codeScrollTop": 2930
+      },
+      "codeScroll": {
+        "ms": 353,
+        "steps": 11,
+        "maxRenderedLines": 41,
+        "scrollHeight": 134536,
+        "clientHeight": 282
+      }
+    }
+  ],
+  "summary": {
+    "analyzeUiMs": {
+      "min": 221,
+      "avg": 238,
+      "median": 239,
+      "p95": 253,
+      "max": 253
+    },
+    "resultTableScrollMs": {
+      "min": 829,
+      "avg": 830,
+      "median": 831,
+      "p95": 831,
+      "max": 831
+    },
+    "codeJumpMs": {
+      "min": 34,
+      "avg": 39,
+      "median": 35,
+      "p95": 47,
+      "max": 47
+    },
+    "codeViewerScrollMs": {
+      "min": 353,
+      "avg": 359,
+      "median": 362,
+      "p95": 363,
+      "max": 363
+    },
+    "maxVisibleResultRows": 20,
+    "maxVisibleCodeLines": 41
+  },
+  "thresholds": {
+    "defaultThresholdsEnabled": true,
+    "maxAnalyzeMs": 300,
+    "maxTableScrollMs": 1050,
+    "maxCodeJumpMs": 100,
+    "maxCodeScrollMs": 500
+  },
+  "threshold_failures": [],
+  "finished_at": "2026-03-07T15:51:27.981Z"
+}

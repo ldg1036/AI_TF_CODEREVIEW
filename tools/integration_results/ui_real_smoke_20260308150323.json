@@ -1,0 +1,96 @@
+﻿{
+  "tool": "playwright_ui_real_smoke",
+  "started_at": "2026-03-08T15:03:23.704Z",
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8875,
+    "target_file_preference": "BenchmarkP1Fixture.ctl",
+    "timeout_ms": 120000,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "backend": {
+    "started_server": true,
+    "discovered_file_count": 4,
+    "selected_target_file": "BenchmarkP1Fixture.ctl"
+  },
+  "run": {
+    "selection": {
+      "selectedFile": "BenchmarkP1Fixture.ctl",
+      "availableCount": 4
+    },
+    "beforeClick": {
+      "buttonFound": true,
+      "buttonRect": {
+        "x": 577,
+        "y": 85.859375,
+        "width": 148,
+        "height": 40,
+        "top": 85.859375,
+        "right": 725,
+        "bottom": 125.859375,
+        "left": 577
+      },
+      "interceptingNode": {
+        "tag": "BUTTON",
+        "id": "btn-analyze",
+        "className": ""
+      }
+    },
+    "aiOnDemand": {
+      "attempted": true,
+      "clicked": true,
+      "completed": true,
+      "skipped_reason": "",
+      "button_id": "btn-ai-generate",
+      "button_text_before": "추가 AI 분석",
+      "button_text_after": "추가 AI 분석",
+      "status_text": ""
+    },
+    "excelOnDemand": {
+      "attempted": true,
+      "clicked": true,
+      "completed": true,
+      "skipped_reason": "",
+      "initial": {
+        "present": true,
+        "disabled": false,
+        "button_text": "Excel 결과 생성",
+        "status_text": "Excel 0/1 | 실행 1",
+        "download_button_count": 0,
+        "download_labels": []
+      },
+      "final": {
+        "present": true,
+        "disabled": false,
+        "button_text": "Excel 결과 생성",
+        "status_text": "Excel 1개 준비됨",
+        "download_button_count": 1,
+        "download_labels": [
+          "다운로드"
+        ]
+      },
+      "download_triggered": true,
+      "suggested_filename": "CodeReview_Submission_BenchmarkP1Fixture_20260309_000327_258154.xlsx",
+      "download_error": ""
+    },
+    "afterRun": {
+      "rows": 6,
+      "totalIssues": "6",
+      "criticalIssues": "0",
+      "warningIssues": "5",
+      "workspaceVisible": true,
+      "resultBodyVisible": true,
+      "progressPanelVisible": false
+    },
+    "elapsed_ms": 1066
+  },
+  "ok": true,
+  "finished_at": "2026-03-08T15:03:28.207Z"
+}

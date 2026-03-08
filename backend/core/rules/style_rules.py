@@ -2,6 +2,25 @@ import re
 from typing import Dict, List
 
 
+_FUNCTION_START_PATTERN = re.compile(
+    r"^(?:main|void|int|float|string|bool|mapping|time|anytype|dyn_[a-zA-Z0-9_]+)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\("
+)
+_MAIN_FUNCTION_PATTERN = re.compile(r"^main\s*\(")
+_DECL_PATTERN = re.compile(
+    r"^\s*(const\s+)?(?:int|float|string|bool|mapping|time|anytype|dyn_[a-zA-Z0-9_]+)\s+([a-zA-Z_][a-zA-Z0-9_]*)"
+)
+_CONFIG_NAME_PATTERN = re.compile(r"(cfg|config)", re.IGNORECASE)
+_INDENT_PATTERN = re.compile(r"^([ \t]+)")
+_FUNCTION_HEADER_PATTERN = re.compile(
+    r"^\s*(?:void|int|float|string|bool|mapping|time|anytype|dyn_[a-zA-Z0-9_]+)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\("
+)
+_COMMENT_HEADER_PATTERN = re.compile(r"^\s*(//|/\*|\*)")
+_DECL_START_PATTERN = re.compile(r"^\s*(?:int|float|string|bool|dyn_\w+)\s+[a-zA-Z_][a-zA-Z0-9_]*")
+_CONTROL_PATTERN = re.compile(r"^\s*(?:if|for|while|switch|return|break|continue|try|catch)\b")
+_MAGIC_INDEX_PATTERN = re.compile(r"\b(?:parts|data|tokens|fields)\s*\[\s*([2-9]|\d{2,})\s*\]")
+_IDX_CONST_PATTERN = re.compile(r"\bIDX_[A-Z0-9_]+\b")
+
+
 class StyleRulesMixin:
     """Style and coding standards heuristic checks for WinCC OA code."""
 
@@ -11,22 +30,15 @@ class StyleRulesMixin:
         function_start = len(lines) + 1
         for idx, line in enumerate(lines, 1):
             stripped = line.strip()
-            if re.match(
-                r"^(?:main|void|int|float|string|bool|mapping|time|anytype|dyn_[a-zA-Z0-9_]+)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(",
-                stripped,
-            ) or re.match(r"^main\s*\(", stripped):
+            if _FUNCTION_START_PATTERN.match(stripped) or _MAIN_FUNCTION_PATTERN.match(stripped):
                 function_start = idx
                 break
-
-        decl_pattern = re.compile(
-            r"^\s*(const\s+)?(?:int|float|string|bool|mapping|time|anytype|dyn_[a-zA-Z0-9_]+)\s+([a-zA-Z_][a-zA-Z0-9_]*)"
-        )
 
         for idx, line in enumerate(lines, 1):
             stripped = line.strip()
             if not stripped or stripped.startswith("//"):
                 continue
-            match = decl_pattern.match(stripped)
+            match = _DECL_PATTERN.match(stripped)
             if not match:
                 continue
 
@@ -58,7 +70,7 @@ class StyleRulesMixin:
                 )
                 break
 
-            if re.search(r"(cfg|config)", name, re.IGNORECASE) and not name.startswith("cfg_"):
+            if _CONFIG_NAME_PATTERN.search(name) and not name.startswith("cfg_"):
                 findings.append(
                     {
                         "rule_id": "STYLE-NAME-01",
@@ -81,7 +93,7 @@ class StyleRulesMixin:
         for idx, line in enumerate(code.splitlines(), 1):
             if not line.strip():
                 continue
-            indent_match = re.match(r"^([ \t]+)", line)
+            indent_match = _INDENT_PATTERN.match(line)
             if not indent_match:
                 continue
             indent = indent_match.group(1)
@@ -108,14 +120,11 @@ class StyleRulesMixin:
     def check_style_header_rules(self, code: str) -> List[Dict]:
         findings = []
         lines = code.splitlines()
-        func_pattern = re.compile(
-            r"^\s*(?:void|int|float|string|bool|mapping|time|anytype|dyn_[a-zA-Z0-9_]+)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\("
-        )
         for idx, line in enumerate(lines, 1):
             stripped = line.strip()
             if stripped.startswith("//") or stripped.startswith("/*"):
                 continue
-            if not func_pattern.match(stripped) and not re.match(r"^\s*main\s*\(", stripped):
+            if not _FUNCTION_HEADER_PATTERN.match(stripped) and not re.match(r"^\s*main\s*\(", stripped):
                 continue
 
             has_header = False
@@ -125,7 +134,7 @@ class StyleRulesMixin:
                 prev = lines[back].strip()
                 if not prev:
                     continue
-                if re.match(r"^\s*(//|/\*|\*)", lines[back]):
+                if _COMMENT_HEADER_PATTERN.match(lines[back]):
                     comment_hits += 1
                     continue
                 break
@@ -149,9 +158,6 @@ class StyleRulesMixin:
     def check_coding_standards_advanced(self, code: str) -> List[Dict]:
         findings = []
         lines = code.splitlines()
-        decl_start_pattern = re.compile(r"^\s*(?:int|float|string|bool|dyn_\w+)\s+[a-zA-Z_][a-zA-Z0-9_]*")
-        control_pattern = re.compile(r"^\s*(?:if|for|while|switch|return|break|continue|try|catch)\b")
-
         pending_start_line = 0
         for line_no, line in enumerate(lines, 1):
             stripped = line.strip()
@@ -162,7 +168,7 @@ class StyleRulesMixin:
                 if ";" in stripped:
                     pending_start_line = 0
                     continue
-                if control_pattern.match(stripped) or stripped.endswith("{") or stripped.endswith("}"):
+                if _CONTROL_PATTERN.match(stripped) or stripped.endswith("{") or stripped.endswith("}"):
                     findings.append(
                         {
                             "rule_id": "STD-01",
@@ -175,7 +181,7 @@ class StyleRulesMixin:
                     pending_start_line = 0
                 continue
 
-            if not decl_start_pattern.match(stripped):
+            if not _DECL_START_PATTERN.match(stripped):
                 continue
             if stripped.endswith(";"):
                 continue
@@ -198,10 +204,10 @@ class StyleRulesMixin:
 
     def check_magic_index_usage(self, code: str) -> List[Dict]:
         findings = []
-        if re.search(r"\bIDX_[A-Z0-9_]+\b", code):
+        if _IDX_CONST_PATTERN.search(code):
             return findings
 
-        matches = list(re.finditer(r"\b(?:parts|data|tokens|fields)\s*\[\s*([2-9]|\d{2,})\s*\]", code))
+        matches = list(_MAGIC_INDEX_PATTERN.finditer(code))
         if len(matches) < 3:
             return findings
 

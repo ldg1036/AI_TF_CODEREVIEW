@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-03-08T12:33:40",
+  "server_url": "http://127.0.0.1:8765",
+  "dataset_name": "local-sample",
+  "selected_files": [
+    "GoldenTime.ctl"
+  ],
+  "focus": "heuristic",
+  "elapsed_ms": 0,
+  "runs": [],
+  "combo_summaries": [],
+  "comparison_basis": "same-build heuristic checker A/B",
+  "same_build_ab": {
+    "without_context_avg_ms": 16.33,
+    "with_context_avg_ms": 15.33,
+    "delta_ms": -1.0,
+    "improvement_percent": 6.12,
+    "same_findings": true
+  },
+  "metrics_focus": [
+    "metrics.timings_ms.analyze",
+    "metrics.timings_ms.heuristic"
+  ],
+  "violation_signature": {
+    "GoldenTime.ctl": []
+  },
+  "notes": [
+    "This heuristic A/B compares the current build with request-scope heuristic context on vs off.",
+    "Do not treat old 2026-02-25 HTTP baseline JSON as a direct before/after for this comparison."
+  ],
+  "files": [
+    {
+      "file": "GoldenTime.ctl",
+      "file_type": "Server",
+      "without_context_ms": [
+        19,
+        15,
+        15
+      ],
+      "with_context_ms": [
+        15,
+        16,
+        15
+      ],
+      "same_findings": true,
+      "violation_signature": []
+    }
+  ]
+}

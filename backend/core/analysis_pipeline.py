@@ -53,6 +53,8 @@ class PayloadDict(TypedDict, total=False):
     errors: List[AnalysisError]
     metrics: MetricsDict
     report_jobs: Dict[str, Any]
+    ai_review_statuses: List[Any]
+    request_id: str
 
 
 class CtrlppPreflightPayload(TypedDict):
@@ -428,6 +430,7 @@ class DirectoryAnalysisPipeline:
         payload["summary"]["ctrlpp_preflight_attempted"] = bool(runtime.ctrlpp_preflight.get("attempted", False))
         payload["summary"]["ctrlpp_preflight_ready"] = bool(runtime.ctrlpp_preflight.get("ready", False))
         payload["summary"]["ctrlpp_preflight_message"] = str(runtime.ctrlpp_preflight.get("message", "") or "")
+        payload["summary"]["ctrlpp_preflight_error_code"] = str(runtime.ctrlpp_preflight.get("error_code", "") or "")
 
         excel_support = bool(runtime.request_reporter.is_excel_support_available())
         payload["summary"]["verification_level"] = "CORE+REPORT" if excel_support else "CORE_ONLY"
@@ -442,9 +445,87 @@ class DirectoryAnalysisPipeline:
             "reviewed_txt": sorted(reviewed_txt),
         }
         payload["output_dir"] = runtime.request_reporter.output_dir
+        payload["request_id"] = str(runtime.metrics.get("request_id", "") or "")
         payload["errors"] = analysis_errors
+        try:
+            self._write_analysis_summary_file(payload, runtime.request_reporter.output_dir)
+        except Exception as exc:
+            logger.warning("Failed to persist analysis summary snapshot: %s", exc)
         self.app._last_output_dir = runtime.request_reporter.output_dir
         return payload
+
+    def _write_analysis_summary_file(self, payload: PayloadDict, output_dir: str) -> None:
+        if not output_dir or not os.path.isdir(output_dir):
+            return
+        summary_payload = {
+            "summary": self._json_clone(payload.get("summary", {})),
+            "violations": self._json_clone(payload.get("violations", {})),
+            "ai_review_statuses": self._json_clone(payload.get("ai_review_statuses", [])),
+            "errors": self._json_clone(payload.get("errors", [])),
+            "report_paths": self._json_clone(payload.get("report_paths", {})),
+            "output_dir": str(payload.get("output_dir", "") or output_dir),
+            "request_id": str(payload.get("request_id", "") or ""),
+            "file_summaries": self._build_file_summaries(payload),
+        }
+        path = os.path.join(output_dir, "analysis_summary.json")
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(summary_payload, f, ensure_ascii=False, indent=2)
+        except Exception as exc:
+            logger.warning("Failed to write analysis summary json: %s", exc)
+
+    @classmethod
+    def _build_file_summaries(cls, payload: PayloadDict) -> List[Dict[str, Any]]:
+        counts_by_file: Dict[str, Dict[str, int]] = {}
+
+        def ensure_entry(file_name: Any) -> Dict[str, int]:
+            key = str(file_name or "").strip() or "(unknown)"
+            entry = counts_by_file.get(key)
+            if entry is None:
+                entry = {
+                    "p1_total": 0,
+                    "p2_total": 0,
+                    "p3_total": 0,
+                    "critical": 0,
+                    "warning": 0,
+                    "info": 0,
+                    "total": 0,
+                }
+                counts_by_file[key] = entry
+            return entry
+
+        def add_severity(entry: Dict[str, int], value: Any) -> None:
+            normalized = str(value or "").strip().lower()
+            if normalized == "critical":
+                entry["critical"] += 1
+            elif normalized in ("warning", "warn", "high", "medium", "performance", "style", "information"):
+                entry["warning"] += 1
+            else:
+                entry["info"] += 1
+            entry["total"] += 1
+
+        for group in (payload.get("violations", {}) or {}).get("P1", []) or []:
+            if not isinstance(group, dict):
+                continue
+            for violation in group.get("violations", []) or []:
+                if not isinstance(violation, dict):
+                    continue
+                entry = ensure_entry(violation.get("file") or group.get("object"))
+                entry["p1_total"] += 1
+                add_severity(entry, violation.get("severity"))
+
+        for bucket, count_key in (("P2", "p2_total"), ("P3", "p3_total")):
+            for violation in (payload.get("violations", {}) or {}).get(bucket, []) or []:
+                if not isinstance(violation, dict):
+                    continue
+                entry = ensure_entry(violation.get("file"))
+                entry[count_key] += 1
+                add_severity(entry, violation.get("severity") or violation.get("type"))
+
+        return [
+            {"file": file_name, **counts}
+            for file_name, counts in sorted(counts_by_file.items(), key=lambda item: item[0].lower())
+        ]
 
     @staticmethod
     def _inject_ctrlpp_preflight_warning(payload: PayloadDict, preflight: CtrlppPreflightPayload) -> None:

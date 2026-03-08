@@ -1,6 +1,7 @@
 ﻿import json
 import logging
 import os
+import posixpath
 import shutil
 import subprocess
 from email import policy
@@ -21,6 +22,10 @@ if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
 from main import CodeInspectorApp, DEFAULT_MODE, AutoFixApplyError
+from core.analyze_job_mixin import AnalyzeJobMixin
+from core.request_validation_mixin import RequestValidationMixin
+from core.health_check_mixin import HealthCheckMixin
+from core.errors import ReviewerError
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +61,13 @@ class AIReviewApplyRequestBody(TypedDict, total=False):
     output_dir: Optional[str]
 
 
+class AIReviewGenerateRequestBody(TypedDict, total=False):
+    violation: Dict[str, Any]
+    enable_live_ai: Optional[bool]
+    ai_model_name: Optional[str]
+    ai_with_context: bool
+
+
 class AutofixPrepareRequestBody(TypedDict, total=False):
     file: str
     object: str
@@ -87,6 +99,28 @@ class ExcelFlushRequestBody(TypedDict, total=False):
     timeout_sec: Optional[int]
 
 
+class RuleUpdateEntry(TypedDict, total=False):
+    id: str
+    enabled: bool
+
+
+class RuleUpdateRequestBody(TypedDict, total=False):
+    updates: List[RuleUpdateEntry]
+
+
+class RuleRecordRequestBody(TypedDict, total=False):
+    rule: Dict[str, Any]
+
+
+class RuleDeleteRequestBody(TypedDict, total=False):
+    id: str
+
+
+class RuleImportRequestBody(TypedDict, total=False):
+    rules: List[Dict[str, Any]]
+    mode: str
+
+
 class AnalyzeProgressPayload(TypedDict, total=False):
     total_files: int
     completed_files: int
@@ -115,12 +149,7 @@ class AnalyzeJobState(TypedDict, total=False):
     request_id: str
 
 
-class CodeInspectorHandler(SimpleHTTPRequestHandler):
-    _analyze_jobs: Dict[str, AnalyzeJobState] = {}
-    _analyze_jobs_lock = threading.RLock()
-    _analyze_job_ttl_sec = 1800
-    _analyze_job_max_entries = 64
-    _analyze_poll_interval_ms = 500
+class CodeInspectorHandler(AnalyzeJobMixin, RequestValidationMixin, HealthCheckMixin, SimpleHTTPRequestHandler):
 
     def __init__(self, *args, app=None, frontend_dir=None, **kwargs):
         self.app = app
@@ -159,298 +188,6 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
     def _epoch_ms() -> int:
         return int(time.time() * 1000)
 
-    @classmethod
-    def _prune_analyze_jobs(cls) -> None:
-        now = time.time()
-        with cls._analyze_jobs_lock:
-            stale = []
-            for job_id, job in list(cls._analyze_jobs.items()):
-                finished_ms = job.get("finished_at")
-                if not finished_ms:
-                    continue
-                age_sec = now - (float(finished_ms) / 1000.0)
-                if age_sec > cls._analyze_job_ttl_sec:
-                    stale.append(job_id)
-            for job_id in stale:
-                cls._analyze_jobs.pop(job_id, None)
-            while len(cls._analyze_jobs) > cls._analyze_job_max_entries:
-                oldest = next(iter(cls._analyze_jobs))
-                cls._analyze_jobs.pop(oldest, None)
-
-    @classmethod
-    def _compute_eta_ms(cls, progress: AnalyzeProgressPayload, started_at_ms: Optional[int]) -> Optional[int]:
-        if not started_at_ms:
-            return None
-        total = max(0, cls._safe_int(progress.get("total_files", 0), 0))
-        completed = max(0, cls._safe_int(progress.get("completed_files", 0), 0))
-        if total <= 0 or completed <= 0:
-            return None
-        elapsed_ms = max(0, cls._epoch_ms() - int(started_at_ms))
-        ratio = float(completed) / float(total)
-        if ratio <= 0.0:
-            return None
-        return max(0, int(elapsed_ms * (1.0 - ratio) / ratio))
-
-    @classmethod
-    def _refresh_job_timing_locked(cls, job: AnalyzeJobState) -> None:
-        started_at = job.get("started_at")
-        timing = cast(AnalyzeTimingPayload, job.setdefault("timing", {}))
-        if started_at:
-            timing["elapsed_ms"] = max(0, cls._epoch_ms() - int(started_at))
-        else:
-            timing["elapsed_ms"] = 0
-        timing["eta_ms"] = cls._compute_eta_ms(cast(AnalyzeProgressPayload, job.get("progress", {})), started_at)
-
-    @classmethod
-    def _public_analyze_job_view(cls, job: AnalyzeJobState) -> Dict[str, Any]:
-        with cls._analyze_jobs_lock:
-            cls._refresh_job_timing_locked(job)
-            payload: Dict[str, Any] = {
-                "job_id": str(job.get("job_id", "") or ""),
-                "status": str(job.get("status", "unknown") or "unknown"),
-                "request_id": str(job.get("request_id", "") or ""),
-                "progress": dict(job.get("progress", {}) or {}),
-                "timing": dict(job.get("timing", {}) or {}),
-                "error": job.get("error"),
-                "created_at": job.get("created_at"),
-                "started_at": job.get("started_at"),
-                "finished_at": job.get("finished_at"),
-            }
-            if payload["status"] == "completed" and isinstance(job.get("result"), dict):
-                payload["result"] = job["result"]
-            return payload
-
-    def _parse_analyze_request_body(self, *, validate_selected_files: bool) -> Dict[str, Any]:
-        body = self._read_json_body()
-        if not isinstance(body, dict):
-            raise ValueError("JSON body must be an object")
-        typed_body = cast(AnalyzeRequestBody, body)
-        mode = typed_body.get("mode", DEFAULT_MODE)
-        selected_files = typed_body.get("selected_files", [])
-        input_sources = typed_body.get("input_sources", [])
-        if not isinstance(selected_files, list):
-            raise ValueError("selected_files must be a list")
-
-        allow_raw_txt = typed_body.get("allow_raw_txt", False)
-        if not isinstance(allow_raw_txt, bool):
-            raise ValueError("allow_raw_txt must be a boolean")
-        enable_ctrlppcheck = typed_body.get("enable_ctrlppcheck", None)
-        enable_live_ai = typed_body.get("enable_live_ai", None)
-        ai_model_name = typed_body.get("ai_model_name", None)
-        ai_with_context = typed_body.get("ai_with_context", False)
-        defer_excel_reports = typed_body.get("defer_excel_reports", None)
-        if enable_ctrlppcheck is not None and not isinstance(enable_ctrlppcheck, bool):
-            raise ValueError("enable_ctrlppcheck must be a boolean")
-        if enable_live_ai is not None and not isinstance(enable_live_ai, bool):
-            raise ValueError("enable_live_ai must be a boolean")
-        if not isinstance(ai_with_context, bool):
-            raise ValueError("ai_with_context must be a boolean")
-        if ai_model_name is not None and not isinstance(ai_model_name, str):
-            raise ValueError("ai_model_name must be a string when provided")
-        if defer_excel_reports is not None and not isinstance(defer_excel_reports, bool):
-            raise ValueError("defer_excel_reports must be a boolean when provided")
-        if validate_selected_files:
-            self._validate_selected_files(selected_files, allow_raw_txt=allow_raw_txt)
-        validated_input_sources = self._validate_input_sources(input_sources, allow_raw_txt=allow_raw_txt)
-
-        return {
-            "mode": mode,
-            "selected_files": selected_files,
-            "input_sources": validated_input_sources,
-            "allow_raw_txt": allow_raw_txt,
-            "enable_ctrlppcheck": enable_ctrlppcheck,
-            "enable_live_ai": enable_live_ai,
-            "ai_model_name": str(ai_model_name or "").strip() or None,
-            "ai_with_context": ai_with_context,
-            "defer_excel_reports": defer_excel_reports,
-        }
-
-    def _analysis_response_status(self, result: Any):
-        if not isinstance(result, dict):
-            return HTTPStatus.OK
-        typed_result = cast(AnalyzeResultPayload, result)
-        summary = typed_result.get("summary", {})
-        if not isinstance(summary, dict):
-            return HTTPStatus.OK
-        failed_count = self._safe_int(summary.get("failed_file_count", 0), 0)
-        success_count = self._safe_int(summary.get("successful_file_count", 0), 0)
-        if failed_count <= 0:
-            return HTTPStatus.OK
-        if success_count > 0:
-            return getattr(HTTPStatus, "MULTI_STATUS", 207)
-        return HTTPStatus.INTERNAL_SERVER_ERROR
-
-    @staticmethod
-    def _autofix_error_payload(exc: Exception, request_id: str) -> Dict[str, Any]:
-        payload: Dict[str, Any] = {"error": str(exc), "request_id": request_id}
-        error_code = ""
-        quality_metrics: Dict[str, Any] = {}
-        if isinstance(exc, AutoFixApplyError):
-            error_code = str(getattr(exc, "error_code", "") or "")
-            maybe_qm = getattr(exc, "quality_metrics", {}) or {}
-            if isinstance(maybe_qm, dict):
-                quality_metrics = maybe_qm
-        if not error_code:
-            msg = str(exc or "")
-            if "base hash mismatch" in msg.lower():
-                error_code = "BASE_HASH_MISMATCH"
-            elif "anchor mismatch" in msg.lower():
-                error_code = "ANCHOR_MISMATCH"
-            elif "semantic guard blocked" in msg.lower():
-                error_code = "SEMANTIC_GUARD_BLOCKED"
-            elif "supported only for .ctl" in msg.lower():
-                error_code = "UNSUPPORTED_FILE_TYPE"
-            elif "syntax precheck failed" in msg.lower():
-                error_code = "SYNTAX_PRECHECK_FAILED"
-            elif "regression" in msg.lower():
-                error_code = "REGRESSION_BLOCKED"
-        if error_code:
-            payload["error_code"] = error_code
-        if quality_metrics:
-            payload["quality_metrics"] = quality_metrics
-        return payload
-
-    def _read_json_body(self) -> Any:
-        length_header = self.headers.get("Content-Length", "0")
-        try:
-            length = int(length_header)
-        except ValueError:
-            raise ValueError("Invalid Content-Length")
-
-        raw = self.rfile.read(length) if length > 0 else b"{}"
-        try:
-            return json.loads(raw.decode("utf-8"))
-        except json.JSONDecodeError as exc:
-            raise ValueError(f"Invalid JSON body: {exc}") from exc
-
-    @staticmethod
-    def _is_txt(name):
-        return isinstance(name, str) and name.lower().endswith(".txt")
-
-    @staticmethod
-    def _is_normalized_txt(name):
-        return isinstance(name, str) and (name.endswith("_pnl.txt") or name.endswith("_xml.txt"))
-
-    def _validate_selected_files(self, selected_files, allow_raw_txt=False):
-        if not isinstance(selected_files, list):
-            raise ValueError("selected_files must be a list")
-
-        # Validate existence against full known set first to keep explicit raw-txt policy errors.
-        available_names = {item["name"] for item in self.app.list_available_files(allow_raw_txt=True)}
-        invalid = [name for name in selected_files if not isinstance(name, str) or name not in available_names]
-        if invalid:
-            raise ValueError(f"Unknown file(s): {invalid}")
-
-        if allow_raw_txt:
-            return
-
-        blocked_raw_txt = [
-            name
-            for name in selected_files
-            if self._is_txt(name) and not self._is_normalized_txt(name)
-        ]
-        if blocked_raw_txt:
-            raise ValueError(
-                "Raw .txt selection is disabled. Set allow_raw_txt=true to analyze these files: "
-                f"{blocked_raw_txt}"
-            )
-
-    @staticmethod
-    def _is_local_absolute_path(path_value: str) -> bool:
-        if not isinstance(path_value, str) or not path_value.strip():
-            return False
-        if path_value.startswith("\\\\"):
-            return False
-        return os.path.isabs(path_value)
-
-    @classmethod
-    def _is_supported_input_file(cls, path_value: str, *, allow_raw_txt: bool) -> bool:
-        lower = str(path_value or "").lower()
-        if lower.endswith((".ctl", ".pnl", ".xml")):
-            return True
-        if lower.endswith(".txt"):
-            name = os.path.basename(path_value)
-            return allow_raw_txt or cls._is_normalized_txt(name)
-        return False
-
-    @classmethod
-    def _folder_has_supported_targets(cls, folder_path: str, *, allow_raw_txt: bool) -> bool:
-        for root, _dirs, files in os.walk(folder_path):
-            for name in files:
-                if cls._is_supported_input_file(os.path.join(root, name), allow_raw_txt=allow_raw_txt):
-                    return True
-        return False
-
-    def _validate_input_sources(self, input_sources, allow_raw_txt=False):
-        if input_sources is None:
-            return []
-        if not isinstance(input_sources, list):
-            raise ValueError("input_sources must be a list")
-        validated = []
-        for item in input_sources:
-            if not isinstance(item, dict):
-                raise ValueError("input_sources entries must be objects")
-            source_type = str(item.get("type", "") or "").strip()
-            source_value = str(item.get("value", "") or "").strip()
-            if source_type not in ("builtin_file", "file_path", "folder_path"):
-                raise ValueError(f"Unsupported input source type: {source_type}")
-            if not source_value:
-                raise ValueError("input_sources value is required")
-            if source_type != "builtin_file":
-                if not self._is_local_absolute_path(source_value):
-                    raise ValueError(f"input_sources path must be a local absolute path: {source_value}")
-                normalized = os.path.normpath(source_value)
-                if source_type == "file_path" and not os.path.isfile(normalized):
-                    raise ValueError(f"Input file not found: {source_value}")
-                if source_type == "folder_path" and not os.path.isdir(normalized):
-                    raise ValueError(f"Input folder not found: {source_value}")
-                source_value = normalized
-                if source_type == "file_path" and source_value.lower().endswith(".txt") and not allow_raw_txt:
-                    name = os.path.basename(source_value)
-                    if self._is_txt(name) and not self._is_normalized_txt(name):
-                        raise ValueError(f"Raw .txt selection is disabled: {source_value}")
-                if source_type == "file_path" and not self._is_supported_input_file(source_value, allow_raw_txt=allow_raw_txt):
-                    raise ValueError(f"Unsupported input file type: {source_value}")
-                if source_type == "folder_path" and not self._folder_has_supported_targets(source_value, allow_raw_txt=allow_raw_txt):
-                    raise ValueError(f"Input folder has no supported review files: {source_value}")
-            validated.append({"type": source_type, "value": source_value})
-        return validated
-
-    def _read_multipart_files(self) -> Dict[str, Any]:
-        content_type = str(self.headers.get("Content-Type", "") or "")
-        if "multipart/form-data" not in content_type.lower():
-            raise ValueError("multipart/form-data content type is required")
-        try:
-            content_length = int(self.headers.get("Content-Length", "0") or "0")
-        except (TypeError, ValueError):
-            raise ValueError("Invalid Content-Length")
-        raw_body = self.rfile.read(content_length) if content_length > 0 else b""
-        if not raw_body:
-            return {"mode": "files", "files": []}
-
-        message_bytes = (
-            f"Content-Type: {content_type}\r\n"
-            "MIME-Version: 1.0\r\n"
-            "\r\n"
-        ).encode("utf-8") + raw_body
-        message = BytesParser(policy=policy.default).parsebytes(message_bytes)
-
-        mode = "files"
-        uploaded = []
-        for part in message.iter_parts():
-            if part.get_content_disposition() != "form-data":
-                continue
-            field_name = str(part.get_param("name", header="content-disposition") or "")
-            filename = str(part.get_filename() or "")
-            if field_name == "mode":
-                mode_text = part.get_content()
-                mode = str(mode_text or "files").strip() or "files"
-                continue
-            if field_name != "files" or not filename:
-                continue
-            payload = part.get_payload(decode=True)
-            uploaded.append({"name": filename, "content": payload if isinstance(payload, bytes) else b""})
-        return {"mode": mode, "files": uploaded}
 
     def _handle_apply_ai_review(self, request_id: str):
         body = self._read_json_body()
@@ -485,6 +222,41 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
         )
         self._send_json(HTTPStatus.OK, result)
         logger.info("AI apply request done id=%s status=200 applied_blocks=%d", request_id, int(result.get('applied_blocks', 0)))
+
+    def _handle_generate_ai_review(self, request_id: str):
+        body = self._read_json_body()
+        if not isinstance(body, dict):
+            raise ValueError("JSON body must be an object")
+        typed_body = cast(AIReviewGenerateRequestBody, body)
+        violation = typed_body.get("violation", {})
+        enable_live_ai = typed_body.get("enable_live_ai", None)
+        ai_model_name = typed_body.get("ai_model_name", None)
+        ai_with_context = typed_body.get("ai_with_context", False)
+
+        if not isinstance(violation, dict):
+            raise ValueError("violation must be an object")
+        if enable_live_ai is not None and not isinstance(enable_live_ai, bool):
+            raise ValueError("enable_live_ai must be a boolean when provided")
+        if ai_model_name is not None and not isinstance(ai_model_name, str):
+            raise ValueError("ai_model_name must be a string when provided")
+        if not isinstance(ai_with_context, bool):
+            raise ValueError("ai_with_context must be a boolean")
+
+        logger.info(
+            "AI generate request start id=%s issue_id=%s rule_id=%s",
+            request_id,
+            str((violation or {}).get("issue_id", "") or ""),
+            str((violation or {}).get("rule_id", "") or ""),
+        )
+        result = self.app.generate_ai_review_for_violation(
+            cast(Dict[str, Any], violation),
+            enable_live_ai=enable_live_ai,
+            ai_model_name=cast(Optional[str], ai_model_name),
+            ai_with_context=bool(ai_with_context),
+            request_id=request_id,
+        )
+        self._send_json(HTTPStatus.OK, result)
+        logger.info("AI generate request done id=%s status=200 available=%s", request_id, bool(result.get("available", False)))
 
     def _handle_autofix_prepare(self, request_id: str):
         body = self._read_json_body()
@@ -670,282 +442,67 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
         self._send_json(HTTPStatus.OK, result)
         logger.info("Excel report flush done id=%s status=200", request_id)
 
-    def _run_analyze_job(self, job_id: str, request_id: str, analyze_args: Dict[str, Any]) -> None:
+    def _resolve_excel_download_path(self, output_dir: str, name: str) -> str:
+        safe_output_dir = str(output_dir or "").strip()
+        safe_name = str(name or "").strip()
+        if not safe_output_dir:
+            raise ValueError("output_dir is required")
+        if not safe_name:
+            raise ValueError("name is required")
+
+        normalized_name = posixpath.basename(safe_name.replace("\\", "/"))
+        if normalized_name != safe_name or not safe_name.lower().endswith(".xlsx"):
+            raise ValueError("name must be an .xlsx file in the target output directory")
+
+        output_root = os.path.abspath(
+            str(getattr(getattr(self.app, "reporter", None), "output_base_dir", "") or os.path.join(BASE_DIR, "CodeReview_Report"))
+        )
+        target_output_dir = os.path.abspath(safe_output_dir)
         try:
-            with self._analyze_jobs_lock:
-                job = self._analyze_jobs.get(job_id)
-                if not job:
-                    return
-                job["status"] = "running"
-                job["started_at"] = self._epoch_ms()
-                self._refresh_job_timing_locked(job)
+            if os.path.commonpath([output_root, target_output_dir]) != output_root:
+                raise ValueError("output_dir must be inside the report output directory")
+        except ValueError as exc:
+            raise ValueError("output_dir must be inside the report output directory") from exc
 
-            total_selected = max(0, self._safe_int(len(analyze_args.get("selected_files", []) or []), 0))
-            total_inputs = total_selected + max(0, self._safe_int(len(analyze_args.get("input_sources", []) or []), 0))
-
-            def progress_cb(event: Dict[str, Any]) -> None:
-                with self._analyze_jobs_lock:
-                    current = self._analyze_jobs.get(job_id)
-                    if not current:
-                        return
-                    progress = cast(AnalyzeProgressPayload, current.setdefault("progress", {}))
-                    total = max(1, self._safe_int(event.get("total_files", total_inputs), total_inputs or 1))
-                    completed = max(0, self._safe_int(event.get("completed_files", 0), 0))
-                    failed = max(0, self._safe_int(event.get("failed_files", 0), 0))
-                    progress["total_files"] = total
-                    progress["completed_files"] = completed
-                    progress["failed_files"] = failed
-                    progress["current_file"] = str(event.get("file", "") or "")
-                    progress["phase"] = str(event.get("phase", "") or "")
-                    progress["percent"] = max(0, min(100, int((float(completed) / float(total)) * 100)))
-                    self._refresh_job_timing_locked(current)
-
-            # Keep start-path behavior explicit: unknown file/raw-txt policy errors surface as failed job.
-            self._validate_selected_files(
-                analyze_args.get("selected_files", []),
-                allow_raw_txt=bool(analyze_args.get("allow_raw_txt", False)),
-            )
-            result = self.app.run_directory_analysis(
-                mode=analyze_args.get("mode", DEFAULT_MODE),
-                selected_files=analyze_args.get("selected_files", []),
-                input_sources=analyze_args.get("input_sources", []),
-                allow_raw_txt=bool(analyze_args.get("allow_raw_txt", False)),
-                enable_ctrlppcheck=analyze_args.get("enable_ctrlppcheck", None),
-                enable_live_ai=analyze_args.get("enable_live_ai", None),
-                ai_model_name=analyze_args.get("ai_model_name", None),
-                ai_with_context=bool(analyze_args.get("ai_with_context", False)),
-                request_id=request_id,
-                defer_excel_reports=analyze_args.get("defer_excel_reports", None),
-                progress_cb=progress_cb,
-            )
-            response_status = self._analysis_response_status(result)
-            elapsed_ms = int((time.perf_counter() - float(analyze_args.get("_request_started", time.perf_counter()))) * 1000)
-            if isinstance(result.get("metrics"), dict):
-                timings = result["metrics"].setdefault("timings_ms", {})
-                if isinstance(timings, dict) and not timings.get("server_total"):
-                    timings["server_total"] = elapsed_ms
-            result.setdefault("request_id", request_id)
-
-            with self._analyze_jobs_lock:
-                job = self._analyze_jobs.get(job_id)
-                if not job:
-                    return
-                job["status"] = "completed" if int(response_status) < 500 else "failed"
-                job["finished_at"] = self._epoch_ms()
-                if job["status"] == "completed":
-                    job["result"] = result
-                    progress = cast(AnalyzeProgressPayload, job.setdefault("progress", {}))
-                    total = max(1, self._safe_int(progress.get("total_files", total_selected), total_selected or 1))
-                    progress["total_files"] = total
-                    progress["percent"] = 100
-                else:
-                    job["error"] = "Analyze completed with internal errors"
-                self._refresh_job_timing_locked(job)
-                self._prune_analyze_jobs()
-        except Exception as exc:
-            with self._analyze_jobs_lock:
-                job = self._analyze_jobs.get(job_id)
-                if job:
-                    job["status"] = "failed"
-                    job["error"] = str(exc)
-                    job["finished_at"] = self._epoch_ms()
-                    self._refresh_job_timing_locked(job)
-                    self._prune_analyze_jobs()
-            logger.exception("Analyze async job failed id=%s request_id=%s error=%s", job_id, request_id, exc)
-
-    def _handle_analyze_start(self, request_id: str, request_started: float) -> None:
-        analyze_args = self._parse_analyze_request_body(validate_selected_files=False)
-        selected_files = analyze_args.get("selected_files", []) or []
-        logger.info(
-            "Analyze async request start id=%s selected=%d allow_raw_txt=%s",
-            request_id,
-            len(selected_files),
-            bool(analyze_args.get("allow_raw_txt", False)),
-        )
-
-        job_id = uuid.uuid4().hex
-        created_at = self._epoch_ms()
-        initial_total = max(0, self._safe_int(len(selected_files), 0)) + max(
-            0,
-            self._safe_int(len(analyze_args.get("input_sources", []) or []), 0),
-        )
-        with self._analyze_jobs_lock:
-            self._prune_analyze_jobs()
-            self._analyze_jobs[job_id] = cast(
-                AnalyzeJobState,
-                {
-                    "job_id": job_id,
-                    "status": "queued",
-                    "created_at": created_at,
-                    "started_at": None,
-                    "finished_at": None,
-                    "request": {
-                        "selected_count": max(0, self._safe_int(len(selected_files), 0)),
-                        "input_source_count": max(0, self._safe_int(len(analyze_args.get("input_sources", []) or []), 0)),
-                        "enable_live_ai": bool(analyze_args.get("enable_live_ai", False)),
-                        "enable_ctrlppcheck": bool(analyze_args.get("enable_ctrlppcheck", False)),
-                        "allow_raw_txt": bool(analyze_args.get("allow_raw_txt", False)),
-                    },
-                    "progress": {
-                        "total_files": initial_total,
-                        "completed_files": 0,
-                        "failed_files": 0,
-                        "percent": 0,
-                        "current_file": "",
-                        "phase": "queued",
-                    },
-                    "timing": {"elapsed_ms": 0, "eta_ms": None},
-                    "result": None,
-                    "error": None,
-                    "request_id": request_id,
-                },
-            )
-        analyze_args["_request_started"] = request_started
-
-        worker = threading.Thread(
-            target=self._run_analyze_job,
-            args=(job_id, request_id, analyze_args),
-            daemon=True,
-        )
-        worker.start()
-        self._send_json(
-            getattr(HTTPStatus, "ACCEPTED", 202),
-            {
-                "job_id": job_id,
-                "status": "queued",
-                "progress": {"total_files": initial_total, "completed_files": 0, "failed_files": 0, "percent": 0, "current_file": "", "phase": "queued"},
-                "poll_interval_ms": self._analyze_poll_interval_ms,
-                "request_id": request_id,
-            },
-        )
-
-    def _playwright_dependency_status(self) -> Dict[str, Any]:
-        node_bin = shutil.which("node")
-        if not node_bin:
-            return {
-                "available": False,
-                "node_available": False,
-                "package_available": False,
-                "required_for": ["ui_benchmark"],
-                "message": "node binary not found",
-            }
-
+        report_path = os.path.abspath(os.path.join(target_output_dir, normalized_name))
         try:
-            proc = subprocess.run(
-                [node_bin, "-e", "require.resolve('playwright')"],
-                cwd=BASE_DIR,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                timeout=3,
-                check=False,
-            )
-        except Exception as exc:
-            return {
-                "available": False,
-                "node_available": True,
-                "package_available": False,
-                "required_for": ["ui_benchmark"],
-                "message": f"playwright package check failed: {exc}",
-            }
+            if os.path.commonpath([target_output_dir, report_path]) != target_output_dir:
+                raise ValueError("name must resolve inside output_dir")
+        except ValueError as exc:
+            raise ValueError("name must resolve inside output_dir") from exc
 
-        package_available = proc.returncode == 0
-        return {
-            "available": bool(package_available),
-            "node_available": True,
-            "package_available": bool(package_available),
-            "required_for": ["ui_benchmark"],
-            "message": "playwright package available" if package_available else "playwright package is not installed",
-        }
+        if not os.path.isfile(report_path):
+            raise FileNotFoundError(f"Excel report not found: {normalized_name}")
+        return report_path
 
-    def _build_dependency_health_payload(self) -> Dict[str, Any]:
-        excel_available = bool(self.app.reporter.is_excel_support_available())
-        openpyxl_status = {
-            "available": excel_available,
-            "required_for": ["excel_report", "template_coverage"],
-            "message": "openpyxl available" if excel_available else "openpyxl is not installed",
-        }
+    def _send_download_file(self, file_path: str, download_name: str, content_type: str):
+        with open(file_path, "rb") as f:
+            data = f.read()
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Content-Disposition", f'attachment; filename="{download_name}"')
+        self._send_cors_headers()
+        self.end_headers()
+        self.wfile.write(data)
 
-        ctrl_binary = ""
-        try:
-            ctrl_binary = str(self.app.ctrl_tool._find_binary() or "")
-        except Exception:
-            ctrl_binary = ""
-        ctrl_ready = bool(ctrl_binary)
-        ctrl_status = {
-            "available": ctrl_ready,
-            "binary_path": ctrl_binary,
-            "auto_install_on_missing": bool(getattr(self.app.ctrl_tool, "auto_install_on_missing", False)),
-            "required_for": ["ctrlpp_analysis", "ctrlpp_regression"],
-            "message": "CtrlppCheck binary available" if ctrl_ready else "CtrlppCheck binary not found",
-        }
-
-        playwright_status = self._playwright_dependency_status()
-        capabilities = {
-            "excel_report": {"ready": bool(openpyxl_status["available"]), "dependencies": ["openpyxl"]},
-            "template_coverage": {"ready": bool(openpyxl_status["available"]), "dependencies": ["openpyxl"]},
-            "ctrlpp_analysis": {"ready": bool(ctrl_status["available"]), "dependencies": ["ctrlppcheck"]},
-            "ui_benchmark": {"ready": bool(playwright_status["available"]), "dependencies": ["playwright"]},
-        }
-        ready_count = sum(1 for item in capabilities.values() if bool(item.get("ready", False)))
-        return {
-            "status": "ok" if ready_count == len(capabilities) else "degraded",
-            "generated_at_ms": self._epoch_ms(),
-            "dependencies": {
-                "openpyxl": openpyxl_status,
-                "ctrlppcheck": ctrl_status,
-                "playwright": playwright_status,
-            },
-            "capabilities": capabilities,
-            "summary": {
-                "ready_capabilities": ready_count,
-                "total_capabilities": len(capabilities),
-            },
-        }
-
-    def _resolve_latest_verification_summary(self) -> Dict[str, Any]:
-        report_dir = Path(str(getattr(self.app.reporter, "output_base_dir", "") or "")).resolve()
-        if not report_dir.exists() or not report_dir.is_dir():
-            raise FileNotFoundError(f"verification report directory not found: {report_dir}")
-
-        candidates = sorted(
-            report_dir.glob("verification_summary_*.json"),
-            key=lambda item: item.stat().st_mtime,
-            reverse=True,
-        )
-        if not candidates:
-            raise FileNotFoundError("verification summary not found")
-
-        latest = candidates[0]
-        try:
-            payload = json.loads(latest.read_text(encoding="utf-8"))
-        except Exception as exc:
-            raise RuntimeError(f"failed to read verification summary: {latest.name}: {exc}") from exc
-
-        if not isinstance(payload, dict):
-            raise RuntimeError(f"invalid verification summary payload: {latest.name}")
-
-        payload.setdefault("source_file", latest.name)
-        payload.setdefault("source_path", str(latest))
-        return payload
-
-    def _handle_analyze_status(self) -> None:
-        parsed = urlparse(self.path)
-        query = parse_qs(parsed.query)
-        job_id = str(query.get("job_id", [""])[0] or "").strip()
-        if not job_id:
-            raise ValueError("job_id is required")
-        with self._analyze_jobs_lock:
-            self._prune_analyze_jobs()
-            job = self._analyze_jobs.get(job_id)
-            if not job:
-                raise FileNotFoundError(f"Analyze job not found: {job_id}")
-        self._send_json(HTTPStatus.OK, self._public_analyze_job_view(job))
 
     def do_GET(self):
         parsed = urlparse(self.path)
         if parsed.path == "/api/health/deps":
             self._send_json(HTTPStatus.OK, self._build_dependency_health_payload())
+            return
+
+        if parsed.path == "/api/rules/health":
+            self._send_json(HTTPStatus.OK, self._build_rules_health_payload())
+            return
+
+        if parsed.path == "/api/rules/list":
+            self._send_json(HTTPStatus.OK, self._build_rules_list_payload())
+            return
+
+        if parsed.path == "/api/rules/export":
+            self._send_json(HTTPStatus.OK, self._export_rules_payload())
             return
 
         if parsed.path == "/api/verification/latest":
@@ -955,6 +512,35 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
                 self._send_json(HTTPStatus.NOT_FOUND, {"error": str(exc)})
             except RuntimeError as exc:
                 self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc)})
+            return
+
+        if parsed.path == "/api/operations/latest":
+            self._send_json(HTTPStatus.OK, self._resolve_latest_operational_results())
+            return
+
+        if parsed.path == "/api/analysis-diff/latest":
+            try:
+                self._send_json(HTTPStatus.OK, self._resolve_latest_analysis_diff())
+            except RuntimeError as exc:
+                self._send_json(HTTPStatus.OK, {"available": False, "message": str(exc), "latest": None, "previous": None, "delta": {"summary": {}}, "file_diffs": []})
+            return
+
+        if parsed.path == "/api/analysis-diff/runs":
+            self._send_json(HTTPStatus.OK, self._resolve_analysis_diff_runs())
+            return
+
+        if parsed.path == "/api/analysis-diff/compare":
+            query = parse_qs(parsed.query)
+            latest_key = str(query.get("latest", [""])[0] or "")
+            previous_key = str(query.get("previous", [""])[0] or "")
+            try:
+                self._send_json(HTTPStatus.OK, self._resolve_selected_analysis_diff(latest_key, previous_key))
+            except ValueError as exc:
+                self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+            except FileNotFoundError as exc:
+                self._send_json(HTTPStatus.NOT_FOUND, {"error": str(exc)})
+            except RuntimeError as exc:
+                self._send_json(HTTPStatus.OK, {"available": False, "message": str(exc), "latest": None, "previous": None, "delta": {"summary": {}}, "file_diffs": []})
             return
 
         if parsed.path == "/api/analyze/status":
@@ -975,6 +561,23 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
 
         if parsed.path == "/api/ai/models":
             self._send_json(HTTPStatus.OK, self.app.list_ai_models())
+            return
+
+        if parsed.path == "/api/report/excel/download":
+            query = parse_qs(parsed.query)
+            output_dir = str(query.get("output_dir", [""])[0] or "")
+            name = str(query.get("name", [""])[0] or "")
+            try:
+                report_path = self._resolve_excel_download_path(output_dir, name)
+                self._send_download_file(
+                    report_path,
+                    os.path.basename(report_path),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
+            except ValueError as exc:
+                self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+            except FileNotFoundError as exc:
+                self._send_json(HTTPStatus.NOT_FOUND, {"error": str(exc)})
             return
 
         if parsed.path == "/api/file-content":
@@ -1095,6 +698,24 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
                 logger.error("AI apply request done id=%s status=500 error=%s", request_id, exc)
             return
 
+        if parsed.path == "/api/ai-review/generate":
+            request_id = uuid.uuid4().hex
+            try:
+                self._handle_generate_ai_review(request_id)
+            except ValueError as exc:
+                self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc), "request_id": request_id})
+                logger.warning("AI generate request done id=%s status=400 error=%s", request_id, exc)
+            except FileNotFoundError as exc:
+                self._send_json(HTTPStatus.NOT_FOUND, {"error": str(exc), "request_id": request_id})
+                logger.warning("AI generate request done id=%s status=404 error=%s", request_id, exc)
+            except ReviewerError as exc:
+                self._send_json(HTTPStatus.OK, {"available": False, "message": str(exc), "request_id": request_id})
+                logger.warning("AI generate request done id=%s status=200 fail-soft error=%s", request_id, exc)
+            except Exception as exc:
+                self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc), "request_id": request_id})
+                logger.error("AI generate request done id=%s status=500 error=%s", request_id, exc)
+            return
+
         if parsed.path == "/api/autofix/prepare":
             request_id = uuid.uuid4().hex
             try:
@@ -1152,6 +773,129 @@ class CodeInspectorHandler(SimpleHTTPRequestHandler):
             except Exception as exc:
                 self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc), "request_id": request_id})
                 logger.error("Excel report flush done id=%s status=500 error=%s", request_id, exc)
+            return
+
+        if parsed.path == "/api/rules/update":
+            request_id = uuid.uuid4().hex
+            try:
+                body = self._read_json_body()
+                if not isinstance(body, dict):
+                    raise ValueError("JSON body must be an object")
+                typed_body = cast(RuleUpdateRequestBody, body)
+                result = self._update_rules_enabled_state(list(typed_body.get("updates", []) or []))
+                result["request_id"] = request_id
+                self._send_json(HTTPStatus.OK, result)
+            except ValueError as exc:
+                self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules update done id=%s status=400 error=%s", request_id, exc)
+            except FileNotFoundError as exc:
+                self._send_json(HTTPStatus.NOT_FOUND, {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules update done id=%s status=404 error=%s", request_id, exc)
+            except RuntimeError as exc:
+                self._send_json(getattr(HTTPStatus, "CONFLICT", 409), {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules update done id=%s status=409 error=%s", request_id, exc)
+            except Exception as exc:
+                self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc), "request_id": request_id})
+                logger.error("Rules update done id=%s status=500 error=%s", request_id, exc)
+            return
+
+        if parsed.path == "/api/rules/create":
+            request_id = uuid.uuid4().hex
+            try:
+                body = self._read_json_body()
+                if not isinstance(body, dict):
+                    raise ValueError("JSON body must be an object")
+                typed_body = cast(RuleRecordRequestBody, body)
+                result = self._create_rule(cast(Dict[str, Any], typed_body.get("rule", {})))
+                result["request_id"] = request_id
+                self._send_json(HTTPStatus.OK, result)
+            except ValueError as exc:
+                self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules create done id=%s status=400 error=%s", request_id, exc)
+            except FileNotFoundError as exc:
+                self._send_json(HTTPStatus.NOT_FOUND, {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules create done id=%s status=404 error=%s", request_id, exc)
+            except RuntimeError as exc:
+                self._send_json(getattr(HTTPStatus, "CONFLICT", 409), {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules create done id=%s status=409 error=%s", request_id, exc)
+            except Exception as exc:
+                self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc), "request_id": request_id})
+                logger.error("Rules create done id=%s status=500 error=%s", request_id, exc)
+            return
+
+        if parsed.path == "/api/rules/replace":
+            request_id = uuid.uuid4().hex
+            try:
+                body = self._read_json_body()
+                if not isinstance(body, dict):
+                    raise ValueError("JSON body must be an object")
+                typed_body = cast(RuleRecordRequestBody, body)
+                result = self._replace_rule(cast(Dict[str, Any], typed_body.get("rule", {})))
+                result["request_id"] = request_id
+                self._send_json(HTTPStatus.OK, result)
+            except ValueError as exc:
+                self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules replace done id=%s status=400 error=%s", request_id, exc)
+            except FileNotFoundError as exc:
+                self._send_json(HTTPStatus.NOT_FOUND, {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules replace done id=%s status=404 error=%s", request_id, exc)
+            except RuntimeError as exc:
+                self._send_json(getattr(HTTPStatus, "CONFLICT", 409), {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules replace done id=%s status=409 error=%s", request_id, exc)
+            except Exception as exc:
+                self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc), "request_id": request_id})
+                logger.error("Rules replace done id=%s status=500 error=%s", request_id, exc)
+            return
+
+        if parsed.path == "/api/rules/delete":
+            request_id = uuid.uuid4().hex
+            try:
+                body = self._read_json_body()
+                if not isinstance(body, dict):
+                    raise ValueError("JSON body must be an object")
+                typed_body = cast(RuleDeleteRequestBody, body)
+                result = self._delete_rule(str(typed_body.get("id", "") or ""))
+                result["request_id"] = request_id
+                self._send_json(HTTPStatus.OK, result)
+            except ValueError as exc:
+                self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules delete done id=%s status=400 error=%s", request_id, exc)
+            except FileNotFoundError as exc:
+                self._send_json(HTTPStatus.NOT_FOUND, {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules delete done id=%s status=404 error=%s", request_id, exc)
+            except RuntimeError as exc:
+                self._send_json(getattr(HTTPStatus, "CONFLICT", 409), {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules delete done id=%s status=409 error=%s", request_id, exc)
+            except Exception as exc:
+                self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc), "request_id": request_id})
+                logger.error("Rules delete done id=%s status=500 error=%s", request_id, exc)
+            return
+
+        if parsed.path == "/api/rules/import":
+            request_id = uuid.uuid4().hex
+            try:
+                body = self._read_json_body()
+                if not isinstance(body, dict):
+                    raise ValueError("JSON body must be an object")
+                typed_body = cast(RuleImportRequestBody, body)
+                result = self._import_rules_payload(
+                    list(typed_body.get("rules", []) or []),
+                    mode=str(typed_body.get("mode", "replace") or "replace"),
+                )
+                result["request_id"] = request_id
+                self._send_json(HTTPStatus.OK, result)
+            except ValueError as exc:
+                self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules import done id=%s status=400 error=%s", request_id, exc)
+            except FileNotFoundError as exc:
+                self._send_json(HTTPStatus.NOT_FOUND, {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules import done id=%s status=404 error=%s", request_id, exc)
+            except RuntimeError as exc:
+                self._send_json(getattr(HTTPStatus, "CONFLICT", 409), {"error": str(exc), "request_id": request_id})
+                logger.warning("Rules import done id=%s status=409 error=%s", request_id, exc)
+            except Exception as exc:
+                self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc), "request_id": request_id})
+                logger.error("Rules import done id=%s status=500 error=%s", request_id, exc)
             return
 
         if parsed.path == "/api/analyze/start":

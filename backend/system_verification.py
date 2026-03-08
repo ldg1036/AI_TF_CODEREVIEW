@@ -1385,6 +1385,8 @@ class SystemVerification(unittest.TestCase):
             raise RuntimeError("CtrlppCheck download failed: mocked offline")
 
         wrapper.ensure_installed = failing_ensure
+        wrapper._find_binary = lambda *a, **kw: ""
+        wrapper.state_binary_path = ""
         with tempfile.TemporaryDirectory() as temp_dir:
             target = os.path.join(temp_dir, "sample.ctl")
             with open(target, "w", encoding="utf-8") as f:

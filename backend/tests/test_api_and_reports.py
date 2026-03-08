@@ -6,8 +6,10 @@ import sys
 import tempfile
 import threading
 import time
+import urllib.error
 import urllib.parse
 import unittest
+from unittest import mock
 from http.server import ThreadingHTTPServer
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -16,6 +18,10 @@ if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
 from main import CodeInspectorApp
+from core.analysis_pipeline import DirectoryAnalysisPipeline
+from core.errors import CtrlppDownloadError, ReviewerResponseError, ReviewerTimeoutError, ReviewerTransportError
+from core.heuristic_checker import HeuristicChecker
+from core.llm_reviewer import LLMReviewer
 from core.reporter import Reporter
 from server import BASE_DIR, CodeInspectorHandler
 
@@ -82,6 +88,21 @@ class ApiIntegrationTests(unittest.TestCase):
         parsed = json.loads(data) if data else {}
         return resp.status, parsed
 
+    def _request_raw(self, method, path, body=None, headers=None):
+        conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=15)
+        request_headers = {}
+        if body is not None:
+            request_headers["Content-Type"] = "application/json"
+        if isinstance(headers, dict):
+            request_headers.update(headers)
+        payload = json.dumps(body) if body is not None else None
+        conn.request(method, path, payload, request_headers)
+        resp = conn.getresponse()
+        data = resp.read()
+        response_headers = dict(resp.getheaders())
+        conn.close()
+        return resp.status, data, response_headers
+
     @staticmethod
     def _extract_rule_items(payload):
         p1_groups = payload.get("violations", {}).get("P1", [])
@@ -92,6 +113,20 @@ class ApiIntegrationTests(unittest.TestCase):
                 if item:
                     items.append(item)
         return items
+
+    @staticmethod
+    def _collect_rule_ids(groups):
+        found = []
+        for group in groups or []:
+            for violation in group.get("violations", []) or []:
+                rule_id = violation.get("rule_id")
+                if rule_id:
+                    found.append(str(rule_id))
+        return found
+
+    def _analyze_rule_ids_for_code(self, code: str, *, file_type: str = "Server"):
+        groups = self.app.checker.analyze_raw_code("sample.ctl", code, file_type=file_type)
+        return self._collect_rule_ids(groups)
 
     def _force_single_internal_violation(self):
         self.app.checker.analyze_raw_code = lambda *_args, **_kwargs: [
@@ -112,11 +147,72 @@ class ApiIntegrationTests(unittest.TestCase):
             }
         ]
 
+    def _install_temp_rule_config(self, p1_rows, parsed_rows=None, review_applicability=None):
+        config_dir = os.path.join(self.data_dir, "Config")
+        os.makedirs(config_dir, exist_ok=True)
+        with open(os.path.join(config_dir, "p1_rule_defs.json"), "w", encoding="utf-8") as f:
+            json.dump(list(p1_rows), f, ensure_ascii=False, indent=2)
+        with open(os.path.join(config_dir, "parsed_rules.json"), "w", encoding="utf-8") as f:
+            json.dump(list(parsed_rows or []), f, ensure_ascii=False, indent=2)
+        with open(os.path.join(config_dir, "review_applicability.json"), "w", encoding="utf-8") as f:
+            json.dump(review_applicability or {"items": {}}, f, ensure_ascii=False, indent=2)
+
+        self.app.checker = HeuristicChecker(os.path.join(config_dir, "parsed_rules.json"))
+        reporter = Reporter(config_dir=config_dir)
+        reporter.output_base_dir = self.data_dir
+        self.app.reporter = reporter
+        return config_dir
+
     def test_get_api_files(self):
         status, payload = self._request("GET", "/api/files")
         self.assertEqual(status, 200)
         names = [item["name"] for item in payload["files"]]
         self.assertIn("sample.ctl", names)
+
+    def test_config_representative_rules_are_detected_by_checker(self):
+        cases = {
+            "PERF-SETMULTIVALUE-ADOPT-01": {
+                "code": 'main() {\n setValue("obj1","enabled",false);\n setValue("obj2","enabled",false);\n }',
+                "file_type": "Server",
+            },
+            "PERF-GETMULTIVALUE-ADOPT-01": {
+                "code": 'main() {\n bool b1; bool b2;\n getValue("obj1","enabled",b1);\n getValue("obj2","enabled",b2);\n }',
+                "file_type": "Server",
+            },
+            "PERF-DPSET-BATCH-01": {
+                "code": 'main() {\n for (int i=0;i<10;i++) {\n  dpSet("A.B.C", 1);\n  dpSet("A.B.D", 2);\n }\n }',
+                "file_type": "Server",
+            },
+            "PERF-DPGET-BATCH-01": {
+                "code": 'main() {\n int x; int y;\n dpGet("A.B.C", x);\n dpGet("A.B.D", y);\n }',
+                "file_type": "Server",
+            },
+            "ACTIVE-01": {
+                "code": 'main() {\n dpSet("A.B.C", 1);\n }',
+                "file_type": "Server",
+            },
+            "EXC-DP-01": {
+                "code": 'main() {\n dpSet("A.B.C", 1);\n dpGet("A.B.D", x);\n }',
+                "file_type": "Server",
+            },
+            "EXC-TRY-01": {
+                "code": 'main() {\n dpSet("A.B.C", 1);\n dpGet("A.B.D", x);\n }',
+                "file_type": "Server",
+            },
+            "STYLE-IDX-01": {
+                "code": 'main() {\n string parts[10];\n string a = parts[2];\n string b = parts[3];\n string c = parts[4];\n }',
+                "file_type": "Server",
+            },
+            "HARD-03": {
+                "code": 'main() {\n float a = 0.01;\n float b = 0.001;\n }',
+                "file_type": "Server",
+            },
+        }
+
+        for rule_id, case in cases.items():
+            with self.subTest(rule_id=rule_id):
+                found = self._analyze_rule_ids_for_code(case["code"], file_type=case["file_type"])
+                self.assertIn(rule_id, found)
 
     def test_get_api_health_deps(self):
         status, payload = self._request("GET", "/api/health/deps")
@@ -140,6 +236,243 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertFalse(bool(ctrlpp.get("available", True)))
         self.assertEqual(str(ctrlpp.get("binary_path", "")), "")
 
+    def test_get_api_rules_health_returns_summary_payload(self):
+        status, payload = self._request("GET", "/api/rules/health")
+        self.assertEqual(status, 200)
+        self.assertTrue(bool(payload.get("available", False)))
+        self.assertIn(payload.get("status"), {"ok", "degraded"})
+        self.assertIn("rules", payload)
+        self.assertIn("dependencies", payload)
+        rules = payload.get("rules", {})
+        self.assertEqual(int(rules.get("p1_total", 0)), len(self.app.checker.p1_rule_defs))
+        self.assertEqual(int(rules.get("p1_enabled", 0)), len([row for row in self.app.checker.p1_rule_defs if bool(row.get("enabled", True))]))
+        self.assertIn("detector_counts", rules)
+        self.assertIn("file_type_counts", rules)
+        self.assertIn("regex_count", rules)
+        self.assertIn("composite_count", rules)
+        self.assertIn("line_repeat_count", rules)
+        self.assertIn("openpyxl", payload.get("dependencies", {}))
+        self.assertIn("ctrlppcheck", payload.get("dependencies", {}))
+        self.assertIn("playwright", payload.get("dependencies", {}))
+
+    def test_get_api_rules_health_reports_degraded_message_when_optional_missing(self):
+        status, payload = self._request("GET", "/api/rules/health")
+        self.assertEqual(status, 200)
+        self.assertEqual(str(payload.get("status", "")), "degraded")
+        self.assertTrue(str(payload.get("message", "")))
+        deps = payload.get("dependencies", {})
+        self.assertFalse(bool((deps.get("ctrlppcheck", {}) or {}).get("available", True)))
+
+    def test_get_api_rules_list_returns_rule_rows(self):
+        self._install_temp_rule_config(
+            [
+                {
+                    "id": "cfg-test-01",
+                    "order": 10,
+                    "enabled": True,
+                    "file_types": ["Client"],
+                    "rule_id": "TEST-01",
+                    "item": "테스트 규칙 1",
+                    "detector": {"kind": "regex"},
+                    "finding": {"severity": "Warning", "message": "message-1"},
+                },
+                {
+                    "id": "cfg-test-02",
+                    "order": 20,
+                    "enabled": False,
+                    "file_types": ["Server"],
+                    "rule_id": "TEST-02",
+                    "item": "테스트 규칙 2",
+                    "detector": {"kind": "composite"},
+                    "finding": {"severity": "Critical", "message": "message-2"},
+                },
+            ],
+            parsed_rows=[{"type": "Client"}, {"type": "Server"}],
+        )
+
+        status, payload = self._request("GET", "/api/rules/list")
+        self.assertEqual(status, 200)
+        rows = payload.get("rules", [])
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0].get("id"), "cfg-test-01")
+        self.assertTrue(bool(rows[0].get("enabled")))
+        self.assertEqual(rows[1].get("detector_kind"), "composite")
+
+    def test_post_api_rules_update_persists_and_reloads(self):
+        config_dir = self._install_temp_rule_config(
+            [
+                {
+                    "id": "cfg-test-01",
+                    "order": 10,
+                    "enabled": True,
+                    "file_types": ["Client"],
+                    "rule_id": "TEST-01",
+                    "item": "테스트 규칙 1",
+                    "detector": {"kind": "regex", "pattern": "DebugN"},
+                    "finding": {"severity": "Warning", "message": "message-1"},
+                }
+            ]
+        )
+
+        status, payload = self._request("POST", "/api/rules/update", {"updates": [{"id": "cfg-test-01", "enabled": False}]})
+        self.assertEqual(status, 200)
+        self.assertEqual(int(payload.get("updated_count", 0)), 1)
+        self.assertTrue(bool((payload.get("reload", {}) or {}).get("reloaded", False)))
+
+        with open(os.path.join(config_dir, "p1_rule_defs.json"), "r", encoding="utf-8") as f:
+            saved = json.load(f)
+        self.assertFalse(bool(saved[0].get("enabled", True)))
+
+        checker_row = next(row for row in self.app.checker.p1_rule_defs if row.get("id") == "cfg-test-01")
+        self.assertFalse(bool(checker_row.get("enabled", True)))
+
+    def test_post_api_rules_update_rejects_unknown_rule_id(self):
+        self._install_temp_rule_config(
+            [
+                {
+                    "id": "cfg-test-01",
+                    "order": 10,
+                    "enabled": True,
+                    "file_types": ["Client"],
+                    "rule_id": "TEST-01",
+                    "item": "테스트 규칙 1",
+                    "detector": {"kind": "regex", "pattern": "DebugN"},
+                    "finding": {"severity": "Warning", "message": "message-1"},
+                }
+            ]
+        )
+
+        status, payload = self._request("POST", "/api/rules/update", {"updates": [{"id": "missing-rule", "enabled": False}]})
+        self.assertEqual(status, 400)
+        self.assertIn("Unknown rule id", str(payload.get("error", "")))
+
+    def test_post_api_rules_create_adds_rule(self):
+        self._install_temp_rule_config([])
+        rule = {
+            "id": "cfg-created-01",
+            "order": 10,
+            "enabled": True,
+            "file_types": ["Client", "Server"],
+            "rule_id": "CREATED-01",
+            "item": "생성 규칙",
+            "detector": {"kind": "regex", "pattern": "DebugN", "flags": ["MULTILINE"]},
+            "finding": {"severity": "Warning", "message": "created"},
+            "meta": {"owner": "test"},
+        }
+        status, payload = self._request("POST", "/api/rules/create", {"rule": rule})
+        self.assertEqual(status, 200)
+        self.assertEqual(str((payload.get("rule", {}) or {}).get("id", "")), "cfg-created-01")
+        exported_status, exported = self._request("GET", "/api/rules/export")
+        self.assertEqual(exported_status, 200)
+        self.assertEqual(len(exported.get("rules", [])), 1)
+
+    def test_post_api_rules_replace_updates_full_rule(self):
+        self._install_temp_rule_config(
+            [
+                {
+                    "id": "cfg-test-01",
+                    "order": 10,
+                    "enabled": True,
+                    "file_types": ["Client"],
+                    "rule_id": "TEST-01",
+                    "item": "테스트 규칙 1",
+                    "detector": {"kind": "regex", "pattern": "DebugN"},
+                    "finding": {"severity": "Warning", "message": "message-1"},
+                }
+            ]
+        )
+        replacement = {
+            "id": "cfg-test-01",
+            "order": 20,
+            "enabled": False,
+            "file_types": ["Server"],
+            "rule_id": "TEST-02",
+            "item": "변경된 규칙",
+            "detector": {"kind": "legacy_handler", "handler": "check_unused_variables"},
+            "finding": {"severity": "Low", "message": "changed"},
+            "meta": {"tag": "updated"},
+        }
+        status, payload = self._request("POST", "/api/rules/replace", {"rule": replacement})
+        self.assertEqual(status, 200)
+        rule = payload.get("rule", {}) or {}
+        self.assertEqual(str(rule.get("rule_id", "")), "TEST-02")
+        self.assertFalse(bool(rule.get("enabled", True)))
+
+    def test_post_api_rules_delete_removes_rule(self):
+        self._install_temp_rule_config(
+            [
+                {
+                    "id": "cfg-test-01",
+                    "order": 10,
+                    "enabled": True,
+                    "file_types": ["Client"],
+                    "rule_id": "TEST-01",
+                    "item": "테스트 규칙 1",
+                    "detector": {"kind": "regex", "pattern": "DebugN"},
+                    "finding": {"severity": "Warning", "message": "message-1"},
+                }
+            ]
+        )
+        status, payload = self._request("POST", "/api/rules/delete", {"id": "cfg-test-01"})
+        self.assertEqual(status, 200)
+        self.assertEqual(str(payload.get("deleted_id", "")), "cfg-test-01")
+        exported_status, exported = self._request("GET", "/api/rules/export")
+        self.assertEqual(exported_status, 200)
+        self.assertEqual(len(exported.get("rules", [])), 0)
+
+    def test_post_api_rules_import_merge_replaces_existing_and_adds_new(self):
+        self._install_temp_rule_config(
+            [
+                {
+                    "id": "cfg-test-01",
+                    "order": 10,
+                    "enabled": True,
+                    "file_types": ["Client"],
+                    "rule_id": "TEST-01",
+                    "item": "테스트 규칙 1",
+                    "detector": {"kind": "regex", "pattern": "DebugN"},
+                    "finding": {"severity": "Warning", "message": "message-1"},
+                }
+            ]
+        )
+        status, payload = self._request(
+            "POST",
+            "/api/rules/import",
+            {
+                "mode": "merge",
+                "rules": [
+                    {
+                        "id": "cfg-test-01",
+                        "order": 11,
+                        "enabled": False,
+                        "file_types": ["Server"],
+                        "rule_id": "TEST-01-UPDATED",
+                        "item": "테스트 규칙 수정",
+                        "detector": {"kind": "legacy_handler", "handler": "check_unused_variables"},
+                        "finding": {"severity": "Low", "message": "updated"},
+                    },
+                    {
+                        "id": "cfg-test-02",
+                        "order": 20,
+                        "enabled": True,
+                        "file_types": ["Client", "Server"],
+                        "rule_id": "TEST-02",
+                        "item": "신규 규칙",
+                        "detector": {"kind": "composite", "op": "complexity"},
+                        "finding": {"severity": "Medium", "message": "new"},
+                    },
+                ],
+            },
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(int(payload.get("imported_count", 0)), 2)
+        exported_status, exported = self._request("GET", "/api/rules/export")
+        self.assertEqual(exported_status, 200)
+        rows = exported.get("rules", [])
+        self.assertEqual(len(rows), 2)
+        updated = next(row for row in rows if row.get("id") == "cfg-test-01")
+        self.assertEqual(str(updated.get("rule_id", "")), "TEST-01-UPDATED")
+
     def test_get_api_verification_latest_returns_most_recent_summary(self):
         older = os.path.join(self.data_dir, "verification_summary_20260101_010101.json")
         newer = os.path.join(self.data_dir, "verification_summary_20260101_020202.json")
@@ -159,6 +492,337 @@ class ApiIntegrationTests(unittest.TestCase):
         status, payload = self._request("GET", "/api/verification/latest")
         self.assertEqual(status, 404)
         self.assertIn("error", payload)
+
+    def test_get_api_operations_latest_returns_recent_compare_payload(self):
+        benchmark_dir = os.path.join(self.data_dir, "benchmark_results")
+        integration_dir = os.path.join(self.data_dir, "integration_results")
+        os.makedirs(benchmark_dir, exist_ok=True)
+        os.makedirs(integration_dir, exist_ok=True)
+        self.app.operational_result_dirs = {
+            "ui_benchmark": benchmark_dir,
+            "ui_real_smoke": integration_dir,
+            "ctrlpp_integration": integration_dir,
+        }
+
+        older_benchmark = os.path.join(benchmark_dir, "ui_benchmark_20260101_010101.json")
+        newer_benchmark = os.path.join(benchmark_dir, "ui_benchmark_20260101_020202.json")
+        with open(older_benchmark, "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "summary": {
+                        "analyzeUiMs": {"avg": 240},
+                        "codeJumpMs": {"avg": 50},
+                    },
+                    "threshold_failures": [],
+                    "finished_at": "2026-01-01T01:01:01Z",
+                },
+                f,
+            )
+        with open(newer_benchmark, "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "summary": {
+                        "analyzeUiMs": {"avg": 210},
+                        "codeJumpMs": {"avg": 40},
+                    },
+                    "threshold_failures": [],
+                    "finished_at": "2026-01-01T02:02:02Z",
+                },
+                f,
+            )
+        os.utime(older_benchmark, (1000, 1000))
+        os.utime(newer_benchmark, (2000, 2000))
+
+        ui_smoke = os.path.join(integration_dir, "ui_real_smoke_20260101_020202.json")
+        with open(ui_smoke, "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "ok": True,
+                    "backend": {"selected_target_file": "BenchmarkP1Fixture.ctl"},
+                    "run": {"elapsed_ms": 777, "afterRun": {"rows": 6, "totalIssues": "6"}},
+                    "finished_at": "2026-01-01T02:02:02Z",
+                },
+                f,
+            )
+
+        ctrlpp_smoke = os.path.join(integration_dir, "ctrlpp_integration_20260101_020202.json")
+        with open(ctrlpp_smoke, "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "status": "passed",
+                    "binary": {"exists": True},
+                    "direct_smoke": {"elapsed_ms": 28, "finding_count": 2, "infra_error": False},
+                    "finished_at": "2026-01-01T02:02:02Z",
+                },
+                f,
+            )
+
+        status, payload = self._request("GET", "/api/operations/latest")
+        self.assertEqual(status, 200)
+        categories = payload.get("categories", {})
+        self.assertIn("ui_benchmark", categories)
+        self.assertIn("ui_real_smoke", categories)
+        self.assertIn("ctrlpp_integration", categories)
+        ui_benchmark = categories.get("ui_benchmark", {})
+        self.assertTrue(bool(ui_benchmark.get("available", False)))
+        self.assertEqual(ui_benchmark.get("latest", {}).get("source_file"), "ui_benchmark_20260101_020202.json")
+        self.assertEqual(ui_benchmark.get("previous", {}).get("source_file"), "ui_benchmark_20260101_010101.json")
+        self.assertEqual(ui_benchmark.get("delta", {}).get("analyze_ui_avg_ms"), -30.0)
+        self.assertEqual(categories.get("ui_real_smoke", {}).get("latest", {}).get("selected_file"), "BenchmarkP1Fixture.ctl")
+        self.assertEqual(categories.get("ctrlpp_integration", {}).get("latest", {}).get("finding_count"), 2)
+
+    def test_get_api_operations_latest_returns_unavailable_when_missing(self):
+        benchmark_dir = os.path.join(self.data_dir, "benchmark_results")
+        integration_dir = os.path.join(self.data_dir, "integration_results")
+        os.makedirs(benchmark_dir, exist_ok=True)
+        os.makedirs(integration_dir, exist_ok=True)
+        self.app.operational_result_dirs = {
+            "ui_benchmark": benchmark_dir,
+            "ui_real_smoke": integration_dir,
+            "ctrlpp_integration": integration_dir,
+        }
+
+        status, payload = self._request("GET", "/api/operations/latest")
+        self.assertEqual(status, 200)
+        categories = payload.get("categories", {})
+        self.assertFalse(bool(categories.get("ui_benchmark", {}).get("available", True)))
+        self.assertIsNone(categories.get("ui_benchmark", {}).get("latest"))
+
+    def test_get_api_operations_latest_reads_utf8_sig_artifacts(self):
+        benchmark_dir = os.path.join(self.data_dir, "benchmark_results")
+        integration_dir = os.path.join(self.data_dir, "integration_results")
+        os.makedirs(benchmark_dir, exist_ok=True)
+        os.makedirs(integration_dir, exist_ok=True)
+        self.app.operational_result_dirs = {
+            "ui_benchmark": benchmark_dir,
+            "ui_real_smoke": integration_dir,
+            "ctrlpp_integration": integration_dir,
+        }
+
+        benchmark_path = os.path.join(benchmark_dir, "ui_benchmark_20260101_020202.json")
+        with open(benchmark_path, "w", encoding="utf-8-sig") as f:
+            json.dump(
+                {
+                    "summary": {
+                        "analyzeUiMs": {"avg": 210},
+                        "codeJumpMs": {"avg": 40},
+                    },
+                    "threshold_failures": [],
+                    "finished_at": "2026-01-01T02:02:02Z",
+                },
+                f,
+                ensure_ascii=False,
+            )
+
+        ui_smoke = os.path.join(integration_dir, "ui_real_smoke_20260101_020202.json")
+        with open(ui_smoke, "w", encoding="utf-8-sig") as f:
+            json.dump(
+                {
+                    "ok": True,
+                    "backend": {"selected_target_file": "GoldenTime.ctl"},
+                    "run": {"elapsed_ms": 777, "afterRun": {"rows": 6, "totalIssues": "6"}},
+                    "finished_at": "2026-01-01T02:02:02Z",
+                },
+                f,
+                ensure_ascii=False,
+            )
+
+        status, payload = self._request("GET", "/api/operations/latest")
+        self.assertEqual(status, 200)
+        categories = payload.get("categories", {})
+        self.assertEqual(categories.get("ui_benchmark", {}).get("latest", {}).get("source_file"), "ui_benchmark_20260101_020202.json")
+        self.assertEqual(categories.get("ui_real_smoke", {}).get("latest", {}).get("selected_file"), "GoldenTime.ctl")
+
+    def test_get_api_analysis_diff_latest_returns_recent_compare_payload(self):
+        older_dir = os.path.join(self.data_dir, "20260101_010101")
+        newer_dir = os.path.join(self.data_dir, "20260101_020202")
+        os.makedirs(older_dir, exist_ok=True)
+        os.makedirs(newer_dir, exist_ok=True)
+        with open(os.path.join(older_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "request_id": "old-run",
+                    "summary": {"total": 3, "critical": 1, "warning": 2, "info": 0, "p1_total": 2, "p2_total": 1, "p3_total": 0},
+                    "report_paths": {"html": "combined_analysis_report.html", "excel": [], "reviewed_txt": []},
+                    "file_summaries": [
+                        {"file": "sample.ctl", "p1_total": 2, "p2_total": 1, "p3_total": 0, "critical": 1, "warning": 2, "info": 0, "total": 3}
+                    ],
+                },
+                f,
+            )
+        with open(os.path.join(newer_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "request_id": "new-run",
+                    "summary": {"total": 5, "critical": 1, "warning": 3, "info": 1, "p1_total": 3, "p2_total": 1, "p3_total": 1},
+                    "report_paths": {"html": "combined_analysis_report.html", "excel": [], "reviewed_txt": []},
+                    "file_summaries": [
+                        {"file": "sample.ctl", "p1_total": 3, "p2_total": 1, "p3_total": 0, "critical": 1, "warning": 3, "info": 0, "total": 4},
+                        {"file": "other.ctl", "p1_total": 0, "p2_total": 0, "p3_total": 1, "critical": 0, "warning": 0, "info": 1, "total": 1},
+                    ],
+                },
+                f,
+            )
+        os.utime(older_dir, (1000, 1000))
+        os.utime(newer_dir, (2000, 2000))
+
+        status, payload = self._request("GET", "/api/analysis-diff/latest")
+        self.assertEqual(status, 200)
+        self.assertTrue(bool(payload.get("available", False)))
+        self.assertEqual(payload.get("latest", {}).get("request_id"), "new-run")
+        self.assertEqual(payload.get("previous", {}).get("request_id"), "old-run")
+        self.assertEqual(payload.get("delta", {}).get("summary", {}).get("total"), 2)
+        file_diffs = payload.get("file_diffs", [])
+        changed_sample = next(item for item in file_diffs if item.get("file") == "sample.ctl")
+        added_other = next(item for item in file_diffs if item.get("file") == "other.ctl")
+        self.assertEqual(changed_sample.get("status"), "changed")
+        self.assertEqual(changed_sample.get("delta_counts", {}).get("p1_total"), 1)
+        self.assertEqual(added_other.get("status"), "added")
+
+    def test_get_api_analysis_diff_latest_unavailable_when_missing_runs(self):
+        status, payload = self._request("GET", "/api/analysis-diff/latest")
+        self.assertEqual(status, 200)
+        self.assertFalse(bool(payload.get("available", True)))
+        self.assertIn("비교 가능한 최근 2회", str(payload.get("message", "")))
+
+    def test_get_api_analysis_diff_runs_returns_recent_run_list(self):
+        older_dir = os.path.join(self.data_dir, "20260101_010101")
+        newer_dir = os.path.join(self.data_dir, "20260101_020202")
+        os.makedirs(older_dir, exist_ok=True)
+        os.makedirs(newer_dir, exist_ok=True)
+        with open(os.path.join(older_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump({"request_id": "old-run", "summary": {"total": 1}, "report_paths": {}, "file_summaries": []}, f)
+        with open(os.path.join(newer_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump({"request_id": "new-run", "summary": {"total": 2}, "report_paths": {}, "file_summaries": []}, f)
+        os.utime(older_dir, (1000, 1000))
+        os.utime(newer_dir, (2000, 2000))
+
+        status, payload = self._request("GET", "/api/analysis-diff/runs")
+        self.assertEqual(status, 200)
+        self.assertTrue(bool(payload.get("available", False)))
+        runs = payload.get("runs", [])
+        self.assertEqual(len(runs), 2)
+        self.assertEqual(str(runs[0].get("timestamp", "")), "20260101_020202")
+        self.assertEqual(str(runs[1].get("timestamp", "")), "20260101_010101")
+
+    def test_get_api_analysis_diff_runs_skips_invalid_historical_runs(self):
+        invalid_dir = os.path.join(self.data_dir, "20260101_030303")
+        older_dir = os.path.join(self.data_dir, "20260101_010101")
+        newer_dir = os.path.join(self.data_dir, "20260101_020202")
+        os.makedirs(invalid_dir, exist_ok=True)
+        os.makedirs(older_dir, exist_ok=True)
+        os.makedirs(newer_dir, exist_ok=True)
+        with open(os.path.join(older_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump({"request_id": "old-run", "summary": {"total": 1}, "report_paths": {}, "file_summaries": []}, f)
+        with open(os.path.join(newer_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump({"request_id": "new-run", "summary": {"total": 2}, "report_paths": {}, "file_summaries": []}, f)
+        os.utime(older_dir, (1000, 1000))
+        os.utime(newer_dir, (2000, 2000))
+        os.utime(invalid_dir, (3000, 3000))
+
+        status, payload = self._request("GET", "/api/analysis-diff/runs")
+        self.assertEqual(status, 200)
+        self.assertTrue(bool(payload.get("available", False)))
+        runs = payload.get("runs", [])
+        self.assertEqual(len(runs), 2)
+        self.assertEqual(str(runs[0].get("timestamp", "")), "20260101_020202")
+        self.assertEqual(str(runs[1].get("timestamp", "")), "20260101_010101")
+        self.assertEqual(int(payload.get("invalid_run_count", 0)), 1)
+        self.assertTrue(bool(payload.get("warnings")))
+        self.assertIn("analysis summary not found", str(payload.get("warnings", [""])[0]))
+
+    def test_get_api_analysis_diff_compare_returns_selected_pair(self):
+        older_dir = os.path.join(self.data_dir, "20260101_010101")
+        middle_dir = os.path.join(self.data_dir, "20260101_015959")
+        newer_dir = os.path.join(self.data_dir, "20260101_020202")
+        os.makedirs(older_dir, exist_ok=True)
+        os.makedirs(middle_dir, exist_ok=True)
+        os.makedirs(newer_dir, exist_ok=True)
+        with open(os.path.join(older_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump({"request_id": "old-run", "summary": {"total": 1, "p1_total": 1}, "report_paths": {}, "file_summaries": [{"file": "sample.ctl", "p1_total": 1, "p2_total": 0, "p3_total": 0, "critical": 0, "warning": 1, "info": 0, "total": 1}]}, f)
+        with open(os.path.join(middle_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump({"request_id": "mid-run", "summary": {"total": 4, "p1_total": 3}, "report_paths": {}, "file_summaries": [{"file": "sample.ctl", "p1_total": 3, "p2_total": 1, "p3_total": 0, "critical": 1, "warning": 2, "info": 0, "total": 4}]}, f)
+        with open(os.path.join(newer_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump({"request_id": "new-run", "summary": {"total": 5, "p1_total": 3}, "report_paths": {}, "file_summaries": [{"file": "sample.ctl", "p1_total": 3, "p2_total": 1, "p3_total": 1, "critical": 1, "warning": 2, "info": 1, "total": 5}]}, f)
+        os.utime(older_dir, (1000, 1000))
+        os.utime(middle_dir, (1500, 1500))
+        os.utime(newer_dir, (2000, 2000))
+
+        status, payload = self._request("GET", "/api/analysis-diff/compare?latest=20260101_015959&previous=20260101_010101")
+        self.assertEqual(status, 200)
+        self.assertTrue(bool(payload.get("available", False)))
+        self.assertEqual(str(payload.get("latest", {}).get("request_id", "")), "mid-run")
+        self.assertEqual(str(payload.get("previous", {}).get("request_id", "")), "old-run")
+        self.assertEqual(int(payload.get("delta", {}).get("summary", {}).get("total", 0)), 3)
+
+    def test_get_api_analysis_diff_compare_rejects_same_run(self):
+        status, payload = self._request("GET", "/api/analysis-diff/compare?latest=20260101_020202&previous=20260101_020202")
+        self.assertEqual(status, 400)
+        self.assertIn("different runs", str(payload.get("error", "")))
+
+    def test_get_api_analysis_diff_latest_skips_invalid_historical_runs(self):
+        invalid_dir = os.path.join(self.data_dir, "20260101_030303")
+        older_dir = os.path.join(self.data_dir, "20260101_010101")
+        newer_dir = os.path.join(self.data_dir, "20260101_020202")
+        os.makedirs(invalid_dir, exist_ok=True)
+        os.makedirs(older_dir, exist_ok=True)
+        os.makedirs(newer_dir, exist_ok=True)
+        with open(os.path.join(older_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump({"request_id": "old-run", "summary": {"total": 1}, "report_paths": {}, "file_summaries": []}, f)
+        with open(os.path.join(newer_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump({"request_id": "new-run", "summary": {"total": 2}, "report_paths": {}, "file_summaries": []}, f)
+        os.utime(older_dir, (1000, 1000))
+        os.utime(newer_dir, (2000, 2000))
+        os.utime(invalid_dir, (3000, 3000))
+
+        status, payload = self._request("GET", "/api/analysis-diff/latest")
+        self.assertEqual(status, 200)
+        self.assertTrue(bool(payload.get("available", False)))
+        self.assertEqual(str(payload.get("latest", {}).get("request_id", "")), "new-run")
+        self.assertEqual(str(payload.get("previous", {}).get("request_id", "")), "old-run")
+        self.assertEqual(int(payload.get("invalid_run_count", 0)), 1)
+        self.assertTrue(bool(payload.get("warnings")))
+        self.assertIn("analysis summary not found", str(payload.get("warnings", [""])[0]))
+
+    def test_get_api_analysis_diff_latest_unavailable_when_only_one_valid_run_exists(self):
+        invalid_dir = os.path.join(self.data_dir, "20260101_010101")
+        newer_dir = os.path.join(self.data_dir, "20260101_020202")
+        os.makedirs(invalid_dir, exist_ok=True)
+        os.makedirs(newer_dir, exist_ok=True)
+        with open(os.path.join(newer_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump({"summary": {"total": 1}, "file_summaries": []}, f)
+        os.utime(invalid_dir, (1000, 1000))
+        os.utime(newer_dir, (2000, 2000))
+
+        status, payload = self._request("GET", "/api/analysis-diff/latest")
+        self.assertEqual(status, 200)
+        self.assertFalse(bool(payload.get("available", True)))
+        self.assertIn("비교 가능한 최근 2회", str(payload.get("message", "")))
+        self.assertEqual(int(payload.get("invalid_run_count", 0)), 1)
+        self.assertTrue(bool(payload.get("warnings")))
+
+    def test_get_api_analysis_diff_compare_ignores_invalid_runs_between_selected_valid_runs(self):
+        older_dir = os.path.join(self.data_dir, "20260101_010101")
+        invalid_dir = os.path.join(self.data_dir, "20260101_015959")
+        newer_dir = os.path.join(self.data_dir, "20260101_020202")
+        os.makedirs(older_dir, exist_ok=True)
+        os.makedirs(invalid_dir, exist_ok=True)
+        os.makedirs(newer_dir, exist_ok=True)
+        with open(os.path.join(older_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump({"request_id": "old-run", "summary": {"total": 1}, "report_paths": {}, "file_summaries": []}, f)
+        with open(os.path.join(newer_dir, "analysis_summary.json"), "w", encoding="utf-8") as f:
+            json.dump({"request_id": "new-run", "summary": {"total": 4}, "report_paths": {}, "file_summaries": []}, f)
+        os.utime(older_dir, (1000, 1000))
+        os.utime(invalid_dir, (1500, 1500))
+        os.utime(newer_dir, (2000, 2000))
+
+        status, payload = self._request("GET", "/api/analysis-diff/compare?latest=20260101_020202&previous=20260101_010101")
+        self.assertEqual(status, 200)
+        self.assertTrue(bool(payload.get("available", False)))
+        self.assertEqual(int(payload.get("delta", {}).get("summary", {}).get("total", 0)), 3)
+        self.assertEqual(int(payload.get("invalid_run_count", 0)), 1)
+        self.assertTrue(bool(payload.get("warnings")))
+
 
     def test_post_api_analyze_selected_files(self):
         status, payload = self._request(
@@ -183,6 +847,26 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertIn("convert", payload["metrics"]["timings_ms"])
         self.assertIn("llm_calls", payload["metrics"])
         self.assertIn("convert_cache", payload["metrics"])
+        output_dir = str(payload.get("output_dir", "") or "")
+        summary_path = os.path.join(output_dir, "analysis_summary.json")
+        self.assertTrue(os.path.exists(summary_path))
+        with open(summary_path, "r", encoding="utf-8") as f:
+            summary_payload = json.load(f)
+        self.assertIn("summary", summary_payload)
+        self.assertIn("file_summaries", summary_payload)
+        self.assertEqual(str(summary_payload.get("output_dir", "")), output_dir)
+        self.assertEqual(str(summary_payload.get("request_id", "")), str(payload.get("request_id", "")))
+
+    def test_post_api_analyze_summary_snapshot_write_is_fail_soft(self):
+        with mock.patch.object(DirectoryAnalysisPipeline, "_write_analysis_summary_file", side_effect=OSError("disk full")):
+            status, payload = self._request(
+                "POST",
+                "/api/analyze",
+                {"mode": "Static", "selected_files": ["sample.ctl"]},
+            )
+        self.assertEqual(status, 200)
+        self.assertIn("summary", payload)
+        self.assertIn("output_dir", payload)
 
     def test_get_api_ai_models_returns_fail_soft_payload(self):
         self.app.list_ai_models = lambda: {
@@ -198,6 +882,51 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertFalse(bool(payload.get("available")))
         self.assertEqual(payload.get("models"), [])
         self.assertIn("error", payload)
+
+    def test_get_api_ai_models_typed_error_returns_error_code(self):
+        def failing_list_models():
+            raise ReviewerTransportError("Ollama not reachable")
+
+        self.app.ai_tool.list_models = failing_list_models
+        status, payload = self._request("GET", "/api/ai/models")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload.get("provider"), "ollama")
+        self.assertFalse(bool(payload.get("available")))
+        self.assertEqual(payload.get("models"), [])
+        self.assertEqual(payload.get("error_code"), "AI_REVIEW_TRANSPORT_ERROR")
+        self.assertIn("Ollama not reachable", str(payload.get("error", "")))
+
+    def test_llm_reviewer_get_json_timeout_raises_typed_error(self):
+        reviewer = LLMReviewer({"provider": "ollama", "timeout_sec": 1, "fail_soft": True}, base_dir=self.data_dir)
+
+        with mock.patch(
+            "core.llm_reviewer.urllib.request.urlopen",
+            side_effect=urllib.error.URLError("timed out"),
+        ):
+            with self.assertRaises(ReviewerTimeoutError):
+                reviewer._get_json("http://127.0.0.1:11434/api/tags")
+
+    def test_llm_reviewer_get_json_invalid_payload_raises_typed_error(self):
+        reviewer = LLMReviewer({"provider": "ollama", "timeout_sec": 1, "fail_soft": True}, base_dir=self.data_dir)
+
+        class _FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def read(self):
+                return b"not-json"
+
+        with mock.patch("core.llm_reviewer.urllib.request.urlopen", return_value=_FakeResponse()):
+            with self.assertRaises(ReviewerResponseError):
+                reviewer._get_json("http://127.0.0.1:11434/api/tags")
+
+    def test_llm_reviewer_generate_review_fail_soft_for_unsupported_provider(self):
+        reviewer = LLMReviewer({"provider": "unsupported", "fail_soft": True}, base_dir=self.data_dir)
+        review = reviewer.generate_review("main() {}", [{"rule_id": "R1", "message": "issue"}])
+        self.assertIn("AI live review failed: Unsupported AI provider", review)
 
     def test_post_api_analyze_live_ai_model_override_is_forwarded(self):
         self._force_single_internal_violation()
@@ -542,6 +1271,134 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertIn("snippet", seen["todo_prompt_context"])
         self.assertEqual(str(seen["todo_prompt_context"].get("todo_comment", "")), "test violation")
 
+    def test_post_api_ai_review_generate_single_issue_success(self):
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: "LIVE REVIEW\n```ctl\nsetMultiValue(\"A.B\", vals);\n```"
+        violation = {
+            "source": "P1",
+            "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-1",
+            "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+            "file": "sample.ctl",
+            "file_path": os.path.join(self.data_dir, "sample.ctl"),
+            "line": 1,
+            "object": "sample.ctl",
+            "event": "Global",
+            "severity": "Warning",
+            "message": "multi setValue detected",
+        }
+        status, payload = self._request(
+            "POST",
+            "/api/ai-review/generate",
+            {"violation": violation, "enable_live_ai": True, "ai_with_context": False},
+        )
+        self.assertEqual(status, 200)
+        self.assertTrue(payload.get("available"))
+        self.assertEqual((payload.get("review_item") or {}).get("source"), "live")
+        self.assertEqual((payload.get("status_item") or {}).get("status"), "generated")
+        self.assertEqual((payload.get("status_item") or {}).get("reason"), "generated")
+
+    def test_post_api_ai_review_generate_timeout_reason_mapping(self):
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: "AI live review failed: timed out"
+        violation = {
+            "source": "P1",
+            "issue_id": "P1-R1-1",
+            "rule_id": "R1",
+            "file": "sample.ctl",
+            "file_path": os.path.join(self.data_dir, "sample.ctl"),
+            "line": 1,
+            "object": "sample.ctl",
+            "event": "Global",
+            "severity": "Warning",
+            "message": "test violation",
+        }
+        status, payload = self._request(
+            "POST",
+            "/api/ai-review/generate",
+            {"violation": violation, "enable_live_ai": True},
+        )
+        self.assertEqual(status, 200)
+        self.assertFalse(payload.get("available"))
+        self.assertEqual((payload.get("status_item") or {}).get("status"), "failed")
+        self.assertEqual((payload.get("status_item") or {}).get("reason"), "timeout")
+
+    def test_post_api_ai_review_generate_domain_hint_warning_when_keywords_missing(self):
+        calls = {"count": 0}
+
+        def fake_live_review(*_args, **_kwargs):
+            calls["count"] += 1
+            return "LIVE REVIEW WITHOUT EXPECTED KEYWORDS"
+
+        self.app.ai_tool.generate_review = fake_live_review
+        violation = {
+            "source": "P1",
+            "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-1",
+            "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+            "file": "sample.ctl",
+            "file_path": os.path.join(self.data_dir, "sample.ctl"),
+            "line": 1,
+            "object": "sample.ctl",
+            "event": "Global",
+            "severity": "Warning",
+            "message": "multi setValue detected",
+        }
+        status, payload = self._request(
+            "POST",
+            "/api/ai-review/generate",
+            {"violation": violation, "enable_live_ai": True},
+        )
+        self.assertEqual(status, 200)
+        self.assertTrue(payload.get("available"))
+        self.assertGreaterEqual(calls["count"], 2)
+        detail = str((payload.get("status_item") or {}).get("detail", "") or "")
+        self.assertIn("도메인 가이드 검증 경고", detail)
+
+    def test_post_api_ai_review_generate_domain_hint_warning_when_grouped_code_example_missing(self):
+        calls = {"count": 0}
+
+        def fake_live_review(*_args, **_kwargs):
+            calls["count"] += 1
+            return "LIVE REVIEW\nsetMultiValue should be used for grouped update."
+
+        self.app.ai_tool.generate_review = fake_live_review
+        violation = {
+            "source": "P1",
+            "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-2",
+            "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+            "file": "sample.ctl",
+            "file_path": os.path.join(self.data_dir, "sample.ctl"),
+            "line": 1,
+            "object": "sample.ctl",
+            "event": "Global",
+            "severity": "Warning",
+            "message": "multi setValue detected",
+        }
+        status, payload = self._request(
+            "POST",
+            "/api/ai-review/generate",
+            {"violation": violation, "enable_live_ai": True},
+        )
+        self.assertEqual(status, 200)
+        self.assertTrue(payload.get("available"))
+        self.assertGreaterEqual(calls["count"], 2)
+        detail = str((payload.get("status_item") or {}).get("detail", "") or "")
+        self.assertIn("묶음 처리 코드 예시", detail)
+
+    def test_domain_hint_accepts_grouped_dpset_and_dpget_examples(self):
+        grouped_dpset_review = (
+            "```ctl\n"
+            "dpSet(\"System1:Obj1.enabled\", false,\n"
+            "      \"System1:Obj2.enabled\", false);\n"
+            "```"
+        )
+        grouped_dpget_review = (
+            "```ctl\n"
+            "dpGet(\"System1:Obj1.enabled\", bObj1,\n"
+            "      \"System1:Obj2.enabled\", bObj2);\n"
+            "```"
+        )
+
+        self.assertTrue(self.app._review_has_domain_hint("PERF-DPSET-BATCH-01", grouped_dpset_review))
+        self.assertTrue(self.app._review_has_domain_hint("PERF-DPGET-BATCH-01", grouped_dpget_review))
+
     def test_llm_reviewer_todo_compact_prompt_omits_full_code(self):
         reviewer = self.app.ai_tool
         reviewer.prompt_mode = "todo_compact"
@@ -861,10 +1718,10 @@ class ApiIntegrationTests(unittest.TestCase):
         finally:
             self.app.live_ai_max_parent_reviews_per_file = original_limit
         self.assertEqual(status, 200)
-        self.assertEqual(calls["count"], 2)
+        self.assertEqual(calls["count"], 3)
         p3 = payload.get("violations", {}).get("P3", [])
-        self.assertEqual(len(p3), 2)
-        self.assertEqual((payload.get("metrics") or {}).get("llm_calls"), 2)
+        self.assertEqual(len(p3), 3)
+        self.assertEqual((payload.get("metrics") or {}).get("llm_calls"), 3)
 
     def test_recommended_live_ai_parent_review_limit_can_expand_for_critical_mix(self):
         self.app.live_ai_max_parent_reviews_per_file = 3
@@ -882,7 +1739,7 @@ class ApiIntegrationTests(unittest.TestCase):
             {"severity": "Warning", "object": "sample.ctl", "event": "Global", "parent_rule_id": "PERF-02"},
             {"severity": "Warning", "object": "sample.ctl", "event": "Global", "parent_rule_id": "PERF-03"},
         ]
-        self.assertEqual(self.app._recommended_live_ai_parent_review_limit(eligible), 1)
+        self.assertEqual(self.app._recommended_live_ai_parent_review_limit(eligible), 2)
 
     def test_post_api_analyze_defer_excel_reports_and_flush_endpoint(self):
         status, payload = self._request(
@@ -915,12 +1772,67 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertIn("excel", flush_payload.get("report_paths", {}))
         excel_summary = (flush_payload.get("report_jobs") or {}).get("excel") or {}
         self.assertEqual(excel_summary.get("pending_count"), 0)
-        self.assertEqual(excel_summary.get("running_count"), 0)
-        self.assertTrue(isinstance(flush_payload.get("all_completed"), bool))
-        jobs = excel_summary.get("jobs") or []
-        self.assertGreaterEqual(len(jobs), 1)
-        self.assertIn("metrics", jobs[0])
-        self.assertIn("timings_ms", jobs[0].get("metrics", {}))
+
+    def test_get_api_report_excel_download_returns_attachment(self):
+        _require_openpyxl(self)
+        status, payload = self._request(
+            "POST",
+            "/api/analyze",
+            {
+                "selected_files": ["sample.ctl"],
+                "mode": "Static",
+                "enable_ctrlppcheck": False,
+                "enable_live_ai": False,
+                "defer_excel_reports": True,
+            },
+        )
+        self.assertEqual(status, 200)
+        flush_status, flush_payload = self._request(
+            "POST",
+            "/api/report/excel",
+            {
+                "session_id": payload.get("output_dir", ""),
+                "wait": True,
+                "timeout_sec": 30,
+            },
+        )
+        self.assertEqual(flush_status, 200)
+        excel_files = list((flush_payload.get("report_paths") or {}).get("excel", []) or [])
+        self.assertGreaterEqual(len(excel_files), 1)
+
+        query = urllib.parse.urlencode(
+            {"output_dir": flush_payload.get("output_dir", ""), "name": excel_files[0]}
+        )
+        download_status, body, headers = self._request_raw("GET", f"/api/report/excel/download?{query}")
+        self.assertEqual(download_status, 200)
+        self.assertGreater(len(body), 0)
+        self.assertIn(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            str(headers.get("Content-Type", "")),
+        )
+        self.assertIn("attachment;", str(headers.get("Content-Disposition", "")))
+
+    def test_get_api_report_excel_download_rejects_path_traversal(self):
+        status, payload = self._request(
+            "GET",
+            "/api/report/excel/download?" + urllib.parse.urlencode(
+                {"output_dir": self.data_dir, "name": "../escape.xlsx"}
+            ),
+        )
+        self.assertEqual(status, 400)
+        self.assertIn("xlsx file", str(payload.get("error", "")))
+
+    def test_get_api_report_excel_download_returns_404_for_missing_file(self):
+        report_dir = os.path.join(self.data_dir, "reports")
+        os.makedirs(report_dir, exist_ok=True)
+        status, payload = self._request(
+            "GET",
+            "/api/report/excel/download?" + urllib.parse.urlencode(
+                {"output_dir": report_dir, "name": "missing.xlsx"}
+            ),
+        )
+        self.assertEqual(status, 404)
+        self.assertIn("Excel report not found", str(payload.get("error", "")))
 
     def test_autofix_prepare_and_apply_ctl_diff_flow(self):
         self._force_single_internal_violation()
@@ -1236,7 +2148,7 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertTrue(bool(stats_payload.get("instruction_validation_fail_by_reason", {})))
 
     def test_autofix_instruction_convert_fail_records_stage_and_stats(self):
-        import main as main_module
+        import core.autofix_mixin as mixin_module
 
         self._force_single_internal_violation()
         self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
@@ -1244,8 +2156,8 @@ class ApiIntegrationTests(unittest.TestCase):
             "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
         )
         self.app.autofix_structured_instruction_enabled = True
-        original_to_hunks = main_module.instruction_to_hunks
-        main_module.instruction_to_hunks = lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("forced_convert_fail"))
+        original_to_hunks = mixin_module.instruction_to_hunks
+        mixin_module.instruction_to_hunks = lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("forced_convert_fail"))
         try:
             status, analyze_payload = self._request(
                 "POST",
@@ -1290,10 +2202,10 @@ class ApiIntegrationTests(unittest.TestCase):
             self.assertEqual(stats_status, 200)
             self.assertGreaterEqual(int(stats_payload.get("instruction_convert_fail_count", 0) or 0), 1)
         finally:
-            main_module.instruction_to_hunks = original_to_hunks
+            mixin_module.instruction_to_hunks = original_to_hunks
 
     def test_autofix_instruction_engine_fail_records_stage_and_stats(self):
-        import main as main_module
+        import core.autofix_mixin as mixin_module
 
         self._force_single_internal_violation()
         self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
@@ -1301,7 +2213,7 @@ class ApiIntegrationTests(unittest.TestCase):
             "코드:\n```cpp\nif (isValid) {\n  return;\n}\n```"
         )
         self.app.autofix_structured_instruction_enabled = True
-        original_apply_with_engine = main_module.apply_with_engine
+        original_apply_with_engine = mixin_module.apply_with_engine
         call_state = {"count": 0}
 
         def _patched_apply_with_engine(*args, **kwargs):
@@ -1310,7 +2222,7 @@ class ApiIntegrationTests(unittest.TestCase):
                 return {"ok": False, "engine_mode": "failed", "fallback_reason": "forced_engine_fail"}
             return original_apply_with_engine(*args, **kwargs)
 
-        main_module.apply_with_engine = _patched_apply_with_engine
+        mixin_module.apply_with_engine = _patched_apply_with_engine
         try:
             status, analyze_payload = self._request(
                 "POST",
@@ -1355,7 +2267,7 @@ class ApiIntegrationTests(unittest.TestCase):
             self.assertEqual(stats_status, 200)
             self.assertGreaterEqual(int(stats_payload.get("instruction_engine_fail_count", 0) or 0), 1)
         finally:
-            main_module.apply_with_engine = original_apply_with_engine
+            mixin_module.apply_with_engine = original_apply_with_engine
 
     def test_autofix_compare_proposals_include_structured_instruction_envelope(self):
         self._force_single_internal_violation()
@@ -2808,7 +3720,7 @@ class ApiIntegrationTests(unittest.TestCase):
         self.app.ctrl_tool.auto_install_on_missing = True
 
         def failing_ensure():
-            raise RuntimeError("CtrlppCheck download failed: mocked offline")
+            raise CtrlppDownloadError("CtrlppCheck download failed: mocked offline")
 
         self.app.ctrl_tool.ensure_installed = failing_ensure
         status, payload = self._request(
@@ -2823,6 +3735,7 @@ class ApiIntegrationTests(unittest.TestCase):
         summary = payload.get("summary", {})
         self.assertTrue(bool(summary.get("ctrlpp_preflight_attempted", False)))
         self.assertFalse(bool(summary.get("ctrlpp_preflight_ready", False)))
+        self.assertEqual(summary.get("ctrlpp_preflight_error_code"), "CTRLPPCHECK_DOWNLOAD_ERROR")
 
     def test_api_ctrlpp_preflight_skips_without_ctl_target(self):
         self.app.ctrl_tool.auto_install_on_missing = True
@@ -3056,13 +3969,17 @@ class ReportQualityTests(unittest.TestCase):
         self.tmp_dir.cleanup()
 
     @staticmethod
-    def _find_status_col(ws):
+    def _find_header_col(ws, header_text, default):
         for r in range(1, min(ws.max_row, 40) + 1):
             for c in range(1, min(ws.max_column, 20) + 1):
                 value = str(ws.cell(r, c).value or "").strip()
-                if "검증 결과" in value:
+                if header_text in value:
                     return c
-        return 6
+        return default
+
+    @staticmethod
+    def _find_status_col(ws):
+        return ReportQualityTests._find_header_col(ws, "1차 검증", 6)
 
     def _sample_report_data(self):
         return {
@@ -3120,6 +4037,13 @@ class ReportQualityTests(unittest.TestCase):
                 return r
         return None
 
+    def _status_and_message_for_item(self, ws, item_text):
+        row = self._find_item_row(ws, item_text)
+        self.assertIsNotNone(row, item_text)
+        status_col = self._find_status_col(ws)
+        review_col = self._find_header_col(ws, "검증 결과", 7)
+        return row, ws.cell(row, status_col).value, str(ws.cell(row, review_col).value or "").strip()
+
     def test_html_report_contains_rows_and_severity_class(self):
         data = self._sample_report_data()
         self.reporter.generate_html_report(
@@ -3159,6 +4083,41 @@ class ReportQualityTests(unittest.TestCase):
         col_values = [active.cell(row=r, column=status_col).value for r in range(1, active.max_row + 1)]
         self.assertIn("NG", col_values)
         self.assertIn("미분류_위반사항", wb.sheetnames)
+
+    def test_excel_template_sheet_writes_primary_status_to_f_and_guidance_to_g(self):
+        load_workbook = _require_openpyxl(self)
+        data = self._sample_report_data()
+        output_name = "quality_template_columns.xlsx"
+        self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
+
+        output_path = os.path.join(self.reporter.output_dir, output_name)
+        wb = load_workbook(output_path)
+        active = wb.active
+
+        template_path = os.path.join(self.config_dir, self.reporter.SERVER_TEMPLATE)
+        template_wb = load_workbook(template_path)
+        template_ws = template_wb.active
+
+        primary_col = self._find_status_col(active)
+        review_col = self._find_header_col(active, "검증 결과", 7)
+        remarks_col = self._find_header_col(active, "비고", 8)
+
+        target_row = None
+        for row in range(18, active.max_row + 1):
+            if str(active.cell(row, primary_col).value or "").strip() == "NG":
+                target_row = row
+                break
+
+        self.assertIsNotNone(target_row)
+        self.assertEqual(primary_col, 6)
+        self.assertEqual(review_col, 7)
+        self.assertEqual(remarks_col, 8)
+        self.assertIn(active.cell(target_row, primary_col).value, {"NG", "OK", "N/A"})
+        self.assertTrue(str(active.cell(target_row, review_col).value or "").strip())
+        self.assertEqual(
+            active.cell(target_row, remarks_col).value,
+            template_ws.cell(target_row, remarks_col).value,
+        )
 
     def test_excel_report_returns_timing_metrics_and_template_cache_hits(self):
         _require_openpyxl(self)
@@ -3620,6 +4579,113 @@ class ReportQualityTests(unittest.TestCase):
         status_col = self._find_status_col(ws)
         self.assertEqual(ws.cell(row, status_col).value, "NG")
 
+    def test_loop_checklist_returns_na_when_while_pattern_missing(self):
+        data = {
+            "file": "sample.ctl",
+            "source_code": "main()\n{\n  return;\n}\n",
+            "internal_violations": [],
+            "global_violations": [],
+            "ai_reviews": [],
+        }
+        output_name = "quality_loop_na.xlsx"
+        self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
+        load_workbook = _require_openpyxl(self)
+
+        wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
+        ws = wb.active
+        _, status, message = self._status_and_message_for_item(ws, "Loop문 내에 처리 조건")
+        self.assertEqual(status, "N/A")
+        self.assertEqual(message, self.reporter.PATTERN_NOT_FOUND_MESSAGE)
+
+    def test_loop_checklist_returns_ok_when_while_pattern_present_without_findings(self):
+        data = {
+            "file": "sample.ctl",
+            "source_code": "main()\n{\n  while (TRUE)\n  {\n    if (isActive)\n    {\n      foo();\n    }\n    delay(1);\n  }\n}\n",
+            "internal_violations": [],
+            "global_violations": [],
+            "ai_reviews": [],
+        }
+        output_name = "quality_loop_ok.xlsx"
+        self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
+        load_workbook = _require_openpyxl(self)
+
+        wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
+        ws = wb.active
+        _, status, message = self._status_and_message_for_item(ws, "Loop문 내에 처리 조건")
+        self.assertEqual(status, "OK")
+        self.assertEqual(message, "")
+
+    def test_loop_checklist_turns_ng_when_active_delay_rule_found(self):
+        data = {
+            "file": "sample.ctl",
+            "source_code": "main()\n{\n  while (TRUE)\n  {\n    if (isActive)\n    {\n      delay(1);\n    }\n  }\n}\n",
+            "internal_violations": [
+                {
+                    "object": "sample.ctl",
+                    "event": "Global",
+                    "violations": [
+                        {
+                            "issue_id": "P1-PERF-03-ACTIVE-DELAY-01-1",
+                            "rule_id": "PERF-03-ACTIVE-DELAY-01",
+                            "rule_item": "Loop문 내에 처리 조건",
+                            "priority_origin": "P1",
+                            "severity": "Critical",
+                            "line": 5,
+                            "message": "while loop delay may exist only inside Active guard.",
+                        }
+                    ],
+                }
+            ],
+            "global_violations": [],
+            "ai_reviews": [],
+        }
+        output_name = "quality_loop_active_ng.xlsx"
+        self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
+        load_workbook = _require_openpyxl(self)
+
+        wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
+        ws = wb.active
+        _, status, message = self._status_and_message_for_item(ws, "Loop문 내에 처리 조건")
+        self.assertEqual(status, "NG")
+        self.assertIn("PERF-03-ACTIVE-DELAY-01", message)
+
+    def test_partial_automation_items_return_na_guidance_without_findings(self):
+        data = {
+            "file": "sample.ctl",
+            "source_code": "main()\n{\n  dyn_string items;\n  const int sample = 10;\n  return;\n}\n",
+            "internal_violations": [],
+            "global_violations": [],
+            "ai_reviews": [],
+        }
+        output_name = "quality_partial_automation.xlsx"
+        self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
+        load_workbook = _require_openpyxl(self)
+
+        wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
+        ws = wb.active
+        for item_text in ("메모리 누수 체크", "하드코딩 지양", "디버깅용 로그 작성 확인"):
+            _, status, message = self._status_and_message_for_item(ws, item_text)
+            self.assertEqual(status, "N/A")
+            self.assertEqual(message, self.reporter.PARTIAL_AUTOMATION_MESSAGE)
+
+    def test_query_comment_item_returns_manual_guidance_without_findings(self):
+        data = {
+            "file": "sample.ctl",
+            "source_code": "main()\n{\n  string query = \"SELECT * FROM table\";\n}\n",
+            "internal_violations": [],
+            "global_violations": [],
+            "ai_reviews": [],
+        }
+        output_name = "quality_query_comment_manual.xlsx"
+        self.reporter.fill_excel_checklist(data, file_type="Server", output_filename=output_name)
+        load_workbook = _require_openpyxl(self)
+
+        wb = load_workbook(os.path.join(self.reporter.output_dir, output_name))
+        ws = wb.active
+        _, status, message = self._status_and_message_for_item(ws, "쿼리 주석 처리")
+        self.assertEqual(status, "N/A")
+        self.assertEqual(message, self.reporter.MANUAL_REVIEW_MESSAGE)
+
 
     def test_excel_report_writes_verification_meta_sheet(self):
         _require_openpyxl(self)
@@ -3668,16 +4734,26 @@ class ReportQualityTests(unittest.TestCase):
         ws = wb["검증 결과"]
 
         headers = [ws.cell(1, c).value for c in range(1, 9)]
-        self.assertEqual(headers, ["No", "대분류", "중분류", "소분류", "검증 조건", "중요도", "검증 결과", "비고"])
+        self.assertEqual(headers, ["No", "대분류", "중분류", "소분류", "검증 조건", "1차 검증", "검증 결과", "비고"])
 
         status_values = [
-            ws.cell(r, 7).value
+            ws.cell(r, 6).value
             for r in range(2, ws.max_row + 1)
-            if ws.cell(r, 7).value is not None
+            if ws.cell(r, 6).value is not None
         ]
         self.assertGreater(len(status_values), 0)
         for status in status_values:
             self.assertIn(status, {"NG", "OK", "N/A"})
+
+        guidance_values = [
+            str(ws.cell(r, 7).value or "").strip()
+            for r in range(2, ws.max_row + 1)
+            if str(ws.cell(r, 6).value or "").strip() == "NG"
+        ]
+        self.assertTrue(any(guidance_values))
+
+        remarks_values = [str(ws.cell(r, 8).value or "").strip() for r in range(2, ws.max_row + 1)]
+        self.assertTrue(all(not value for value in remarks_values))
 
     def test_annotated_txt_inserts_review_comments(self):
         data = self._sample_report_data()

@@ -1,0 +1,26 @@
+{
+  "tool": "playwright_ui_real_smoke",
+  "started_at": "2026-03-08T06:07:18.942Z",
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "target_file_preference": "BenchmarkP1Fixture.ctl",
+    "timeout_ms": 120000,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "backend": {
+    "started_server": true,
+    "discovered_file_count": 4,
+    "selected_target_file": "BenchmarkP1Fixture.ctl"
+  },
+  "ok": false,
+  "error": "page.waitForFunction: Timeout 30000ms exceeded.\n    at runSmoke (D:\\AI_TF_CODEREVIEW-main\\tools\\perf\\playwright_ui_real_smoke.js:239:14)\n    at async main (D:\\AI_TF_CODEREVIEW-main\\tools\\perf\\playwright_ui_real_smoke.js:336:18)",
+  "finished_at": "2026-03-08T06:07:52.945Z"
+}

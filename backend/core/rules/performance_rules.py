@@ -3,12 +3,26 @@ from collections import Counter
 from typing import Dict, List
 
 
+_WHILE_PATTERN = re.compile(r"\bwhile\s*\(")
+_LOOP_BLOCK_PATTERN = re.compile(r"\b(?:while|for)\s*\([^\)]*\)\s*\{", re.IGNORECASE)
+_DELAY_CALL_PATTERN = re.compile(r"\b(?:delay|dpSetWait|dpSetTimed)\s*\(")
+_DPSET_PATTERN = re.compile(r"\bdpSet\s*\(")
+_DPSET_BATCH_HINT_PATTERN = re.compile(r"\bdpSet(?:Wait|Timed)\s*\(")
+_CHANGE_GUARD_PATTERN = re.compile(r"\bif\s*\([^\)]*(?:\bchanged\b|\bdelta\b|\bold\b|\bprev\b)[^\)]*\)", re.IGNORECASE)
+_MERGED_DPSET_PATTERN = re.compile(r"\bdpSet\s*\(\s*\"[^\"]+\"\s*,\s*[^,]+,\s*\"[^\"]+\"\s*,")
+_FUNCTION_DEF_PATTERN = re.compile(
+    r"\b(?:void|int|float|string|bool|mapping|time|anytype|dyn_[a-zA-Z0-9_]+)\s+([A-Za-z_][A-Za-z0-9_]*)\s*\([^\)]*\)\s*\{",
+    re.IGNORECASE,
+)
+_CALLED_NAME_PATTERN = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(")
+
+
 class PerformanceRulesMixin:
     """Performance-related heuristic checks for WinCC OA code."""
 
     def check_while_delay_policy(self, code: str) -> List[Dict]:
         findings = []
-        for match in re.finditer(r"\bwhile\s*\(", code):
+        for match in _WHILE_PATTERN.finditer(code):
             open_paren = code.find("(", match.start())
             if open_paren < 0:
                 continue
@@ -25,7 +39,7 @@ class PerformanceRulesMixin:
 
             loop_block = code[open_brace : close_brace + 1]
             # Loop body should contain periodic yield/wait call to avoid CPU hogging.
-            has_delay = bool(re.search(r"\b(?:delay|dpSetWait|dpSetTimed)\s*\(", loop_block))
+            has_delay = bool(_DELAY_CALL_PATTERN.search(loop_block))
             if has_delay:
                 continue
 
@@ -60,7 +74,7 @@ class PerformanceRulesMixin:
             window_end = min(len(lines), idx + 2)
             window_text = "\n".join(lines[window_start:window_end])
 
-            has_timed = bool(re.search(r"\bdpSet(?:Timed|Wait)\s*\(", window_text))
+            has_timed = bool(_DPSET_BATCH_HINT_PATTERN.search(window_text))
             has_delta_guard = bool(
                 re.search(r"\bif\s*\([^\)]*(?:!=|\bchanged\b|\bdelta\b|\bold\b|\bprev\b)[^\)]*\)", window_text, re.IGNORECASE)
             )
@@ -83,7 +97,7 @@ class PerformanceRulesMixin:
     def check_consecutive_dpset(self, code: str) -> List[Dict]:
         findings = []
         lines = code.splitlines()
-        dpset_lines = [idx for idx, line in enumerate(lines) if re.search(r"\bdpSet\s*\(", line)]
+        dpset_lines = [idx for idx, line in enumerate(lines) if _DPSET_PATTERN.search(line)]
         if len(dpset_lines) < 2:
             return findings
         loop_ranges = self._collect_loop_line_ranges(code)
@@ -106,8 +120,8 @@ class PerformanceRulesMixin:
 
             window = "\n".join(lines[start : end + 1])
             has_better_pattern = bool(
-                re.search(r"\bdpSet(?:Wait|Timed)\s*\(", window)
-                or re.search(r"\bif\s*\([^\)]*(?:\bchanged\b|\bdelta\b|\bold\b|\bprev\b)[^\)]*\)", window, re.IGNORECASE)
+                _DPSET_BATCH_HINT_PATTERN.search(window)
+                or _CHANGE_GUARD_PATTERN.search(window)
                 or re.search(r"\bdpSetWait\s*\(", code)
             )
             if has_better_pattern:
@@ -128,13 +142,8 @@ class PerformanceRulesMixin:
 
     def check_event_exchange_minimization(self, code: str) -> List[Dict]:
         findings = []
-        loop_pattern = re.compile(r"\b(?:while|for)\s*\([^\)]*\)\s*\{", re.IGNORECASE)
         func_defs = {}
-        func_pattern = re.compile(
-            r"\b(?:void|int|float|string|bool|mapping|time|anytype|dyn_[a-zA-Z0-9_]+)\s+([A-Za-z_][A-Za-z0-9_]*)\s*\([^\)]*\)\s*\{",
-            re.IGNORECASE,
-        )
-        for func_match in func_pattern.finditer(code):
+        for func_match in _FUNCTION_DEF_PATTERN.finditer(code):
             name = func_match.group(1)
             brace_idx = code.find("{", func_match.start())
             if brace_idx < 0:
@@ -164,18 +173,14 @@ class PerformanceRulesMixin:
         }
 
         def _body_has_unsafe_dpset(body: str, depth: int, seen: set) -> bool:
-            if re.search(r"\bdpSet\s*\(", body):
-                if not re.search(r"\bdpSet(?:Wait|Timed)\s*\(", body) and not re.search(
-                    r"\bif\s*\([^\)]*(?:\bchanged\b|\bdelta\b|\bold\b|\bprev\b)[^\)]*\)",
-                    body,
-                    re.IGNORECASE,
-                ):
+            if _DPSET_PATTERN.search(body):
+                if not _DPSET_BATCH_HINT_PATTERN.search(body) and not _CHANGE_GUARD_PATTERN.search(body):
                     return True
             if depth <= 0:
                 return False
             called_names = [
                 token
-                for token in re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(", body)
+                for token in _CALLED_NAME_PATTERN.findall(body)
                 if token not in excluded_calls
             ]
             for called_name in called_names:
@@ -189,7 +194,7 @@ class PerformanceRulesMixin:
             return False
 
         lines = code.splitlines()
-        for loop_match in loop_pattern.finditer(code):
+        for loop_match in _LOOP_BLOCK_PATTERN.finditer(code):
             brace_idx = code.find("{", loop_match.start())
             if brace_idx < 0:
                 continue
@@ -198,12 +203,12 @@ class PerformanceRulesMixin:
                 continue
 
             block = code[brace_idx : close_brace + 1]
-            dpset_matches = list(re.finditer(r"\bdpSet\s*\(", block))
+            dpset_matches = list(_DPSET_PATTERN.finditer(block))
             indirect_dpset_call = ""
             if len(dpset_matches) < 1:
                 called_names = [
                     token
-                    for token in re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(", block)
+                    for token in _CALLED_NAME_PATTERN.findall(block)
                     if token not in excluded_calls
                 ]
                 for called_name in called_names:
@@ -216,12 +221,12 @@ class PerformanceRulesMixin:
                 if not indirect_dpset_call:
                     continue
 
-            if re.search(r"\bdpSet(?:Wait|Timed)\s*\(", block):
+            if _DPSET_BATCH_HINT_PATTERN.search(block):
                 continue
-            if re.search(r"\bif\s*\([^\)]*(?:\bchanged\b|\bdelta\b|\bold\b|\bprev\b)[^\)]*\)", block, re.IGNORECASE):
+            if _CHANGE_GUARD_PATTERN.search(block):
                 continue
 
-            merged_match = re.search(r"\bdpSet\s*\(\s*\"[^\"]+\"\s*,\s*[^,]+,\s*\"[^\"]+\"\s*,", block)
+            merged_match = _MERGED_DPSET_PATTERN.search(block)
             if merged_match:
                 continue
 

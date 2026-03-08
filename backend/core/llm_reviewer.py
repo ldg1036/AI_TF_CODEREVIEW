@@ -1,10 +1,13 @@
 ﻿import json
 import os
 import re
+import socket
 import urllib.error
 import urllib.request
 from typing import Dict, List, Optional
 from urllib.parse import urlparse, urlunparse
+
+from core.errors import ReviewerError, ReviewerResponseError, ReviewerTimeoutError, ReviewerTransportError
 
 
 class LLMReviewer:
@@ -55,21 +58,69 @@ class LLMReviewer:
             method="POST",
             headers={"Content-Type": "application/json; charset=utf-8"},
         )
-        with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
-            data = resp.read().decode("utf-8")
-        parsed = json.loads(data)
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+                data = resp.read().decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            raise ReviewerTransportError(
+                f"AI request failed with HTTP {getattr(exc, 'code', 'unknown')}",
+                details={"url": url, "status": getattr(exc, "code", None)},
+            ) from exc
+        except urllib.error.URLError as exc:
+            if self._is_timeout_error(exc):
+                raise ReviewerTimeoutError(f"AI request timed out after {self.timeout_sec}s", details={"url": url}) from exc
+            raise ReviewerTransportError(f"AI request failed: {exc}", details={"url": url}) from exc
+        except TimeoutError as exc:
+            raise ReviewerTimeoutError(f"AI request timed out after {self.timeout_sec}s", details={"url": url}) from exc
+        except OSError as exc:
+            if self._is_timeout_error(exc):
+                raise ReviewerTimeoutError(f"AI request timed out after {self.timeout_sec}s", details={"url": url}) from exc
+            raise ReviewerTransportError(f"AI request failed: {exc}", details={"url": url}) from exc
+        try:
+            parsed = json.loads(data)
+        except json.JSONDecodeError as exc:
+            raise ReviewerResponseError("Invalid AI response payload", details={"url": url}) from exc
         if not isinstance(parsed, dict):
-            raise RuntimeError("Invalid AI response payload")
+            raise ReviewerResponseError("Invalid AI response payload", details={"url": url})
         return parsed
 
     def _get_json(self, url: str) -> Dict:
         req = urllib.request.Request(url=url, method="GET")
-        with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
-            data = resp.read().decode("utf-8")
-        parsed = json.loads(data)
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+                data = resp.read().decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            raise ReviewerTransportError(
+                f"AI request failed with HTTP {getattr(exc, 'code', 'unknown')}",
+                details={"url": url, "status": getattr(exc, "code", None)},
+            ) from exc
+        except urllib.error.URLError as exc:
+            if self._is_timeout_error(exc):
+                raise ReviewerTimeoutError(f"AI request timed out after {self.timeout_sec}s", details={"url": url}) from exc
+            raise ReviewerTransportError(f"AI request failed: {exc}", details={"url": url}) from exc
+        except TimeoutError as exc:
+            raise ReviewerTimeoutError(f"AI request timed out after {self.timeout_sec}s", details={"url": url}) from exc
+        except OSError as exc:
+            if self._is_timeout_error(exc):
+                raise ReviewerTimeoutError(f"AI request timed out after {self.timeout_sec}s", details={"url": url}) from exc
+            raise ReviewerTransportError(f"AI request failed: {exc}", details={"url": url}) from exc
+        try:
+            parsed = json.loads(data)
+        except json.JSONDecodeError as exc:
+            raise ReviewerResponseError("Invalid AI response payload", details={"url": url}) from exc
         if not isinstance(parsed, dict):
-            raise RuntimeError("Invalid AI response payload")
+            raise ReviewerResponseError("Invalid AI response payload", details={"url": url})
         return parsed
+
+    @staticmethod
+    def _is_timeout_error(exc: BaseException) -> bool:
+        if isinstance(exc, (TimeoutError, socket.timeout)):
+            return True
+        reason = getattr(exc, "reason", None)
+        if isinstance(reason, (TimeoutError, socket.timeout)):
+            return True
+        text = str(reason if reason is not None else exc).strip().lower()
+        return "timed out" in text or "timeout" in text
 
     def _ollama_tags_url(self) -> str:
         parsed = urlparse(self.ollama_url)
@@ -295,7 +346,7 @@ class LLMReviewer:
         response = self._post_json(self.ollama_url, payload)
         text = str(response.get("response", "")).strip()
         if not text:
-            raise RuntimeError("Empty AI response")
+            raise ReviewerResponseError("Empty AI response", details={"url": self.ollama_url})
         return text
 
     def generate_review(
@@ -311,7 +362,11 @@ class LLMReviewer:
     ) -> str:
         try:
             if self.provider != "ollama":
-                raise RuntimeError(f"Unsupported AI provider: {self.provider}")
+                raise ReviewerError(
+                    f"Unsupported AI provider: {self.provider}",
+                    error_code="AI_REVIEW_UNSUPPORTED_PROVIDER",
+                    details={"provider": self.provider},
+                )
             prompt = self._build_prompt(
                 code,
                 violations,
@@ -322,7 +377,7 @@ class LLMReviewer:
                 todo_prompt_context=todo_prompt_context,
             )
             return self._normalize_review_output(self._call_ollama(prompt, model_name=model_name))
-        except Exception as exc:
+        except ReviewerError as exc:
             if self.fail_soft:
                 msg = f"AI live review failed: {exc}"
                 print(f"[!] AI live review skipped (fail-soft): {exc}")

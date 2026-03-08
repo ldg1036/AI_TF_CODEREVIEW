@@ -8,10 +8,13 @@ import shutil
 import subprocess
 import tempfile
 import threading
+import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
 from typing import Dict, List, Optional, Tuple
+
+from core.errors import CtrlppDownloadError, CtrlppError, CtrlppExecutionError, CtrlppInstallError
 
 
 class CtrlppWrapper:
@@ -175,33 +178,56 @@ class CtrlppWrapper:
         url = f"https://api.github.com/repos/{self.github_repo}/releases/tags/{self.version}"
         req = urllib.request.Request(url=url, headers=self._github_headers(), method="GET")
         timeout = max(self.timeout_sec, 30)
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            body = resp.read().decode("utf-8")
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                body = resp.read().decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            raise CtrlppDownloadError(
+                f"CtrlppCheck download failed: HTTP {getattr(exc, 'code', 'unknown')}",
+                details={"url": url, "status": getattr(exc, "code", None)},
+            ) from exc
+        except urllib.error.URLError as exc:
+            raise CtrlppDownloadError(f"CtrlppCheck download failed: {exc}", details={"url": url}) from exc
+        except TimeoutError as exc:
+            raise CtrlppDownloadError(f"CtrlppCheck download failed: timed out after {timeout}s", details={"url": url}) from exc
         payload = json.loads(body)
         if not isinstance(payload, dict):
-            raise RuntimeError("release payload is not a JSON object")
+            raise CtrlppDownloadError("CtrlppCheck download failed: release payload is not a JSON object", details={"url": url})
         return payload
 
     def _select_release_asset(self, release_payload: Dict) -> Dict:
         assets = release_payload.get("assets") or []
         if not isinstance(assets, list):
-            raise RuntimeError("release assets format is invalid")
+            raise CtrlppDownloadError("CtrlppCheck download failed: release assets format is invalid")
         for asset in assets:
             if not isinstance(asset, dict):
                 continue
             name = str(asset.get("name", ""))
             if fnmatch.fnmatch(name, self.asset_pattern):
                 return asset
-        raise RuntimeError(f"asset not found for pattern '{self.asset_pattern}'")
+        raise CtrlppDownloadError(f"CtrlppCheck download failed: asset not found for pattern '{self.asset_pattern}'")
 
     def _download_asset(self, download_url: str, destination_path: str):
         if not download_url:
-            raise RuntimeError("asset download URL is empty")
+            raise CtrlppDownloadError("CtrlppCheck download failed: asset download URL is empty")
         req = urllib.request.Request(url=download_url, headers=self._github_headers(), method="GET")
         timeout = max(self.timeout_sec, 60)
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            with open(destination_path, "wb") as out:
-                shutil.copyfileobj(resp, out)
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                with open(destination_path, "wb") as out:
+                    shutil.copyfileobj(resp, out)
+        except urllib.error.HTTPError as exc:
+            raise CtrlppDownloadError(
+                f"CtrlppCheck download failed: HTTP {getattr(exc, 'code', 'unknown')}",
+                details={"url": download_url, "status": getattr(exc, "code", None)},
+            ) from exc
+        except urllib.error.URLError as exc:
+            raise CtrlppDownloadError(f"CtrlppCheck download failed: {exc}", details={"url": download_url}) from exc
+        except TimeoutError as exc:
+            raise CtrlppDownloadError(
+                f"CtrlppCheck download failed: timed out after {timeout}s",
+                details={"url": download_url},
+            ) from exc
 
     @staticmethod
     def _compute_sha256(file_path: str) -> str:
@@ -224,7 +250,7 @@ class CtrlppWrapper:
         expected = expected.lower()
         actual = self._compute_sha256(file_path).lower()
         if actual != expected:
-            raise RuntimeError(f"CtrlppCheck checksum mismatch: expected {expected}, actual {actual}")
+            raise CtrlppInstallError(f"CtrlppCheck checksum mismatch: expected {expected}, actual {actual}")
 
     @staticmethod
     def _extract_archive(zip_path: str, extract_dir: str):
@@ -312,13 +338,13 @@ class CtrlppWrapper:
 
             try:
                 release_payload = self._fetch_release_payload()
-            except Exception as exc:
-                return "", f"CtrlppCheck download failed: {exc}"
+            except CtrlppError as exc:
+                return "", str(exc)
 
             try:
                 asset = self._select_release_asset(release_payload)
-            except Exception as exc:
-                return "", f"CtrlppCheck install failed: {exc}"
+            except CtrlppError as exc:
+                return "", str(exc)
 
             version_dir = os.path.join(self.install_dir, self.version)
             download_dir = os.path.join(version_dir, "download")
@@ -331,12 +357,12 @@ class CtrlppWrapper:
 
             try:
                 self._download_asset(str(asset.get("browser_download_url", "")), zip_path)
-            except Exception as exc:
-                return "", f"CtrlppCheck download failed: {exc}"
+            except CtrlppError as exc:
+                return "", str(exc)
 
             try:
                 self._verify_asset_checksum(zip_path, str(asset.get("digest", "") or ""))
-            except Exception as exc:
+            except CtrlppError as exc:
                 message = str(exc)
                 if not message.startswith("CtrlppCheck checksum mismatch:"):
                     message = f"CtrlppCheck checksum mismatch: {message}"
@@ -348,16 +374,16 @@ class CtrlppWrapper:
                 os.makedirs(extract_dir, exist_ok=True)
                 self._extract_archive(zip_path, extract_dir)
             except Exception as exc:
-                return "", f"CtrlppCheck install failed: {exc}"
+                return "", str(CtrlppInstallError(f"CtrlppCheck install failed: {exc}"))
 
             binary = self._find_installed_binary(extract_dir)
             if not binary:
-                return "", "CtrlppCheck install failed: ctrlppcheck executable not found in archive"
+                return "", str(CtrlppInstallError("CtrlppCheck install failed: ctrlppcheck executable not found in archive"))
 
             try:
                 self._write_binary_path_to_config(binary)
             except Exception as exc:
-                return "", f"CtrlppCheck install failed: metadata update failed: {exc}"
+                return "", str(CtrlppInstallError(f"CtrlppCheck install failed: metadata update failed: {exc}"))
 
             return binary, ""
 
@@ -409,6 +435,18 @@ class CtrlppWrapper:
         result["attempted"] = True
         try:
             binary, install_error = self.ensure_installed()
+        except CtrlppDownloadError as exc:
+            binary, install_error = "", str(exc)
+            result["error_code"] = exc.error_code
+        except CtrlppInstallError as exc:
+            binary, install_error = "", str(exc)
+            result["error_code"] = exc.error_code
+        except CtrlppExecutionError as exc:
+            binary, install_error = "", str(exc)
+            result["error_code"] = exc.error_code
+        except CtrlppError as exc:
+            binary, install_error = "", str(exc)
+            result["error_code"] = exc.error_code
         except Exception as exc:
             binary, install_error = "", f"CtrlppCheck install failed: {exc}"
 
@@ -420,12 +458,13 @@ class CtrlppWrapper:
             return result
 
         lowered = str(install_error or "").lower()
-        if "download failed" in lowered:
-            result["error_code"] = "CTRLPPCHECK_INSTALL_FAILED"
-        elif "install failed" in lowered:
-            result["error_code"] = "CTRLPPCHECK_INSTALL_FAILED"
-        else:
-            result["error_code"] = "CTRLPPCHECK_NOT_FOUND"
+        if not str(result.get("error_code", "") or "").strip():
+            if "download failed" in lowered:
+                result["error_code"] = "CTRLPPCHECK_INSTALL_FAILED"
+            elif "install failed" in lowered:
+                result["error_code"] = "CTRLPPCHECK_INSTALL_FAILED"
+            else:
+                result["error_code"] = "CTRLPPCHECK_NOT_FOUND"
         result["message"] = str(install_error or "CtrlppCheck binary not found")
         self._set_install_retry_block(result["message"])
         return result
@@ -566,6 +605,8 @@ class CtrlppWrapper:
                         self._find_binary = original_find_binary
                 else:
                     binary, install_error = self.ensure_installed()
+            except CtrlppError as exc:
+                install_error = str(exc)
             except Exception as exc:
                 install_error = f"CtrlppCheck install failed: {exc}"
             if not binary and install_error:
@@ -603,17 +644,19 @@ class CtrlppWrapper:
                 timeout=self.timeout_sec,
             )
         except subprocess.TimeoutExpired:
+            exc = CtrlppExecutionError(f"CtrlppCheck timed out after {self.timeout_sec}s.")
             return [
                 self._build_info_violation(
-                    f"CtrlppCheck timed out after {self.timeout_sec}s.",
+                    str(exc),
                     file_path=file_path,
                     violation_type="warning",
                 )
             ]
         except Exception as exc:
+            typed = CtrlppExecutionError(f"CtrlppCheck execution error: {exc}")
             return [
                 self._build_info_violation(
-                    f"CtrlppCheck execution error: {exc}",
+                    str(typed),
                     file_path=file_path,
                     violation_type="warning",
                 )
@@ -646,9 +689,10 @@ class CtrlppWrapper:
             parsed = self._parse_xml_report(xml_text, default_file=file_path)
             return parsed
         except Exception as exc:
+            typed = CtrlppExecutionError(f"CtrlppCheck XML parse error: {exc}")
             return [
                 self._build_info_violation(
-                    f"CtrlppCheck XML parse error: {exc}",
+                    str(typed),
                     file_path=file_path,
                     violation_type="warning",
                 )

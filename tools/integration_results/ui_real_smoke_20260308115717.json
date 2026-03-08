@@ -1,0 +1,69 @@
+{
+  "tool": "playwright_ui_real_smoke",
+  "started_at": "2026-03-08T11:57:17.471Z",
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "target_file_preference": "BenchmarkP1Fixture.ctl",
+    "timeout_ms": 120000,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "backend": {
+    "started_server": false,
+    "discovered_file_count": 4,
+    "selected_target_file": "BenchmarkP1Fixture.ctl"
+  },
+  "run": {
+    "selection": {
+      "selectedFile": "BenchmarkP1Fixture.ctl",
+      "availableCount": 4
+    },
+    "beforeClick": {
+      "buttonFound": true,
+      "buttonRect": {
+        "x": 765,
+        "y": 86.1875,
+        "width": 118,
+        "height": 35,
+        "top": 86.1875,
+        "right": 883,
+        "bottom": 121.1875,
+        "left": 765
+      },
+      "interceptingNode": {
+        "tag": "BUTTON",
+        "id": "btn-analyze",
+        "className": ""
+      }
+    },
+    "aiOnDemand": {
+      "attempted": true,
+      "clicked": true,
+      "completed": true,
+      "skipped_reason": "",
+      "button_id": "btn-ai-generate",
+      "button_text_before": "추가 AI 분석",
+      "button_text_after": "추가 AI 분석",
+      "status_text": ""
+    },
+    "afterRun": {
+      "rows": 6,
+      "totalIssues": "6",
+      "criticalIssues": "0",
+      "warningIssues": "5",
+      "workspaceVisible": true,
+      "resultBodyVisible": true,
+      "progressPanelVisible": false
+    },
+    "elapsed_ms": 1032
+  },
+  "ok": true,
+  "finished_at": "2026-03-08T11:57:18.703Z"
+}

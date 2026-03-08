@@ -1,0 +1,94 @@
+{
+  "tool": "playwright_ui_real_smoke",
+  "started_at": "2026-03-08T13:00:38.716Z",
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "target_file_preference": "BenchmarkP1Fixture.ctl",
+    "timeout_ms": 120000,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "backend": {
+    "started_server": false,
+    "discovered_file_count": 4,
+    "selected_target_file": "BenchmarkP1Fixture.ctl"
+  },
+  "run": {
+    "selection": {
+      "selectedFile": "BenchmarkP1Fixture.ctl",
+      "availableCount": 4
+    },
+    "beforeClick": {
+      "buttonFound": true,
+      "buttonRect": {
+        "x": 765,
+        "y": 86.1875,
+        "width": 118,
+        "height": 35,
+        "top": 86.1875,
+        "right": 883,
+        "bottom": 121.1875,
+        "left": 765
+      },
+      "interceptingNode": {
+        "tag": "BUTTON",
+        "id": "btn-analyze",
+        "className": ""
+      }
+    },
+    "aiOnDemand": {
+      "attempted": true,
+      "clicked": true,
+      "completed": true,
+      "skipped_reason": "",
+      "button_id": "btn-ai-generate",
+      "button_text_before": "추가 AI 분석",
+      "button_text_after": "추가 AI 분석",
+      "status_text": ""
+    },
+    "excelOnDemand": {
+      "attempted": false,
+      "clicked": false,
+      "completed": false,
+      "skipped_reason": "Excel 결과 생성을 위해 openpyxl 설치가 필요합니다.",
+      "initial": {
+        "present": true,
+        "disabled": true,
+        "button_text": "Excel 결과 생성",
+        "status_text": "Excel 결과 생성을 위해 openpyxl 설치가 필요합니다.",
+        "download_button_count": 0,
+        "download_labels": []
+      },
+      "final": {
+        "present": true,
+        "disabled": true,
+        "button_text": "Excel 결과 생성",
+        "status_text": "Excel 결과 생성을 위해 openpyxl 설치가 필요합니다.",
+        "download_button_count": 0,
+        "download_labels": []
+      },
+      "download_triggered": false,
+      "suggested_filename": "",
+      "download_error": ""
+    },
+    "afterRun": {
+      "rows": 6,
+      "totalIssues": "6",
+      "criticalIssues": "0",
+      "warningIssues": "5",
+      "workspaceVisible": true,
+      "resultBodyVisible": true,
+      "progressPanelVisible": false
+    },
+    "elapsed_ms": 544
+  },
+  "ok": true,
+  "finished_at": "2026-03-08T13:00:39.448Z"
+}

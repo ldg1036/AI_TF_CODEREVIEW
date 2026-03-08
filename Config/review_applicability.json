@@ -43,6 +43,7 @@
       ]
     },
     "하드코딩 지양": {
+      "automation_mode": "auto_violation_only",
       "required_rule_ids": [
         "HARD-01",
         "HARD-02",
@@ -65,6 +66,7 @@
       ]
     },
     "메모리 누수 체크": {
+      "automation_mode": "auto_violation_only",
       "required_rule_ids": [
         "MEM-01"
       ]
@@ -84,15 +86,26 @@
       ]
     },
     "Loop문 내에 처리 조건": {
+      "automation_mode": "auto_full",
+      "applicability_probe": {
+        "pattern": "\\bwhile\\s*\\("
+      },
       "required_rule_ids": [
         "PERF-03",
         "PERF-03-ACTIVE-DELAY-01"
       ]
     },
     "디버깅용 로그 작성 확인": {
+      "automation_mode": "auto_violation_only",
       "required_rule_ids": [
         "LOG-DBG-01",
         "LOG-LEVEL-01"
+      ]
+    },
+    "쿼리 주석 처리": {
+      "automation_mode": "manual",
+      "required_rule_ids": [
+        "DB-02"
       ]
     }
   }

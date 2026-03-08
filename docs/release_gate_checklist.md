@@ -1,45 +1,14 @@
 # Release Gate Checklist
 
-Last Updated: 2026-03-06
+Last Updated: 2026-03-08
 
 ## Goal
 
 Use this checklist before treating a WinCC OA code review build as release-ready.
 
-One-shot runner:
-
-```powershell
-python tools/release_gate.py
-```
-
-Windows wrappers:
-
-```powershell
-.\run_release_gate.bat
-.\run_release_gate.bat live-ai
-powershell -ExecutionPolicy Bypass -File .\run_release_gate.ps1 -Mode ci
-```
-
-Optional live AI gate:
-
-```powershell
-python tools/release_gate.py --with-live-ai --live-ai-with-context
-```
-
-CI-oriented lightweight profile:
-
-```powershell
-python tools/release_gate.py --profile ci
-```
-
-The gate is intentionally split into three layers:
-- core regression checks
-- optional dependency validation
-- operator-facing smoke checks
-
 ## 1. Core Regression Gate
 
-Run these first on every release candidate.
+Run these first:
 
 ```powershell
 python -m unittest discover backend/tests -v
@@ -51,96 +20,138 @@ node --check frontend/renderer.js
 ```
 
 Pass criteria:
-- backend tests pass, except documented optional skips
-- verification profile reports `6/6` passed
-- config/rule alignment mismatch count is `0`
-- template coverage reports `Client 15/15`, `Server 20/20`
-- no `DeprecationWarning` escapes the targeted warning gate
+
+- backend tests pass except documented optional skips
+- config / rule alignment mismatch is `0`
+- template coverage is `Client 15/15`, `Server 20/20`
+- frontend syntax passes
 
 ## 2. Optional Dependency Gate
 
-Run these when release scope touches integration behavior.
-
 ### Ctrlpp
-
-Fail-soft availability check:
 
 ```powershell
 python tools/run_ctrlpp_integration_smoke.py --allow-missing-binary --skip-unittest
 ```
 
-Real binary smoke when Ctrlpp is expected to work in production:
+When production actually requires Ctrlpp:
 
 ```powershell
 python tools/run_ctrlpp_integration_smoke.py
 ```
 
-Pass criteria:
-- missing binary path produces clean fail-soft `binary_not_found`
-- installed binary path completes direct smoke and unittest harness
+### Live AI
 
-### Live AI + MCP context
-
-Start context server if needed:
-
-```powershell
-python backend/tools/winccoa_context_server.py --host 127.0.0.1 --port 3000
-```
-
-Representative live run:
+Representative run:
 
 ```powershell
 python backend/main.py --selected-files BenchmarkP1Fixture.ctl --enable-live-ai --ai-with-context
 ```
 
 Pass criteria:
-- analyze completes without crashing
-- result summary and report output are generated
-- context failure degrades gracefully instead of aborting P1/P2
-- release gate default expectation is `successful_file_count >= 1`, `p1_total >= 1`, `p3_total >= 1`
 
-## 3. Frontend Release Gate
+- analyze completes
+- fail-soft behavior is preserved when optional AI infrastructure is unavailable
+
+## 3. Frontend Gate
 
 ### UI benchmark
-
-Run the mocked UI benchmark with built-in p95 thresholds:
 
 ```powershell
 node tools/playwright_ui_benchmark.js --iterations 3
 ```
 
-Default thresholds applied unless `--no-default-thresholds` is provided:
-- `analyzeUiMs.p95 <= 300`
-- `resultTableScrollMs.p95 <= 1050`
-- `codeJumpMs.p95 <= 100`
-- `codeViewerScrollMs.p95 <= 500`
-
-### Real-server UI smoke
-
-Run the Playwright smoke against a real backend:
+### Real UI smoke
 
 ```powershell
 node tools/playwright_ui_real_smoke.js --target-file BenchmarkP1Fixture.ctl
 ```
 
 Pass criteria:
-- `#btn-analyze` is pointer-clickable, not covered by another panel
-- analysis completes through the real `/api/analyze/start` + `/api/analyze/status` flow
-- workspace becomes visible and at least one result row is rendered
 
-## 4. Output Artifacts To Keep
+- analyze button is clickable
+- async analyze flow completes
+- workspace becomes visible
+- result rows render
+- operations compare and rules / dependency health cards do not block workspace activation
+- issue detail `AI 제안` tab and `P1/P2 <> P3` compare flow do not block workspace activation
 
-Keep or attach these when closing the release gate:
-- latest `CodeReview_Report/verification_summary_*.json`
-- latest `CodeReview_Report/template_coverage_*.json`
-- latest `CodeReview_Report/release_gate_*.md`
-- latest `tools/integration_results/ctrlpp_integration_*.json` when Ctrlpp was checked
-- latest `tools/benchmark_results/ui_benchmark_*.json`
-- latest `tools/integration_results/ui_real_smoke_*.json`
-- latest `tools/integration_results/live_ai_release_gate_*.json` when live AI was checked
+## 4. Performance-Sensitive Gate
 
-## 5. Operator Notes
+Use this when heuristic, report, or pipeline timing changed.
 
-- `CtrlppCheck`, `Ollama`, and `Playwright` remain optional dependencies. Missing optional tools should fail soft unless the release specifically requires them.
-- Use the same machine profile when comparing benchmark numbers. Treat large `p95` drift as suspicious even if the hard gate still passes.
-- If the real UI smoke fails but the mocked benchmark passes, treat it as a layout or integration regression, not a benchmark issue.
+### End-to-end HTTP baseline
+
+```powershell
+python backend/server.py
+```
+
+In another terminal:
+
+```powershell
+python tools/http_perf_baseline.py `
+  --dataset-name local-sample `
+  --discover-count 1 `
+  --ctrlpp off,on `
+  --live-ai off `
+  --defer-excel off,on `
+  --iterations 3 `
+  --flush-excel
+```
+
+### Heuristic same-build baseline
+
+```powershell
+python tools/http_perf_baseline.py `
+  --focus heuristic `
+  --selected-files GoldenTime.ctl `
+  --iterations 3
+```
+
+Pass criteria:
+
+- representative violation set is unchanged
+- `same_findings=true`
+- `with_context_avg_ms <= without_context_avg_ms`
+
+## 5. Operator Visibility Gate
+
+Verify these operator-facing APIs are healthy:
+
+- `GET /api/health/deps`
+- `GET /api/operations/latest`
+- `GET /api/rules/health`
+- `GET /api/rules/list`
+- `GET /api/rules/export`
+- `POST /api/rules/create`
+- `POST /api/rules/replace`
+- `POST /api/rules/delete`
+- `POST /api/rules/import`
+
+Minimum expectations:
+
+- dependency state is accurate
+- recent benchmark / smoke compare payload is readable
+- rules / dependency health shows enabled rule counts and detector distribution
+- rule management endpoints can load, persist, and reload P1 rule changes safely
+- issue detail P3 compare flow is usable after analysis completes
+
+## 6. Artifacts To Keep
+
+Keep the latest:
+
+- `CodeReview_Report/verification_summary_*.json`
+- `CodeReview_Report/template_coverage_*.json`
+- `CodeReview_Report/*/analysis_summary.json`
+- `tools/integration_results/ctrlpp_integration_*.json`
+- `tools/integration_results/ui_real_smoke_*.json`
+- `tools/benchmark_results/ui_benchmark_*.json`
+- `docs/perf_baselines/http_perf_baseline_*.json`
+
+## 7. Operator Notes
+
+- `CtrlppCheck`, `Ollama`, and `Playwright` remain optional dependencies unless the release scope explicitly requires them.
+- For heuristic changes, prefer same-build baseline review over direct comparison with old historical HTTP baseline JSON.
+- Rules / dependency health now supports full P1 rule CRUD and import / export workflow.
+- P3 comparison is part of issue-detail workflow, not a dashboard run-to-run compare flow.
+- Detector-specific rich editing UI is still a follow-up enhancement, not a release blocker.

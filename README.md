@@ -21,6 +21,8 @@ Last validated: 2026-02-27
 - UI 결과 화면
 - HTML 리포트
 - Excel 리포트
+  - 메인 체크리스트 시트 기준 `F=1차 검증`, `G=검증 결과`, `H=비고`
+  - 체크리스트 판정은 `완전 자동 / 부분 자동 / 수동 확인`으로 보수적으로 구분
 - Annotated TXT (`*_REVIEWED.txt`)
 
 또한 diff 승인형 source autofix를 지원하며, P3(LLM) 경로는 텍스트 입력(`*_pnl.txt`, `*_xml.txt`, raw `.txt`)에도 적용 가능합니다.
@@ -42,6 +44,20 @@ Last validated: 2026-02-27
 - 파일 단위 bounded parallel 분석
 - `.pnl/.xml -> *_txt` 변환 캐시 (`mtime + size`)
 - Excel 기본 동기 생성 + 선택적 지연 생성(`defer_excel_reports`) + flush API
+
+### 체크리스트 판정 기준
+
+- `완전 자동`
+  - `Loop문 내에 처리 조건`
+  - `while` 패턴이 있는 경우에만 `OK/NG`를 자동 판정
+- `부분 자동`
+  - `메모리 누수 체크`
+  - `하드코딩 지양`
+  - `디버깅용 로그 작성 확인`
+  - 위반이 검출되면 `NG`, 미검출이면 `N/A + 수동 확인 권장`
+- `수동 확인`
+  - `쿼리 주석 처리`
+  - 형식 품질(`기능명_날짜_HWC`)까지 자동 보장하지 않으므로 결과서는 `N/A` 유지
 - 결과 테이블 virtualization
 - 프론트 헤더에서 분석 진행률/ETA/경과시간 표시 (polling 기반)
 

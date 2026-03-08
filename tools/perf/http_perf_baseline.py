@@ -15,6 +15,7 @@ import argparse
 import datetime as _dt
 import json
 import os
+import pathlib
 import statistics
 import sys
 import time
@@ -25,6 +26,12 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 
 DEFAULT_SERVER = "http://127.0.0.1:8765"
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[2]
+BACKEND_DIR = PROJECT_ROOT / "backend"
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+from core.heuristic_checker import HeuristicChecker
 
 
 def _now_iso() -> str:
@@ -86,6 +93,107 @@ def _json_request(
         except Exception:
             parsed = {"error": body.decode("utf-8", errors="ignore") or str(exc)}
         return int(exc.code), parsed, elapsed_ms
+
+
+def _load_source_content(base_url: str, file_name: str, timeout_sec: int) -> str:
+    qs = urllib.parse.urlencode({"name": file_name, "prefer_source": "true"})
+    status, payload, _ = _json_request(base_url, "GET", f"/api/file-content?{qs}", timeout_sec=timeout_sec)
+    if status != 200:
+        raise RuntimeError(f"/api/file-content failed for {file_name} ({status}): {payload.get('error', payload)}")
+    content = payload.get("content", "")
+    if not isinstance(content, str) or not content:
+        raise RuntimeError(f"Empty source content for {file_name}")
+    return content
+
+
+def _violation_signature(violations: Sequence[Dict[str, Any]]) -> List[List[Any]]:
+    signature: List[List[Any]] = []
+    for group in violations:
+        if not isinstance(group, dict):
+            continue
+        for violation in group.get("violations", []) or []:
+            if not isinstance(violation, dict):
+                continue
+            signature.append(
+                [
+                    str(violation.get("rule_id", "") or ""),
+                    _safe_int(violation.get("line", 0), 0),
+                    str(violation.get("message", "") or ""),
+                ]
+            )
+    signature.sort(key=lambda item: (item[0], item[1], item[2]))
+    return signature
+
+
+def _run_heuristic_ab(
+    base_url: str,
+    selected_files: Sequence[str],
+    timeout_sec: int,
+    rounds: int,
+) -> Dict[str, Any]:
+    checker = HeuristicChecker()
+    original_context_rules = set(checker._CONTEXT_AWARE_RULE_NAMES)
+    without_samples: List[int] = []
+    with_samples: List[int] = []
+    file_results: List[Dict[str, Any]] = []
+
+    for file_name in selected_files:
+        content = _load_source_content(base_url, str(file_name), timeout_sec)
+        file_type = "Server" if str(file_name).lower().endswith(".ctl") else "Client"
+        event = {"event": "Global", "code": content, "line_start": 1}
+
+        def _bench(use_context: bool) -> Tuple[List[int], List[Dict[str, Any]]]:
+            timings: List[int] = []
+            last_result: List[Dict[str, Any]] = []
+            if use_context:
+                checker._CONTEXT_AWARE_RULE_NAMES = set(original_context_rules)
+            else:
+                checker._CONTEXT_AWARE_RULE_NAMES = set()
+            try:
+                for _ in range(max(1, rounds)):
+                    started = time.perf_counter()
+                    last_result = checker.check_event(event, file_type=file_type)
+                    timings.append(int((time.perf_counter() - started) * 1000))
+            finally:
+                checker._CONTEXT_AWARE_RULE_NAMES = set(original_context_rules)
+            return timings, last_result
+
+        without_ctx_timings, without_result = _bench(False)
+        with_ctx_timings, with_result = _bench(True)
+        without_samples.extend(without_ctx_timings)
+        with_samples.extend(with_ctx_timings)
+        file_results.append(
+            {
+                "file": str(file_name),
+                "file_type": file_type,
+                "without_context_ms": without_ctx_timings,
+                "with_context_ms": with_ctx_timings,
+                "same_findings": _violation_signature(without_result) == _violation_signature(with_result),
+                "violation_signature": _violation_signature(with_result),
+            }
+        )
+
+    without_avg = statistics.mean(without_samples) if without_samples else 0.0
+    with_avg = statistics.mean(with_samples) if with_samples else 0.0
+    delta_ms = with_avg - without_avg
+    improvement_percent = ((without_avg - with_avg) * 100.0 / without_avg) if without_avg > 0 else 0.0
+    return {
+        "comparison_basis": "same-build heuristic checker A/B",
+        "metrics_focus": ["metrics.timings_ms.analyze", "metrics.timings_ms.heuristic"],
+        "same_build_ab": {
+            "without_context_avg_ms": round(without_avg, 2),
+            "with_context_avg_ms": round(with_avg, 2),
+            "delta_ms": round(delta_ms, 2),
+            "improvement_percent": round(improvement_percent, 2),
+            "same_findings": all(bool(item.get("same_findings", False)) for item in file_results),
+        },
+        "violation_signature": {str(item["file"]): item["violation_signature"] for item in file_results},
+        "notes": [
+            "This heuristic A/B compares the current build with request-scope heuristic context on vs off.",
+            "Do not treat old 2026-02-25 HTTP baseline JSON as a direct before/after for this comparison.",
+        ],
+        "files": file_results,
+    }
 
 
 def _discover_files(base_url: str, limit: int, allow_raw_txt: bool, timeout_sec: int) -> List[str]:
@@ -257,6 +365,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--flush-excel", action="store_true", help="Flush deferred Excel jobs after analyze")
     parser.add_argument("--flush-timeout-sec", type=int, default=300)
     parser.add_argument("--http-timeout-sec", type=int, default=300)
+    parser.add_argument("--focus", choices=("http", "heuristic"), default="http", help="Benchmark focus mode")
     parser.add_argument("--stop-on-error", action="store_true", help="Stop matrix when a request fails")
     parser.add_argument(
         "--output",
@@ -292,6 +401,37 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     print(f"[info] server_url={args.server_url}")
     print(f"[info] selected_files={selected_files}")
+    print(f"[info] focus={args.focus}")
+
+    if args.focus == "heuristic":
+        heuristic_report = _run_heuristic_ab(
+            args.server_url,
+            selected_files,
+            int(args.http_timeout_sec),
+            max(1, int(args.iterations)),
+        )
+        report = {
+            "generated_at": _now_iso(),
+            "server_url": args.server_url,
+            "dataset_name": args.dataset_name,
+            "selected_files": selected_files,
+            "focus": "heuristic",
+            "elapsed_ms": 0,
+            "runs": [],
+            "combo_summaries": [],
+            "comparison_basis": heuristic_report.get("comparison_basis"),
+            "same_build_ab": heuristic_report.get("same_build_ab", {}),
+            "metrics_focus": heuristic_report.get("metrics_focus", []),
+            "violation_signature": heuristic_report.get("violation_signature", {}),
+            "notes": heuristic_report.get("notes", []),
+            "files": heuristic_report.get("files", []),
+        }
+        with open(output_path, "w", encoding="utf-8") as fh:
+            json.dump(report, fh, ensure_ascii=False, indent=2)
+        print(f"[done] wrote {output_path}")
+        print(f"[done] heuristic same_build_ab={report['same_build_ab']}")
+        return 0
+
     print(f"[info] matrix live_ai={live_ai_values} ctrlpp={ctrlpp_values} defer_excel={defer_excel_values} iterations={args.iterations}")
 
     runs: List[Dict[str, Any]] = []

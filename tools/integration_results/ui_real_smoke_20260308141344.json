@@ -1,0 +1,96 @@
+{
+  "tool": "playwright_ui_real_smoke",
+  "started_at": "2026-03-08T14:13:44.632Z",
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8872,
+    "target_file_preference": "GoldenTime.ctl",
+    "timeout_ms": 120000,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "backend": {
+    "started_server": true,
+    "discovered_file_count": 4,
+    "selected_target_file": "GoldenTime.ctl"
+  },
+  "run": {
+    "selection": {
+      "selectedFile": "GoldenTime.ctl",
+      "availableCount": 4
+    },
+    "beforeClick": {
+      "buttonFound": true,
+      "buttonRect": {
+        "x": 482.203125,
+        "y": 86.1875,
+        "width": 195.390625,
+        "height": 38,
+        "top": 86.1875,
+        "right": 677.59375,
+        "bottom": 124.1875,
+        "left": 482.203125
+      },
+      "interceptingNode": {
+        "tag": "BUTTON",
+        "id": "btn-analyze",
+        "className": ""
+      }
+    },
+    "aiOnDemand": {
+      "attempted": true,
+      "clicked": true,
+      "completed": true,
+      "skipped_reason": "",
+      "button_id": "btn-ai-generate",
+      "button_text_before": "추가 AI 분석",
+      "button_text_after": "추가 AI 분석",
+      "status_text": ""
+    },
+    "excelOnDemand": {
+      "attempted": true,
+      "clicked": true,
+      "completed": true,
+      "skipped_reason": "",
+      "initial": {
+        "present": true,
+        "disabled": false,
+        "button_text": "Excel 결과 생성",
+        "status_text": "Excel 0/1 | 실행 1",
+        "download_button_count": 0,
+        "download_labels": []
+      },
+      "final": {
+        "present": true,
+        "disabled": false,
+        "button_text": "Excel 결과 생성",
+        "status_text": "Excel 1개 생성 완료",
+        "download_button_count": 1,
+        "download_labels": [
+          "GoldenTime_20260308_231348_159803.xlsx 다운로드"
+        ]
+      },
+      "download_triggered": true,
+      "suggested_filename": "CodeReview_Submission_GoldenTime_20260308_231348_159803.xlsx",
+      "download_error": ""
+    },
+    "afterRun": {
+      "rows": 9,
+      "totalIssues": "9",
+      "criticalIssues": "1",
+      "warningIssues": "5",
+      "workspaceVisible": true,
+      "resultBodyVisible": true,
+      "progressPanelVisible": false
+    },
+    "elapsed_ms": 1182
+  },
+  "ok": true,
+  "finished_at": "2026-03-08T14:13:49.230Z"
+}

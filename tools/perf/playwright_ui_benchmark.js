@@ -45,6 +45,12 @@ Prerequisites:
 `);
 }
 
+function writeJsonReport(outputPath, payload) {
+  // Prepend UTF-8 BOM so Windows viewers keep Korean labels readable.
+  const body = `\uFEFF${JSON.stringify(payload, null, 2)}`;
+  fs.writeFileSync(outputPath, body, "utf-8");
+}
+
 function parseArgs(argv) {
   const opts = {
     files: 20,
@@ -835,7 +841,7 @@ async function main() {
   const outputPath = path.isAbsolute(opts.output) ? opts.output : path.join(projectRoot, opts.output);
   ensureDir(path.dirname(outputPath));
   report.finished_at = new Date().toISOString();
-  fs.writeFileSync(outputPath, JSON.stringify(report, null, 2), "utf-8");
+  writeJsonReport(outputPath, report);
 
   console.log("\nSummary:");
   console.log(`- analyzeUiMs p95: ${report.summary.analyzeUiMs.p95}`);

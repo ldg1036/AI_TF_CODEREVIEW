@@ -30,7 +30,9 @@ class Reporter:
     CTRLPP_SHEET_NAME = "CtrlppCheck_결과"
     VERIFY_META_SHEET_NAME = "검증메타"
 
-    MANUAL_REVIEW_MESSAGE = "자동 체크 불가 (수동 확인 권장)"
+    MANUAL_REVIEW_MESSAGE = "자동 체크 제외 (수동 확인 권장)"
+    PARTIAL_AUTOMATION_MESSAGE = "부분 자동 체크 항목 (위반 검출 시 NG, 미검출 시 수동 확인 권장)"
+    PATTERN_NOT_FOUND_MESSAGE = "해당 패턴 없음"
     RULE_ID_ITEM_MAP = {
         "PERF-EV-01": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
         "PERF-DPSET-CHAIN": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
@@ -91,7 +93,7 @@ class Reporter:
         try:
             if not os.path.exists(path):
                 return default
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8-sig") as f:
                 payload = json.load(f)
             return payload
         except Exception:
@@ -276,6 +278,34 @@ class Reporter:
     def _collect_rule_ids(self, violations: List[Dict]) -> set:
         return {str(v.get("rule_id") or "").strip() for v in violations if str(v.get("rule_id") or "").strip()}
 
+    def _get_item_policy(self, item_text: str) -> Dict:
+        return self._item_policy_map.get(self._normalize_text(item_text), {})
+
+    def _get_automation_mode(self, item_text: str, condition_text: str) -> str:
+        cfg = self._get_item_policy(item_text)
+        mode = str(cfg.get("automation_mode", "") or "").strip().lower()
+        if mode in {"auto_full", "auto_violation_only", "manual"}:
+            return mode
+        if self._is_manual_na_item(item_text, condition_text):
+            return "manual"
+        return ""
+
+    def _matches_applicability_probe(self, item_text: str, source_text: str) -> Tuple[bool, bool]:
+        cfg = self._get_item_policy(item_text)
+        probe = cfg.get("applicability_probe", {})
+        if not isinstance(probe, dict):
+            return False, False
+        pattern = str(probe.get("pattern", "") or "").strip()
+        if not pattern:
+            return False, False
+        haystack = str(source_text or "")
+        if not haystack:
+            return True, False
+        try:
+            return True, bool(re.search(pattern, haystack, re.IGNORECASE | re.MULTILINE))
+        except re.error:
+            return True, False
+
     def _is_manual_na_item(self, item_text: str, condition_text: str) -> bool:
         norm_item = self._normalize_text(item_text)
         norm_condition = self._normalize_text(condition_text)
@@ -349,17 +379,33 @@ class Reporter:
         matched_p1: List[Dict],
         all_p1_rule_ids: set,
         file_name: str = "",
+        source_text: str = "",
     ) -> Tuple[str, str]:
         # Config checklist is considered applicable only for config-like targets.
         if self._normalize_text(item_text) == self._normalize_text("config 항목 정합성 확인"):
             if not re.search(r"(config|cfg|ini|json)", str(file_name or ""), re.IGNORECASE):
                 return "N/A", self.MANUAL_REVIEW_MESSAGE
 
+        automation_mode = self._get_automation_mode(item_text, condition_text)
+        has_probe, probe_matches = self._matches_applicability_probe(item_text, source_text)
+
         if matched_p1:
             remark = "\n".join(
                 f"[{v.get('rule_id', '')}] {v.get('message', '')}" for v in matched_p1
             )
             return "NG", remark
+
+        if automation_mode == "manual":
+            return "N/A", self.MANUAL_REVIEW_MESSAGE
+
+        if automation_mode == "auto_violation_only":
+            return "N/A", self.PARTIAL_AUTOMATION_MESSAGE
+
+        if automation_mode == "auto_full":
+            if has_probe and not probe_matches:
+                return "N/A", self.PATTERN_NOT_FOUND_MESSAGE
+            if has_probe and probe_matches:
+                return "OK", ""
 
         if self._is_manual_na_item(item_text, condition_text):
             return "N/A", self.MANUAL_REVIEW_MESSAGE
@@ -627,14 +673,18 @@ class Reporter:
                 break
 
         header_row = max(1, start_row - 1)
-        result_col = 6
-        remarks_col = 7
-        for col in range(1, min(ws.max_column, 20) + 1):
-            header_value = str(ws.cell(row=header_row, column=col).value or "").strip()
-            if "검증 결과" in header_value:
-                result_col = col
-                remarks_col = col + 1
-                break
+
+        def _find_header_col(*needles: str, default: int) -> int:
+            targets = [str(needle or "").strip() for needle in needles if str(needle or "").strip()]
+            for col in range(1, min(ws.max_column, 20) + 1):
+                header_value = str(ws.cell(row=header_row, column=col).value or "").strip()
+                if any(target in header_value for target in targets):
+                    return col
+            return default
+
+        primary_result_col = _find_header_col("1차 검증", default=6)
+        review_result_col = _find_header_col("검증 결과", default=7)
+        remarks_col = _find_header_col("비고", default=8)
 
         matched_issue_ids = set()
         verification_rows = []
@@ -659,32 +709,34 @@ class Reporter:
                 if issue_id:
                     matched_issue_ids.add(issue_id)
 
-            status, remarks = self._evaluate_status(
+            status, review_message = self._evaluate_status(
                 item_text,
                 condition_text,
                 matched,
                 all_p1_rule_ids,
                 file_name=str(report_data.get("file", "") or ""),
+                source_text=str(report_data.get("source_code", report_data.get("original_content", "")) or ""),
             )
 
-            result_cell = ws.cell(row=row, column=result_col)
-            remarks_cell = ws.cell(row=row, column=remarks_col)
-            result_cell.value = status
-            remarks_cell.value = remarks
-            remarks_cell.alignment = Alignment(wrapText=True)
-            self._apply_status_style(result_cell, status)
+            primary_result_cell = ws.cell(row=row, column=primary_result_col)
+            review_result_cell = ws.cell(row=row, column=review_result_col)
+            primary_result_cell.value = status
+            review_result_cell.value = review_message or ""
+            review_result_cell.alignment = Alignment(wrapText=True)
+            ws.cell(row=row, column=remarks_col).alignment = Alignment(wrapText=True)
+            self._apply_status_style(primary_result_cell, status)
 
             verification_rows.append(
-                {
-                    "No": verify_no,
-                    "대분류": cat_large,
-                    "중분류": cat_mid,
-                    "소분류": item,
-                    "검증 조건": condition_text,
-                    "중요도": "필수",
-                    "검증 결과": status,
-                    "비고": remarks or "",
-                }
+                [
+                    verify_no,
+                    cat_large,
+                    cat_mid,
+                    item,
+                    condition_text,
+                    status,
+                    review_message or "",
+                    "",
+                ]
             )
 
         unmatched = []
@@ -729,20 +781,8 @@ class Reporter:
             )
         self._replace_sheet(wb, self.DETAIL_SHEET_NAME, detail_headers, detail_rows)
 
-        verify_headers = ["No", "대분류", "중분류", "소분류", "검증 조건", "중요도", "검증 결과", "비고"]
-        verify_rows = [
-            [
-                row.get("No"),
-                row.get("대분류"),
-                row.get("중분류"),
-                row.get("소분류"),
-                row.get("검증 조건"),
-                row.get("중요도"),
-                row.get("검증 결과"),
-                row.get("비고"),
-            ]
-            for row in verification_rows
-        ]
+        verify_headers = ["No", "대분류", "중분류", "소분류", "검증 조건", "1차 검증", "검증 결과", "비고"]
+        verify_rows = verification_rows
         self._replace_sheet(wb, self.VERIFY_SHEET_NAME, verify_headers, verify_rows)
 
         ctrlpp_headers = ["파일명", "라인", "규칙ID", "심각도", "메시지", "source"]

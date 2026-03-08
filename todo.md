@@ -3,7 +3,7 @@
 기준 문서: `WinCC OA 코드리뷰 프로그램 성능 점검 및 LLM Diff 승인형 자동수정 확장 계획`
 
 작성일: 2026-02-25 (업데이트 반영)
-최종 문서 정합화: 2026-03-03 (현재 코드 기준)
+최종 문서 정합화: 2026-03-08 (현재 코드 / 문서 기준)
 
 ## 상태 범례
 - `[x] 완료`: 계획 의도에 맞는 핵심 동작이 구현/테스트됨
@@ -11,10 +11,10 @@
 - `[ ] 미완료`: 아직 구현되지 않음
 
 ## 전체 요약
-- 완료: `151`
+- 완료: `155`
 - 부분완료: `0`
 - 미완료: `0`
-- 비고: 상단 요약은 문서 전체 체크마크(`todo.md`) 기준 재집계값이며, GoldenTime 기준 Excel 비교/품질게이트/릴리즈 체크리스트 제거 결정(P1/P2/P3 기준 재정의)을 반영함.
+- 비고: 상단 요약은 문서 전체 체크마크(`todo.md`) 기준 재집계값이며, GoldenTime 기준 Excel 비교/품질게이트/릴리즈 체크리스트 제거 결정(P1/P2/P3 기준 재정의), 체크리스트 자동화 기준(`완전 자동 / 부분 자동 / 수동 확인`) 정리를 반영함.
 
 ## 1) 계획 단계별 체크 (Plan Steps 1~12)
 
@@ -299,6 +299,19 @@
 - [x] `python tools/run_ctrlpp_integration_smoke.py --allow-missing-binary --skip-unittest` 실행 확인 (바이너리 미존재 상태 리포트 생성)
 - [x] `python tools/run_ctrlpp_integration_smoke.py` 실행 확인 (실제 Ctrlpp 바이너리 설치 후 direct smoke + unittest harness 통과)
 - [x] `python -m unittest backend.tests.test_api_and_reports` 재실행 통과 (파이프라인 모듈 분리 리팩터링 후, `61`, `1 skipped`)
+- [x] 체크리스트 자동화 판정 기준 재정의 반영
+  - `Loop문 내에 처리 조건` → `auto_full`
+  - `메모리 누수 체크`, `하드코딩 지양`, `디버깅용 로그 작성 확인` → `auto_violation_only`
+  - `쿼리 주석 처리` → `manual`
+- [x] 결과서 판정 로직 보수적 재구성 완료
+  - 완전 자동 항목만 `OK/NG/N/A` 자동 판정
+  - 부분 자동 항목은 위반 검출 시 `NG`, 미검출 시 `N/A + 수동 확인 권장`
+- [x] 관련 Excel/리포터 회귀 테스트 추가 및 통과
+  - `Loop문 내에 처리 조건`: `while` 없음 `N/A`, `while` 적정 `OK`, 위반 시 `NG`
+  - 부분 자동 / 수동 항목 안내 메시지 검증 포함
+- [x] 운영/사용자 문서 정합화 완료
+  - `README.md`, `improvement_recommendations.md`, `docs/user_operations_guide.md`, `docs/performance.md`, `docs/release_gate_checklist.md`
+  - 대시보드 `analysis diff` 문구 정리, issue detail `P1/P2 <> P3` compare 흐름 반영
 
 ## 7) 결론 (현 시점)
 - 계획 핵심(성능 계측/병렬화/변환 캐시/세션 안정화/Diff 승인형 autofix/검증 파이프라인/UI 연동/지연 Excel/템플릿 캐시/결과테이블 virtualization)은 구현 완료
@@ -306,6 +319,7 @@
 - 계획 2번(분석 파이프라인 모듈 분리)도 `backend/core/analysis_pipeline.py`로 반영 완료하여 계획 체크 기준으로 잔여 미완료 항목 없음
 - 후속 가독성 정리까지 반영(`TypedDict` 타입 명확화, 예외 로깅 통일)하여 `analysis_pipeline.py`의 유지보수성과 IDE 추론 품질 개선
 - 동일한 정리 방향을 `server.py`/`main.py`까지 확장하여 API payload/metrics 구조의 IDE 자동완성 및 오타 탐지 품질 개선
+- 체크리스트 결과서도 이제 일괄 `자동 체크 불가`가 아니라 `완전 자동 / 부분 자동 / 수동 확인` 기준으로 보수적으로 해석되며, 운영 문서도 현재 UI 흐름과 일치하도록 정리됨
 
 ---
 
@@ -526,4 +540,3 @@
   - `checker_vs_api_mismatch_rate=0.0%`
 - [x] `STYLE-HEADER-01` negative false positive 해소(타겟 규칙 기준 비검출 확인)
 - [x] `SEC-01`/`DB-ERR-01`/`EXC-DP-01` escape 보정 완료(엔진 regex 정규화 + 규칙 패턴 표준화 적용)
-

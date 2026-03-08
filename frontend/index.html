@@ -19,8 +19,10 @@
             <strong>프로젝트 파일</strong>
         </div>
         <div class="sidebar-ingest-tools">
-            <button type="button" id="btn-add-external-files">외부 파일 추가</button>
-            <button type="button" id="btn-add-external-folder">폴더 선택</button>
+            <div class="sidebar-ingest-actions">
+                <button type="button" id="btn-add-external-files">외부 파일 추가</button>
+                <button type="button" id="btn-add-external-folder">폴더 선택</button>
+            </div>
             <input type="file" id="external-file-input" multiple hidden>
             <input type="file" id="external-folder-input" webkitdirectory directory multiple hidden>
             <div id="external-input-summary" class="external-input-summary">세션 입력 없음</div>
@@ -52,41 +54,65 @@
                 <span class="header-kicker">Industrial Review Console</span>
                 <span id="header-title">WinCC OA 코드 리뷰어 v2.3</span>
             </div>
-            <div class="header-controls">
-                <label class="header-inline-label">
-                    <input type="checkbox" id="toggle-ctrlppcheck">
-                    CtrlppCheck 사용 (P2)
-                </label>
-                <div class="ai-context-toggle-group">
-                    <label class="header-toggle-label">
-                        <input type="checkbox" id="toggle-live-ai">
-                        Live AI 사용 (P3)
+            <div class="header-shell">
+                <div class="header-row header-row-controls">
+                    <label class="header-inline-label">
+                        <input type="checkbox" id="toggle-ctrlppcheck">
+                        CtrlppCheck 사용 (P2)
                     </label>
-                    <label class="header-toggle-label">
-                        <span>P3 모델</span>
-                        <select id="select-ai-model" disabled>
-                            <option value="">기본 모델</option>
-                        </select>
-                    </label>
-                    <div class="ai-context-block" id="label-ai-context">
+                    <div class="ai-context-toggle-group">
                         <label class="header-toggle-label">
-                            <input type="checkbox" id="toggle-ai-context" disabled>
-                            Live AI에 프로젝트 MCP 문맥 포함
+                            <input type="checkbox" id="toggle-live-ai">
+                            Live AI 사용 (P3)
                         </label>
-                        <div class="ai-context-help" id="ai-context-help">
-                            Live AI가 켜져 있고 MCP 서버 연결이 성공한 경우에만 문맥 보강이 적용됩니다. 실패 시 자동으로 생략됩니다.
+                        <label class="header-toggle-label">
+                            <span>P3 모델</span>
+                            <select id="select-ai-model" disabled>
+                                <option value="">기본 모델</option>
+                            </select>
+                        </label>
+                        <div class="ai-context-block" id="label-ai-context">
+                            <label class="header-toggle-label">
+                                <input type="checkbox" id="toggle-ai-context" disabled>
+                                Live AI에 프로젝트 MCP 문맥 포함
+                            </label>
+                            <div class="ai-context-help" id="ai-context-help" title="MCP 문맥 상태">
+                                MCP 문맥: 대기 중
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div id="verification-badge" class="verification-badge verification-badge--unknown" title="검증 레벨 정보 없음">검증 레벨: UNKNOWN</div>
-                <div id="verification-profile-card" class="verification-profile-card verification-profile-card--unknown" title="검증 프로파일 정보를 불러오는 중">검증 프로파일: 로딩 중...</div>
-                <button id="btn-analyze">선택 항목 분석</button>
-                <div id="analyze-progress-panel" class="analyze-progress-panel" style="display:none;" aria-live="polite">
-                    <div id="analyze-progress-status" class="analyze-progress-status">분석 중...</div>
-                    <div class="analyze-progress-track">
-                        <div id="analyze-progress-bar" class="analyze-progress-bar"></div>
+                <div class="header-row header-row-actions">
+                    <div class="header-status-chips">
+                        <div id="verification-badge" class="verification-badge verification-badge--unknown" title="검증 레벨 정보 없음">검증 레벨: UNKNOWN</div>
+                        <div id="verification-profile-card" class="verification-profile-card verification-profile-card--unknown" title="검증 프로파일 정보를 불러오는 중">검증 프로파일: 로딩 중...</div>
                     </div>
-                    <div id="analyze-progress-meta" class="analyze-progress-meta">0% | 0/0 파일 | ETA 계산 중 | 경과 00:00</div>
+                    <div class="header-action-group">
+                        <div class="header-action-row header-action-row-buttons">
+                            <button id="btn-analyze">선택 항목 분석</button>
+                            <button id="btn-flush-excel" type="button" disabled>Excel 결과 생성</button>
+                        </div>
+                        <div class="header-action-row header-action-row-progress">
+                            <div id="analyze-progress-panel" class="analyze-progress-panel" style="display:none;" aria-live="polite">
+                                <div id="analyze-progress-status" class="analyze-progress-status">분석 중...</div>
+                                <div class="analyze-progress-track">
+                                    <div id="analyze-progress-bar" class="analyze-progress-bar"></div>
+                                </div>
+                                <div id="analyze-progress-meta" class="analyze-progress-meta">0% | 0/0 파일 | ETA 계산 중 | 경과 00:00</div>
+                            </div>
+                        </div>
+                        <div id="excel-report-controls" class="header-action-row excel-report-controls" aria-live="polite">
+                            <div class="excel-report-meta">
+                                <span id="excel-job-status" class="excel-job-status"></span>
+                                <button id="excel-download-toggle" class="excel-download-toggle" type="button" hidden aria-expanded="false">
+                                    Excel 0개
+                                </button>
+                            </div>
+                            <div id="excel-download-panel" class="excel-download-panel" hidden>
+                                <div id="excel-download-list" class="excel-download-list"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -142,6 +168,14 @@
                 <section class="review-insight-card">
                     <h3>우선 수정 추천 Top 5</h3>
                     <div id="priority-recommendations" class="review-insight-empty">분석 후 우선 수정 추천이 표시됩니다.</div>
+                </section>
+                <section class="review-insight-card">
+                    <h3>운영 검증 비교</h3>
+                    <div id="operations-compare" class="review-insight-empty">최근 benchmark/smoke 결과를 불러오는 중입니다.</div>
+                </section>
+                <section class="review-insight-card">
+                    <h3>규칙 / 의존성 상태</h3>
+                    <div id="rules-health-compare" class="review-insight-empty">규칙 및 optional dependency 상태를 불러오는 중입니다.</div>
                 </section>
             </div>
         </div>
@@ -233,8 +267,10 @@
                 </div>
                 <p id="ai-text" class="ai-text"></p>
                 <ul id="ai-summary-list" class="ai-summary-list"></ul>
+                <div id="ai-compare-preview" class="ai-compare-preview" style="display:none;"></div>
                 <div class="ai-primary-actions">
-                    <button id="btn-ai-diff" class="ai-primary-button ai-primary-button-blue">변경 내용 보기</button>
+                    <button id="btn-ai-generate" class="ai-primary-button ai-primary-button-blue">추가 AI 분석</button>
+                    <button id="btn-ai-diff" class="ai-primary-button ai-primary-button-blue">P1/P2 <> P3 비교</button>
                     <button id="btn-ai-source-apply" class="ai-primary-button ai-primary-button-green" disabled>Source 적용</button>
                     <button id="btn-ai-more" class="ai-primary-button ai-primary-button-slate">고급 옵션</button>
                 </div>
@@ -264,8 +300,8 @@
         <div class="diff-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="autofix-diff-modal-title">
             <div class="diff-modal-header">
                 <div class="diff-modal-header-copy">
-                    <p class="diff-modal-kicker">Diff Preview</p>
-                    <h3 id="autofix-diff-modal-title">변경 내용 보기</h3>
+                    <p class="diff-modal-kicker">Issue To P3 Compare</p>
+                    <h3 id="autofix-diff-modal-title">P1/P2 <> P3 비교</h3>
                     <div id="autofix-diff-modal-meta" class="diff-modal-meta"></div>
                 </div>
                 <button id="autofix-diff-modal-close" type="button" class="diff-modal-close">닫기</button>
@@ -273,17 +309,17 @@
             <div id="autofix-diff-modal-summary" class="diff-modal-summary"></div>
             <div id="autofix-diff-modal-candidates" class="diff-modal-candidates hidden"></div>
             <div class="diff-modal-view-switch" role="tablist" aria-label="Diff View Tabs">
-                <button id="autofix-diff-view-split" class="diff-modal-view-button active" type="button" role="tab" aria-selected="true">하이라이트 비교</button>
-                <button id="autofix-diff-view-unified" class="diff-modal-view-button" type="button" role="tab" aria-selected="false">Unified Diff</button>
+                <button id="autofix-diff-view-split" class="diff-modal-view-button active" type="button" role="tab" aria-selected="true">원본 <> P3 비교</button>
+                <button id="autofix-diff-view-unified" class="diff-modal-view-button" type="button" role="tab" aria-selected="false">Source Patch Diff</button>
             </div>
             <div class="diff-modal-body">
                 <div id="autofix-diff-modal-split" class="diff-modal-split-view">
                     <div class="diff-modal-pane">
-                        <div class="diff-modal-pane-title">Before</div>
+                        <div class="diff-modal-pane-title">원본 문제 맥락</div>
                         <div id="autofix-diff-modal-before" class="diff-modal-pane-lines"></div>
                     </div>
                     <div class="diff-modal-pane">
-                        <div class="diff-modal-pane-title">After</div>
+                        <div class="diff-modal-pane-title">P3 개선안</div>
                         <div id="autofix-diff-modal-after" class="diff-modal-pane-lines"></div>
                     </div>
                 </div>

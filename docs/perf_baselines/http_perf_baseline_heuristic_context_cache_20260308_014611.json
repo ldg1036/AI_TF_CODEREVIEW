@@ -1,0 +1,257 @@
+{
+  "generated_at": "2026-03-08T01:46:11",
+  "server_url": "http://127.0.0.1:8765",
+  "dataset_name": "heuristic_context_cache",
+  "selected_files": [
+    "GoldenTime.ctl"
+  ],
+  "matrix": {
+    "live_ai": [
+      false
+    ],
+    "ctrlpp": [
+      false
+    ],
+    "defer_excel_reports": [
+      false
+    ],
+    "iterations": 2,
+    "flush_excel": true
+  },
+  "elapsed_ms": 315,
+  "runs": [
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": false,
+        "defer_excel_reports": false,
+        "iteration": 1
+      },
+      "status": {
+        "analyze_http": 200,
+        "flush_http": 200,
+        "ok": true
+      },
+      "request": {
+        "output_dir": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260308_014611_552757",
+        "request_id": "2c125019b05949738ba9fdde0d69c5b5"
+      },
+      "wall_ms": {
+        "analyze_http": 177,
+        "flush_http": 15,
+        "end_to_end_http": 192
+      },
+      "metrics": {
+        "timings_ms": {
+          "total": 137,
+          "collect": 0,
+          "convert": 0,
+          "mcp_context": 0,
+          "analyze": 134,
+          "report": 98,
+          "heuristic": 34,
+          "ctrlpp": 0,
+          "ai": 0,
+          "excel_copy": 0,
+          "excel_load": 27,
+          "excel_save": 65,
+          "server_total": 138
+        },
+        "llm_calls": 0,
+        "ctrlpp_calls": 0,
+        "bytes_read": 10741,
+        "bytes_written": 30513,
+        "convert_cache": {
+          "hits": 0,
+          "misses": 0
+        }
+      },
+      "summary": {
+        "total": 9,
+        "critical": 1,
+        "warning": 5,
+        "info": 3,
+        "score": 57,
+        "p1_total": 1,
+        "p2_total": 0,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0,
+        "ctrlpp_preflight_attempted": false,
+        "ctrlpp_preflight_ready": false,
+        "ctrlpp_preflight_message": "",
+        "ctrlpp_preflight_error_code": "",
+        "verification_level": "CORE+REPORT"
+      },
+      "pending_excel_jobs": {
+        "after_analyze": 0,
+        "running_after_analyze": 0,
+        "after_flush": 0
+      },
+      "errors": {
+        "analyze": "",
+        "flush": ""
+      }
+    },
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": false,
+        "defer_excel_reports": false,
+        "iteration": 2
+      },
+      "status": {
+        "analyze_http": 200,
+        "flush_http": 200,
+        "ok": true
+      },
+      "request": {
+        "output_dir": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260308_014611_708333",
+        "request_id": "58f1d87068fe4dfcbde2342818f93b55"
+      },
+      "wall_ms": {
+        "analyze_http": 120,
+        "flush_http": 1,
+        "end_to_end_http": 121
+      },
+      "metrics": {
+        "timings_ms": {
+          "total": 117,
+          "collect": 0,
+          "convert": 0,
+          "mcp_context": 0,
+          "analyze": 114,
+          "report": 92,
+          "heuristic": 20,
+          "ctrlpp": 0,
+          "ai": 0,
+          "excel_copy": 0,
+          "excel_load": 39,
+          "excel_save": 48,
+          "server_total": 118
+        },
+        "llm_calls": 0,
+        "ctrlpp_calls": 0,
+        "bytes_read": 10741,
+        "bytes_written": 30513,
+        "convert_cache": {
+          "hits": 0,
+          "misses": 0
+        }
+      },
+      "summary": {
+        "total": 9,
+        "critical": 1,
+        "warning": 5,
+        "info": 3,
+        "score": 57,
+        "p1_total": 1,
+        "p2_total": 0,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0,
+        "ctrlpp_preflight_attempted": false,
+        "ctrlpp_preflight_ready": false,
+        "ctrlpp_preflight_message": "",
+        "ctrlpp_preflight_error_code": "",
+        "verification_level": "CORE+REPORT"
+      },
+      "pending_excel_jobs": {
+        "after_analyze": 0,
+        "running_after_analyze": 0,
+        "after_flush": 0
+      },
+      "errors": {
+        "analyze": "",
+        "flush": ""
+      }
+    }
+  ],
+  "combo_summaries": [
+    {
+      "combo": {
+        "live_ai": false,
+        "ctrlpp": false,
+        "defer_excel_reports": false
+      },
+      "run_count": 2,
+      "ok_runs": 2,
+      "analyze_http_ms": {
+        "count": 2,
+        "min": 120,
+        "max": 177,
+        "avg": 148,
+        "p95": 177
+      },
+      "end_to_end_http_ms": {
+        "count": 2,
+        "min": 121,
+        "max": 192,
+        "avg": 156,
+        "p95": 192
+      },
+      "server_total_ms": {
+        "count": 2,
+        "min": 118,
+        "max": 138,
+        "avg": 128,
+        "p95": 138
+      },
+      "analyze_stage_ms": {
+        "count": 2,
+        "min": 114,
+        "max": 134,
+        "avg": 124,
+        "p95": 134
+      },
+      "report_stage_ms": {
+        "count": 2,
+        "min": 92,
+        "max": 98,
+        "avg": 95,
+        "p95": 98
+      },
+      "ai_stage_ms": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "ctrlpp_stage_ms": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "llm_calls": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "ctrlpp_calls": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      },
+      "pending_excel_after_analyze": {
+        "count": 2,
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "p95": 0
+      }
+    }
+  ],
+  "notes": [
+    "Values come from /api/analyze metrics + HTTP wall-clock timings.",
+    "Use this file as a baseline for local/CI regression comparisons."
+  ]
+}

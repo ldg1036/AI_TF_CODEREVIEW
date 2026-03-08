@@ -5,6 +5,7 @@
     output_dir: "",
     metrics: {},
     report_jobs: {},
+    report_paths: {},
 };
 
 const dashboardView = document.getElementById("dashboard-view");
@@ -22,6 +23,9 @@ const verificationBadge = document.getElementById("verification-badge");
 const verificationProfileCard = document.getElementById("verification-profile-card");
 const dedupeSummary = document.getElementById("dedupe-summary");
 const priorityRecommendations = document.getElementById("priority-recommendations");
+const operationsCompare = document.getElementById("operations-compare");
+const rulesHealthCompare = document.getElementById("rules-health-compare");
+const analysisDiffCompare = document.getElementById("analysis-diff-compare");
 const codeViewer = document.getElementById("code-viewer");
 const workspaceQuickFilter = document.getElementById("workspace-quick-filter");
 const workspaceQuickFilterText = document.getElementById("workspace-quick-filter-text");
@@ -39,6 +43,8 @@ const inspectorSelectionMeta = document.getElementById("inspector-selection-meta
 const aiCard = document.getElementById("ai-suggestion-card");
 const aiText = document.getElementById("ai-text");
 const aiSummaryList = document.getElementById("ai-summary-list");
+const aiComparePreview = document.getElementById("ai-compare-preview");
+const aiPrimaryActions = document.querySelector(".ai-primary-actions");
 const aiReviewToggleBtn = document.getElementById("btn-ai-review-toggle");
 const aiTextFull = document.getElementById("ai-text-full");
 const btnAiMore = document.getElementById("btn-ai-more");
@@ -74,6 +80,9 @@ const filterMatrix = document.querySelector(".filter-matrix");
 const ctrlppToggle = document.getElementById("toggle-ctrlppcheck");
 const flushExcelBtn = document.getElementById("btn-flush-excel");
 const excelJobStatusText = document.getElementById("excel-job-status");
+const excelDownloadToggle = document.getElementById("excel-download-toggle");
+const excelDownloadPanel = document.getElementById("excel-download-panel");
+const excelDownloadList = document.getElementById("excel-download-list");
 const analyzeProgressPanel = document.getElementById("analyze-progress-panel");
 const analyzeProgressStatus = document.getElementById("analyze-progress-status");
 const analyzeProgressBar = document.getElementById("analyze-progress-bar");
@@ -111,7 +120,19 @@ let activeDiffModalKey = "";
 let activeDiffModalBundle = null;
 let activeDiffModalViolation = null;
 let activeDiffModalSelectHandler = null;
+let activeDiffModalEventName = "Global";
+let excelDownloadsExpanded = false;
 let activeDiffModalView = "split";
+let activeDiffModalContext = {
+    beforeRows: null,
+    afterRows: null,
+    errorMessage: "",
+    lineUnresolved: false,
+    patchMissing: false,
+    prepareFailed: false,
+    mockOrLowConfidence: false,
+    anchorLine: 0,
+};
 let analysisInsights = {
     dedupe: { rawIssueCount: 0, displayedRowCount: 0, collapsedDuplicateCount: 0 },
     recommendations: [],
@@ -135,6 +156,19 @@ let aiMoreMenuOpen = false;
 let sessionInputSources = [];
 let selectedAiModel = "";
 let aiModelCatalogLoaded = false;
+let latestRulesHealthPayload = null;
+let rulesManageOpen = false;
+let rulesManageLoading = false;
+let rulesManageSaving = false;
+let rulesManageRows = [];
+let rulesManageDraftById = new Map();
+let rulesManageEditorMode = "edit";
+let rulesManageEditorRuleId = "";
+let rulesManageEditorDraft = null;
+let rulesManageStatusMessage = "";
+let analysisDiffRunOptions = [];
+let selectedAnalysisDiffLatest = "";
+let selectedAnalysisDiffPrevious = "";
 const codeViewerVirtualState = {
     headerEl: null,
     linesWrap: null,
@@ -195,20 +229,28 @@ function updateAiContextHelpText() {
         const liveEnabled = !!(liveAiToggle && liveAiToggle.checked);
         const withContext = liveEnabled && !!(aiContextToggle && aiContextToggle.checked);
         if (!liveEnabled) {
-            aiContextHelp.textContent = "Live AI를 켜야 MCP 문맥을 사용할 수 있습니다.";
+            aiContextHelp.textContent = "";
+            aiContextHelp.title = "Live AI를 켜야 MCP 문맥을 사용할 수 있습니다.";
+            aiContextHelp.classList.add("is-hidden");
             return;
         }
         if (!withContext) {
-            aiContextHelp.textContent = "현재는 MCP 문맥 없이 Live AI만 사용합니다.";
+            aiContextHelp.textContent = "";
+            aiContextHelp.title = "현재는 MCP 문맥 없이 Live AI만 사용합니다.";
+            aiContextHelp.classList.add("is-hidden");
             return;
         }
 
         const timings = (analysisData && analysisData.metrics && analysisData.metrics.timings_ms) || {};
         const mcpMs = Number(timings.mcp_context);
-        if (Number.isFinite(mcpMs) && mcpMs >= 0) {
-            aiContextHelp.textContent = `MCP 문맥 요청을 시도했습니다 (${Math.round(mcpMs)}ms). 실패 시 자동으로 생략됩니다.`;
+        if (Number.isFinite(mcpMs) && mcpMs > 0) {
+            aiContextHelp.classList.remove("is-hidden");
+            aiContextHelp.textContent = `MCP ${Math.round(mcpMs)}ms`;
+            aiContextHelp.title = `MCP 문맥 요청을 시도했습니다 (${Math.round(mcpMs)}ms). 실패 시 자동으로 생략됩니다.`;
         } else {
-            aiContextHelp.textContent = "분석 시 MCP 문맥을 요청합니다. MCP 서버가 없거나 실패하면 자동으로 생략됩니다.";
+            aiContextHelp.textContent = "";
+            aiContextHelp.title = "분석 시 MCP 문맥을 요청합니다. MCP 서버가 없거나 실패하면 자동으로 생략됩니다.";
+            aiContextHelp.classList.add("is-hidden");
         }
     }
 }
@@ -262,13 +304,16 @@ async function loadAiModels() {
         aiModelSelect.disabled = !models.length;
         if (aiContextHelp && liveAiToggle && liveAiToggle.checked && !models.length) {
             const errorText = String(payload.error || "설치된 Ollama 모델을 찾지 못했습니다.");
-            aiContextHelp.textContent = `${errorText} 기본 모델 fallback을 사용합니다.`;
+            aiContextHelp.textContent = "모델 상태: fallback";
+            aiContextHelp.title = `${errorText} 기본 모델 fallback을 사용합니다.`;
         }
     } catch (err) {
         aiModelCatalogLoaded = false;
         aiModelSelect.disabled = true;
         if (aiContextHelp && liveAiToggle && liveAiToggle.checked) {
-            aiContextHelp.textContent = `모델 목록 조회 실패: ${String((err && err.message) || err || "")}`;
+            const message = String((err && err.message) || err || "");
+            aiContextHelp.textContent = "모델 상태: 조회 실패";
+            aiContextHelp.title = `모델 목록 조회 실패: ${message}`;
         }
     }
 }
@@ -354,7 +399,7 @@ function ensureAiEmptyStateNode() {
     return node;
 }
 
-function renderAiEmptyState(title, detail) {
+function renderAiEmptyState(title, detail, diagnostic = null) {
     const node = ensureAiEmptyStateNode();
     if (!node) return;
     node.replaceChildren();
@@ -363,6 +408,90 @@ function renderAiEmptyState(title, detail) {
     const paragraph = document.createElement("p");
     paragraph.textContent = detail || "";
     node.append(strong, paragraph);
+    if (diagnostic && typeof diagnostic === "object") {
+        const wrap = document.createElement("div");
+        wrap.className = "ai-empty-diagnostic";
+
+        const summary = document.createElement("div");
+        summary.className = "ai-empty-diagnostic-summary";
+        [
+            ["판정", String(diagnostic.classification_label || diagnostic.classification || "-")],
+            ["AI status", String(diagnostic.status_label || diagnostic.status || "-")],
+            ["AI reason", String(diagnostic.reason_label || diagnostic.reason || "-")],
+            ["연결 상태", String(diagnostic.match_label || "-")],
+        ].forEach(([label, value]) => {
+            const item = document.createElement("div");
+            item.className = "ai-empty-diagnostic-item";
+            const key = document.createElement("span");
+            key.className = "ai-empty-diagnostic-key";
+            key.textContent = `${label}:`;
+            const val = document.createElement("span");
+            val.className = "ai-empty-diagnostic-value";
+            val.textContent = value;
+            item.append(key, val);
+            summary.appendChild(item);
+        });
+        wrap.appendChild(summary);
+
+        const details = document.createElement("div");
+        details.className = "ai-empty-diagnostic-details";
+        details.classList.add("is-collapsed");
+        const rows = [
+            ["선택 source", String(diagnostic.selected_source || "-")],
+            ["선택 issue_id", String(diagnostic.selected_issue_id || "-")],
+            ["선택 rule_id", String(diagnostic.selected_rule_id || "-")],
+            ["선택 line", String(diagnostic.selected_line || "-")],
+            ["AI parent issue_id", String(diagnostic.parent_issue_id || "-")],
+            ["AI parent rule_id", String(diagnostic.parent_rule_id || "-")],
+            ["AI parent line", String(diagnostic.parent_line || "-")],
+        ];
+        if (diagnostic.match_hint) {
+            rows.push(["매칭 힌트", String(diagnostic.match_hint)]);
+        }
+        if (positiveLineOrZero(diagnostic.selected_cap || 0) > 0) {
+            rows.push(["선정 cap", String(diagnostic.selected_cap)]);
+        }
+        if (positiveLineOrZero(diagnostic.selected_rank || 0) > 0) {
+            rows.push(["선정 순위", String(diagnostic.selected_rank)]);
+        }
+        if (diagnostic.detail) {
+            rows.push(["상세", String(diagnostic.detail)]);
+        }
+        rows.forEach(([label, value]) => {
+            const row = document.createElement("div");
+            row.className = "ai-empty-diagnostic-row";
+            const key = document.createElement("span");
+            key.className = "ai-empty-diagnostic-key";
+            key.textContent = `${label}:`;
+            const val = document.createElement("span");
+            val.className = "ai-empty-diagnostic-value";
+            val.textContent = value;
+            row.append(key, val);
+            details.appendChild(row);
+        });
+        if (rows.length > 0) {
+            const toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.className = "ai-empty-diagnostic-toggle";
+            toggle.textContent = "디버그 정보 보기";
+            toggle.onclick = () => {
+                const collapsed = details.classList.toggle("is-collapsed");
+                toggle.textContent = collapsed ? "디버그 정보 보기" : "디버그 정보 숨기기";
+            };
+            wrap.appendChild(toggle);
+            wrap.appendChild(details);
+        }
+        const actionWrap = document.createElement("div");
+        actionWrap.className = "ai-empty-actions";
+        const generateBtn = document.createElement("button");
+        generateBtn.type = "button";
+        generateBtn.id = "btn-ai-generate-empty";
+        generateBtn.className = "ai-empty-diagnostic-toggle";
+        generateBtn.textContent = "추가 AI 분석";
+        actionWrap.appendChild(generateBtn);
+        wrap.appendChild(actionWrap);
+        node.appendChild(wrap);
+    }
     node.style.display = "block";
     if (aiCard) {
         aiCard.style.display = "none";
@@ -1013,12 +1142,313 @@ function ensureAiStatusNode() {
     return node;
 }
 
+function ensureAiActionHintNode() {
+    let node = document.getElementById("ai-action-hint");
+    if (!node && aiPrimaryActions && aiCard) {
+        node = document.createElement("div");
+        node.id = "ai-action-hint";
+        node.className = "ai-action-hint";
+        aiPrimaryActions.insertAdjacentElement("afterend", node);
+    }
+    return node;
+}
+
 function setAiStatusInline(message, color = "") {
     const node = ensureAiStatusNode();
     if (!node) return;
     node.textContent = message || "";
     node.style.display = message ? "block" : "none";
     node.style.color = color || "";
+}
+
+function setAiActionHint(message, tone = "") {
+    const node = ensureAiActionHintNode();
+    if (!node) return;
+    node.textContent = String(message || "");
+    node.className = `ai-action-hint ${tone ? `ai-action-hint-${tone}` : ""}`.trim();
+    node.style.display = message ? "block" : "none";
+}
+
+function clearAiComparePreview() {
+    if (!aiComparePreview) return;
+    aiComparePreview.replaceChildren();
+    aiComparePreview.style.display = "none";
+}
+
+function extractReviewCodeBlock(reviewText) {
+    const raw = String(reviewText || "");
+    const match = raw.match(/```(?:[\w#+.-]+)?\s*([\s\S]*?)```/);
+    if (match && String(match[1] || "").trim()) {
+        return String(match[1] || "").trim();
+    }
+    return "";
+}
+
+function buildIssueContextRows(violation, radius = 3) {
+    const targetLine = positiveLineOrZero((violation && violation.line) || 0);
+    const lines = Array.isArray(currentViewerLines) ? currentViewerLines : [];
+    if (!targetLine || !lines.length) {
+        const fallback = compactUiText(String((violation && violation.message) || "").trim(), 220) || "선택 이슈의 원본 코드 맥락을 불러오지 못했습니다.";
+        return [{ lineNo: positiveLineOrZero(targetLine), text: fallback, kind: "change-old" }];
+    }
+    const start = Math.max(1, targetLine - Math.max(1, radius));
+    const end = Math.min(lines.length, targetLine + Math.max(1, radius));
+    const rows = [];
+    for (let lineNo = start; lineNo <= end; lineNo += 1) {
+        rows.push({
+            lineNo,
+            text: String(lines[lineNo - 1] || ""),
+            kind: lineNo === targetLine ? "change-old" : "context",
+        });
+    }
+    return rows;
+}
+
+function estimateLineByMessage(lines, message) {
+    const safeLines = Array.isArray(lines) ? lines : [];
+    const tokenSource = String(message || "").toLowerCase().replace(/[^a-z0-9_]+/g, " ").trim();
+    if (!safeLines.length || !tokenSource) return 0;
+    const tokens = tokenSource.split(/\s+/).filter((item) => item.length >= 4).slice(0, 3);
+    if (!tokens.length) return 0;
+    for (let idx = 0; idx < safeLines.length; idx += 1) {
+        const line = String(safeLines[idx] || "").toLowerCase();
+        if (tokens.some((token) => line.includes(token))) return idx + 1;
+    }
+    return 0;
+}
+
+function buildIssueContextRowsWithLines(lines, targetLine, violation, radius = 4, loadError = "", options = {}) {
+    const safeLines = Array.isArray(lines) ? lines : [];
+    const allowMessageEstimate = !(options && options.disableMessageEstimate);
+    const preferredLine = positiveLineOrZero(targetLine)
+        || (allowMessageEstimate ? estimateLineByMessage(safeLines, violation && violation.message) : 0);
+    if (!safeLines.length) {
+        const fallback = loadError
+            ? `원본 source 로드 실패: ${loadError}`
+            : "원본 source 코드를 불러오지 못했습니다.";
+        return [{ lineNo: 0, text: fallback, kind: "placeholder" }];
+    }
+    if (preferredLine <= 0) {
+        return [{ lineNo: 0, text: "line 정보를 찾지 못해 전체 맥락 대신 요약 비교만 제공합니다.", kind: "placeholder" }];
+    }
+    const start = Math.max(1, preferredLine - Math.max(1, radius));
+    const end = Math.min(safeLines.length, preferredLine + Math.max(1, radius));
+    const rows = [];
+    for (let lineNo = start; lineNo <= end; lineNo += 1) {
+        rows.push({
+            lineNo,
+            text: String(safeLines[lineNo - 1] || ""),
+            kind: lineNo === preferredLine ? "change-old" : "context",
+        });
+    }
+    return rows;
+}
+
+function isPlaceholderLikeReviewCode(text) {
+    const raw = String(text || "").trim();
+    if (!raw) return true;
+    const lowered = raw.toLowerCase();
+    const lineCount = raw.split(/\r?\n/).length;
+    const placeholderPatterns = [
+        /todo/i,
+        /placeholder/i,
+        /여기에/,
+        /작성하세요/,
+        /최소\s*수정/,
+        /minimal/,
+    ];
+    const looksPlaceholder = placeholderPatterns.some((re) => re.test(lowered));
+    const hasCodeShape = /[{}();=]/.test(raw) || /\b(if|for|while|return|setvalue|getvalue|dpset|dpget)\b/i.test(raw);
+    return looksPlaceholder && (!hasCodeShape || lineCount <= 3);
+}
+
+function anchorTokensForViolation(violation, aiMatch) {
+    const ruleId = String(((violation && violation.rule_id) || (aiMatch && aiMatch.parent_rule_id) || "").trim()).toUpperCase();
+    const message = String((violation && violation.message) || "").toLowerCase();
+    const tokenSet = new Set();
+    if (ruleId.includes("SETMULTIVALUE")) {
+        tokenSet.add("setmultivalue");
+        tokenSet.add("setvalue");
+    }
+    if (ruleId.includes("GETMULTIVALUE")) {
+        tokenSet.add("getmultivalue");
+        tokenSet.add("getvalue");
+    }
+    if (ruleId.includes("DPSET")) {
+        tokenSet.add("dpset");
+        tokenSet.add("dpsettimed");
+    }
+    if (ruleId.includes("DPGET")) {
+        tokenSet.add("dpget");
+    }
+    if (message.includes("setvalue")) tokenSet.add("setvalue");
+    if (message.includes("getvalue")) tokenSet.add("getvalue");
+    if (message.includes("dpset")) tokenSet.add("dpset");
+    if (message.includes("dpget")) tokenSet.add("dpget");
+    return Array.from(tokenSet);
+}
+
+function findAnchorLineByTokens(lines, tokens) {
+    const safeLines = Array.isArray(lines) ? lines : [];
+    const safeTokens = Array.isArray(tokens) ? tokens.filter(Boolean).map((item) => String(item).toLowerCase()) : [];
+    if (!safeLines.length || !safeTokens.length) return 0;
+    for (let i = 0; i < safeLines.length; i += 1) {
+        const line = String(safeLines[i] || "").toLowerCase();
+        if (!line.trim() || line.trim().startsWith("//")) continue;
+        if (safeTokens.some((token) => line.includes(token))) {
+            return i + 1;
+        }
+    }
+    return 0;
+}
+
+function resolveDiffAnchorLine(sourceLines, violation, aiMatch, fileName = "") {
+    const directLine = positiveLineOrZero((violation && violation.line) || 0);
+    if (directLine > 0) return directLine;
+    const parentLine = positiveLineOrZero((aiMatch && aiMatch.parent_line) || 0);
+    if (parentLine > 0) return parentLine;
+    const byMessage = estimateLineByMessage(sourceLines, violation && violation.message);
+    if (byMessage > 0) return byMessage;
+    const tokenLine = findAnchorLineByTokens(sourceLines, anchorTokensForViolation(violation, aiMatch));
+    if (tokenLine > 0) {
+        const scope = getFunctionScopeFor(fileName, tokenLine);
+        if (scope && positiveLineOrZero(scope.start) > 0) {
+            return positiveLineOrZero(scope.start);
+        }
+        return tokenLine;
+    }
+    return 0;
+}
+
+function buildReviewContextRows(aiMatch) {
+    const reviewText = String((aiMatch && aiMatch.review) || "").trim();
+    const codeBlock = extractReviewCodeBlock(reviewText);
+    const preferredText = codeBlock || reviewText || "P3 개선안 텍스트를 찾지 못했습니다.";
+    const lines = preferredText.split(/\r?\n/);
+    return lines.map((line, index) => ({
+        lineNo: codeBlock ? index + 1 : 0,
+        text: String(line || ""),
+        kind: codeBlock ? "change-new" : index === 0 ? "change-new" : "context",
+    }));
+}
+
+function buildAfterRowsFromProposal(proposal) {
+    const diffText = String((proposal && proposal.unified_diff) || "").trim();
+    if (!diffText) return [];
+    const parsed = parseUnifiedDiffForSplit(diffText);
+    if (Array.isArray(parsed.afterRows) && parsed.afterRows.length) {
+        return parsed.afterRows;
+    }
+    return [];
+}
+
+async function buildDiffModalContext(violation, aiMatch, bundle, eventName) {
+    const fileName = violationResolvedFile(violation, violationResolvedFile(aiMatch, currentViewerFile));
+    let sourceLines = [];
+    let sourceError = "";
+    if (fileName) {
+        try {
+            const sourcePayload = await fetchFileContentPayload(fileName, { preferSource: true });
+            sourceLines = String((sourcePayload && sourcePayload.content) || "").split("\n");
+        } catch (err) {
+            sourceError = String((err && err.message) || err || "source load failed");
+        }
+    }
+    const targetLine = resolveDiffAnchorLine(sourceLines, violation, aiMatch, fileName);
+    const beforeRows = buildIssueContextRowsWithLines(
+        sourceLines,
+        targetLine,
+        violation,
+        4,
+        sourceError,
+        { disableMessageEstimate: true },
+    );
+
+    let effectiveBundle = bundle || null;
+    let afterRows = buildReviewContextRows(aiMatch);
+    let errorMessage = "";
+    const reviewCodeBlock = extractReviewCodeBlock(String((aiMatch && aiMatch.review) || ""));
+    const hasCodeBlock = !!reviewCodeBlock;
+    const placeholderCodeBlock = hasCodeBlock && isPlaceholderLikeReviewCode(reviewCodeBlock);
+    let prepareAttempted = false;
+    let prepareFailed = false;
+
+    if (!hasCodeBlock || placeholderCodeBlock) {
+        let activeProposal = getActiveAutofixProposal(effectiveBundle);
+        if (!activeProposal || !String(activeProposal.unified_diff || "").trim()) {
+            try {
+                prepareAttempted = true;
+                const prepared = await prepareAutofixProposal(violation, eventName, aiMatch);
+                effectiveBundle = prepared || effectiveBundle;
+                activeProposal = getActiveAutofixProposal(effectiveBundle);
+            } catch (err) {
+                prepareFailed = true;
+                errorMessage = `코드 비교 생성 실패: ${String((err && err.message) || err || "autofix prepare failed")}`;
+            }
+        }
+        const proposalAfterRows = buildAfterRowsFromProposal(getActiveAutofixProposal(effectiveBundle));
+        if (proposalAfterRows.length) {
+            afterRows = proposalAfterRows;
+        } else if (!hasCodeBlock) {
+            afterRows = [{
+                lineNo: 0,
+                text: errorMessage || "P3 리뷰에서 코드 블록을 찾지 못했고 Source patch diff도 준비되지 않았습니다.",
+                kind: "placeholder",
+            }];
+        }
+    }
+
+    const activeProposal = getActiveAutofixProposal(effectiveBundle);
+    const patchMissing = !String((activeProposal && activeProposal.unified_diff) || "").trim();
+    const lineUnresolved = !beforeRows.length || beforeRows.some((row) => positiveLineOrZero(row && row.lineNo) <= 0);
+
+    return {
+        bundle: effectiveBundle,
+        beforeRows,
+        afterRows,
+        errorMessage,
+        lineUnresolved,
+        patchMissing,
+        prepareFailed: prepareFailed || (!!prepareAttempted && patchMissing),
+        mockOrLowConfidence: String((aiMatch && aiMatch.source) || "").trim().toLowerCase() === "mock",
+        anchorLine: positiveLineOrZero(targetLine),
+    };
+}
+
+function createComparePreviewColumn(title, rows, kindClass = "") {
+    const column = document.createElement("div");
+    column.className = `ai-compare-preview-column ${kindClass}`.trim();
+    const heading = document.createElement("strong");
+    heading.className = "ai-compare-preview-title";
+    heading.textContent = title;
+    column.appendChild(heading);
+    const body = document.createElement("div");
+    body.className = "ai-compare-preview-body";
+    const safeRows = Array.isArray(rows) && rows.length
+        ? rows
+        : [{ lineNo: 0, text: "비교 정보를 준비하지 못했습니다.", kind: "placeholder" }];
+    safeRows.slice(0, 6).forEach((row) => {
+        body.appendChild(createDiffPaneLine(row.lineNo, row.text, row.kind));
+    });
+    column.appendChild(body);
+    return column;
+}
+
+function renderAiComparePreview(violation, aiMatch) {
+    if (!aiComparePreview || !violation || !aiMatch) return;
+    const sourceLabel = sourceFilterKey((violation && violation.priority_origin) || "P1") === "p2" ? "P2 원본" : "P1 원본";
+    const p3Mode = String((aiMatch && aiMatch.source) || "").trim().toLowerCase() === "mock" ? "Mock 개선안" : "Live P3";
+    const previewHeader = document.createElement("div");
+    previewHeader.className = "ai-compare-preview-meta";
+    previewHeader.textContent = `${sourceLabel} line ${positiveLineOrZero((violation && violation.line) || 0) || "-"} <> ${p3Mode}`;
+    const issueRows = buildIssueContextRows(violation, 3);
+    const reviewRows = buildReviewContextRows(aiMatch);
+    aiComparePreview.replaceChildren(
+        previewHeader,
+        createComparePreviewColumn("원본 문제 맥락", issueRows, "is-source"),
+        createComparePreviewColumn("P3 개선안", reviewRows, "is-review"),
+    );
+    aiComparePreview.style.display = "grid";
 }
 
 function setActiveJumpRequestState(status = "idle", line = 0) {
@@ -1150,7 +1580,12 @@ function qualityPreviewSummaryLines(preview) {
 function buildAiSummaryLines(violation, aiMatch, proposal) {
     const activeProposal = (proposal && typeof proposal === "object") ? proposal : null;
     const lines = [];
-    const reviewSummary = buildAiReviewSummary((activeProposal && activeProposal.summary) || (aiMatch && aiMatch.review) || "");
+    const effectiveRuleId = String((violation && violation.rule_id) || (aiMatch && aiMatch.parent_rule_id) || "").trim();
+    const reviewText = String((activeProposal && activeProposal.summary) || (aiMatch && aiMatch.review) || "");
+    if (isMultiAggregationRule(effectiveRuleId)) {
+        lines.push(`묶음 처리 제안: ${reviewHasGroupedExample(effectiveRuleId, reviewText) ? "실제 멀티 호출 코드 예시 포함" : "멀티 호출 코드 예시 보강 필요"}`);
+    }
+    const reviewSummary = buildAiReviewSummary(reviewText);
     if (reviewSummary) {
         lines.push(`수정 요약: ${reviewSummary}`);
     }
@@ -1168,6 +1603,41 @@ function buildAiSummaryLines(violation, aiMatch, proposal) {
         if (line) lines.push(line);
     });
     return lines.slice(0, 4);
+}
+
+function isMultiAggregationRule(ruleId) {
+    const rule = String(ruleId || "").trim().toUpperCase();
+    return rule === "PERF-SETMULTIVALUE-ADOPT-01"
+        || rule === "PERF-GETMULTIVALUE-ADOPT-01"
+        || rule === "PERF-DPSET-BATCH-01"
+        || rule === "PERF-DPGET-BATCH-01";
+}
+
+function extractReviewCodeBlocks(reviewText) {
+    const raw = String(reviewText || "");
+    const blocks = [];
+    const regex = /```(?:[\w#+.-]+)?\s*([\s\S]*?)```/gi;
+    let match;
+    while ((match = regex.exec(raw)) !== null) {
+        const block = String((match && match[1]) || "").trim();
+        if (block) blocks.push(block);
+    }
+    return blocks;
+}
+
+function reviewHasGroupedExample(ruleId, reviewText) {
+    const rule = String(ruleId || "").trim().toUpperCase();
+    const blocks = extractReviewCodeBlocks(reviewText).map((item) => item.toLowerCase());
+    if (!rule || !blocks.length) return false;
+    if (rule === "PERF-SETMULTIVALUE-ADOPT-01") return blocks.some((block) => block.includes("setmultivalue("));
+    if (rule === "PERF-GETMULTIVALUE-ADOPT-01") return blocks.some((block) => block.includes("getmultivalue("));
+    if (rule === "PERF-DPSET-BATCH-01") {
+        return blocks.some((block) => /dpset\s*\(([\s\S]*?)\);/i.test(block) && ((block.match(/,/g) || []).length >= 3));
+    }
+    if (rule === "PERF-DPGET-BATCH-01") {
+        return blocks.some((block) => /dpget\s*\(([\s\S]*?)\);/i.test(block) && ((block.match(/,/g) || []).length >= 3));
+    }
+    return false;
 }
 
 function aiStatusMatchesViolation(statusItem, violation, eventName) {
@@ -1206,12 +1676,224 @@ function aiStatusMatchesViolation(statusItem, violation, eventName) {
     return false;
 }
 
+function isReviewOnlyLikeViolation(violation) {
+    const source = String((violation && violation.priority_origin) || "").trim().toUpperCase();
+    const issueId = String((violation && violation.issue_id) || "").trim().toUpperCase();
+    const lineNo = positiveLineOrZero((violation && violation.line) || 0);
+    return source === "P1" && (lineNo <= 0 || issueId.startsWith("REVIEW-ONLY-"));
+}
+
+function findAiLinkedItemForViolation(items, violation, eventName) {
+    const collection = Array.isArray(items) ? items : [];
+    const exact = collection.find((item) => aiStatusMatchesViolation(item, violation, eventName)) || null;
+    if (exact) return exact;
+    if (!isReviewOnlyLikeViolation(violation)) return null;
+
+    const selectedFile = violationResolvedFile(violation);
+    const selectedSource = String((violation && violation.priority_origin) || "").trim().toUpperCase();
+    const selectedRule = String((violation && violation.rule_id) || "").trim();
+    const selectedEvent = String(eventName || "Global");
+    const selectedLine = positiveLineOrZero((violation && violation.line) || 0);
+    if (!selectedRule) return null;
+
+    const candidates = collection.filter((item) => {
+        if (!item || typeof item !== "object") return false;
+        const parentFile = violationResolvedFile(item);
+        if (selectedFile && parentFile && !sameFileIdentity(selectedFile, parentFile)) return false;
+        const parentSource = String(item.parent_source || "").trim().toUpperCase();
+        if (selectedSource && parentSource && selectedSource !== parentSource) return false;
+        const parentRule = String(item.parent_rule_id || "").trim();
+        if (!parentRule || parentRule !== selectedRule) return false;
+        const parentEvent = String(item.event || "Global");
+        if (selectedEvent && parentEvent && selectedEvent !== parentEvent) return false;
+        return true;
+    });
+    if (!candidates.length) return null;
+    if (candidates.length === 1) return candidates[0];
+
+    return candidates
+        .map((item, idx) => ({ item, idx }))
+        .sort((a, b) => {
+            const aLine = positiveLineOrZero(a.item.parent_line || 0);
+            const bLine = positiveLineOrZero(b.item.parent_line || 0);
+            const aHasLine = aLine > 0 ? 1 : 0;
+            const bHasLine = bLine > 0 ? 1 : 0;
+            if (aHasLine !== bHasLine) return bHasLine - aHasLine;
+            const aDistance = selectedLine > 0 && aLine > 0 ? Math.abs(aLine - selectedLine) : 999999;
+            const bDistance = selectedLine > 0 && bLine > 0 ? Math.abs(bLine - selectedLine) : 999999;
+            if (aDistance !== bDistance) return aDistance - bDistance;
+            return b.idx - a.idx;
+        })[0].item;
+}
+
 function findAiMatchForViolation(violation, eventName) {
-    return (analysisData.violations.P3 || []).find((item) => aiStatusMatchesViolation(item, violation, eventName)) || null;
+    return findAiLinkedItemForViolation((analysisData.violations && analysisData.violations.P3) || [], violation, eventName);
 }
 
 function findAiStatusForViolation(violation, eventName) {
-    return (analysisData.ai_review_statuses || []).find((item) => aiStatusMatchesViolation(item, violation, eventName)) || null;
+    return findAiLinkedItemForViolation(analysisData.ai_review_statuses || [], violation, eventName);
+}
+
+function aiStatusDisplayLabel(status) {
+    const key = String(status || "").trim().toLowerCase();
+    if (key === "generated") return "생성됨";
+    if (key === "failed") return "생성 실패";
+    if (key === "skipped") return "생성 제외";
+    return key || "없음";
+}
+
+function aiReasonDisplayMeta(reason) {
+    const key = String(reason || "").trim();
+    if (key === "generated") {
+        return {
+            title: "AI 개선안이 생성되었지만 현재 선택 이슈와 연결된 P3 항목을 찾지 못했습니다.",
+            detail: "AI 개선안 생성 기록은 있으나 현재 선택 이슈와 연결된 P3 항목을 확인하지 못했습니다.",
+            label: "생성됨",
+        };
+    }
+    if (key === "mock_generated") {
+        return {
+            title: "실제 Live AI가 아니라 mock AI 개선안이 생성되었습니다.",
+            detail: "mock 생성 결과가 기록되었지만 현재 선택 이슈에 연결된 P3는 보이지 않습니다.",
+            label: "mock 생성",
+        };
+    }
+    if (key === "timeout") {
+        return {
+            title: "AI 개선안 생성이 시간 초과로 건너뛰어졌습니다.",
+            detail: "Live AI 응답 시간 초과로 이 이슈의 P3 생성이 중단되었습니다.",
+            label: "시간 초과",
+        };
+    }
+    if (key === "response_parse_failed") {
+        return {
+            title: "AI 응답을 해석하지 못했습니다.",
+            detail: "AI 응답은 도착했지만 형식을 해석하지 못해 저장하지 않았습니다.",
+            label: "응답 파싱 실패",
+        };
+    }
+    if (key === "fail_soft_skip") {
+        return {
+            title: "AI 개선안 생성이 실패했습니다.",
+            detail: "Live AI 호출이 실패했고 fail-soft로 넘어가면서 P3를 저장하지 않았습니다.",
+            label: "fail-soft skip",
+        };
+    }
+    if (key === "empty_response") {
+        return {
+            title: "AI 응답이 비어 있습니다.",
+            detail: "AI 응답이 비어 있어 P3를 저장하지 않았습니다.",
+            label: "빈 응답",
+        };
+    }
+    if (key === "severity_filtered") {
+        return {
+            title: "이 이슈는 현재 P3 대상에서 제외되었습니다.",
+            detail: "현재 P3 기준 심각도보다 낮아 생성 대상에서 제외되었습니다.",
+            label: "심각도 제외",
+        };
+    }
+    if (key === "priority_limited") {
+        return {
+            title: "이 이슈는 현재 P3 대상에서 제외되었습니다.",
+            detail: "현재 파일의 상위 우선 parent 개수 제한으로 이번 P3 생성 대상에서 제외되었습니다.",
+            label: "우선순위 제외",
+        };
+    }
+    return {
+        title: "이 이슈에 대한 AI 개선안이 아직 없습니다.",
+        detail: "현재 P3 대상이 아니거나 parent 매칭 조건을 만족하지 않아 개선안을 만들지 않았습니다.",
+        label: key || "없음",
+    };
+}
+
+function collectNearbyP3Candidates(violation, eventName) {
+    const source = String((violation && violation.priority_origin) || "").trim().toUpperCase();
+    const selectedRule = String((violation && violation.rule_id) || "").trim();
+    const selectedLine = positiveLineOrZero((violation && violation.line) || 0);
+    const selectedFile = violationResolvedFile(violation);
+    const selectedEvent = String(eventName || "Global");
+    const candidates = Array.isArray(analysisData.violations && analysisData.violations.P3) ? analysisData.violations.P3 : [];
+    return candidates.filter((item) => {
+        if (!item || typeof item !== "object") return false;
+        const parentFile = violationResolvedFile(item);
+        if (selectedFile && parentFile && !sameFileIdentity(selectedFile, parentFile)) return false;
+        const parentSource = String(item.parent_source || "").trim().toUpperCase();
+        if (source && parentSource && source !== parentSource) return false;
+        const parentEvent = String(item.event || "Global");
+        if (selectedEvent && parentEvent && selectedEvent !== parentEvent) return false;
+        return true;
+    }).sort((a, b) => {
+        const aRule = String(a.parent_rule_id || "").trim();
+        const bRule = String(b.parent_rule_id || "").trim();
+        const aLine = positiveLineOrZero(a.parent_line || 0);
+        const bLine = positiveLineOrZero(b.parent_line || 0);
+        const aRuleMatch = aRule && selectedRule && aRule === selectedRule ? 0 : 1;
+        const bRuleMatch = bRule && selectedRule && bRule === selectedRule ? 0 : 1;
+        const aDistance = selectedLine > 0 && aLine > 0 ? Math.abs(aLine - selectedLine) : 999999;
+        const bDistance = selectedLine > 0 && bLine > 0 ? Math.abs(bLine - selectedLine) : 999999;
+        return aRuleMatch - bRuleMatch || aDistance - bDistance;
+    });
+}
+
+function buildAiUnavailableDiagnostic(violation, eventName) {
+    const aiStatus = findAiStatusForViolation(violation, eventName);
+    const nearbyCandidates = collectNearbyP3Candidates(violation, eventName);
+    const nearby = nearbyCandidates[0] || null;
+    const sourceKey = sourceFilterKey(violation && violation.priority_origin);
+    const status = String((aiStatus && aiStatus.status) || "").trim();
+    const reason = String((aiStatus && aiStatus.reason) || "").trim();
+    const reasonMeta = aiReasonDisplayMeta(reason);
+    let classification = "not_found";
+    let classificationLabel = "미발견";
+    let matchLabel = "연결된 P3 없음";
+    let matchHint = "";
+
+    if (aiStatus) {
+        classification = status || "not_found";
+        classificationLabel = aiStatusDisplayLabel(status);
+        if (status === "generated" && nearby) {
+            classification = "not_matched";
+            classificationLabel = "매칭 실패";
+            matchLabel = "P3 생성됨, exact parent 매칭 실패";
+            matchHint = `후보 P3 parent_rule_id=${String(nearby.parent_rule_id || "-")}, selected rule_id=${String((violation && violation.rule_id) || "-")}`;
+        } else if (status === "generated") {
+            matchLabel = "status는 generated지만 exact P3 없음";
+        } else {
+            matchLabel = "P3 미생성";
+        }
+    } else if (nearby) {
+        classification = "not_matched";
+        classificationLabel = "매칭 실패";
+        matchLabel = "같은 파일의 다른 parent 이슈에 연결된 P3 존재";
+        matchHint = `후보 P3 parent_rule_id=${String(nearby.parent_rule_id || "-")}, selected rule_id=${String((violation && violation.rule_id) || "-")}`;
+    } else {
+        classification = "not_found";
+        classificationLabel = "미발견";
+        matchLabel = sourceKey === "p2" ? "연결된 P3 또는 status 없음" : "P3/status 모두 없음";
+    }
+
+    return {
+        classification,
+        classification_label: classificationLabel,
+        status,
+        status_label: aiStatusDisplayLabel(status),
+        reason,
+        reason_label: reasonMeta.label,
+        title: reasonMeta.title,
+        detail: reasonMeta.detail,
+        selected_source: String((violation && violation.priority_origin) || "P1"),
+        selected_issue_id: String((violation && violation.issue_id) || "-"),
+        selected_rule_id: String((violation && violation.rule_id) || "-"),
+        selected_line: positiveLineOrZero((violation && violation.line) || 0) || "-",
+        parent_issue_id: String(((aiStatus || nearby || {}).parent_issue_id) || "-"),
+        parent_rule_id: String(((aiStatus || nearby || {}).parent_rule_id) || "-"),
+        parent_line: positiveLineOrZero(((aiStatus || nearby || {}).parent_line) || 0) || "-",
+        selected_cap: positiveLineOrZero(((aiStatus || {}).selected_cap) || 0) || 0,
+        selected_rank: positiveLineOrZero(((aiStatus || {}).selected_rank) || 0) || 0,
+        match_label: matchLabel,
+        match_hint: matchHint,
+    };
 }
 
 
@@ -1268,50 +1950,18 @@ function upsertAiReviewStatus(statusItem) {
 
 
 function describeAiUnavailable(violation, eventName) {
+    const diagnostic = buildAiUnavailableDiagnostic(violation, eventName);
     if (!(liveAiToggle && liveAiToggle.checked)) {
         return {
             title: "AI 개선안이 비활성화되어 있습니다.",
             detail: "Live AI 사용 (P3)이 꺼져 있어 이 이슈에 대한 개선 적용안을 생성하지 않았습니다.",
-        };
-    }
-    const aiStatus = findAiStatusForViolation(violation, eventName);
-    const reason = String((aiStatus && aiStatus.reason) || "").trim();
-    if (reason === "timeout") {
-        return {
-            title: "AI 개선안 생성이 시간 초과로 건너뛰어졌습니다.",
-            detail: "Live AI timeout으로 이 이슈의 개선안 생성이 중단되었습니다. 더 빠른 모델로 바꾸거나 P3 범위를 줄여 다시 시도해 보세요.",
-        };
-    }
-    if (reason === "response_parse_failed") {
-        return {
-            title: "AI 응답을 해석하지 못했습니다.",
-            detail: "Live AI가 응답했지만 형식을 해석하지 못해 개선안을 저장하지 않았습니다.",
-        };
-    }
-    if (reason === "fail_soft_skip" || reason === "empty_response") {
-        return {
-            title: "AI 개선안 생성이 실패했습니다.",
-            detail: "Live AI 응답 실패로 fail-soft 처리되어 이 이슈의 개선안이 저장되지 않았습니다.",
-        };
-    }
-    if (reason === "severity_filtered" || reason === "priority_limited") {
-        return {
-            title: "이 이슈는 현재 P3 대상에서 제외되었습니다.",
-            detail: reason === "severity_filtered"
-                ? "현재 P3 기준 심각도보다 낮아 개선안 생성을 건너뛰었습니다."
-                : "같은 파일의 더 중요한 수정 포인트가 우선 선택되어 이번 P3 대상에서 제외되었습니다.",
-        };
-    }
-    const sourceKey = sourceFilterKey(violation && violation.priority_origin);
-    if (sourceKey === "p2") {
-        return {
-            title: "연결된 AI 개선안이 없습니다.",
-            detail: "이 P2 이슈는 parent 매칭 조건을 만족하지 못했거나 연결된 개선안이 생성되지 않았습니다.",
+            diagnostic,
         };
     }
     return {
-        title: "이 이슈에 대한 AI 개선안이 아직 없습니다.",
-        detail: "현재 P3 대상이 아니거나 parent 매칭 조건을 만족하지 않아 개선안을 만들지 않았습니다.",
+        title: diagnostic.title,
+        detail: diagnostic.detail,
+        diagnostic,
     };
 }
 
@@ -1358,13 +2008,29 @@ function closeDiffModal() {
     activeDiffModalBundle = null;
     activeDiffModalViolation = null;
     activeDiffModalSelectHandler = null;
+    activeDiffModalEventName = "Global";
     activeDiffModalView = "split";
+    activeDiffModalContext = {
+        beforeRows: null,
+        afterRows: null,
+        errorMessage: "",
+        lineUnresolved: false,
+        patchMissing: false,
+        prepareFailed: false,
+        mockOrLowConfidence: false,
+        anchorLine: 0,
+    };
     if (diffModalCandidates) diffModalCandidates.replaceChildren();
     if (diffModalSummary) diffModalSummary.replaceChildren();
     if (diffModalMeta) diffModalMeta.replaceChildren();
     if (diffModalBefore) diffModalBefore.replaceChildren();
     if (diffModalAfter) diffModalAfter.replaceChildren();
     if (diffModalText) diffModalText.textContent = "";
+    if (diffModalViewUnified) {
+        diffModalViewUnified.disabled = false;
+        diffModalViewUnified.style.opacity = "1";
+        diffModalViewUnified.title = "";
+    }
     setDiffModalView("split");
     setDiffModalOpen(false);
 }
@@ -1452,55 +2118,247 @@ function parseUnifiedDiffForSplit(diffText) {
     return { beforeRows, afterRows };
 }
 
-function renderDiffModalSplitView(proposal) {
+function renderDiffModalSplitView(beforeRows, afterRows) {
     if (!diffModalBefore || !diffModalAfter) return;
-    const parsed = parseUnifiedDiffForSplit(String((proposal && proposal.unified_diff) || ""));
-    const beforeRows = parsed.beforeRows.length
-        ? parsed.beforeRows
+    const safeBeforeRows = Array.isArray(beforeRows) && beforeRows.length
+        ? beforeRows
         : [{ lineNo: 0, text: "변경 전 비교 정보를 만들지 못했습니다.", kind: "placeholder" }];
-    const afterRows = parsed.afterRows.length
-        ? parsed.afterRows
+    const safeAfterRows = Array.isArray(afterRows) && afterRows.length
+        ? afterRows
         : [{ lineNo: 0, text: "변경 후 비교 정보를 만들지 못했습니다.", kind: "placeholder" }];
-    diffModalBefore.replaceChildren(...beforeRows.map((item) => createDiffPaneLine(item.lineNo, item.text, item.kind)));
-    diffModalAfter.replaceChildren(...afterRows.map((item) => createDiffPaneLine(item.lineNo, item.text, item.kind)));
+    diffModalBefore.replaceChildren(...safeBeforeRows.map((item) => createDiffPaneLine(item.lineNo, item.text, item.kind)));
+    diffModalAfter.replaceChildren(...safeAfterRows.map((item) => createDiffPaneLine(item.lineNo, item.text, item.kind)));
 }
 
-function buildDiffModalMeta(proposal, violation) {
+function buildDiffModalMeta(violation, aiMatch, proposal) {
     const entries = [];
-    const fileName = violationDisplayFile(proposal, violationDisplayFile(violation));
+    const fileName = violationDisplayFile(aiMatch, violationDisplayFile(proposal, violationDisplayFile(violation)));
+    const parentSource = String((violation && violation.priority_origin) || "P1").toUpperCase();
+    const p3Source = String((aiMatch && aiMatch.source) || "").trim().toLowerCase();
     const generatorType = String((proposal && proposal.generator_type) || "").trim().toUpperCase();
-    const riskLevel = String((proposal && proposal.risk_level) || "").trim();
+    const hasProposal = !!(proposal && String(proposal.unified_diff || "").trim());
     if (fileName) entries.push(`파일 ${fileName}`);
-    if (generatorType) entries.push(`생성 ${generatorType}`);
-    if (riskLevel) entries.push(`위험 ${riskLevel}`);
+    entries.push(`원본 ${parentSource}`);
+    if (String((violation && violation.rule_id) || "").trim()) entries.push(`rule ${String(violation.rule_id || "").trim()}`);
+    if (positiveLineOrZero((violation && violation.line) || 0) > 0) entries.push(`line ${positiveLineOrZero(violation.line)}`);
+    if (p3Source === "mock") {
+        entries.push("P3 Mock 개선안");
+    } else {
+        entries.push("P3 Live 개선안");
+    }
+    if (generatorType) entries.push(`proposal ${generatorType}`);
+    entries.push(hasProposal ? "source patch diff 있음" : "source patch diff 없음");
     return entries;
 }
 
-function renderDiffModal(bundle, violation, onSelectProposal = null) {
+function buildCompareSummaryLines(violation, aiMatch, proposal) {
+    const lines = [];
+    const sourceLabel = sourceFilterKey((violation && violation.priority_origin) || "P1") === "p2" ? "P2 원본" : "P1 원본";
+    const fileName = violationDisplayFile(aiMatch, violationDisplayFile(violation)) || "선택 파일";
+    const p3Source = String((aiMatch && aiMatch.source) || "").trim().toLowerCase() === "mock" ? "Mock P3" : "Live P3";
+    lines.push(`${sourceLabel} 이슈와 ${p3Source} 개선안을 직접 비교합니다.`);
+    lines.push(`대상: ${fileName} · rule ${String((violation && violation.rule_id) || "-")} · line ${positiveLineOrZero((violation && violation.line) || 0) || "-"}`);
+    lines.push(`이슈: ${compactUiText(String((violation && violation.message) || "").trim(), 180) || "-"}`);
+    if (proposal && String(proposal.unified_diff || "").trim()) {
+        lines.push("추가로 Source patch diff를 함께 확인할 수 있습니다.");
+    } else {
+        lines.push("현재는 리뷰 기반 비교만 제공되며 Source patch diff는 아직 준비되지 않았습니다.");
+    }
+    return lines;
+}
+
+function buildDiffModalStatusEntries(context, aiMatch, proposal) {
+    const entries = [];
+    const safeContext = context && typeof context === "object" ? context : {};
+    const hasPatch = !!String((proposal && proposal.unified_diff) || "").trim();
+    if (safeContext.lineUnresolved) {
+        entries.push({
+            key: "line_unresolved",
+            label: "line_unresolved",
+            title: "원본 앵커를 찾지 못해 요약 비교로 표시 중입니다.",
+            tone: "warn",
+        });
+    }
+    if (!hasPatch || safeContext.patchMissing) {
+        entries.push({
+            key: "patch_not_generated",
+            label: "patch_not_generated",
+            title: "Source patch diff가 아직 생성되지 않았습니다.",
+            tone: "muted",
+        });
+    }
+    if (safeContext.prepareFailed) {
+        entries.push({
+            key: "prepare_failed",
+            label: "prepare_failed",
+            title: String(safeContext.errorMessage || "Patch 생성 시도 중 실패했습니다."),
+            tone: "danger",
+        });
+    }
+    const source = String((aiMatch && aiMatch.source) || "").trim().toLowerCase();
+    if (safeContext.mockOrLowConfidence || source === "mock") {
+        entries.push({
+            key: "mock_or_low_confidence",
+            label: "mock_or_low_confidence",
+            title: "Mock 개선안 기준 비교입니다. 실제 Live AI 결과와 다를 수 있습니다.",
+            tone: "muted",
+        });
+    }
+    return entries;
+}
+
+function appendDiffModalStatusAndActions(violation, aiMatch, proposal) {
+    if (!diffModalSummary) return;
+    const statusEntries = buildDiffModalStatusEntries(activeDiffModalContext, aiMatch, proposal);
+    if (statusEntries.length) {
+        const statusWrap = document.createElement("div");
+        statusWrap.className = "diff-modal-status-list";
+        statusEntries.forEach((entry) => {
+            const chip = document.createElement("span");
+            chip.className = `diff-modal-status-chip diff-modal-status-chip-${entry.tone || "muted"}`;
+            chip.textContent = entry.label;
+            chip.title = entry.title || entry.label;
+            statusWrap.appendChild(chip);
+        });
+        diffModalSummary.appendChild(statusWrap);
+    }
+
+    const actionWrap = document.createElement("div");
+    actionWrap.className = "diff-modal-inline-actions";
+    const eventName = String(activeDiffModalEventName || "Global");
+
+    if (activeDiffModalContext && activeDiffModalContext.lineUnresolved) {
+        const aiBtn = document.createElement("button");
+        aiBtn.type = "button";
+        aiBtn.className = "diff-modal-inline-button";
+        aiBtn.textContent = "추가 AI 분석";
+        aiBtn.title = "선택 이슈를 단건으로 다시 분석해 parent/anchor 정보를 보강합니다.";
+        aiBtn.onclick = async () => {
+            aiBtn.disabled = true;
+            aiBtn.textContent = "추가 AI 분석 중...";
+            try {
+                await requestOnDemandAiReview(violation, eventName);
+                const refreshedMatch = findAiMatchForViolation(violation, eventName) || aiMatch;
+                const context = await buildDiffModalContext(violation, refreshedMatch, activeDiffModalBundle, eventName);
+                activeDiffModalBundle = context.bundle || activeDiffModalBundle;
+                activeDiffModalContext = {
+                    beforeRows: context.beforeRows || null,
+                    afterRows: context.afterRows || null,
+                    errorMessage: String(context.errorMessage || ""),
+                    lineUnresolved: !!context.lineUnresolved,
+                    patchMissing: !!context.patchMissing,
+                    prepareFailed: !!context.prepareFailed,
+                    mockOrLowConfidence: !!context.mockOrLowConfidence,
+                    anchorLine: positiveLineOrZero(context.anchorLine || 0),
+                };
+                renderDiffModal(activeDiffModalBundle, violation, refreshedMatch, activeDiffModalSelectHandler);
+            } catch (err) {
+                const msg = String((err && err.message) || err || "추가 AI 분석 실패");
+                activeDiffModalContext.errorMessage = `추가 AI 분석 실패: ${msg}`;
+                renderDiffModal(activeDiffModalBundle, violation, aiMatch, activeDiffModalSelectHandler);
+            }
+        };
+        actionWrap.appendChild(aiBtn);
+    }
+
+    if (!String((proposal && proposal.unified_diff) || "").trim()) {
+        const patchBtn = document.createElement("button");
+        patchBtn.type = "button";
+        patchBtn.className = "diff-modal-inline-button";
+        patchBtn.textContent = "Patch 생성 시도";
+        patchBtn.title = "autofix prepare를 실행해 Source patch diff 생성을 시도합니다.";
+        patchBtn.onclick = async () => {
+            patchBtn.disabled = true;
+            patchBtn.textContent = "Patch 생성 중...";
+            try {
+                const prepared = await prepareAutofixProposal(violation, eventName, aiMatch);
+                activeDiffModalBundle = prepared || activeDiffModalBundle;
+                const refreshedMatch = findAiMatchForViolation(violation, eventName) || aiMatch;
+                const context = await buildDiffModalContext(violation, refreshedMatch, activeDiffModalBundle, eventName);
+                activeDiffModalBundle = context.bundle || activeDiffModalBundle;
+                activeDiffModalContext = {
+                    beforeRows: context.beforeRows || null,
+                    afterRows: context.afterRows || null,
+                    errorMessage: String(context.errorMessage || ""),
+                    lineUnresolved: !!context.lineUnresolved,
+                    patchMissing: !!context.patchMissing,
+                    prepareFailed: !!context.prepareFailed,
+                    mockOrLowConfidence: !!context.mockOrLowConfidence,
+                    anchorLine: positiveLineOrZero(context.anchorLine || 0),
+                };
+                renderDiffModal(activeDiffModalBundle, violation, refreshedMatch, activeDiffModalSelectHandler);
+            } catch (err) {
+                const msg = String((err && err.message) || err || "patch prepare failed");
+                activeDiffModalContext.errorMessage = `Patch 생성 실패: ${msg}`;
+                activeDiffModalContext.prepareFailed = true;
+                renderDiffModal(activeDiffModalBundle, violation, aiMatch, activeDiffModalSelectHandler);
+            }
+        };
+        actionWrap.appendChild(patchBtn);
+    }
+
+    if (actionWrap.childElementCount > 0) {
+        diffModalSummary.appendChild(actionWrap);
+    }
+}
+
+function renderDiffModal(bundle, violation, aiMatch, onSelectProposal = null) {
     if (!diffModal || !diffModalText || !diffModalTitle || !diffModalMeta || !diffModalSummary || !diffModalCandidates) return;
     const active = getActiveAutofixProposal(bundle);
-    const fileName = violationDisplayFile(active, violationDisplayFile(violation)) || "변경 내용";
-    diffModalTitle.textContent = `${fileName} 변경 내용`;
-    diffModalMeta.replaceChildren(...buildDiffModalMeta(active, violation).map((text) => {
+    const fileName = violationDisplayFile(aiMatch, violationDisplayFile(active, violationDisplayFile(violation))) || "P3 비교";
+    const effectiveRuleId = String((violation && violation.rule_id) || (aiMatch && aiMatch.parent_rule_id) || "").trim();
+    const afterTitleNode = diffModalSplit ? diffModalSplit.querySelectorAll(".diff-modal-pane-title")[1] : null;
+    diffModalTitle.textContent = `${fileName} P1/P2 <> P3 비교`;
+    diffModalMeta.replaceChildren(...buildDiffModalMeta(violation, aiMatch, active).map((text) => {
         const chip = document.createElement("span");
         chip.className = "diff-modal-meta-chip";
         chip.textContent = text;
         return chip;
     }));
-    const summaryLines = buildAiSummaryLines(violation, null, active);
+    const summaryLines = buildCompareSummaryLines(violation, aiMatch, active);
     diffModalSummary.replaceChildren(...summaryLines.map((line) => {
         const item = document.createElement("p");
         item.textContent = line;
         return item;
     }));
-    diffModalText.textContent = String((active && active.unified_diff) || "") || "// 변경 내용을 준비하지 못했습니다.";
-    renderDiffModalSplitView(active);
-    setDiffModalView(activeDiffModalView || "split");
+    appendDiffModalStatusAndActions(violation, aiMatch, active);
+    const beforeRows = (activeDiffModalContext && Array.isArray(activeDiffModalContext.beforeRows) && activeDiffModalContext.beforeRows.length)
+        ? activeDiffModalContext.beforeRows
+        : buildIssueContextRows(violation, 4);
+    const afterRows = (activeDiffModalContext && Array.isArray(activeDiffModalContext.afterRows) && activeDiffModalContext.afterRows.length)
+        ? activeDiffModalContext.afterRows
+        : buildReviewContextRows(aiMatch);
+    if (afterTitleNode) {
+        afterTitleNode.textContent = isMultiAggregationRule(effectiveRuleId) && reviewHasGroupedExample(effectiveRuleId, (aiMatch && aiMatch.review) || "")
+            ? "P3 개선안 (묶음 처리)"
+            : "P3 개선안";
+    }
+    renderDiffModalSplitView(beforeRows, afterRows);
+    const unifiedDiff = String((active && active.unified_diff) || "").trim();
+    diffModalText.textContent = unifiedDiff || "// Source patch diff가 아직 준비되지 않았습니다.\n// Source 적용 또는 autofix prepare 이후 여기에 표시됩니다.";
+    if (diffModalViewUnified) {
+        diffModalViewUnified.disabled = !unifiedDiff;
+        diffModalViewUnified.style.opacity = unifiedDiff ? "1" : "0.5";
+        diffModalViewUnified.title = unifiedDiff ? "" : "아직 Source patch diff가 준비되지 않았습니다.";
+    }
+    if ((activeDiffModalView || "split") === "unified" && !unifiedDiff) {
+        setDiffModalView("split");
+    } else {
+        setDiffModalView(activeDiffModalView || "split");
+    }
+
+    if (activeDiffModalContext && activeDiffModalContext.errorMessage) {
+        const warn = document.createElement("p");
+        warn.textContent = activeDiffModalContext.errorMessage;
+        warn.style.color = "#b71c1c";
+        diffModalSummary.appendChild(warn);
+    }
 
     const proposals = (bundle && Array.isArray(bundle.proposals)) ? bundle.proposals : [];
-    if (proposals.length > 1) {
+    const proposalsWithDiff = proposals.filter((proposal) => !!String((proposal && proposal.unified_diff) || "").trim());
+    if (proposalsWithDiff.length > 1) {
         diffModalCandidates.classList.remove("hidden");
-        diffModalCandidates.replaceChildren(...proposals.map((proposal) => {
+        diffModalCandidates.replaceChildren(...proposalsWithDiff.map((proposal) => {
             const button = document.createElement("button");
             button.type = "button";
             button.className = "diff-modal-candidate";
@@ -1518,7 +2376,7 @@ function renderDiffModal(bundle, violation, onSelectProposal = null) {
                     onSelectProposal(bundle.active_proposal_id, bundle);
                     return;
                 }
-                renderDiffModal(bundle, violation, onSelectProposal);
+                renderDiffModal(bundle, violation, aiMatch, onSelectProposal);
             };
             return button;
         }));
@@ -1528,7 +2386,7 @@ function renderDiffModal(bundle, violation, onSelectProposal = null) {
     }
 }
 
-function openDiffModal(bundle, violation, aiKey = "", onSelectProposal = null) {
+async function openDiffModal(bundle, violation, aiMatch, eventName = "Global", aiKey = "", onSelectProposal = null) {
     activeDiffModalKey = String(aiKey || "");
     activeDiffModalBundle = bundle || null;
     activeDiffModalViolation = violation || null;
@@ -1536,7 +2394,29 @@ function openDiffModal(bundle, violation, aiKey = "", onSelectProposal = null) {
     if (!activeDiffModalView) {
         activeDiffModalView = "split";
     }
-    renderDiffModal(bundle, violation, onSelectProposal);
+    activeDiffModalContext = {
+        beforeRows: null,
+        afterRows: null,
+        errorMessage: "",
+        lineUnresolved: false,
+        patchMissing: false,
+        prepareFailed: false,
+        mockOrLowConfidence: false,
+        anchorLine: 0,
+    };
+    const context = await buildDiffModalContext(violation, aiMatch, bundle, eventName);
+    activeDiffModalBundle = context.bundle || bundle || null;
+    activeDiffModalContext = {
+        beforeRows: context.beforeRows || null,
+        afterRows: context.afterRows || null,
+        errorMessage: String(context.errorMessage || ""),
+        lineUnresolved: !!context.lineUnresolved,
+        patchMissing: !!context.patchMissing,
+        prepareFailed: !!context.prepareFailed,
+        mockOrLowConfidence: !!context.mockOrLowConfidence,
+        anchorLine: positiveLineOrZero(context.anchorLine || 0),
+    };
+    renderDiffModal(activeDiffModalBundle, violation, aiMatch, onSelectProposal);
     setDiffModalOpen(true);
 }
 
@@ -1580,8 +2460,108 @@ function excelJobsFromAnalysis() {
     return excel;
 }
 
+function excelFilesFromAnalysis() {
+    const reportPaths = (analysisData && analysisData.report_paths) || {};
+    return Array.isArray(reportPaths.excel) ? reportPaths.excel.filter(Boolean).map((name) => String(name)) : [];
+}
+
+function isExcelSupportAvailable() {
+    const metrics = (analysisData && analysisData.metrics) || {};
+    const optionalDependencies = (metrics && metrics.optional_dependencies) || {};
+    const openpyxl = (optionalDependencies && optionalDependencies.openpyxl) || {};
+    return openpyxl.available !== false;
+}
+
+function makeExcelDownloadUrl(name) {
+    const outputDir = String((analysisData && analysisData.output_dir) || "").trim();
+    const fileName = String(name || "").trim();
+    if (!outputDir || !fileName) return "";
+    const query = new URLSearchParams();
+    query.set("output_dir", outputDir);
+    query.set("name", fileName);
+    return `/api/report/excel/download?${query.toString()}`;
+}
+
+function triggerExcelDownload(name) {
+    const url = makeExcelDownloadUrl(name);
+    if (!url) return;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = String(name || "report.xlsx");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+}
+
+function shortenExcelDownloadName(name, maxLength = 48) {
+    const raw = String(name || "report.xlsx").trim();
+    const compact = raw.replace(/^CodeReview_Submission_/, "");
+    if (compact.length <= maxLength) {
+        return compact;
+    }
+    const head = Math.max(18, Math.floor((maxLength - 1) / 2));
+    const tail = Math.max(12, maxLength - head - 1);
+    return `${compact.slice(0, head)}…${compact.slice(-tail)}`;
+}
+
+function setExcelDownloadsExpanded(expanded) {
+    excelDownloadsExpanded = !!expanded;
+    if (excelDownloadToggle) {
+        excelDownloadToggle.setAttribute("aria-expanded", excelDownloadsExpanded ? "true" : "false");
+    }
+    if (excelDownloadPanel) {
+        const hasFiles = !!excelFilesFromAnalysis().length;
+        excelDownloadPanel.hidden = !hasFiles || !excelDownloadsExpanded;
+    }
+}
+
+function renderExcelDownloadList() {
+    if (!excelDownloadList) return;
+    excelDownloadList.innerHTML = "";
+    if (!((analysisData && analysisData.output_dir) || "").trim()) {
+        if (excelDownloadToggle) {
+            excelDownloadToggle.hidden = true;
+        }
+        setExcelDownloadsExpanded(false);
+        return;
+    }
+    const files = excelFilesFromAnalysis();
+    if (!files.length) {
+        if (excelDownloadToggle) {
+            excelDownloadToggle.hidden = true;
+        }
+        setExcelDownloadsExpanded(false);
+        return;
+    }
+    if (excelDownloadToggle) {
+        excelDownloadToggle.hidden = false;
+        excelDownloadToggle.textContent = `Excel ${files.length}개`;
+        excelDownloadToggle.title = `${files.length}개 Excel 결과 다운로드`;
+    }
+    files.forEach((name) => {
+        const item = document.createElement("div");
+        item.className = "excel-download-item";
+        item.title = String(name || "");
+        const label = document.createElement("span");
+        label.className = "excel-download-name";
+        label.textContent = shortenExcelDownloadName(name);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "excel-download-button";
+        button.textContent = "다운로드";
+        button.title = String(name || "");
+        button.addEventListener("click", () => triggerExcelDownload(name));
+        item.appendChild(label);
+        item.appendChild(button);
+        excelDownloadList.appendChild(item);
+    });
+    setExcelDownloadsExpanded(excelDownloadsExpanded);
+}
+
 function updateExcelJobUiFromAnalysis() {
     const excel = excelJobsFromAnalysis();
+    const excelFiles = excelFilesFromAnalysis();
+    const excelAvailable = isExcelSupportAvailable();
     const pending = Number.parseInt(excel.pending_count || 0, 10) || 0;
     const running = Number.parseInt(excel.running_count || 0, 10) || 0;
     const completed = Number.parseInt(excel.completed_count || 0, 10) || 0;
@@ -1589,11 +2569,27 @@ function updateExcelJobUiFromAnalysis() {
     const total = (Array.isArray(excel.jobs) ? excel.jobs.length : 0);
     const hasSession = !!(analysisData && analysisData.output_dir);
     if (flushExcelBtn) {
-        flushExcelBtn.disabled = !hasSession || total === 0;
-        flushExcelBtn.textContent = (pending > 0 || running > 0) ? "Excel 생성 완료" : "Excel 상태 확인";
+        flushExcelBtn.disabled = !hasSession || !excelAvailable || (total === 0 && excelFiles.length === 0);
+        flushExcelBtn.textContent = (pending > 0 || running > 0) ? "Excel 결과 생성" : "Excel 결과 생성";
     }
-    if (!hasSession || total === 0) {
+    if (!hasSession) {
         setExcelJobStatus("");
+        renderExcelDownloadList();
+        return;
+    }
+    if (!excelAvailable) {
+        setExcelJobStatus("openpyxl 필요", "#ffcdd2");
+        renderExcelDownloadList();
+        return;
+    }
+    if (total === 0 && excelFiles.length === 0) {
+        setExcelJobStatus("", "");
+        renderExcelDownloadList();
+        return;
+    }
+    if (excelFiles.length > 0 && pending === 0 && running === 0 && failed === 0) {
+        setExcelJobStatus(`Excel ${excelFiles.length}개 준비됨`, "#c8e6c9");
+        renderExcelDownloadList();
         return;
     }
     const statusParts = [`Excel ${completed}/${total}`];
@@ -1602,6 +2598,7 @@ function updateExcelJobUiFromAnalysis() {
     if (failed > 0) statusParts.push(`실패 ${failed}`);
     const color = failed > 0 ? "#ffcdd2" : (pending > 0 || running > 0) ? "#fff59d" : "#c8e6c9";
     setExcelJobStatus(statusParts.join(" | "), color);
+    renderExcelDownloadList();
 }
 
 function makeAiCardKey(violation, eventName, aiMatch) {
@@ -1961,16 +2958,16 @@ function updateVerificationBadge() {
     );
 
     if (level === "CORE_ONLY") {
-        verificationBadge.textContent = "검증 레벨: CORE_ONLY";
+        verificationBadge.textContent = "레벨 CORE_ONLY";
         verificationBadge.classList.add("verification-badge--core-only");
     } else if (level === "CORE+REPORT") {
-        verificationBadge.textContent = "검증 레벨: CORE+REPORT";
+        verificationBadge.textContent = "레벨 CORE+REPORT";
         verificationBadge.classList.add("verification-badge--core-report");
     } else if (level === "FULL_WITH_OPTIONALS") {
-        verificationBadge.textContent = "검증 레벨: FULL_WITH_OPTIONALS";
+        verificationBadge.textContent = "레벨 FULL_WITH_OPTIONALS";
         verificationBadge.classList.add("verification-badge--full");
     } else {
-        verificationBadge.textContent = "검증 레벨: UNKNOWN";
+        verificationBadge.textContent = "레벨 UNKNOWN";
         verificationBadge.classList.add("verification-badge--unknown");
     }
 
@@ -1989,7 +2986,7 @@ function updateVerificationProfileCard(payload = null, errorMessage = "") {
 
     if (!payload || typeof payload !== "object") {
         verificationProfileCard.classList.add("verification-profile-card--unknown");
-        verificationProfileCard.textContent = "검증 프로파일: 없음";
+        verificationProfileCard.textContent = "프로파일 없음";
         verificationProfileCard.title = errorMessage || "검증 프로파일 결과 파일이 없습니다.";
         return;
     }
@@ -2000,13 +2997,13 @@ function updateVerificationProfileCard(payload = null, errorMessage = "") {
     const passed = Number(summary.passed || 0);
     if (failed > 0) {
         verificationProfileCard.classList.add("verification-profile-card--failed");
-        verificationProfileCard.textContent = `검증 프로파일: 실패 ${failed}`;
+        verificationProfileCard.textContent = `프로파일 실패 ${failed}`;
     } else if (skipped > 0) {
         verificationProfileCard.classList.add("verification-profile-card--degraded");
-        verificationProfileCard.textContent = `검증 프로파일: 통과 ${passed}, 스킵 ${skipped}`;
+        verificationProfileCard.textContent = `프로파일 통과 ${passed} · 스킵 ${skipped}`;
     } else {
         verificationProfileCard.classList.add("verification-profile-card--ok");
-        verificationProfileCard.textContent = `검증 프로파일: 통과 ${passed}`;
+        verificationProfileCard.textContent = `프로파일 통과 ${passed}`;
     }
 
     const sourceFile = String(payload.source_file || "");
@@ -2018,12 +3015,995 @@ async function loadLatestVerificationProfile() {
         const response = await fetch("/api/verification/latest");
         const payload = await response.json();
         if (!response.ok) {
+            if (response.status === 404) {
+                updateVerificationProfileCard(null, "검증 산출물이 아직 없습니다.");
+                return;
+            }
             updateVerificationProfileCard(null, payload.error || `검증 프로파일 조회 실패 (${response.status})`);
             return;
         }
         updateVerificationProfileCard(payload, "");
     } catch (err) {
         updateVerificationProfileCard(null, (err && err.message) || String(err));
+    }
+}
+
+async function requestOnDemandAiReview(violation, eventName) {
+    if (!violation || typeof violation !== "object") {
+        throw new Error("선택 이슈가 없습니다.");
+    }
+    const payload = {
+        violation: {
+            source: String((violation && violation.priority_origin) || "P1"),
+            issue_id: String((violation && violation.issue_id) || ""),
+            rule_id: String((violation && violation.rule_id) || ""),
+            file: String((violation && (violation.file || violation.file_name || "")) || ""),
+            file_path: String((violation && (violation.file_path || violation.file || "")) || ""),
+            line: positiveLineOrZero((violation && violation.line) || 0),
+            object: String((violation && violation.object) || ""),
+            event: String(eventName || violation.event || "Global"),
+            severity: String((violation && (violation.severity || violation.type || "")) || ""),
+            message: String((violation && violation.message) || ""),
+        },
+        enable_live_ai: !!(liveAiToggle && liveAiToggle.checked),
+        ai_model_name: selectedAiModel ? String(selectedAiModel.value || "") : "",
+        ai_with_context: !!(aiContextToggle && aiContextToggle.checked),
+    };
+    const response = await fetch("/api/ai-review/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+    const respPayload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(respPayload.error || `추가 AI 분석 실패 (${response.status})`);
+    }
+    const reviewItem = respPayload.review_item && typeof respPayload.review_item === "object" ? respPayload.review_item : null;
+    const statusItem = respPayload.status_item && typeof respPayload.status_item === "object" ? respPayload.status_item : null;
+    if (reviewItem) {
+        upsertAiReview(reviewItem);
+    }
+    if (statusItem) {
+        upsertAiReviewStatus(statusItem);
+    }
+    return respPayload;
+}
+
+function formatOperationsDelta(value, unit = "ms") {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number === 0) return "변화 없음";
+    const rounded = Math.round(number * 100) / 100;
+    const sign = rounded > 0 ? "+" : "";
+    return `${sign}${rounded}${unit}`;
+}
+
+function createOperationMetric(label, valueText) {
+    const metric = document.createElement("div");
+    metric.className = "operations-compare-metric";
+    const strong = document.createElement("strong");
+    strong.textContent = valueText;
+    metric.append(strong, document.createTextNode(label));
+    return metric;
+}
+
+function renderOperationsCompare(payload = null, errorMessage = "") {
+    if (!operationsCompare) return;
+    operationsCompare.replaceChildren();
+    if (!payload || typeof payload !== "object" || !payload.categories) {
+        operationsCompare.className = "review-insight-empty";
+        operationsCompare.textContent = errorMessage || "최근 benchmark/smoke 결과가 없습니다.";
+        return;
+    }
+
+    const categories = payload.categories || {};
+    const entries = Object.entries(categories);
+    if (!entries.length) {
+        operationsCompare.className = "review-insight-empty";
+        operationsCompare.textContent = "표시할 운영 검증 결과가 없습니다.";
+        return;
+    }
+
+    operationsCompare.className = "operations-compare-list";
+    entries.forEach(([key, item]) => {
+        const block = document.createElement("div");
+        block.className = "operations-compare-item";
+        const latest = item && item.latest ? item.latest : null;
+        const previous = item && item.previous ? item.previous : null;
+        const delta = item && item.delta ? item.delta : {};
+        const status = String((latest && latest.status) || "unknown").toLowerCase();
+
+        const header = document.createElement("div");
+        header.className = "operations-compare-header";
+        const title = document.createElement("div");
+        title.className = "operations-compare-title";
+        title.textContent = String((item && item.label) || key);
+        const badge = document.createElement("span");
+        badge.className = `operations-compare-badge operations-compare-badge--${status === "passed" ? "passed" : status === "failed" ? "failed" : "unknown"}`;
+        badge.textContent = latest ? status : "missing";
+        header.append(title, badge);
+        block.appendChild(header);
+
+        if (!latest) {
+            const empty = document.createElement("div");
+            empty.className = "operations-compare-footnote";
+            empty.textContent = "최근 결과가 아직 없습니다.";
+            block.appendChild(empty);
+            operationsCompare.appendChild(block);
+            return;
+        }
+
+        const metrics = document.createElement("div");
+        metrics.className = "operations-compare-meta";
+        if (key === "ui_benchmark") {
+            metrics.append(
+                createOperationMetric("Analyze avg", `${Math.round(Number(latest.analyze_ui_avg_ms || 0))}ms`),
+                createOperationMetric("Code jump avg", `${Math.round(Number(latest.code_jump_avg_ms || 0))}ms`)
+            );
+        } else if (key === "ui_real_smoke") {
+            metrics.append(
+                createOperationMetric("Elapsed", `${Math.round(Number(latest.elapsed_ms || 0))}ms`),
+                createOperationMetric("Rows", `${Number(latest.rows || 0)}`)
+            );
+        } else {
+            metrics.append(
+                createOperationMetric("Elapsed", `${Math.round(Number(latest.elapsed_ms || 0))}ms`),
+                createOperationMetric("Findings", `${Number(latest.finding_count || 0)}`)
+            );
+        }
+        block.appendChild(metrics);
+
+        const footnote = document.createElement("div");
+        footnote.className = "operations-compare-footnote";
+        const parts = [];
+        parts.push(`latest=${String(latest.source_file || "").trim() || "-"}`);
+        if (latest.finished_at) {
+            parts.push(`finished=${String(latest.finished_at)}`);
+        }
+        if (previous) {
+            const deltaLabel =
+                key === "ui_benchmark"
+                    ? formatOperationsDelta(delta.analyze_ui_avg_ms, "ms")
+                    : formatOperationsDelta(delta.elapsed_ms, "ms");
+            parts.push(`prev=${String(previous.source_file || "").trim() || "-"}`);
+            parts.push(`delta=${deltaLabel}`);
+        }
+        if (key === "ui_real_smoke" && latest.selected_file) {
+            parts.push(`target=${String(latest.selected_file)}`);
+        }
+        if (key === "ctrlpp_integration") {
+            parts.push(`binary=${latest.binary_exists ? "ready" : "missing"}`);
+        }
+        footnote.textContent = parts.join(" | ");
+        block.appendChild(footnote);
+        operationsCompare.appendChild(block);
+    });
+}
+
+async function loadLatestOperationalResults() {
+    try {
+        const response = await fetch("/api/operations/latest");
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            renderOperationsCompare(null, payload.error || `운영 검증 비교 조회 실패 (${response.status})`);
+            return;
+        }
+        renderOperationsCompare(payload, "");
+    } catch (err) {
+        renderOperationsCompare(null, (err && err.message) || String(err));
+    }
+}
+
+function createRulesHealthBadge(label, available) {
+    const badge = document.createElement("span");
+    badge.className = `operations-compare-badge operations-compare-badge--${available ? "passed" : "unknown"}`;
+    badge.textContent = `${label} ${available ? "ready" : "missing"}`;
+    return badge;
+}
+
+function getRulesManageUpdates() {
+    return rulesManageRows
+        .filter((row) => rulesManageDraftById.has(row.id) && rulesManageDraftById.get(row.id) !== !!row.enabled)
+        .map((row) => ({ id: row.id, enabled: !!rulesManageDraftById.get(row.id) }));
+}
+
+function deepClone(value) {
+    return JSON.parse(JSON.stringify(value));
+}
+
+function createEmptyRuleDraft() {
+    const nextOrder = rulesManageRows.reduce((maxValue, row) => Math.max(maxValue, Number(row.order || 0)), 0) + 10;
+    return {
+        id: "",
+        order: nextOrder,
+        enabled: true,
+        file_types: ["Client", "Server"],
+        rule_id: "",
+        item: "",
+        detector: {
+            kind: "regex",
+            pattern: "",
+            flags: ["MULTILINE"],
+        },
+        finding: {
+            severity: "Warning",
+            message: "",
+        },
+        meta: {},
+    };
+}
+
+function startNewRuleDraft() {
+    rulesManageEditorMode = "create";
+    rulesManageEditorRuleId = "";
+    rulesManageEditorDraft = createEmptyRuleDraft();
+    rulesManageStatusMessage = "새 규칙 초안 편집 중";
+}
+
+function loadRuleIntoEditor(ruleId) {
+    const target = rulesManageRows.find((row) => String(row.id || "") === String(ruleId || ""));
+    if (!target) return;
+    rulesManageEditorMode = "edit";
+    rulesManageEditorRuleId = String(target.id || "");
+    rulesManageEditorDraft = deepClone({
+        id: target.id,
+        order: target.order,
+        enabled: !!target.enabled,
+        file_types: Array.isArray(target.file_types) ? target.file_types : ["Client", "Server"],
+        rule_id: target.rule_id,
+        item: target.item,
+        detector: target.detector || { kind: target.detector_kind || "regex" },
+        finding: target.finding || { severity: target.severity || "Warning", message: target.message || "" },
+        meta: target.meta || {},
+    });
+}
+
+function ensureRuleEditorState() {
+    if (rulesManageEditorDraft) return;
+    if (rulesManageRows.length) {
+        loadRuleIntoEditor(rulesManageEditorRuleId || rulesManageRows[0].id);
+        return;
+    }
+    startNewRuleDraft();
+}
+
+function readRuleEditorForm(form) {
+    const detectorText = form.querySelector('[name="detector_json"]').value.trim() || "{}";
+    const metaText = form.querySelector('[name="meta_json"]').value.trim() || "{}";
+    let detector;
+    let meta;
+    try {
+        detector = JSON.parse(detectorText);
+    } catch (err) {
+        throw new Error("detector JSON 형식이 올바르지 않습니다.");
+    }
+    try {
+        meta = JSON.parse(metaText);
+    } catch (err) {
+        throw new Error("meta JSON 형식이 올바르지 않습니다.");
+    }
+    if (!detector || typeof detector !== "object" || Array.isArray(detector)) {
+        throw new Error("detector JSON은 객체여야 합니다.");
+    }
+    if (!meta || typeof meta !== "object" || Array.isArray(meta)) {
+        throw new Error("meta JSON은 객체여야 합니다.");
+    }
+    const fileTypes = [];
+    if (form.querySelector('[name="file_type_client"]').checked) fileTypes.push("Client");
+    if (form.querySelector('[name="file_type_server"]').checked) fileTypes.push("Server");
+    return {
+        id: form.querySelector('[name="id"]').value.trim(),
+        order: Number(form.querySelector('[name="order"]').value || 0),
+        enabled: !!form.querySelector('[name="enabled"]').checked,
+        file_types: fileTypes,
+        rule_id: form.querySelector('[name="rule_id"]').value.trim(),
+        item: form.querySelector('[name="item"]').value.trim(),
+        detector,
+        finding: {
+            severity: form.querySelector('[name="severity"]').value.trim(),
+            message: form.querySelector('[name="message"]').value.trim(),
+        },
+        meta,
+    };
+}
+
+function applyRulesManagePayload(payload) {
+    if (payload && Array.isArray(payload.rules)) {
+        rulesManageRows = payload.rules;
+        rulesManageDraftById = new Map(rulesManageRows.map((row) => [row.id, !!row.enabled]));
+        if (rulesManageEditorMode === "create") {
+            startNewRuleDraft();
+        } else if (rulesManageEditorRuleId) {
+            loadRuleIntoEditor(rulesManageEditorRuleId);
+        } else if (rulesManageRows.length) {
+            loadRuleIntoEditor(rulesManageRows[0].id);
+        }
+    }
+}
+
+function triggerRulesImport(mode) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json,application/json";
+    input.addEventListener("change", async () => {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const text = await file.text();
+        let payload;
+        try {
+            payload = JSON.parse(text);
+        } catch (err) {
+            rulesManageStatusMessage = "가져오기 JSON 형식이 올바르지 않습니다.";
+            renderRulesHealth(latestRulesHealthPayload, "");
+            return;
+        }
+        const rules = Array.isArray(payload) ? payload : (Array.isArray(payload.rules) ? payload.rules : []);
+        if (!rules.length) {
+            rulesManageStatusMessage = "가져올 rules 배열이 없습니다.";
+            renderRulesHealth(latestRulesHealthPayload, "");
+            return;
+        }
+        rulesManageSaving = true;
+        renderRulesHealth(latestRulesHealthPayload, "");
+        try {
+            const response = await fetch("/api/rules/import", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mode, rules }),
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(result.error || `규칙 가져오기 실패 (${response.status})`);
+            }
+            applyRulesManagePayload(result);
+            rulesManageStatusMessage = `가져오기 완료 (${Number(result.imported_count || 0)}개, ${String(result.mode || mode)})`;
+            await loadRulesHealth();
+        } catch (err) {
+            rulesManageStatusMessage = (err && err.message) || String(err);
+            renderRulesHealth(latestRulesHealthPayload, "");
+        } finally {
+            rulesManageSaving = false;
+            renderRulesHealth(latestRulesHealthPayload, "");
+        }
+    });
+    input.click();
+}
+
+async function exportRulesManagePayload() {
+    try {
+        const response = await fetch("/api/rules/export");
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(payload.error || `규칙 내보내기 실패 (${response.status})`);
+        }
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `p1_rules_export_${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(link.href), 0);
+        rulesManageStatusMessage = "규칙 내보내기 완료";
+        renderRulesHealth(latestRulesHealthPayload, "");
+    } catch (err) {
+        rulesManageStatusMessage = (err && err.message) || String(err);
+        renderRulesHealth(latestRulesHealthPayload, "");
+    }
+}
+
+async function saveRuleEditorForm(form) {
+    if (rulesManageSaving) return;
+    let rule;
+    try {
+        rule = readRuleEditorForm(form);
+    } catch (err) {
+        rulesManageStatusMessage = (err && err.message) || String(err);
+        renderRulesHealth(latestRulesHealthPayload, "");
+        return;
+    }
+    rulesManageSaving = true;
+    renderRulesHealth(latestRulesHealthPayload, "");
+    try {
+        const endpoint = rulesManageEditorMode === "create" ? "/api/rules/create" : "/api/rules/replace";
+        const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rule }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(payload.error || `규칙 저장 실패 (${response.status})`);
+        }
+        applyRulesManagePayload(payload);
+        rulesManageEditorMode = "edit";
+        rulesManageEditorRuleId = String((payload.rule || {}).id || rule.id || "");
+        loadRuleIntoEditor(rulesManageEditorRuleId);
+        rulesManageStatusMessage = "규칙 저장 완료";
+        await loadRulesHealth();
+    } catch (err) {
+        rulesManageStatusMessage = (err && err.message) || String(err);
+        renderRulesHealth(latestRulesHealthPayload, "");
+    } finally {
+        rulesManageSaving = false;
+        renderRulesHealth(latestRulesHealthPayload, "");
+    }
+}
+
+async function deleteCurrentRule() {
+    if (rulesManageSaving || rulesManageEditorMode !== "edit" || !rulesManageEditorRuleId) return;
+    rulesManageSaving = true;
+    renderRulesHealth(latestRulesHealthPayload, "");
+    try {
+        const response = await fetch("/api/rules/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: rulesManageEditorRuleId }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(payload.error || `규칙 삭제 실패 (${response.status})`);
+        }
+        applyRulesManagePayload(payload);
+        if (rulesManageRows.length) {
+            loadRuleIntoEditor(rulesManageRows[0].id);
+        } else {
+            startNewRuleDraft();
+        }
+        rulesManageStatusMessage = "규칙 삭제 완료";
+        await loadRulesHealth();
+    } catch (err) {
+        rulesManageStatusMessage = (err && err.message) || String(err);
+        renderRulesHealth(latestRulesHealthPayload, "");
+    } finally {
+        rulesManageSaving = false;
+        renderRulesHealth(latestRulesHealthPayload, "");
+    }
+}
+
+function renderRulesManageEditor(panel) {
+    ensureRuleEditorState();
+    const draft = rulesManageEditorDraft || createEmptyRuleDraft();
+
+    const wrap = document.createElement("div");
+    wrap.className = "rules-manage-editor";
+
+    const heading = document.createElement("div");
+    heading.className = "rules-manage-editor-heading";
+    heading.textContent = rulesManageEditorMode === "create" ? "새 규칙 작성" : `규칙 편집: ${draft.id || "-"}`;
+    wrap.appendChild(heading);
+
+    if (rulesManageStatusMessage) {
+        const status = document.createElement("div");
+        status.className = "rules-manage-status";
+        status.textContent = rulesManageStatusMessage;
+        wrap.appendChild(status);
+    }
+
+    const form = document.createElement("form");
+    form.className = "rules-manage-form";
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        void saveRuleEditorForm(form);
+    });
+
+    const fileTypeSet = new Set(Array.isArray(draft.file_types) ? draft.file_types : []);
+    form.innerHTML = `
+        <label class="rules-manage-field"><span>ID</span><input name="id" value="${escapeHtml(draft.id || "")}" ${rulesManageEditorMode === "edit" ? "readonly" : ""}></label>
+        <label class="rules-manage-field"><span>Rule ID</span><input name="rule_id" value="${escapeHtml(draft.rule_id || "")}"></label>
+        <label class="rules-manage-field"><span>Item</span><input name="item" value="${escapeHtml(draft.item || "")}"></label>
+        <label class="rules-manage-field"><span>Order</span><input name="order" type="number" value="${Number(draft.order || 0)}"></label>
+        <label class="rules-manage-field rules-manage-field-inline"><span>Enabled</span><input name="enabled" type="checkbox" ${draft.enabled ? "checked" : ""}></label>
+        <div class="rules-manage-field">
+            <span>File Types</span>
+            <label class="rules-manage-checkbox"><input name="file_type_client" type="checkbox" ${fileTypeSet.has("Client") ? "checked" : ""}>Client</label>
+            <label class="rules-manage-checkbox"><input name="file_type_server" type="checkbox" ${fileTypeSet.has("Server") ? "checked" : ""}>Server</label>
+        </div>
+        <label class="rules-manage-field"><span>Severity</span><input name="severity" value="${escapeHtml((((draft.finding || {}).severity) || ""))}"></label>
+        <label class="rules-manage-field rules-manage-field-wide"><span>Message</span><textarea name="message" rows="3">${escapeHtml((((draft.finding || {}).message) || ""))}</textarea></label>
+        <label class="rules-manage-field rules-manage-field-wide"><span>Detector JSON</span><textarea name="detector_json" rows="8">${escapeHtml(JSON.stringify(draft.detector || {}, null, 2))}</textarea></label>
+        <label class="rules-manage-field rules-manage-field-wide"><span>Meta JSON</span><textarea name="meta_json" rows="5">${escapeHtml(JSON.stringify(draft.meta || {}, null, 2))}</textarea></label>
+    `;
+
+    const formActions = document.createElement("div");
+    formActions.className = "rules-manage-actions";
+
+    const submitButton = document.createElement("button");
+    submitButton.type = "submit";
+    submitButton.className = "rules-manage-button rules-manage-button-primary";
+    submitButton.textContent = rulesManageSaving ? "저장 중..." : (rulesManageEditorMode === "create" ? "규칙 생성" : "규칙 저장");
+    submitButton.disabled = rulesManageSaving;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "rules-manage-button";
+    deleteButton.textContent = "삭제";
+    deleteButton.disabled = rulesManageSaving || rulesManageEditorMode !== "edit" || !rulesManageEditorRuleId;
+    deleteButton.addEventListener("click", () => {
+        void deleteCurrentRule();
+    });
+
+    formActions.append(submitButton, deleteButton);
+    form.appendChild(formActions);
+    wrap.appendChild(form);
+    panel.appendChild(wrap);
+}
+
+function renderRulesManagePanel(host) {
+    const panel = document.createElement("div");
+    panel.className = "rules-manage-panel";
+
+    const actionRow = document.createElement("div");
+    actionRow.className = "rules-manage-actions";
+
+    const refreshButton = document.createElement("button");
+    refreshButton.type = "button";
+    refreshButton.className = "rules-manage-button";
+    refreshButton.textContent = rulesManageLoading ? "불러오는 중..." : "새로고침";
+    refreshButton.disabled = rulesManageLoading || rulesManageSaving;
+    refreshButton.addEventListener("click", () => {
+        void loadRulesList(true);
+    });
+
+    const toggleSaveButton = document.createElement("button");
+    toggleSaveButton.type = "button";
+    toggleSaveButton.className = "rules-manage-button rules-manage-button-primary";
+    const dirtyUpdates = getRulesManageUpdates();
+    toggleSaveButton.textContent = rulesManageSaving ? "저장 중..." : `토글 저장${dirtyUpdates.length ? ` (${dirtyUpdates.length})` : ""}`;
+    toggleSaveButton.disabled = rulesManageSaving || rulesManageLoading || !dirtyUpdates.length;
+    toggleSaveButton.addEventListener("click", () => {
+        void saveRulesManageUpdates();
+    });
+
+    const newButton = document.createElement("button");
+    newButton.type = "button";
+    newButton.className = "rules-manage-button";
+    newButton.textContent = "새 규칙";
+    newButton.disabled = rulesManageSaving || rulesManageLoading;
+    newButton.addEventListener("click", () => {
+        startNewRuleDraft();
+        renderRulesHealth(latestRulesHealthPayload, "");
+    });
+
+    const exportButton = document.createElement("button");
+    exportButton.type = "button";
+    exportButton.className = "rules-manage-button";
+    exportButton.textContent = "내보내기";
+    exportButton.disabled = rulesManageSaving || rulesManageLoading;
+    exportButton.addEventListener("click", () => {
+        void exportRulesManagePayload();
+    });
+
+    const importMergeButton = document.createElement("button");
+    importMergeButton.type = "button";
+    importMergeButton.className = "rules-manage-button";
+    importMergeButton.textContent = "가져오기(merge)";
+    importMergeButton.disabled = rulesManageSaving || rulesManageLoading;
+    importMergeButton.addEventListener("click", () => {
+        triggerRulesImport("merge");
+    });
+
+    const importReplaceButton = document.createElement("button");
+    importReplaceButton.type = "button";
+    importReplaceButton.className = "rules-manage-button";
+    importReplaceButton.textContent = "가져오기(replace)";
+    importReplaceButton.disabled = rulesManageSaving || rulesManageLoading;
+    importReplaceButton.addEventListener("click", () => {
+        triggerRulesImport("replace");
+    });
+
+    actionRow.append(refreshButton, toggleSaveButton, newButton, exportButton, importMergeButton, importReplaceButton);
+    panel.appendChild(actionRow);
+
+    if (rulesManageLoading) {
+        const loading = document.createElement("div");
+        loading.className = "review-insight-empty";
+        loading.textContent = "규칙 목록을 불러오는 중입니다.";
+        panel.appendChild(loading);
+        host.appendChild(panel);
+        return;
+    }
+
+    if (!rulesManageRows.length) {
+        const empty = document.createElement("div");
+        empty.className = "review-insight-empty";
+        empty.textContent = "표시할 규칙이 없습니다.";
+        panel.appendChild(empty);
+        host.appendChild(panel);
+        return;
+    }
+
+    const content = document.createElement("div");
+    content.className = "rules-manage-content";
+    const list = document.createElement("div");
+    list.className = "rules-manage-list";
+    rulesManageRows.forEach((row) => {
+        const item = document.createElement("div");
+        item.className = "rules-manage-item";
+        item.classList.toggle("rules-manage-item-active", String(row.id || "") === String(rulesManageEditorRuleId || ""));
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = !!rulesManageDraftById.get(row.id);
+        checkbox.disabled = rulesManageSaving;
+        checkbox.addEventListener("change", () => {
+            rulesManageDraftById.set(row.id, !!checkbox.checked);
+            renderRulesHealth(latestRulesHealthPayload, "");
+        });
+
+        const copy = document.createElement("div");
+        copy.className = "rules-manage-copy";
+        copy.addEventListener("click", () => {
+            loadRuleIntoEditor(row.id);
+            rulesManageStatusMessage = "";
+            renderRulesHealth(latestRulesHealthPayload, "");
+        });
+
+        const title = document.createElement("div");
+        title.className = "rules-manage-title";
+        title.textContent = `${row.rule_id || row.id} | ${row.item || "-"}`;
+
+        const meta = document.createElement("div");
+        meta.className = "rules-manage-meta";
+        meta.textContent = `${row.detector_kind || "unknown"} | ${row.severity || "unknown"} | ${(row.file_types || []).join("/") || "-"}`;
+
+        copy.append(title, meta);
+        item.append(checkbox, copy);
+        list.appendChild(item);
+    });
+    content.appendChild(list);
+    renderRulesManageEditor(content);
+    panel.appendChild(content);
+    host.appendChild(panel);
+}
+
+function renderRulesHealth(payload = null, errorMessage = "") {
+    if (!rulesHealthCompare) return;
+    rulesHealthCompare.replaceChildren();
+    if (!payload || typeof payload !== "object") {
+        rulesHealthCompare.className = "review-insight-empty";
+        rulesHealthCompare.textContent = errorMessage || "규칙 및 의존성 상태를 불러오지 못했습니다.";
+        return;
+    }
+    latestRulesHealthPayload = payload;
+
+    const rules = payload.rules || {};
+    const deps = payload.dependencies || {};
+    rulesHealthCompare.className = "rules-health-list";
+
+    const summary = document.createElement("div");
+    summary.className = "rules-health-summary";
+    [
+        ["P1 enabled", `${Number(rules.p1_enabled || 0)}/${Number(rules.p1_total || 0)}`],
+        ["regex", `${Number(rules.regex_count || 0)}`],
+        ["composite", `${Number(rules.composite_count || 0)}`],
+        ["line_repeat", `${Number(rules.line_repeat_count || 0)}`],
+    ].forEach(([label, value]) => {
+        const item = document.createElement("div");
+        item.className = "analysis-diff-summary-item";
+        const strong = document.createElement("strong");
+        strong.textContent = String(value);
+        item.append(strong, document.createTextNode(String(label)));
+        summary.appendChild(item);
+    });
+    rulesHealthCompare.appendChild(summary);
+
+    const depWrap = document.createElement("div");
+    depWrap.className = "rules-health-badges";
+    depWrap.append(
+        createRulesHealthBadge("openpyxl", !!((deps.openpyxl || {}).available)),
+        createRulesHealthBadge("Ctrlpp", !!((deps.ctrlppcheck || {}).available)),
+        createRulesHealthBadge("Playwright", !!((deps.playwright || {}).available)),
+    );
+    rulesHealthCompare.appendChild(depWrap);
+
+    const fileTypes = (rules.file_type_counts || {});
+    const footnote = document.createElement("div");
+    footnote.className = "operations-compare-footnote";
+    const parts = [
+        `Client=${Number(fileTypes.Client || 0)}`,
+        `Server=${Number(fileTypes.Server || 0)}`,
+    ];
+    const message = String(payload.message || "").trim();
+    if (message) {
+        parts.push(`degraded=${message}`);
+    }
+    footnote.textContent = parts.join(" | ");
+    rulesHealthCompare.appendChild(footnote);
+
+    const actionRow = document.createElement("div");
+    actionRow.className = "rules-manage-actions";
+    const manageButton = document.createElement("button");
+    manageButton.type = "button";
+    manageButton.className = "rules-manage-button";
+    manageButton.textContent = rulesManageOpen ? "규칙 관리 닫기" : "규칙 관리";
+    manageButton.disabled = rulesManageSaving;
+    manageButton.addEventListener("click", () => {
+        rulesManageOpen = !rulesManageOpen;
+        if (rulesManageOpen && !rulesManageRows.length && !rulesManageLoading) {
+            void loadRulesList(false);
+        }
+        renderRulesHealth(latestRulesHealthPayload, "");
+    });
+    actionRow.appendChild(manageButton);
+    rulesHealthCompare.appendChild(actionRow);
+
+    if (rulesManageOpen) {
+        renderRulesManagePanel(rulesHealthCompare);
+    }
+}
+
+async function loadRulesHealth() {
+    try {
+        const response = await fetch("/api/rules/health");
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            renderRulesHealth(null, payload.error || `규칙 상태 조회 실패 (${response.status})`);
+            return;
+        }
+        renderRulesHealth(payload, "");
+    } catch (err) {
+        renderRulesHealth(null, (err && err.message) || String(err));
+    }
+}
+
+async function loadRulesList(force = false) {
+    if (rulesManageLoading || (rulesManageRows.length && !force)) {
+        renderRulesHealth(latestRulesHealthPayload, "");
+        return;
+    }
+    rulesManageLoading = true;
+    renderRulesHealth(latestRulesHealthPayload, "");
+    try {
+        const response = await fetch("/api/rules/list");
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(payload.error || `규칙 목록 조회 실패 (${response.status})`);
+        }
+        applyRulesManagePayload(payload);
+        rulesManageStatusMessage = "";
+    } catch (err) {
+        rulesManageStatusMessage = (err && err.message) || String(err);
+    } finally {
+        rulesManageLoading = false;
+        renderRulesHealth(latestRulesHealthPayload, "");
+    }
+}
+
+async function saveRulesManageUpdates() {
+    const updates = getRulesManageUpdates();
+    if (!updates.length || rulesManageSaving) {
+        return;
+    }
+    rulesManageSaving = true;
+    renderRulesHealth(latestRulesHealthPayload, "");
+    try {
+        const response = await fetch("/api/rules/update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ updates }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(payload.error || `규칙 저장 실패 (${response.status})`);
+        }
+        applyRulesManagePayload(payload);
+        rulesManageStatusMessage = `토글 저장 완료 (${Number(payload.updated_count || updates.length)}개)`;
+        await loadRulesHealth();
+    } catch (err) {
+        rulesManageStatusMessage = (err && err.message) || String(err);
+    } finally {
+        rulesManageSaving = false;
+        renderRulesHealth(latestRulesHealthPayload, "");
+    }
+}
+
+function renderAnalysisDiffCompare(payload = null, errorMessage = "") {
+    if (!analysisDiffCompare) return;
+    analysisDiffCompare.replaceChildren();
+    const hasRunOptions = Array.isArray(analysisDiffRunOptions) && analysisDiffRunOptions.length >= 2;
+    if (!payload || typeof payload !== "object" || !payload.available) {
+        analysisDiffCompare.className = hasRunOptions ? "analysis-diff-list" : "review-insight-empty";
+        if (hasRunOptions) {
+            analysisDiffCompare.appendChild(createAnalysisDiffControls());
+            const empty = document.createElement("div");
+            empty.className = "review-insight-empty";
+            empty.textContent = errorMessage || String((payload && payload.message) || "비교 가능한 최근 2회 분석 결과가 없음");
+            analysisDiffCompare.appendChild(empty);
+            return;
+        }
+        analysisDiffCompare.textContent = errorMessage || String((payload && payload.message) || "비교 가능한 최근 2회 분석 결과가 없음");
+        return;
+    }
+
+    const latest = payload.latest || {};
+    const previous = payload.previous || {};
+    const summaryDelta = ((payload.delta || {}).summary) || {};
+    const fileDiffs = Array.isArray(payload.file_diffs) ? payload.file_diffs : [];
+    const warnings = Array.isArray(payload.warnings) ? payload.warnings : [];
+    const changedFiles = fileDiffs.filter((item) => {
+        const status = String((item && item.status) || "");
+        return status === "changed" || status === "added" || status === "removed";
+    }).slice(0, 5);
+
+    analysisDiffCompare.className = "analysis-diff-list";
+    if (String(latest.timestamp || "").trim()) {
+        selectedAnalysisDiffLatest = String(latest.timestamp || "");
+    }
+    if (String(previous.timestamp || "").trim()) {
+        selectedAnalysisDiffPrevious = String(previous.timestamp || "");
+    }
+    if (hasRunOptions) {
+        analysisDiffCompare.appendChild(createAnalysisDiffControls());
+    }
+
+    const header = document.createElement("div");
+    header.className = "analysis-diff-header";
+    header.textContent = `latest=${String(latest.timestamp || latest.output_dir || "-")} | prev=${String(previous.timestamp || previous.output_dir || "-")}`;
+    analysisDiffCompare.appendChild(header);
+
+    if (warnings.length) {
+        const warning = document.createElement("div");
+        warning.className = "analysis-diff-header";
+        warning.textContent = warnings[0];
+        analysisDiffCompare.appendChild(warning);
+    }
+
+    const summaryWrap = document.createElement("div");
+    summaryWrap.className = "analysis-diff-summary";
+    [
+        ["전체", Number(summaryDelta.total || 0)],
+        ["P1", Number(summaryDelta.p1_total || 0)],
+        ["P2", Number(summaryDelta.p2_total || 0)],
+        ["P3", Number(summaryDelta.p3_total || 0)],
+        ["치명", Number(summaryDelta.critical || 0)],
+        ["경고", Number(summaryDelta.warning || 0)],
+    ].forEach(([label, value]) => {
+        const item = document.createElement("div");
+        item.className = "analysis-diff-summary-item";
+        const strong = document.createElement("strong");
+        strong.textContent = `${value > 0 ? "+" : ""}${value}`;
+        item.append(strong, document.createTextNode(String(label)));
+        summaryWrap.appendChild(item);
+    });
+    analysisDiffCompare.appendChild(summaryWrap);
+
+    if (!changedFiles.length) {
+        const empty = document.createElement("div");
+        empty.className = "analysis-diff-header";
+        empty.textContent = "변화가 있는 파일이 없습니다.";
+        analysisDiffCompare.appendChild(empty);
+        return;
+    }
+
+    const fileList = document.createElement("div");
+    fileList.className = "analysis-diff-file-list";
+    changedFiles.forEach((item) => {
+        const fileItem = document.createElement("div");
+        fileItem.className = "analysis-diff-file-item";
+
+        const title = document.createElement("div");
+        title.className = "analysis-diff-file-title";
+        const name = document.createElement("span");
+        name.textContent = String(item.file || "(unknown)");
+        const status = document.createElement("span");
+        status.className = "analysis-diff-file-status";
+        status.textContent = String(item.status || "");
+        title.append(name, status);
+
+        const deltaCounts = item.delta_counts || {};
+        const meta = document.createElement("div");
+        meta.className = "analysis-diff-file-meta";
+        meta.textContent = [
+            `total ${Number(deltaCounts.total || 0) > 0 ? "+" : ""}${Number(deltaCounts.total || 0)}`,
+            `P1 ${Number(deltaCounts.p1_total || 0) > 0 ? "+" : ""}${Number(deltaCounts.p1_total || 0)}`,
+            `P2 ${Number(deltaCounts.p2_total || 0) > 0 ? "+" : ""}${Number(deltaCounts.p2_total || 0)}`,
+            `P3 ${Number(deltaCounts.p3_total || 0) > 0 ? "+" : ""}${Number(deltaCounts.p3_total || 0)}`,
+        ].join(" | ");
+
+        fileItem.append(title, meta);
+        fileList.appendChild(fileItem);
+    });
+    analysisDiffCompare.appendChild(fileList);
+}
+
+function createAnalysisDiffControls() {
+    const controls = document.createElement("div");
+    controls.className = "analysis-diff-controls";
+
+    const latestSelect = document.createElement("select");
+    latestSelect.className = "analysis-diff-select";
+    analysisDiffRunOptions.forEach((run) => {
+        const option = document.createElement("option");
+        option.value = String(run.timestamp || "");
+        option.textContent = String(run.timestamp || run.output_dir || "-");
+        option.selected = option.value === selectedAnalysisDiffLatest;
+        latestSelect.appendChild(option);
+    });
+    latestSelect.addEventListener("change", () => {
+        selectedAnalysisDiffLatest = latestSelect.value;
+    });
+
+    const previousSelect = document.createElement("select");
+    previousSelect.className = "analysis-diff-select";
+    analysisDiffRunOptions.forEach((run) => {
+        const option = document.createElement("option");
+        option.value = String(run.timestamp || "");
+        option.textContent = String(run.timestamp || run.output_dir || "-");
+        option.selected = option.value === selectedAnalysisDiffPrevious;
+        previousSelect.appendChild(option);
+    });
+    previousSelect.addEventListener("change", () => {
+        selectedAnalysisDiffPrevious = previousSelect.value;
+    });
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "rules-manage-button";
+    button.textContent = "선택 비교";
+    button.disabled = !selectedAnalysisDiffLatest || !selectedAnalysisDiffPrevious;
+    button.addEventListener("click", () => {
+        void loadSelectedAnalysisDiff();
+    });
+
+    controls.append(latestSelect, previousSelect, button);
+    return controls;
+}
+
+async function loadAnalysisDiffRuns(force = false) {
+    if (analysisDiffRunOptions.length && !force) {
+        return;
+    }
+    try {
+        const response = await fetch("/api/analysis-diff/runs");
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            return;
+        }
+        analysisDiffRunOptions = Array.isArray(payload.runs) ? payload.runs : [];
+        if (!selectedAnalysisDiffLatest && analysisDiffRunOptions[0]) {
+            selectedAnalysisDiffLatest = String(analysisDiffRunOptions[0].timestamp || "");
+        }
+        if (!selectedAnalysisDiffPrevious && analysisDiffRunOptions[1]) {
+            selectedAnalysisDiffPrevious = String(analysisDiffRunOptions[1].timestamp || "");
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function loadSelectedAnalysisDiff() {
+    if (!selectedAnalysisDiffLatest || !selectedAnalysisDiffPrevious) {
+        return;
+    }
+    try {
+        const params = new URLSearchParams({
+            latest: selectedAnalysisDiffLatest,
+            previous: selectedAnalysisDiffPrevious,
+        });
+        const response = await fetch(`/api/analysis-diff/compare?${params.toString()}`);
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            renderAnalysisDiffCompare(null, payload.error || `분석 결과 diff 조회 실패 (${response.status})`);
+            return;
+        }
+        renderAnalysisDiffCompare(payload, "");
+    } catch (err) {
+        renderAnalysisDiffCompare(null, (err && err.message) || String(err));
+    }
+}
+
+async function loadLatestAnalysisDiff() {
+    try {
+        await loadAnalysisDiffRuns(false);
+        const response = await fetch("/api/analysis-diff/latest");
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            renderAnalysisDiffCompare(null, payload.error || `분석 결과 diff 조회 실패 (${response.status})`);
+            return;
+        }
+        renderAnalysisDiffCompare(payload, "");
+    } catch (err) {
+        renderAnalysisDiffCompare(null, (err && err.message) || String(err));
     }
 }
 
@@ -2705,10 +4685,21 @@ function pickHigherSeverity(currentSeverity, candidateSeverity) {
 }
 
 function normalizeSeverityKeyword(rawSeverity) {
-    const sev = String(rawSeverity || "").toLowerCase();
-    if (["critical", "error", "fatal"].includes(sev)) return "error";
-    if (["warning", "high", "medium", "performance", "style", "portability"].includes(sev)) return "performance";
-    return "information";
+    const raw = String(rawSeverity || "").trim();
+    if (!raw) return "Info";
+    const sev = raw.toLowerCase();
+    if (sev === "critical") return "Critical";
+    if (sev === "warning") return "Warning";
+    if (sev === "high") return "High";
+    if (sev === "medium") return "Medium";
+    if (sev === "low") return "Low";
+    if (sev === "info" || sev === "information") return "Info";
+    if (sev === "error") return "Error";
+    if (sev === "fatal") return "Fatal";
+    if (sev === "performance") return "Performance";
+    if (sev === "style") return "Style";
+    if (sev === "portability") return "Portability";
+    return raw;
 }
 
 function shouldRenderRow(source, severity) {
@@ -3760,6 +5751,28 @@ function buildWorkspaceRowIndex() {
             });
         });
     });
+
+    const ruleSeverityById = new Map();
+    flattenedP1.forEach((item) => {
+        const ruleId = normalizeP1RuleId(item && item.violation && item.violation.rule_id);
+        if (!ruleId || ruleId === "UNKNOWN") return;
+        const current = String(item && item.violation && item.violation.severity || "").trim();
+        if (!current) return;
+        const previous = String(ruleSeverityById.get(ruleId) || "").trim();
+        if (!previous) {
+            ruleSeverityById.set(ruleId, current);
+            return;
+        }
+        ruleSeverityById.set(ruleId, pickHigherSeverity(previous, current));
+    });
+
+    const resolveReviewedSeverity = (blockSeverity, effectiveRuleId) => {
+        const byRule = String(ruleSeverityById.get(normalizeP1RuleId(effectiveRuleId)) || "").trim();
+        if (byRule) return byRule;
+        const byBlock = String(blockSeverity || "").trim();
+        if (byBlock) return byBlock;
+        return "Info";
+    };
     const mappingDiagnostics = {
         violation_total: flattenedP1.length,
         violation_unknown_rule_count: 0,
@@ -4001,7 +6014,7 @@ function buildWorkspaceRowIndex() {
                     reviewOnlyGrouped.set(reviewKey, {
                         file: reviewFile,
                         message: displayMessage,
-                        severity: block.severity || "Info",
+                        severity: resolveReviewedSeverity(block.severity, effectiveRuleId),
                         lines: [],
                         todoLines: [],
                         issueIds: [],
@@ -4011,6 +6024,10 @@ function buildWorkspaceRowIndex() {
                     });
                 }
                 const grouped = reviewOnlyGrouped.get(reviewKey);
+                grouped.severity = pickHigherSeverity(
+                    grouped.severity || "Info",
+                    resolveReviewedSeverity(block.severity, effectiveRuleId),
+                );
                 if (lineNo > 0) grouped.lines.push(lineNo);
                 if (positiveLineOrZero(block.todo_line) > 0) grouped.todoLines.push(positiveLineOrZero(block.todo_line));
                 const syntheticIssueId = issueId || `REVIEW-ONLY-${reviewedFile}-${idx + 1}`;
@@ -4155,6 +6172,7 @@ function showDetail(violation, eventName, options = {}) {
         setAiReviewText(aiMatch.review);
         const btnAiAccept = document.getElementById("btn-ai-accept");
         const btnAiDiff = document.getElementById("btn-ai-diff");
+        const btnAiGenerate = document.getElementById("btn-ai-generate");
         const btnAiSourceApply = document.getElementById("btn-ai-source-apply");
         const btnAiIgnore = document.getElementById("btn-ai-ignore");
         const btnAiMoreLocal = document.getElementById("btn-ai-more");
@@ -4179,15 +6197,22 @@ function showDetail(violation, eventName, options = {}) {
         function syncAiPanel(bundle = null, statusMessage = null, statusColor = "") {
             const activeProposal = getActiveAutofixProposal(bundle);
             const accepted = String((aiMatch && aiMatch.status) || "Pending") === "Accepted";
+            const aiSource = String((aiMatch && aiMatch.source) || "").trim().toLowerCase();
+            const effectiveRuleId = String((violation && violation.rule_id) || (aiMatch && aiMatch.parent_rule_id) || "").trim();
+            const hasGroupedExample = reviewHasGroupedExample(effectiveRuleId, (aiMatch && aiMatch.review) || "");
+            const baseStatusMessage = aiSource === "mock"
+                ? "Mock 개선안 · 실제 Live AI 아님"
+                : "Live P3 개선안";
             renderAiSummaryList(buildAiSummaryLines(violation, aiMatch, activeProposal));
+            renderAiComparePreview(violation, aiMatch);
             setAutofixDiffPanel(activeProposal ? activeProposal.unified_diff : "");
             setAutofixValidationPanel(
                 activeProposal ? formatAutofixValidationSummary(activeProposal) : "",
                 { ok: activeProposal ? !hasAutofixValidationErrors(activeProposal) : true },
             );
             renderAutofixComparePanel(bundle, (proposalId) => handleProposalSelect(proposalId));
-            if (activeDiffModalKey === aiKey && bundle) {
-                renderDiffModal(bundle, violation, (proposalId, selectedBundle) => handleProposalSelect(proposalId, selectedBundle));
+            if (activeDiffModalKey === aiKey) {
+                renderDiffModal(bundle, violation, aiMatch, (proposalId, selectedBundle) => handleProposalSelect(proposalId, selectedBundle));
             }
 
             if (btnAiAccept) {
@@ -4197,8 +6222,13 @@ function showDetail(violation, eventName, options = {}) {
             }
             if (btnAiDiff) {
                 btnAiDiff.disabled = false;
-                btnAiDiff.textContent = "변경 내용 보기";
+                btnAiDiff.textContent = "P1/P2 <> P3 비교";
                 btnAiDiff.style.opacity = "1";
+            }
+            if (btnAiGenerate) {
+                btnAiGenerate.disabled = false;
+                btnAiGenerate.textContent = "추가 AI 분석";
+                btnAiGenerate.style.opacity = "1";
             }
             if (btnAiSourceApply) {
                 btnAiSourceApply.disabled = accepted || !activeProposal;
@@ -4216,9 +6246,19 @@ function showDetail(violation, eventName, options = {}) {
             }
 
             if (statusMessage === null) {
-                setAiStatusInline(accepted ? "적용 완료" : "", accepted ? "#2e7d32" : "");
+                setAiStatusInline(
+                    accepted ? `${baseStatusMessage} · 적용 완료` : baseStatusMessage,
+                    accepted ? "#2e7d32" : aiSource === "mock" ? "#8a5b00" : "#1565c0",
+                );
             } else {
                 setAiStatusInline(statusMessage, statusColor || "");
+            }
+            if (isMultiAggregationRule(effectiveRuleId) && !hasGroupedExample) {
+                setAiActionHint("멀티 호출 예시 부족 · 추가 AI 분석으로 묶음 코드 예시를 다시 생성할 수 있습니다.", "warn");
+            } else if (isMultiAggregationRule(effectiveRuleId) && hasGroupedExample) {
+                setAiActionHint("묶음 처리 제안 포함 · 실제 멀티 호출 코드 예시가 준비되었습니다.", "ok");
+            } else {
+                setAiActionHint("");
             }
         }
 
@@ -4235,33 +6275,47 @@ function showDetail(violation, eventName, options = {}) {
         if (btnAiDiff) {
             btnAiDiff.onclick = async () => {
                 const boundKey = aiKey;
-                let bundle = autofixProposalCache.get(boundKey) || null;
-                let proposal = getActiveAutofixProposal(bundle);
-                if (!proposal) {
-                    btnAiDiff.disabled = true;
-                    btnAiDiff.textContent = "준비 중...";
-                    setAiStatusInline("변경안을 준비 중입니다.", "#556070");
-                    try {
-                        bundle = await prepareAutofixProposal(violation, eventName, aiMatch);
-                        if ((aiCard.dataset.aiKey || "") !== boundKey) return;
-                        autofixProposalCache.set(boundKey, bundle);
-                        proposal = getActiveAutofixProposal(bundle);
-                        syncAiPanel(bundle, `변경안 준비 완료${proposal ? ` · ${String((proposal.generator_type || "llm")).toUpperCase()}` : ""}`, "#1565c0");
-                    } catch (err) {
-                        if ((aiCard.dataset.aiKey || "") !== boundKey) return;
-                        const msg = String((err && err.message) || err || "autofix prepare failed");
-                        syncAiPanel(autofixProposalCache.get(boundKey) || null, `변경안 준비 실패: ${msg}`, "#c62828");
-                        return;
-                    } finally {
-                        if ((aiCard.dataset.aiKey || "") === boundKey) {
-                            btnAiDiff.textContent = "변경 내용 보기";
-                            btnAiDiff.disabled = false;
-                        }
+                const bundle = autofixProposalCache.get(boundKey) || null;
+                await openDiffModal(
+                    bundle,
+                    violation,
+                    aiMatch,
+                    eventName || "Global",
+                    boundKey,
+                    (proposalId, selectedBundle) => handleProposalSelect(proposalId, selectedBundle),
+                );
+            };
+        }
+
+        if (btnAiGenerate) {
+            btnAiGenerate.onclick = async () => {
+                const boundKey = aiKey;
+                btnAiGenerate.disabled = true;
+                btnAiGenerate.textContent = "추가 분석 중...";
+                if (btnAiDiff) btnAiDiff.disabled = true;
+                if (btnAiSourceApply) btnAiSourceApply.disabled = true;
+                if (btnAiAccept) btnAiAccept.disabled = true;
+                if (btnAiIgnore) btnAiIgnore.disabled = true;
+                setAiStatusInline("선택 이슈에 대해 추가 AI 분석을 실행 중입니다.", "#556070");
+                try {
+                    const generated = await requestOnDemandAiReview(violation, eventName);
+                    if ((aiCard.dataset.aiKey || "") !== boundKey) return;
+                    const statusItem = (generated && generated.status_item) || {};
+                    if (generated && generated.review_item) {
+                        setAiStatusInline("추가 AI 분석 완료", "#2e7d32");
+                    } else {
+                        setAiStatusInline(
+                            String((generated && generated.message) || statusItem.detail || "추가 AI 분석 결과를 찾지 못했습니다."),
+                            "#8a5b00",
+                        );
                     }
+                    showDetail(violation, eventName, options);
+                } catch (err) {
+                    if ((aiCard.dataset.aiKey || "") !== boundKey) return;
+                    const msg = String((err && err.message) || err || "추가 AI 분석 실패");
+                    setAiStatusInline(`추가 AI 분석 실패: ${msg}`, "#c62828");
+                    syncAiPanel(autofixProposalCache.get(boundKey) || null, `추가 AI 분석 실패: ${msg}`, "#c62828");
                 }
-                bundle = autofixProposalCache.get(boundKey) || bundle;
-                if (!bundle) return;
-                openDiffModal(bundle, violation, boundKey, (proposalId, selectedBundle) => handleProposalSelect(proposalId, selectedBundle));
             };
         }
 
@@ -4373,11 +6427,38 @@ function showDetail(violation, eventName, options = {}) {
         closeDiffModal();
         setAiReviewText("");
         setAiStatusInline("");
+        setAiActionHint("");
+        clearAiComparePreview();
         setAutofixDiffPanel("");
         setAutofixValidationPanel("");
         if (canShowAiPanel) {
             const empty = describeAiUnavailable(violation, eventName);
-            renderAiEmptyState(empty.title, empty.detail);
+            renderAiEmptyState(empty.title, empty.detail, empty.diagnostic || null);
+            const btnAiGenerateEmpty = document.getElementById("btn-ai-generate-empty");
+            if (btnAiGenerateEmpty) {
+                btnAiGenerateEmpty.onclick = async () => {
+                    btnAiGenerateEmpty.disabled = true;
+                    btnAiGenerateEmpty.textContent = "추가 분석 중...";
+                    try {
+                        const generated = await requestOnDemandAiReview(violation, eventName);
+                        const statusItem = (generated && generated.status_item) || {};
+                        if (generated && generated.review_item) {
+                            setAiStatusInline("추가 AI 분석 완료", "#2e7d32");
+                        } else {
+                            setAiStatusInline(
+                                String((generated && generated.message) || statusItem.detail || "추가 AI 분석 결과를 찾지 못했습니다."),
+                                "#8a5b00",
+                            );
+                        }
+                        showDetail(violation, eventName, options);
+                    } catch (err) {
+                        const msg = String((err && err.message) || err || "추가 AI 분석 실패");
+                        setAiStatusInline(`추가 AI 분석 실패: ${msg}`, "#c62828");
+                        btnAiGenerateEmpty.disabled = false;
+                        btnAiGenerateEmpty.textContent = "추가 AI 분석";
+                    }
+                };
+            }
         } else {
             hideAiEmptyState();
             aiCard.style.display = "none";
@@ -4418,6 +6499,7 @@ function renderFileList(files) {
     fileList.replaceChildren();
 
     const selectAllWrap = document.createElement("div");
+    selectAllWrap.className = "sidebar-select-all";
     const chkAll = document.createElement("input");
     chkAll.type = "checkbox";
     chkAll.id = "chk-all";
@@ -4441,7 +6523,8 @@ function renderFileList(files) {
         cb.addEventListener("click", (event) => event.stopPropagation());
 
         const label = document.createElement("span");
-        label.textContent = ` ${file.name}`;
+        label.className = "file-item-label";
+        label.textContent = file.name;
 
         row.appendChild(cb);
         row.appendChild(label);
@@ -4475,12 +6558,15 @@ async function handleFlushExcelReportsClick() {
         flushExcelBtn.disabled = true;
         flushExcelBtn.textContent = "Excel 생성 중...";
     }
+    setExcelDownloadsExpanded(false);
     setExcelJobStatus("Excel 리포트 생성 상태 확인 중...", "#fff59d");
     try {
         const payload = await flushExcelReports({ wait: true, timeout_sec: 120 });
         analysisData.report_jobs = payload.report_jobs || {};
-        if (payload.report_paths && payload.report_paths.excel) {
-            // No direct UI list for excel filenames yet; status only.
+        analysisData.report_paths = payload.report_paths || analysisData.report_paths || {};
+        analysisData.output_dir = payload.output_dir || analysisData.output_dir || "";
+        if (Array.isArray((payload.report_paths || {}).excel) && payload.report_paths.excel.length) {
+            setExcelDownloadsExpanded(true);
         }
         updateExcelJobUiFromAnalysis();
     } catch (err) {
@@ -4552,6 +6638,7 @@ async function applyAnalyzePayload(payload) {
         output_dir: payload.output_dir || "",
         metrics: payload.metrics || {},
         report_jobs: payload.report_jobs || {},
+        report_paths: payload.report_paths || {},
     };
     viewerContentCache.clear();
     workspaceRowIndex = [];
@@ -4573,8 +6660,10 @@ async function applyAnalyzePayload(payload) {
     renderWorkspace();
     updateExcelJobUiFromAnalysis();
     updateAiContextHelpText();
-    await loadLatestVerificationProfile();
     navWorkspace.onclick();
+    void loadLatestVerificationProfile();
+    void loadLatestOperationalResults();
+    void loadRulesHealth();
 
     const firstViewerTarget = selected[0] || String(((sessionInputSources[0] || {}).value) || "");
     if (firstViewerTarget) {
@@ -4628,6 +6717,7 @@ btnAnalyze.onclick = async () => {
                 enable_live_ai: enableLiveAi,
                 ai_model_name: ai_model_name || undefined,
                 ai_with_context: aiWithContext,
+                defer_excel_reports: true,
             }),
         });
         const payload = await response.json();
@@ -4717,6 +6807,16 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (aiContextToggle) {
         aiContextToggle.addEventListener("change", updateAiContextHelpText);
     }
+    if (flushExcelBtn) {
+        flushExcelBtn.addEventListener("click", () => {
+            void handleFlushExcelReportsClick();
+        });
+    }
+    if (excelDownloadToggle) {
+        excelDownloadToggle.addEventListener("click", () => {
+            setExcelDownloadsExpanded(!excelDownloadsExpanded);
+        });
+    }
     if (btnAddExternalFiles && externalFileInput) {
         btnAddExternalFiles.addEventListener("click", () => externalFileInput.click());
         externalFileInput.addEventListener("change", async () => {
@@ -4745,6 +6845,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     updateExcelJobUiFromAnalysis();
     updateDashboard();
     await loadLatestVerificationProfile();
+    await loadLatestOperationalResults();
+    await loadRulesHealth();
     setCodeViewerText("// 파일을 선택하면 원본 코드와 위반 항목을 확인할 수 있습니다.");
     try {
         await loadFiles();
@@ -4763,3 +6865,4 @@ window.addEventListener("keydown", (event) => {
         closeDiffModal();
     }
 });
+    activeDiffModalEventName = String(eventName || "Global");

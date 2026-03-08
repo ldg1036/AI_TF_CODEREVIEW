@@ -1,29 +1,32 @@
 # User Operations Guide
 
-Last Updated: 2026-03-06
+Last Updated: 2026-03-08
 
 ## Goal
 
-This guide is for the final user or operator who needs to run the WinCC OA code review program reliably without reading the full developer documentation.
+This guide is for operators who need to run the WinCC OA code review program reliably without reading developer-only documentation.
 
 ## 1. Before You Start
 
 Required:
+
 - Windows environment
 - Python installed and available in `PATH`
-- Project files present in `CodeReview_Data`
+- project files present in `CodeReview_Data`
 
 Recommended:
+
 - `pip install -r requirements-dev.txt`
 - `npm install`
 - `npx playwright install chromium`
 
 Optional tools:
-- `CtrlppCheck`: used for `P2`
-- `Ollama`: used for live AI `P3`
-- Playwright browser: used for UI smoke/benchmark
 
-The program is designed to fail soft when optional tools are missing, unless you explicitly choose checks that require them.
+- `CtrlppCheck`
+- `Ollama`
+- Playwright browser runtime
+
+Missing optional tools should fail soft in normal operation.
 
 ## 2. Main Run Modes
 
@@ -41,134 +44,192 @@ Open:
 http://127.0.0.1:8765
 ```
 
-Use this when:
-- you want to browse files
-- you want to inspect issues visually
-- you want to review reports and workspace results interactively
+Use the dashboard cards for quick status checks:
+
+- operations compare
+- rules / dependency health
+
+Use issue detail for code-level review actions:
+
+- `AI 제안` tab
+- `P1/P2 <> P3` compare popup
+- on-demand AI review and patch-oriented follow-up
 
 ### CLI mode
-
-Run a direct file analysis:
 
 ```powershell
 python backend/main.py --selected-files GoldenTime.ctl
 ```
 
-Use this when:
-- you want a quick targeted analysis
-- you do not need the UI
+Use this when you want a targeted analysis without the UI.
 
 ## 3. Release Gate Shortcuts
 
-### Standard local gate
+Standard local gate:
 
 ```powershell
 .\run_release_gate.bat
 ```
 
-### Local gate with live AI and MCP context
+Live AI scope:
 
 ```powershell
 .\run_release_gate.bat live-ai
 ```
 
-### CI-style lightweight gate
+CI-style lightweight gate:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\run_release_gate.ps1 -Mode ci
 ```
 
-## 4. What Each Gate Means
+## 4. What The Dashboard Cards Mean
 
-### Standard local gate
+### Operations compare
 
-Checks:
-- backend tests
-- verification profile
-- config/rule alignment
-- template coverage
-- warning gate
-- frontend syntax
-- Ctrlpp smoke
+Shows the latest benchmark / smoke results for:
+
 - UI benchmark
-- real UI smoke
+- UI real smoke
+- Ctrlpp integration smoke
 
-Use this before a normal release or local handoff.
+### Rules / dependency health
 
-### Live AI gate
+Shows:
 
-Adds:
-- one real live AI analysis on `BenchmarkP1Fixture.ctl`
-- optional MCP context requirement
+- enabled P1 rules versus total P1 rules
+- detector distribution
+- `openpyxl`, `CtrlppCheck`, `Playwright` availability
 
-Use this when:
-- Ollama is available
-- you want to confirm live AI still produces at least one real `P3` review
+This card now supports a limited management flow:
 
-### CI-style gate
+- open the rule list
+- create a new P1 rule
+- edit an existing P1 rule
+- toggle `enabled`
+- delete a rule
+- export rules to JSON
+- import rules from JSON with merge or replace mode
+- save the change and reload the checker configuration
 
-Checks only the core regression path.
+Current editing model:
 
-Use this when:
-- optional tools are unavailable
-- you want a fast minimum acceptance pass
+- detector and `meta` values are edited as JSON
+- validation runs on save before configuration is reloaded
 
-## 5. Where Results Are Written
+Still not included:
 
-Main reports:
-- `CodeReview_Report/release_gate_*.json`
-- `CodeReview_Report/release_gate_*.md`
+- detector-type-specific visual form editor
+- import dry-run preview before apply
+- bulk multi-select editing
 
-Additional artifacts:
-- `tools/integration_results/ctrlpp_release_gate_*.json`
-- `tools/integration_results/ui_real_smoke_release_gate_*.json`
-- `tools/integration_results/live_ai_release_gate_*.json`
-- `tools/benchmark_results/ui_benchmark_release_gate_*.json`
+### Issue detail compare
 
-## 6. How To Interpret Results
+P3 compare is handled from issue detail, not from a dashboard run-to-run card.
 
-Release gate result meanings:
-- `passed`: all enabled checks passed
-- `failed`: one or more enabled checks failed
-- `skipped_optional_missing`: an optional dependency was not available and the check degraded safely
+Use this when you need to compare:
 
-For a normal local release candidate, the expected outcome is:
-- local gate: `passed`
-- live AI gate: `passed` if live AI is part of the release scope
+- selected `P1` or `P2` issue context
+- generated `P3` review or mock review
+- optional patch diff after prepare/apply
+
+## 5. Checklist Automation In Reports
+
+Excel checklist results are now interpreted with a conservative automation policy.
+
+Meaning of the main result columns:
+
+- `F (1차 검증)`: `OK`, `NG`, `N/A`
+- `G (검증 결과)`: automatic guidance or reason text
+- `H (비고)`: template remark column, kept empty or preserved from template
+
+Checklist automation levels:
+
+- `완전 자동`
+  - `Loop문 내에 처리 조건`
+  - rule applies only when a `while` pattern exists
+  - `while` 없음: `N/A`
+  - `while` 있음 + 위반 검출: `NG`
+  - `while` 있음 + 위반 없음: `OK`
+- `부분 자동`
+  - `메모리 누수 체크`
+  - `하드코딩 지양`
+  - `디버깅용 로그 작성 확인`
+  - violation detected: `NG`
+  - no violation detected: `N/A` with partial-automation guidance
+- `수동 확인`
+  - `쿼리 주석 처리`
+  - stays `N/A` because required comment quality (`기능명_날짜_HWC`) is not trusted by regex-only checks
+
+Interpretation rule:
+
+- `NG` means a mapped rule violation was found
+- `OK` is used only for full-automation items
+- `N/A` means either the item is not applicable or it still requires operator review
+## 6. Performance Checks
+
+### End-to-end benchmark
+
+Start the server and run:
+
+```powershell
+python tools/http_perf_baseline.py --dataset-name local-sample --iterations 3
+```
+
+### Heuristic-only baseline
+
+Use this when scan-path performance changed:
+
+```powershell
+python tools/http_perf_baseline.py `
+  --focus heuristic `
+  --selected-files GoldenTime.ctl `
+  --iterations 3
+```
+
+Interpretation:
+
+- `same_findings=true` must hold
+- `with_context_avg_ms` should be less than or equal to `without_context_avg_ms`
 
 ## 7. Common Trouble Cases
 
 ### UI does not open
 
 Check:
+
 - `python backend/server.py` is running
 - port `8765` is free
 
-### Ctrlpp smoke fails
+### Rules / dependency card shows degraded
+
+Typical causes:
+
+- `openpyxl` not installed
+- Playwright browser not installed
+- Ctrlpp binary unavailable
+
+This does not automatically block static analysis. It means optional capabilities are reduced.
+
+### Heuristic baseline fails immediately
 
 Check:
-- `CtrlppCheck` is installed or downloadable
-- the binary path is valid
 
-If Ctrlpp is not required for the current delivery, use the core or CI-style gate instead of blocking on it.
-
-### Live AI gate fails
-
-Check:
-- Ollama is running
-- the selected model is available
-- the context server is reachable when `--live-ai-with-context` is used
+- backend server is running before executing `tools/http_perf_baseline.py`
+- selected file exists in the dataset
 
 ### UI benchmark fails
 
 Check:
+
 - Playwright package is installed
-- Chromium browser was installed with Playwright
+- Chromium browser is installed
 - the machine is not under unusual load
 
-## 8. Recommended Final Routine
+## 8. Remaining Scope Notes
 
-For a normal final handoff:
-1. Run `.\run_release_gate.bat`
-2. If live AI is part of the delivery, run `.\run_release_gate.bat live-ai`
-3. Keep the latest JSON and Markdown reports with the delivery notes
+Current operator UI scope supports full P1 rule CRUD and import / export management.
+
+Not included yet:
+
+- detector-specific rich form editing

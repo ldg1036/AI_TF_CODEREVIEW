@@ -20,7 +20,7 @@
     "focus_snippet_max_lines": 80,
     "batch_groups_per_file": 1,
     "min_review_severity": "warning",
-    "max_parent_reviews_per_file": 3,
+    "max_parent_reviews_per_file": 5,
     "options": {
       "temperature": 0.0,
       "num_ctx": 4096,
