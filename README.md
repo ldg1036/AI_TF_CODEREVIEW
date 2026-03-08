@@ -6,7 +6,7 @@
 > - Legacy tool commands under `tools/*.py` / `tools/*.js` are still supported via compatibility wrappers.
 > - Official review quality baseline is `P1 (rules) + P2 (CtrlppCheck) + P3 (AI)` plus regression tests.
 
-Last validated: 2026-02-27
+Last validated: 2026-03-09
 
 ## 개요
 
@@ -36,11 +36,21 @@ Last validated: 2026-02-27
   - preflight 실패 시 fail-soft로 P2 경고만 기록하고 P1/P3 분석은 계속 진행
 - `P3`: AI(LLM) 리뷰 (선택/Fail-soft)
 
-### 2) 성능/운영 최적화
+### 2) UI/운영 흐름
+- 대시보드 / 작업공간 / 우측 이슈 상세 패널 3영역 UI
+- 좌측 사이드바에서 프로젝트 파일 선택, 외부 파일 추가, 폴더 선택 지원
+- 상단 헤더에서 `P2 CtrlppCheck`, `P3 Live AI`, `P3 모델`, `MCP 문맥 포함`, `검증 레벨`, `검증 프로파일`을 한 번에 제어
+- `MCP 문맥` 상태는 실제 요청 예정/시도 결과가 있을 때만 짧게 표시
+- `AI 제안` 탭에서 선택 이슈 기준 `추가 AI 분석` 실행 가능
+- Excel 결과는 기본 즉시 생성 대신 필요 시 `Excel 결과 생성` 버튼으로 별도 생성
+- 생성된 Excel은 헤더의 접힘(download panel) UI에서 파일별 다운로드
+
+### 3) 성능/운영 최적화
 - `/api/analyze` `metrics` 응답 제공 (optional dependency 상태 포함: `metrics.optional_dependencies`)
 - `/api/analyze` `summary.verification_level` 제공 (`CORE_ONLY` 또는 `CORE+REPORT`)
 - async analyze progress API: `POST /api/analyze/start`, `GET /api/analyze/status?job_id=...`
 - dependency preflight API: `GET /api/health/deps` (`openpyxl` / `CtrlppCheck` / `Playwright` 상태 + capability readiness)
+- rules/dependency status API: `GET /api/rules/health`
 - 파일 단위 bounded parallel 분석
 - `.pnl/.xml -> *_txt` 변환 캐시 (`mtime + size`)
 - Excel 기본 동기 생성 + 선택적 지연 생성(`defer_excel_reports`) + flush API
@@ -61,7 +71,7 @@ Last validated: 2026-02-27
 - 결과 테이블 virtualization
 - 프론트 헤더에서 분석 진행률/ETA/경과시간 표시 (polling 기반)
 
-### 3) Autofix
+### 4) Autofix
 - `autofix/prepare` -> `file-diff` 확인 -> `autofix/apply`
 - `llm` / `rule` / `auto(rule-first, llm-fallback)` generator
 - `rule` 경로는 `.ctl` 중심, `P3(llm)` 경로는 텍스트 입력까지 지원
@@ -73,7 +83,7 @@ API note:
 - `GET /api/autofix/stats` includes `multi_hunk_attempt_count`, `multi_hunk_success_count`, `multi_hunk_blocked_count`
 - `POST /api/autofix/apply` may return fail-soft `error_code="APPLY_ENGINE_FAILED"` for unsafe multi-hunk scenarios
 
-### 4) 벤치/스모크 도구
+### 5) 벤치/스모크 도구
 - UI benchmark: `tools/playwright_ui_benchmark.js`
 - Real-server UI smoke: `tools/playwright_ui_real_smoke.js`
 - Consolidated release gate: `python tools/release_gate.py`
@@ -127,6 +137,8 @@ python backend/server.py
 프론트 분석 동작:
 - 기본 분석 버튼은 `/api/analyze/start` + `/api/analyze/status` 폴링으로 진행률/ETA를 표시합니다.
 - 완료 시 최종 결과 payload(`summary`, `violations`, `output_dir`, `metrics`, `report_jobs`)를 기존과 동일하게 렌더링합니다.
+- 기본 UI 흐름은 `대시보드 -> 작업공간 -> 이슈 상세` 순서이며, P3는 이슈 상세의 `AI 제안` 탭에서 확인/재생성합니다.
+- Excel 리포트는 분석 완료 후 필요할 때만 `Excel 결과 생성` 버튼으로 생성하고 다운로드합니다.
 
 ### CLI 분석 실행
 ```powershell
@@ -139,6 +151,25 @@ python backend/main.py --selected-files GoldenTime.ctl --enable-ctrlppcheck
 python backend/main.py --selected-files raw_input.txt --allow-raw-txt
 python backend/main.py --selected-files GoldenTime.ctl --enable-live-ai
 ```
+
+## 주요 API
+
+- `POST /api/analyze/start`
+- `GET /api/analyze/status?job_id=...`
+- `POST /api/report/excel`
+- `GET /api/report/excel/download?output_dir=...&name=...`
+- `POST /api/ai-review/generate`
+- `GET /api/health/deps`
+- `GET /api/rules/health`
+
+## 현재 UI 기준 사용 흐름
+
+1. 좌측 사이드바에서 분석할 파일을 선택하거나 외부 파일/폴더를 추가합니다.
+2. 상단 헤더에서 `P2`, `P3`, 모델, MCP 문맥 포함 여부를 조정합니다.
+3. `선택 항목 분석`을 실행하면 진행률/ETA가 헤더에 표시됩니다.
+4. 작업공간에서 결과 리스트를 확인하고, 우측 `이슈 상세` / `AI 제안` 탭에서 상세 내용을 봅니다.
+5. P3가 없거나 보강이 필요하면 `추가 AI 분석`으로 선택 이슈 1건만 다시 생성할 수 있습니다.
+6. Excel이 필요하면 `Excel 결과 생성`을 눌러 별도 생성한 뒤 다운로드합니다.
 
 ## 프로젝트 구조
 
