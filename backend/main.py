@@ -49,9 +49,11 @@ class TimingMetrics(TypedDict, total=False):
     mcp_context: int
     analyze: int
     report: int
+    report_text: int
     heuristic: int
     ctrlpp: int
     ai: int
+    excel_total: int
     excel_copy: int
     excel_load: int
     excel_save: int
@@ -87,6 +89,7 @@ class AnalysisMetrics(TypedDict, total=False):
 
 
 class ExcelTimingMeta(TypedDict, total=False):
+    total: int
     copy: int
     load: int
     save: int
@@ -186,8 +189,7 @@ class CodeInspectorApp(ReviewSessionMixin, FileCollectorMixin, AutoFixMixin):
         self.live_ai_max_workers = self._safe_int(perf_cfg.get("live_ai_max_workers", 1), 1)
         self.report_max_workers = self._safe_int(perf_cfg.get("report_max_workers", 1), 1)
         self.excel_report_max_workers = self._safe_int(perf_cfg.get("excel_report_max_workers", 1), 1)
-        # Deferred Excel generation is intentionally disabled (reports are generated immediately).
-        self.defer_excel_reports_default = False
+        self.defer_excel_reports_default = bool(perf_cfg.get("defer_excel_reports_default", False))
         self._ctrlpp_semaphore = threading.Semaphore(max(1, self.ctrlpp_max_workers))
         self._live_ai_semaphore = threading.Semaphore(max(1, self.live_ai_max_workers))
         self._reporter_semaphore = threading.Semaphore(max(1, self.report_max_workers))
@@ -361,9 +363,11 @@ class CodeInspectorApp(ReviewSessionMixin, FileCollectorMixin, AutoFixMixin):
                 "mcp_context": 0,
                 "analyze": 0,
                 "report": 0,
+                "report_text": 0,
                 "heuristic": 0,
                 "ctrlpp": 0,
                 "ai": 0,
+                "excel_total": 0,
                 "excel_copy": 0,
                 "excel_load": 0,
                 "excel_save": 0,
@@ -413,6 +417,7 @@ class CodeInspectorApp(ReviewSessionMixin, FileCollectorMixin, AutoFixMixin):
             return
         timings = excel_meta.get("timings_ms", {})
         if isinstance(timings, dict):
+            self._metrics_add_timing(metrics, "excel_total", self._safe_int(timings.get("total", 0), 0))
             self._metrics_add_timing(metrics, "excel_copy", self._safe_int(timings.get("copy", 0), 0))
             self._metrics_add_timing(metrics, "excel_load", self._safe_int(timings.get("load", 0), 0))
             self._metrics_add_timing(metrics, "excel_save", self._safe_int(timings.get("save", 0), 0))
@@ -1577,70 +1582,23 @@ class CodeInspectorApp(ReviewSessionMixin, FileCollectorMixin, AutoFixMixin):
         }
         self._store_review_cache_file(session_key, filename, cache_entry)
 
-        output_dir = active_reporter.output_dir
-        report_started = self._perf_now()
         emit_progress("write_reports")
-        size_before = 0
-        if os.path.isdir(output_dir):
-            try:
-                size_before = sum(
-                    os.path.getsize(os.path.join(output_dir, name))
-                    for name in os.listdir(output_dir)
-                    if os.path.isfile(os.path.join(output_dir, name))
-                )
-            except Exception:
-                size_before = 0
-
-        with self._reporter_semaphore:
-            active_reporter.generate_annotated_txt(code_content, file_report, reviewed_name)
-        excel_name = f"CodeReview_Submission_{artifact_stem}_{active_reporter.timestamp}.xlsx"
-        use_deferred_excel = (
-            self.defer_excel_reports_default
-            if defer_excel_reports is None
-            else bool(defer_excel_reports)
+        output_meta = self._write_review_outputs(
+            reporter=active_reporter,
+            code_content=code_content,
+            file_report=file_report,
+            reviewed_name=reviewed_name,
+            artifact_stem=artifact_stem,
+            file_type=file_type,
+            defer_excel_reports=defer_excel_reports,
+            metrics=metrics,
         )
-        deferred_excel_job_id = ""
-        sync_excel_meta = {}
-        if use_deferred_excel:
-            deferred_excel_job_id = self._schedule_deferred_excel_report(
-                output_dir=active_reporter.output_dir,
-                reporter_timestamp=active_reporter.timestamp,
-                source_file=filename,
-                report_data=file_report,
-                file_type=file_type,
-                output_filename=excel_name,
-            )
-        else:
-            with self._excel_report_semaphore:
-                sync_excel_meta = active_reporter.fill_excel_checklist(
-                    file_report,
-                    file_type=file_type,
-                    output_filename=excel_name,
-                    report_meta={
-                        "verification_level": "CORE+REPORT" if active_reporter.is_excel_support_available() else "CORE_ONLY",
-                        "optional_dependencies": {
-                            "openpyxl": {
-                                "available": bool(active_reporter.is_excel_support_available()),
-                                "required_for": ["excel_report", "template_coverage"],
-                            }
-                        },
-                    },
-                ) or {}
-            self._metrics_apply_excel_report_meta(metrics, sync_excel_meta if isinstance(sync_excel_meta, dict) else {})
-
-        report_ms = self._elapsed_ms(report_started)
-        self._metrics_add_timing(metrics, "report", report_ms)
-        if os.path.isdir(output_dir):
-            try:
-                size_after = sum(
-                    os.path.getsize(os.path.join(output_dir, name))
-                    for name in os.listdir(output_dir)
-                    if os.path.isfile(os.path.join(output_dir, name))
-                )
-                if size_after > size_before:
-                    self._metrics_inc(metrics, "bytes_written", size_after - size_before)
-            except Exception:
-                pass
+        report_ms = self._safe_int(output_meta.get("report_ms", 0), 0)
+        report_text_ms = self._safe_int(output_meta.get("report_text_ms", 0), 0)
+        use_deferred_excel = bool(output_meta.get("deferred_excel", False))
+        deferred_excel_job_id = str(output_meta.get("excel_job_id", "") or "")
+        sync_excel_meta = output_meta.get("excel_metrics", {}) if isinstance(output_meta.get("excel_metrics", {}), dict) else {}
+        excel_total_ms = self._safe_int(output_meta.get("excel_total_ms", 0), 0)
 
         total_ms = self._elapsed_ms(file_started)
         self._metrics_add_per_file(
@@ -1652,6 +1610,8 @@ class CodeInspectorApp(ReviewSessionMixin, FileCollectorMixin, AutoFixMixin):
                     "read": read_ms,
                     "heuristic": heuristic_ms,
                     "report": report_ms,
+                    "report_text": report_text_ms,
+                    "excel_total": excel_total_ms,
                 },
                 "p1_groups": len(internal_violations or []),
                 "p2_count": len(global_violations or []),
@@ -1791,6 +1751,18 @@ def build_arg_parser():
         action="store_true",
         help="Disable live AI review and use mock review",
     )
+
+    excel_group = parser.add_mutually_exclusive_group()
+    excel_group.add_argument(
+        "--defer-excel-reports",
+        action="store_true",
+        help="Generate Excel reports asynchronously after analyze completes",
+    )
+    excel_group.add_argument(
+        "--sync-excel-reports",
+        action="store_true",
+        help="Generate Excel reports synchronously during analyze",
+    )
     return parser
 
 
@@ -1810,6 +1782,12 @@ if __name__ == "__main__":
     elif args.disable_live_ai:
         live_ai_toggle = False
 
+    defer_excel_toggle = None
+    if args.defer_excel_reports:
+        defer_excel_toggle = True
+    elif args.sync_excel_reports:
+        defer_excel_toggle = False
+
     try:
         app.run_directory_analysis(
             mode=args.mode,
@@ -1818,6 +1796,7 @@ if __name__ == "__main__":
             enable_ctrlppcheck=ctrlpp_toggle,
             enable_live_ai=live_ai_toggle,
             ai_with_context=args.ai_with_context,
+            defer_excel_reports=defer_excel_toggle,
         )
     except Exception as e:
         import traceback

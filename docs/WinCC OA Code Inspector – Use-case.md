@@ -23,7 +23,7 @@
 - 파일 수가 늘어나 UI 렌더링/리포트 생성 지연이 체감됨
 
 ### 사용 흐름
-1. 기본은 분석과 함께 Excel을 즉시 생성한다. 필요 시 `defer_excel_reports=true`로 지연 생성 모드로 전환한다.
+1. 기본은 분석 응답을 우선 완료하고 Excel은 지연 생성한다. 필요 시 `defer_excel_reports=false`로 즉시 생성 모드로 전환한다.
 2. 먼저 결과 검토를 진행한다.
 3. 필요 시 `/api/report/excel` 또는 UI 버튼으로 Excel 생성 flush를 실행한다.
 4. `/api/analyze`의 `metrics`를 비교해 병목 구간을 확인한다.
@@ -92,4 +92,3 @@
 - 문서/설정/소스는 UTF-8로 저장 (`docs/encoding_policy.md`)
 - 인코딩 문제 발생 시 백업 후 부분 복구, diff 검토 필수
 - 자동수정은 승인형 흐름 유지(무승인 자동적용 금지)
-

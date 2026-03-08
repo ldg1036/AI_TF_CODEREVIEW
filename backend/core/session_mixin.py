@@ -24,7 +24,9 @@ class ReviewSessionMixin:
         _excel_report_executor         : concurrent.futures.ThreadPoolExecutor
         _last_output_dir               : str
     And static helpers:
-        _now_ts, _iso_now, _safe_int, _touch_review_session (delegated here)
+        _now_ts, _iso_now, _safe_int, _touch_review_session,
+        _perf_now, _elapsed_ms, _metrics_add_timing, _metrics_inc,
+        _metrics_apply_excel_report_meta (delegated here)
     """
 
     # ------------------------------------------------------------------
@@ -231,6 +233,19 @@ class ReviewSessionMixin:
                 counts["failed_count"] += 1
         return {"excel": {**counts, "jobs": jobs}}
 
+    @staticmethod
+    def _default_excel_report_meta(reporter: Reporter) -> Dict[str, Any]:
+        excel_available = bool(reporter.is_excel_support_available())
+        return {
+            "verification_level": "CORE+REPORT" if excel_available else "CORE_ONLY",
+            "optional_dependencies": {
+                "openpyxl": {
+                    "available": excel_available,
+                    "required_for": ["excel_report", "template_coverage"],
+                }
+            },
+        }
+
     def _run_deferred_excel_job(
         self,
         output_dir: str,
@@ -248,21 +263,99 @@ class ReviewSessionMixin:
                 report_data,
                 file_type=file_type,
                 output_filename=output_filename,
-                report_meta={
-                    "verification_level": "CORE+REPORT" if reporter.is_excel_support_available() else "CORE_ONLY",
-                    "optional_dependencies": {
-                        "openpyxl": {
-                            "available": bool(reporter.is_excel_support_available()),
-                            "required_for": ["excel_report", "template_coverage"],
-                        }
-                    },
-                },
+                report_meta=self._default_excel_report_meta(reporter),
             ) or {}
         output_path = os.path.join(output_dir, output_filename)
         return {
             "output_path": output_path,
             "generated": os.path.isfile(output_path),
             "metrics": excel_meta if isinstance(excel_meta, dict) else {},
+        }
+
+    def _write_review_outputs(
+        self,
+        *,
+        reporter: Reporter,
+        code_content: str,
+        file_report: Dict,
+        reviewed_name: str,
+        artifact_stem: str,
+        file_type: str,
+        defer_excel_reports: Optional[bool],
+        metrics: Optional[Dict],
+    ) -> Dict[str, Any]:
+        output_dir = reporter.output_dir
+        report_started = self._perf_now()
+        size_before = 0
+        if os.path.isdir(output_dir):
+            try:
+                size_before = sum(
+                    os.path.getsize(os.path.join(output_dir, name))
+                    for name in os.listdir(output_dir)
+                    if os.path.isfile(os.path.join(output_dir, name))
+                )
+            except Exception:
+                size_before = 0
+
+        report_text_started = self._perf_now()
+        with self._reporter_semaphore:
+            reporter.generate_annotated_txt(code_content, file_report, reviewed_name)
+        report_text_ms = self._elapsed_ms(report_text_started)
+        self._metrics_add_timing(metrics, "report_text", report_text_ms)
+
+        excel_name = f"CodeReview_Submission_{artifact_stem}_{reporter.timestamp}.xlsx"
+        use_deferred_excel = (
+            self.defer_excel_reports_default
+            if defer_excel_reports is None
+            else bool(defer_excel_reports)
+        )
+        deferred_excel_job_id = ""
+        sync_excel_meta: Dict[str, Any] = {}
+        if use_deferred_excel:
+            deferred_excel_job_id = self._schedule_deferred_excel_report(
+                output_dir=reporter.output_dir,
+                reporter_timestamp=reporter.timestamp,
+                source_file=str(file_report.get("file", "") or ""),
+                report_data=file_report,
+                file_type=file_type,
+                output_filename=excel_name,
+            )
+        else:
+            with self._excel_report_semaphore:
+                sync_excel_meta = reporter.fill_excel_checklist(
+                    file_report,
+                    file_type=file_type,
+                    output_filename=excel_name,
+                    report_meta=self._default_excel_report_meta(reporter),
+                ) or {}
+            self._metrics_apply_excel_report_meta(metrics, sync_excel_meta if isinstance(sync_excel_meta, dict) else {})
+
+        report_ms = self._elapsed_ms(report_started)
+        self._metrics_add_timing(metrics, "report", report_ms)
+
+        if os.path.isdir(output_dir):
+            try:
+                size_after = sum(
+                    os.path.getsize(os.path.join(output_dir, name))
+                    for name in os.listdir(output_dir)
+                    if os.path.isfile(os.path.join(output_dir, name))
+                )
+                if size_after > size_before:
+                    self._metrics_inc(metrics, "bytes_written", size_after - size_before)
+            except Exception:
+                pass
+
+        excel_timings = sync_excel_meta.get("timings_ms", {}) if isinstance(sync_excel_meta, dict) else {}
+        excel_total_ms = self._safe_int(excel_timings.get("total", 0), 0) if isinstance(excel_timings, dict) else 0
+        return {
+            "output_dir": output_dir,
+            "report_ms": report_ms,
+            "report_text_ms": report_text_ms,
+            "excel_name": excel_name,
+            "deferred_excel": bool(use_deferred_excel),
+            "excel_job_id": deferred_excel_job_id,
+            "excel_metrics": sync_excel_meta if isinstance(sync_excel_meta, dict) else {},
+            "excel_total_ms": excel_total_ms,
         }
 
     def _schedule_deferred_excel_report(

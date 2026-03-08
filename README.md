@@ -43,7 +43,7 @@ Last validated: 2026-02-27
 - dependency preflight API: `GET /api/health/deps` (`openpyxl` / `CtrlppCheck` / `Playwright` 상태 + capability readiness)
 - 파일 단위 bounded parallel 분석
 - `.pnl/.xml -> *_txt` 변환 캐시 (`mtime + size`)
-- Excel 기본 동기 생성 + 선택적 지연 생성(`defer_excel_reports`) + flush API
+- Excel 기본 지연 생성 + 필요 시 동기 생성(`defer_excel_reports=false`) + flush API
 
 ### 체크리스트 판정 기준
 

@@ -2,6 +2,7 @@
 import json
 import concurrent.futures
 import os
+import re
 import sys
 import tempfile
 import threading
@@ -17,7 +18,7 @@ BACKEND_DIR = os.path.join(PROJECT_ROOT, "backend")
 if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
-from main import CodeInspectorApp
+from main import CodeInspectorApp, build_arg_parser
 from core.analysis_pipeline import DirectoryAnalysisPipeline
 from core.errors import CtrlppDownloadError, ReviewerResponseError, ReviewerTimeoutError, ReviewerTransportError
 from core.heuristic_checker import HeuristicChecker
@@ -73,6 +74,14 @@ class ApiIntegrationTests(unittest.TestCase):
         self.httpd.shutdown()
         self.httpd.server_close()
         self.thread.join(timeout=3)
+        try:
+            self.app.flush_deferred_excel_reports(wait=True, timeout_sec=30)
+        except Exception:
+            pass
+        try:
+            self.app._excel_report_executor.shutdown(wait=True, cancel_futures=False)
+        except Exception:
+            pass
         self.tmp_dir.cleanup()
 
     def _request(self, method, path, body=None, headers=None):
@@ -169,6 +178,9 @@ class ApiIntegrationTests(unittest.TestCase):
         names = [item["name"] for item in payload["files"]]
         self.assertIn("sample.ctl", names)
 
+    def test_app_uses_configured_defer_excel_reports_default(self):
+        self.assertTrue(self.app.defer_excel_reports_default)
+
     def test_config_representative_rules_are_detected_by_checker(self):
         cases = {
             "PERF-SETMULTIVALUE-ADOPT-01": {
@@ -213,6 +225,76 @@ class ApiIntegrationTests(unittest.TestCase):
             with self.subTest(rule_id=rule_id):
                 found = self._analyze_rule_ids_for_code(case["code"], file_type=case["file_type"])
                 self.assertIn(rule_id, found)
+
+    def test_temp_rule_config_precompiles_regex_and_preserves_order(self):
+        self._install_temp_rule_config(
+            [
+                {
+                    "rule_id": "REG-B",
+                    "item": "regex-b",
+                    "enabled": True,
+                    "order": 20,
+                    "detector": {"kind": "regex", "pattern": r"delay\s*\("},
+                    "finding": {"severity": "Warning", "message": "delay match"},
+                },
+                {
+                    "rule_id": "REG-A",
+                    "item": "regex-a",
+                    "enabled": True,
+                    "order": 10,
+                    "detector": {"kind": "regex", "pattern": r"dpSet\s*\("},
+                    "finding": {"severity": "Warning", "message": "dpSet match"},
+                },
+            ]
+        )
+        found = self._analyze_rule_ids_for_code('main() { dpSet("A.B.C", 1); delay(1); }', file_type="Server")
+        self.assertEqual(found[:2], ["REG-A", "REG-B"])
+
+        prepared_rules = self.app.checker.p1_rule_defs
+        self.assertEqual([row.get("rule_id") for row in prepared_rules[:2]], ["REG-A", "REG-B"])
+        compiled = prepared_rules[0].get("detector", {}).get("_compiled_regex")
+        self.assertIsInstance(compiled, re.Pattern)
+
+    def test_invalid_regex_is_fail_soft_at_load_time_only(self):
+        with mock.patch("builtins.print") as mocked_print:
+            self._install_temp_rule_config(
+                [
+                    {
+                        "rule_id": "REG-BAD",
+                        "item": "bad-regex",
+                        "enabled": True,
+                        "order": 5,
+                        "detector": {"kind": "regex", "pattern": "("},
+                        "finding": {"severity": "Warning", "message": "broken"},
+                    },
+                    {
+                        "rule_id": "REG-GOOD",
+                        "item": "good-regex",
+                        "enabled": True,
+                        "order": 10,
+                        "detector": {"kind": "regex", "pattern": r"dpSet\s*\("},
+                        "finding": {"severity": "Warning", "message": "dpSet match"},
+                    },
+                ]
+            )
+            load_messages = [
+                str(call.args[0])
+                for call in mocked_print.call_args_list
+                if call.args and "Invalid regex in p1_rule_defs" in str(call.args[0])
+            ]
+            self.assertEqual(len(load_messages), 1)
+
+            found_first = self._analyze_rule_ids_for_code('main() { dpSet("A.B.C", 1); }', file_type="Server")
+            found_second = self._analyze_rule_ids_for_code('main() { dpSet("A.B.C", 1); }', file_type="Server")
+
+            runtime_messages = [
+                str(call.args[0])
+                for call in mocked_print.call_args_list
+                if call.args and "Invalid regex in p1_rule_defs" in str(call.args[0])
+            ]
+            self.assertEqual(len(runtime_messages), 1)
+            self.assertIn("REG-GOOD", found_first)
+            self.assertEqual(found_first, found_second)
 
     def test_get_api_health_deps(self):
         status, payload = self._request("GET", "/api/health/deps")
@@ -845,6 +927,8 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertIn("timings_ms", payload["metrics"])
         self.assertIn("total", payload["metrics"]["timings_ms"])
         self.assertIn("convert", payload["metrics"]["timings_ms"])
+        self.assertIn("report_text", payload["metrics"]["timings_ms"])
+        self.assertIn("excel_total", payload["metrics"]["timings_ms"])
         self.assertIn("llm_calls", payload["metrics"])
         self.assertIn("convert_cache", payload["metrics"])
         output_dir = str(payload.get("output_dir", "") or "")
@@ -867,6 +951,17 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("summary", payload)
         self.assertIn("output_dir", payload)
+
+    def test_post_api_analyze_uses_configured_defer_excel_default_when_omitted(self):
+        status, payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"mode": "Static", "selected_files": ["sample.ctl"]},
+        )
+        self.assertEqual(status, 200)
+        self.assertIn("report_jobs", payload)
+        excel_jobs = (payload.get("report_jobs") or {}).get("excel") or {}
+        self.assertGreaterEqual(len(excel_jobs.get("jobs", [])), 1)
 
     def test_get_api_ai_models_returns_fail_soft_payload(self):
         self.app.list_ai_models = lambda: {
@@ -1030,6 +1125,18 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertEqual(len(reviewed_txt), 2)
         self.assertEqual(len(set(reviewed_txt)), 2)
         self.assertTrue(all(name.endswith("_REVIEWED.txt") for name in reviewed_txt))
+        if len(excel_files) < 2:
+            flush_status, flush_payload = self._request(
+                "POST",
+                "/api/report/excel",
+                {
+                    "session_id": payload.get("output_dir", ""),
+                    "wait": True,
+                    "timeout_sec": 30,
+                },
+            )
+            self.assertEqual(flush_status, 200)
+            excel_files = list(((flush_payload.get("report_paths") or {}).get("excel", [])) or [])
         self.assertEqual(len(excel_files), 2)
         self.assertEqual(len(set(excel_files)), 2)
 
@@ -1772,6 +1879,19 @@ class ApiIntegrationTests(unittest.TestCase):
         self.assertIn("excel", flush_payload.get("report_paths", {}))
         excel_summary = (flush_payload.get("report_jobs") or {}).get("excel") or {}
         self.assertEqual(excel_summary.get("pending_count"), 0)
+
+    def test_cli_parser_accepts_excel_report_mode_flags(self):
+        parser = build_arg_parser()
+        deferred = parser.parse_args(["--defer-excel-reports"])
+        self.assertTrue(deferred.defer_excel_reports)
+        self.assertFalse(deferred.sync_excel_reports)
+
+        sync = parser.parse_args(["--sync-excel-reports"])
+        self.assertTrue(sync.sync_excel_reports)
+        self.assertFalse(sync.defer_excel_reports)
+
+        with self.assertRaises(SystemExit):
+            parser.parse_args(["--defer-excel-reports", "--sync-excel-reports"])
 
     def test_get_api_report_excel_download_returns_attachment(self):
         _require_openpyxl(self)

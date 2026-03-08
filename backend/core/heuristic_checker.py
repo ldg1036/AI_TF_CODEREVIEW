@@ -110,6 +110,13 @@ class HeuristicChecker(CompositeRulesMixin,
     def _context_matches_code(context: Optional[Dict[str, Any]], code: str) -> bool:
         return isinstance(context, dict) and context.get("code") == code
 
+    @staticmethod
+    def _safe_int(value: Any, fallback: int = 0) -> int:
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return fallback
+
     def _get_context_lines(self, code: str, context: Optional[Dict[str, Any]] = None) -> List[str]:
         if self._context_matches_code(context, code):
             return context["lines"]
@@ -360,7 +367,13 @@ class HeuristicChecker(CompositeRulesMixin,
             if not isinstance(data, list):
                 print("[!] p1_rule_defs.json must be a list. Falling back to legacy P1 engine.")
                 return []
-            return [row for row in data if isinstance(row, dict)]
+            prepared = []
+            for row in data:
+                if not isinstance(row, dict):
+                    continue
+                prepared.append(self._prepare_p1_rule_def(row))
+            prepared.sort(key=lambda row: self._safe_int(row.get("_sort_order", 0), 0))
+            return prepared
         except Exception as e:
             print(f"[!] Error loading p1 rule defs: {e}")
             return []
@@ -430,6 +443,47 @@ class HeuristicChecker(CompositeRulesMixin,
             key = str(name or "").strip().upper()
             flags |= mapping.get(key, 0)
         return flags
+
+    def _prepare_p1_rule_def(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        prepared = dict(row)
+        prepared["_sort_order"] = self._safe_int(prepared.get("order", 0), 0)
+
+        detector = prepared.get("detector", {})
+        if not isinstance(detector, dict):
+            return prepared
+
+        prepared_detector = dict(detector)
+        kind = str(prepared_detector.get("kind", "") or "").strip().lower()
+        if kind == "regex":
+            raw_pattern = prepared_detector.get("pattern", "")
+            normalized_pattern = self._normalize_detector_regex(raw_pattern)
+            prepared_detector["pattern"] = normalized_pattern
+            flags = self._regex_flags_from_rule(prepared_detector.get("flags", ["DOTALL", "MULTILINE"]))
+            prepared_detector["_compiled_flags"] = flags
+
+            event_names = prepared_detector.get("event_names")
+            if isinstance(event_names, str):
+                event_names = [event_names]
+            if isinstance(event_names, list):
+                prepared_detector["_allowed_event_names"] = {
+                    str(item) for item in event_names if str(item or "").strip()
+                }
+            else:
+                prepared_detector["_allowed_event_names"] = set()
+
+            try:
+                prepared_detector["_compiled_regex"] = re.compile(normalized_pattern, flags)
+                prepared_detector["_invalid_regex_error"] = ""
+            except re.error as exc:
+                prepared_detector["_compiled_regex"] = None
+                prepared_detector["_invalid_regex_error"] = str(exc)
+                print(
+                    f"[!] Invalid regex in p1_rule_defs "
+                    f"({prepared.get('id', prepared.get('rule_id'))}): {exc}"
+                )
+
+        prepared["detector"] = prepared_detector
+        return prepared
 
     @staticmethod
     def _normalize_detector_regex(pattern: Any) -> str:
@@ -539,20 +593,22 @@ class HeuristicChecker(CompositeRulesMixin,
         if not isinstance(pattern, str) or not pattern:
             return []
 
-        event_names = detector.get("event_names")
-        if isinstance(event_names, str):
-            event_names = [event_names]
-        if isinstance(event_names, list) and event_names:
-            allowed_events = {str(x) for x in event_names}
-            if str(event_name) not in allowed_events:
-                return []
-
-        flags = self._regex_flags_from_rule(detector.get("flags", ["DOTALL", "MULTILINE"]))
-        try:
-            match = re.search(pattern, analysis_code, flags)
-        except re.error as e:
-            print(f"[!] Invalid regex in p1_rule_defs ({rule_def.get('id', rule_def.get('rule_id'))}): {e}")
+        allowed_events = detector.get("_allowed_event_names")
+        if isinstance(allowed_events, set) and allowed_events and str(event_name) not in allowed_events:
             return []
+
+        invalid_regex_error = str(detector.get("_invalid_regex_error", "") or "")
+        if invalid_regex_error:
+            return []
+
+        compiled = detector.get("_compiled_regex")
+        if not isinstance(compiled, re.Pattern):
+            flags = self._regex_flags_from_rule(detector.get("flags", ["DOTALL", "MULTILINE"]))
+            try:
+                compiled = re.compile(pattern, flags)
+            except re.error:
+                return []
+        match = compiled.search(analysis_code)
         if not match:
             return []
 
@@ -685,7 +741,7 @@ class HeuristicChecker(CompositeRulesMixin,
         context: Optional[Dict[str, Any]] = None,
     ) -> List[Dict]:
         violations: List[Dict] = []
-        for rule_def in sorted(self.p1_rule_defs, key=lambda r: int(r.get("order", 0) or 0)):
+        for rule_def in self.p1_rule_defs:
             if not bool(rule_def.get("enabled", True)):
                 continue
             if not self._p1_rule_enabled_for_file_type(rule_def, file_type):

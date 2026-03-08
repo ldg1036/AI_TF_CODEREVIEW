@@ -80,7 +80,7 @@
     "live_ai_max_workers": 2,
     "report_max_workers": 1,
     "excel_report_max_workers": 1,
-    "defer_excel_reports_default": false
+    "defer_excel_reports_default": true
   },
   "autofix": {
     "enabled_default": true,
