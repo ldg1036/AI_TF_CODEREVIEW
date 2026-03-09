@@ -6,7 +6,7 @@
 > - Legacy tool commands under `tools/*.py` / `tools/*.js` are still supported via compatibility wrappers.
 > - Official review quality baseline is `P1 (rules) + P2 (CtrlppCheck) + P3 (AI)` plus regression tests.
 
-Last validated: 2026-02-27
+Last validated: 2026-03-09
 
 ## 개요
 
@@ -128,13 +128,15 @@ Release checklist:
 - OS: Windows 10/11 또는 Linux/macOS (Python/Node 실행 가능 환경)
 
 ### 2) 필수 Python 패키지 설치
+이 저장소는 `requirements.txt` 없이 `requirements-dev.txt`를 기준으로 의존성을 관리합니다.
+
 ```powershell
-pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
 ```
 
-개발/검증(테스트, 템플릿 정합, 리포트 점검)까지 수행하려면:
+선택(프론트 벤치/스모크 실행 시):
 ```powershell
-pip install -r requirements-dev.txt
+npm install
 ```
 
 ### 3) 실행 전 확인할 디렉터리
@@ -146,17 +148,6 @@ pip install -r requirements-dev.txt
 - 로컬 AI 리뷰(P3): Ollama 등 LLM 실행 환경
 - P2 정적 점검 강화: CtrlppCheck 바이너리(미설치 시 fail-soft 동작)
 - UI 벤치/스모크: Playwright(미설치 시 관련 벤치 스킵 가능)
-
-### 5) 최소 동작 확인 명령
-UI 서버:
-```powershell
-python backend/server.py
-```
-
-CLI 분석:
-```powershell
-python backend/main.py --selected-files GoldenTime.ctl
-```
 
 ### UI 서버 실행
 ```powershell

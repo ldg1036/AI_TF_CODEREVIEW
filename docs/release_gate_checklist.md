@@ -1,10 +1,27 @@
 # Release Gate Checklist
 
-Last Updated: 2026-03-08
+Last Updated: 2026-03-09
 
 ## Goal
 
 Use this checklist before treating a WinCC OA code review build as release-ready.
+
+## 0. Environment Precheck
+
+Run once before release checks:
+
+```powershell
+python --version
+node --version
+python -m pip install -r requirements-dev.txt
+```
+
+Optional UI smoke/benchmark runtime:
+
+```powershell
+npm install
+npx playwright install chromium
+```
 
 ## 1. Core Regression Gate
 

@@ -5,3 +5,4 @@ Canonical resource paths are at repository root:
 - `CodeReview_Data/`
 
 This directory is intentionally kept as a non-canonical workspace support path.
+

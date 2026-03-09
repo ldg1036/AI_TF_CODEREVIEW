@@ -11,3 +11,4 @@ Canonical repository paths are root directories:
 - workspace/documentation/README.md (note only)
 
 Code directories (`backend`, `frontend`, `tools`) remain at root.
+
