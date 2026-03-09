@@ -1,6 +1,6 @@
 # User Operations Guide
 
-Last Updated: 2026-03-08
+Last Updated: 2026-03-09
 
 ## Goal
 
@@ -11,12 +11,12 @@ This guide is for operators who need to run the WinCC OA code review program rel
 Required:
 
 - Windows environment
-- Python installed and available in `PATH`
+- Python 3.10+ installed and available in `PATH`
 - project files present in `CodeReview_Data`
+- `python -m pip install -r requirements-dev.txt`
 
 Recommended:
 
-- `pip install -r requirements-dev.txt`
 - `npm install`
 - `npx playwright install chromium`
 

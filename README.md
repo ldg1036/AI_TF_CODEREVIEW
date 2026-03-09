@@ -6,7 +6,7 @@
 > - Legacy tool commands under `tools/*.py` / `tools/*.js` are still supported via compatibility wrappers.
 > - Official review quality baseline is `P1 (rules) + P2 (CtrlppCheck) + P3 (AI)` plus regression tests.
 
-Last validated: 2026-02-27
+Last validated: 2026-03-09
 
 ## 개요
 
@@ -117,6 +117,37 @@ Release checklist:
   - `powershell -ExecutionPolicy Bypass -File .\run_release_gate.ps1 -Mode ci`
 
 ## Quick Start
+
+## 프로그램 동작 필수 준비사항
+
+현재 프로그램을 정상 동작시키기 위해 아래 항목을 먼저 준비해 주세요.
+
+### 1) 필수 실행 환경
+- Python 3.10+
+- Node.js 18+ (프론트/벤치 도구 사용 시)
+- OS: Windows 10/11 또는 Linux/macOS (Python/Node 실행 가능 환경)
+
+### 2) 필수 Python 패키지 설치
+이 저장소는 `requirements.txt` 없이 `requirements-dev.txt`를 기준으로 의존성을 관리합니다.
+
+```powershell
+python -m pip install -r requirements-dev.txt
+```
+
+선택(프론트 벤치/스모크 실행 시):
+```powershell
+npm install
+```
+
+### 3) 실행 전 확인할 디렉터리
+- 입력 데이터: `CodeReview_Data/`
+- 설정 파일: `Config/`
+- 산출물 출력: `CodeReview_Report/` (없으면 실행 중 생성)
+
+### 4) 선택(옵션) 의존성
+- 로컬 AI 리뷰(P3): Ollama 등 LLM 실행 환경
+- P2 정적 점검 강화: CtrlppCheck 바이너리(미설치 시 fail-soft 동작)
+- UI 벤치/스모크: Playwright(미설치 시 관련 벤치 스킵 가능)
 
 ### UI 서버 실행
 ```powershell
