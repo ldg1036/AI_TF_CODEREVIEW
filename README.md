@@ -118,6 +118,46 @@ Release checklist:
 
 ## Quick Start
 
+## 프로그램 동작 필수 준비사항
+
+현재 프로그램을 정상 동작시키기 위해 아래 항목을 먼저 준비해 주세요.
+
+### 1) 필수 실행 환경
+- Python 3.10+
+- Node.js 18+ (프론트/벤치 도구 사용 시)
+- OS: Windows 10/11 또는 Linux/macOS (Python/Node 실행 가능 환경)
+
+### 2) 필수 Python 패키지 설치
+```powershell
+pip install -r requirements.txt
+```
+
+개발/검증(테스트, 템플릿 정합, 리포트 점검)까지 수행하려면:
+```powershell
+pip install -r requirements-dev.txt
+```
+
+### 3) 실행 전 확인할 디렉터리
+- 입력 데이터: `CodeReview_Data/`
+- 설정 파일: `Config/`
+- 산출물 출력: `CodeReview_Report/` (없으면 실행 중 생성)
+
+### 4) 선택(옵션) 의존성
+- 로컬 AI 리뷰(P3): Ollama 등 LLM 실행 환경
+- P2 정적 점검 강화: CtrlppCheck 바이너리(미설치 시 fail-soft 동작)
+- UI 벤치/스모크: Playwright(미설치 시 관련 벤치 스킵 가능)
+
+### 5) 최소 동작 확인 명령
+UI 서버:
+```powershell
+python backend/server.py
+```
+
+CLI 분석:
+```powershell
+python backend/main.py --selected-files GoldenTime.ctl
+```
+
 ### UI 서버 실행
 ```powershell
 python backend/server.py
