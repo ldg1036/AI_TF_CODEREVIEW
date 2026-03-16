@@ -1,0 +1,21 @@
+{
+  "label": "p1_triage_smoke_phase1",
+  "timestamp": "20260316_214823_618",
+  "created_at": "2026-03-16T12:48:23Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/renderer/autofix-ai.js",
+      "snapshot_path": "source/frontend/renderer/autofix-ai.js",
+      "size": 79151,
+      "sha256": "11d2539df84572acf0001c80ff53269462191e8690ecbcd6c573c38be2644b10"
+    },
+    {
+      "relative_path": "tools/perf/playwright_ui_real_smoke.js",
+      "snapshot_path": "source/tools/perf/playwright_ui_real_smoke.js",
+      "size": 24757,
+      "sha256": "8dab7d32826294683e9ea04922b1af5368ae8c748075627b60c272a04851eb96"
+    }
+  ]
+}

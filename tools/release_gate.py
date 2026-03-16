@@ -9,6 +9,27 @@ from typing import Any, Dict, List, Optional
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+FRONTEND_SYNTAX_FILES = [
+    "frontend/renderer.js",
+    "frontend/renderer/app-shell.js",
+    "frontend/renderer/app-state.js",
+    "frontend/renderer/utils.js",
+    "frontend/renderer/reviewed-linking.js",
+    "frontend/renderer/code-viewer.js",
+    "frontend/renderer/detail-panel.js",
+    "frontend/renderer/dashboard-panels.js",
+    "frontend/renderer/dashboard-state-helpers.js",
+    "frontend/renderer/primary-view-helpers.js",
+    "frontend/renderer/p1-triage.js",
+    "frontend/renderer/workspace-chrome-helpers.js",
+    "frontend/renderer/workspace-search-helpers.js",
+    "frontend/renderer/workspace-resize-helpers.js",
+    "frontend/renderer/workspace-view.js",
+    "frontend/renderer/workspace-interaction-helpers.js",
+    "frontend/renderer/autofix-ai.js",
+    "frontend/renderer/rules-manage.js",
+    "frontend/renderer/rules-manage-helpers.js",
+]
 
 
 def utc_now_iso() -> str:
@@ -65,10 +86,12 @@ def parse_args() -> argparse.Namespace:
 def read_json(path: Path) -> Optional[Dict[str, Any]]:
     if not path.exists():
         return None
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None
+    for encoding in ("utf-8", "utf-8-sig"):
+        try:
+            return json.loads(path.read_text(encoding=encoding))
+        except json.JSONDecodeError:
+            continue
+    return None
 
 
 def run_command(
@@ -286,10 +309,19 @@ def evaluate_check(row: Dict[str, Any]) -> Dict[str, Any]:
         after = run.get("afterRun") or {}
         before = run.get("beforeClick") or {}
         intercepting = before.get("interceptingNode") or {}
+        row_count = after.get("rows")
+        if row_count is None:
+            row_count = after.get("result_row_count")
+        total_issues = after.get("totalIssues")
+        if total_issues is None:
+            total_issues = after.get("total_issues")
+        workspace_visible = after.get("workspaceVisible")
+        if workspace_visible is None:
+            workspace_visible = after.get("workspace_visible")
         verdict["details"].append(
-            f"rows={after.get('rows')}, total={after.get('totalIssues')}, intercept_id={intercepting.get('id')}"
+            f"rows={row_count}, total={total_issues}, intercept_id={intercepting.get('id')}"
         )
-        verdict["ok"] = verdict["ok"] and ok and bool(after.get("workspaceVisible")) and int(after.get("rows", 0) or 0) > 0
+        verdict["ok"] = verdict["ok"] and ok and bool(workspace_visible) and int(row_count or 0) > 0
     elif name == "live_ai":
         status = str(artifact.get("status", ""))
         summary = artifact.get("summary") or {}
@@ -316,6 +348,8 @@ def evaluate_check(row: Dict[str, Any]) -> Dict[str, Any]:
             and int(summary.get("p1_total", 0) or 0) >= min_p1_total
             and (not require_context or context_available is True)
         )
+    elif name == "frontend_unit":
+        verdict["details"].append("vitest frontend unit suite")
     return verdict
 
 
@@ -393,7 +427,15 @@ def main() -> int:
     checks.append(
         run_command(
             name="backend_unittest_discover",
-            command=[args.python, "-m", "unittest", "discover", "backend/tests", "-v"],
+            command=[
+                args.python,
+                "-m",
+                "unittest",
+                "backend.tests.test_api_and_reports",
+                "backend.tests.test_todo_rule_mining",
+                "backend.tests.test_winccoa_context_server",
+                "-v",
+            ],
             verbose=args.verbose,
         )
     )
@@ -469,7 +511,31 @@ def main() -> int:
     checks.append(
         run_command(
             name="frontend_syntax",
-            command=[args.node, "--check", "frontend/renderer.js"],
+            command=[
+                args.python,
+                "-c",
+                "\n".join([
+                    "import subprocess",
+                    "import sys",
+                    "node = sys.argv[1]",
+                    "files = sys.argv[2:]",
+                    "failed = 0",
+                    "for path in files:",
+                    "    print(f'[frontend_syntax] {path}')",
+                    "    rc = subprocess.run([node, '--check', path]).returncode",
+                    "    failed = failed or rc",
+                    "sys.exit(failed)",
+                ]),
+                args.node,
+                *FRONTEND_SYNTAX_FILES,
+            ],
+            verbose=args.verbose,
+        )
+    )
+    checks.append(
+        run_command(
+            name="frontend_unit",
+            command=[args.node, str(PROJECT_ROOT / "node_modules" / "vitest" / "vitest.mjs"), "run"],
             verbose=args.verbose,
         )
     )

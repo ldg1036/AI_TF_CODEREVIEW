@@ -8,15 +8,28 @@
 <body>
     <!-- Global Navigation -->
     <nav class="nav-sidebar" aria-label="기본 내비게이션">
-        <button type="button" class="nav-item nav-item-spaced" id="nav-dashboard" aria-label="대시보드">🏠</button>
-        <button type="button" class="nav-item" id="nav-workspace" aria-label="작업공간">🖇</button>
-        <button type="button" class="nav-item nav-item-settings" aria-label="설정">⚙</button>
+        <button type="button" class="nav-item nav-item-spaced" id="nav-dashboard" aria-label="대시보드">
+            <span class="nav-item-icon" aria-hidden="true">🏠</span>
+            <span class="nav-item-label">대시보드</span>
+        </button>
+        <button type="button" class="nav-item" id="nav-workspace" aria-label="작업공간">
+            <span class="nav-item-icon" aria-hidden="true">🖇</span>
+            <span class="nav-item-label">작업공간</span>
+        </button>
+        <button type="button" class="nav-item nav-item-settings" id="nav-settings" aria-label="설정" title="운영 상태와 규칙 관리 화면으로 이동">
+            <span class="nav-item-icon" aria-hidden="true">⚙</span>
+            <span class="nav-item-label">설정</span>
+        </button>
     </nav>
 
     <!-- Sidebar (File Tree) -->
-    <aside class="file-tree-sidebar">
+    <aside class="file-tree-sidebar" id="file-tree-sidebar">
         <div class="sidebar-section-header">
             <strong>프로젝트 파일</strong>
+        </div>
+        <div class="sidebar-search-shell">
+            <label class="sidebar-search-label" for="workspace-file-search">파일 검색</label>
+            <input id="workspace-file-search" class="sidebar-search-input" type="search" placeholder="파일 이름으로 좁히기">
         </div>
         <div class="sidebar-ingest-tools">
             <div class="sidebar-ingest-actions">
@@ -51,68 +64,79 @@
     <main class="main-content">
         <header class="header">
             <div class="header-title-block">
-                <span class="header-kicker">Industrial Review Console</span>
+                <span class="header-kicker">산업 코드 리뷰 콘솔</span>
                 <span id="header-title">WinCC OA 코드 리뷰어 v2.3</span>
             </div>
             <div class="header-shell">
-                <div class="header-row header-row-controls">
-                    <label class="header-inline-label">
-                        <input type="checkbox" id="toggle-ctrlppcheck">
-                        CtrlppCheck 사용 (P2)
-                    </label>
-                    <div class="ai-context-toggle-group">
-                        <label class="header-toggle-label">
-                            <input type="checkbox" id="toggle-live-ai">
-                            Live AI 사용 (P3)
-                        </label>
-                        <label class="header-toggle-label">
-                            <span>P3 모델</span>
-                            <select id="select-ai-model" disabled>
-                                <option value="">기본 모델</option>
-                            </select>
-                        </label>
-                        <div class="ai-context-block" id="label-ai-context">
-                            <label class="header-toggle-label">
-                                <input type="checkbox" id="toggle-ai-context" disabled>
-                                Live AI에 프로젝트 MCP 문맥 포함
+                <div class="header-groups">
+                    <section class="header-group header-group-controls" aria-label="분석 제어">
+                        <div class="header-group-label">분석 제어</div>
+                        <div class="header-group-body">
+                            <label class="header-inline-label">
+                                <input type="checkbox" id="toggle-ctrlppcheck">
+                                CtrlppCheck 사용 (P2)
                             </label>
-                            <div class="ai-context-help" id="ai-context-help" title="MCP 문맥 상태">
-                                MCP 문맥: 대기 중
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="header-row header-row-actions">
-                    <div class="header-status-chips">
-                        <div id="verification-badge" class="verification-badge verification-badge--unknown" title="검증 레벨 정보 없음">검증 레벨: UNKNOWN</div>
-                        <div id="verification-profile-card" class="verification-profile-card verification-profile-card--unknown" title="검증 프로파일 정보를 불러오는 중">검증 프로파일: 로딩 중...</div>
-                    </div>
-                    <div class="header-action-group">
-                        <div class="header-action-row header-action-row-buttons">
-                            <button id="btn-analyze">선택 항목 분석</button>
-                            <button id="btn-flush-excel" type="button" disabled>Excel 결과 생성</button>
-                        </div>
-                        <div class="header-action-row header-action-row-progress">
-                            <div id="analyze-progress-panel" class="analyze-progress-panel" style="display:none;" aria-live="polite">
-                                <div id="analyze-progress-status" class="analyze-progress-status">분석 중...</div>
-                                <div class="analyze-progress-track">
-                                    <div id="analyze-progress-bar" class="analyze-progress-bar"></div>
+                            <div class="ai-context-toggle-group">
+                                <label class="header-toggle-label">
+                                    <input type="checkbox" id="toggle-live-ai">
+                                    Live AI 사용 (P3)
+                                </label>
+                                <label class="header-toggle-label">
+                                    <span>P3 모델</span>
+                                    <select id="select-ai-model" disabled>
+                                        <option value="">기본 모델</option>
+                                    </select>
+                                </label>
+                                <div class="ai-context-block" id="label-ai-context">
+                                    <label class="header-toggle-label">
+                                        <input type="checkbox" id="toggle-ai-context" disabled>
+                                        MCP 문맥 포함
+                                    </label>
+                                    <div class="ai-context-help" id="ai-context-help" title="MCP 문맥 상태">
+                                        MCP 문맥: 대기 중
+                                    </div>
                                 </div>
-                                <div id="analyze-progress-meta" class="analyze-progress-meta">0% | 0/0 파일 | ETA 계산 중 | 경과 00:00</div>
+                            </div>
+                            <div class="header-action-row header-action-row-buttons">
+                                <button id="btn-analyze">선택 항목 분석</button>
+                            </div>
+                            <div class="header-action-row header-action-row-progress">
+                                <div id="analyze-progress-panel" class="analyze-progress-panel" style="display:none;" aria-live="polite">
+                                    <div id="analyze-progress-status" class="analyze-progress-status">분석 중...</div>
+                                    <div class="analyze-progress-track">
+                                        <div id="analyze-progress-bar" class="analyze-progress-bar"></div>
+                                    </div>
+                                    <div id="analyze-progress-meta" class="analyze-progress-meta">0% | 0/0 파일 | ETA 계산 중 | 경과 00:00</div>
+                                </div>
                             </div>
                         </div>
-                        <div id="excel-report-controls" class="header-action-row excel-report-controls" aria-live="polite">
-                            <div class="excel-report-meta">
-                                <span id="excel-job-status" class="excel-job-status"></span>
-                                <button id="excel-download-toggle" class="excel-download-toggle" type="button" hidden aria-expanded="false">
-                                    Excel 0개
-                                </button>
+                    </section>
+                    <section class="header-group header-group-status" aria-label="검증 상태">
+                        <div class="header-group-label">검증 상태</div>
+                        <div class="header-group-body header-status-chips">
+                            <div id="verification-badge" class="verification-badge verification-badge--unknown" title="검증 레벨 정보 없음">검증 레벨: UNKNOWN</div>
+                            <div id="verification-profile-card" class="verification-profile-card verification-profile-card--unknown" title="검증 프로파일 정보를 불러오는 중">검증 프로파일: 로딩 중...</div>
+                        </div>
+                    </section>
+                    <section class="header-group header-group-artifacts" aria-label="산출물">
+                        <div class="header-group-label">산출물</div>
+                        <div class="header-group-body header-action-group">
+                            <div class="header-action-row header-action-row-buttons">
+                                <button id="btn-flush-excel" type="button" disabled>Excel 결과 생성</button>
                             </div>
-                            <div id="excel-download-panel" class="excel-download-panel" hidden>
-                                <div id="excel-download-list" class="excel-download-list"></div>
+                            <div id="excel-report-controls" class="header-action-row excel-report-controls" aria-live="polite">
+                                <div class="excel-report-meta">
+                                    <span id="excel-job-status" class="excel-job-status"></span>
+                                    <button id="excel-download-toggle" class="excel-download-toggle" type="button" hidden aria-expanded="false">
+                                        Excel 0개
+                                    </button>
+                                </div>
+                                <div id="excel-download-panel" class="excel-download-panel" hidden>
+                                    <div id="excel-download-list" class="excel-download-list"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </section>
                 </div>
             </div>
         </header>
@@ -121,7 +145,7 @@
         <div id="dashboard-view" class="dashboard-view">
             <section class="dashboard-hero">
                 <div class="dashboard-hero-copy">
-                    <p class="dashboard-kicker">Release-Focused Review Surface</p>
+                    <p class="dashboard-kicker">릴리스 리뷰 관제</p>
                     <h2>프로젝트 요약 대시보드</h2>
                     <p class="dashboard-subtitle">정적 규칙, CtrlppCheck, Live AI 리뷰를 한 화면에서 묶고 우선 수정 대상을 바로 드러내는 홈 화면입니다.</p>
                     <div class="dashboard-pill-row">
@@ -146,7 +170,12 @@
                 <article class="metric-card metric-card-primary">
                     <div class="metric-label">전체 이슈</div>
                     <div id="total-issues" class="metric-value">0</div>
-                    <div class="metric-note">현재 선택된 파일 기준 누적 검출 수</div>
+                    <div class="metric-note">현재 선택된 파일 기준 전체 검출 수</div>
+                </article>
+                <article class="metric-card metric-card-info">
+                    <div class="metric-label">현재 검토 대상</div>
+                    <div id="current-review-issues" class="metric-value">0</div>
+                    <div class="metric-note">현재 필터와 triage를 반영한 검토 대상</div>
                 </article>
                 <article class="metric-card metric-card-critical">
                     <div class="metric-label">치명</div>
@@ -169,12 +198,46 @@
                     <h3>우선 수정 추천 Top 5</h3>
                     <div id="priority-recommendations" class="review-insight-empty">분석 후 우선 수정 추천이 표시됩니다.</div>
                 </section>
-                <section class="review-insight-card">
-                    <h3>운영 검증 비교</h3>
+            </div>
+
+            <section class="dashboard-system-status">
+                <div class="dashboard-system-status-head">
+                    <div>
+                        <p class="dashboard-kicker">운영 상태 요약</p>
+                        <h3>시스템 상태</h3>
+                        <p class="dashboard-system-status-note">대시보드에는 핵심 상태만 남기고, 상세 운영 검증과 규칙 관리는 설정 화면으로 분리합니다.</p>
+                    </div>
+                    <button id="dashboard-open-settings" type="button" class="dashboard-system-status-cta">설정에서 자세히 보기</button>
+                </div>
+                <div id="dashboard-system-summary" class="dashboard-system-summary review-insight-empty">검증 상태와 dependency 준비 정보를 불러오는 중입니다.</div>
+            </section>
+        </div>
+
+        <div id="settings-view" class="settings-view" style="display: none;">
+            <section class="settings-hero">
+                <div class="settings-hero-copy">
+                    <p class="dashboard-kicker">운영 · 규칙 관리</p>
+                    <h2>설정</h2>
+                    <p class="dashboard-subtitle">benchmark, smoke, integration 결과와 규칙/dependency 관리 작업을 이 화면에서 집중해서 다룹니다.</p>
+                </div>
+            </section>
+            <div class="settings-grid">
+                <section class="settings-panel">
+                    <div class="settings-panel-head">
+                        <div>
+                            <p class="workspace-section-kicker">운영 검증</p>
+                            <h3>운영 검증 상세</h3>
+                        </div>
+                    </div>
                     <div id="operations-compare" class="review-insight-empty">최근 benchmark/smoke 결과를 불러오는 중입니다.</div>
                 </section>
-                <section class="review-insight-card">
-                    <h3>규칙 / 의존성 상태</h3>
+                <section class="settings-panel">
+                    <div class="settings-panel-head">
+                        <div>
+                            <p class="workspace-section-kicker">규칙 / 의존성</p>
+                            <h3>규칙 / 의존성 관리</h3>
+                        </div>
+                    </div>
                     <div id="rules-health-compare" class="review-insight-empty">규칙 및 optional dependency 상태를 불러오는 중입니다.</div>
                 </section>
             </div>
@@ -182,11 +245,34 @@
 
         <!-- Workspace View (Hidden by default) -->
         <div id="workspace-view" class="workspace-view" style="display: none;">
-            <section class="workspace-surface">
-                <div class="workspace-code-shell">
+            <section id="workspace-command-bar" class="workspace-command-bar" aria-label="Workspace command bar">
+                <div class="workspace-command-copy">
+                    <div id="workspace-command-summary-text" class="workspace-command-summary-text">선택 파일 0개 | 현재 표시 0개</div>
+                    <div id="workspace-command-selection-text" class="workspace-command-selection-text">활성 이슈 없음</div>
+                </div>
+                <div class="workspace-command-actions">
+                    <label class="workspace-command-toggle">
+                        <input id="workspace-command-show-suppressed" type="checkbox">
+                        <span>숨김 처리 포함</span>
+                    </label>
+                    <button id="workspace-command-prev" type="button">이전 이슈</button>
+                    <button id="workspace-command-next" type="button">다음 이슈</button>
+                    <button id="workspace-command-jump" type="button">코드 보기</button>
+                    <button id="workspace-command-detail" type="button">상세 탭</button>
+                    <button id="workspace-command-ai" type="button">AI 탭</button>
+                    <button id="workspace-command-reset" type="button">필터 초기화</button>
+                </div>
+                <div class="workspace-pane-actions">
+                    <button id="workspace-pane-files" type="button" aria-pressed="true">파일</button>
+                    <button id="workspace-pane-code" type="button" aria-pressed="true">코드</button>
+                    <button id="workspace-pane-inspector" type="button" aria-pressed="true">상세</button>
+                </div>
+            </section>
+            <section class="workspace-surface" id="workspace-surface">
+                <div class="workspace-code-shell" id="workspace-code-shell">
                     <div class="workspace-section-heading">
                         <div>
-                            <p class="workspace-section-kicker">Context</p>
+                            <p class="workspace-section-kicker">코드 문맥</p>
                             <h3>코드 뷰어</h3>
                         </div>
                     </div>
@@ -195,24 +281,46 @@
                     </div>
                 </div>
 
+                <div
+                    id="workspace-resizer"
+                    class="workspace-resizer"
+                    role="separator"
+                    aria-orientation="horizontal"
+                    aria-label="코드 뷰어와 결과 리스트 높이 조절"
+                    tabindex="0"
+                >
+                    <span class="workspace-resizer-handle" aria-hidden="true"></span>
+                </div>
+
                 <div class="workspace-results-shell">
                     <div class="workspace-results-header">
                         <div>
-                            <p class="workspace-section-kicker">Review Stream</p>
+                            <p class="workspace-section-kicker">검토 스트림</p>
                             <h3>결과 리스트</h3>
+                        </div>
+                        <div class="workspace-results-tools">
+                            <div class="workspace-preset-group" aria-label="빠른 보기">
+                                <button id="workspace-preset-all" type="button" aria-pressed="true">기본 보기</button>
+                                <button id="workspace-preset-p1" type="button" aria-pressed="false">P1만</button>
+                                <button id="workspace-preset-attention" type="button" aria-pressed="false">치명/경고</button>
+                            </div>
+                            <div class="workspace-results-search">
+                                <label class="workspace-search-label" for="workspace-result-search">결과 검색</label>
+                                <input id="workspace-result-search" class="workspace-search-input" type="search" placeholder="메시지, 파일, 규칙으로 찾기">
+                            </div>
                         </div>
                     </div>
 
                     <div id="workspace-filter-summary" class="workspace-filter-summary">
                         <div class="workspace-filter-summary-copy">
-                            <span class="workspace-filter-summary-label">현재 적용 중인 보기 조건</span>
+                            <span class="workspace-filter-summary-label">현재 적용된 보기 조건</span>
                             <span id="workspace-filter-summary-text">기본 보기</span>
                         </div>
                     </div>
 
                     <div id="workspace-quick-filter" class="workspace-quick-filter hidden">
                         <div class="workspace-quick-filter-copy">
-                            <span class="workspace-quick-filter-label">현재 보기 기준</span>
+                            <span class="workspace-quick-filter-label">빠른 보기 기준</span>
                             <span id="workspace-quick-filter-text"></span>
                         </div>
                         <button id="workspace-quick-filter-clear" type="button">필터 해제</button>
@@ -239,12 +347,18 @@
     </main>
 
     <!-- Inspector Panel -->
-    <section class="inspector-panel">
+    <section class="inspector-panel" id="inspector-panel">
         <div class="inspector-header">
-            <p class="inspector-kicker">Action Surface</p>
+            <p class="inspector-kicker">검토 액션</p>
             <h3>이슈 상세</h3>
             <p class="inspector-subtitle">결과 리스트에서 항목을 선택하면 핵심 설명과 변경 제안을 이 패널에서 바로 확인합니다.</p>
             <div id="inspector-selection-meta" class="inspector-selection-meta hidden"></div>
+        </div>
+        <div id="inspector-action-strip" class="inspector-action-strip" aria-label="Inspector actions">
+            <button id="inspector-action-jump" type="button">코드 보기</button>
+            <button id="inspector-action-detail" type="button">상세</button>
+            <button id="inspector-action-ai" type="button">AI</button>
+            <button id="inspector-action-compare" type="button">비교</button>
         </div>
         <div class="inspector-tabs" role="tablist" aria-label="Inspector Tabs">
             <button id="inspector-tab-detail" class="inspector-tab active" type="button" role="tab" aria-selected="true">이슈 상세</button>
@@ -329,6 +443,6 @@
     </div>
 
     <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
-    <script src="renderer.js"></script>
+    <script type="module" src="renderer.js"></script>
 </body>
 </html>

@@ -1,0 +1,51 @@
+{
+  "label": "workspace_ux_phase1",
+  "timestamp": "20260316_002914_717",
+  "created_at": "2026-03-15T15:29:14Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/index.html",
+      "snapshot_path": "source/frontend/index.html",
+      "size": 19621,
+      "sha256": "58d44ad8916a05a18e72a13b5e2c03cbdc0e8e3347346946171e6ab1297e235a"
+    },
+    {
+      "relative_path": "frontend/style.css",
+      "snapshot_path": "source/frontend/style.css",
+      "size": 65257,
+      "sha256": "7147de9a7ca1b12746455d9306b55ac2602b09a498edd571359cc9aacd5fee40"
+    },
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 80942,
+      "sha256": "80b982d8845af34b258e4fcb73c1f2bcd4f611394f1be9b8f6db46578298ba8f"
+    },
+    {
+      "relative_path": "frontend/renderer/workspace-view.js",
+      "snapshot_path": "source/frontend/renderer/workspace-view.js",
+      "size": 49808,
+      "sha256": "a35978d8a90596b073b89e93daeb80ac6d587bc3f96563c22f9682906a14cd83"
+    },
+    {
+      "relative_path": "frontend/renderer/app-state.js",
+      "snapshot_path": "source/frontend/renderer/app-state.js",
+      "size": 4943,
+      "sha256": "90d8a9de5b5531f6901064e2b3bdb79e7f52c0871d064ce407251f8dd4278083"
+    },
+    {
+      "relative_path": "frontend/renderer/app-shell.js",
+      "snapshot_path": "source/frontend/renderer/app-shell.js",
+      "size": 7253,
+      "sha256": "76cb494831ec8ce015d24111b575163f97ff2e96c2ed1012fbdcddd200d72105"
+    },
+    {
+      "relative_path": "frontend/renderer/autofix-ai.js",
+      "snapshot_path": "source/frontend/renderer/autofix-ai.js",
+      "size": 73513,
+      "sha256": "3d158654f78b8df7d60af75f8ef29f5589ef6f880ecba07df128bef8eadc9a67"
+    }
+  ]
+}

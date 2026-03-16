@@ -1,0 +1,39 @@
+{
+  "label": "renderer_residual_cleanup_phase1",
+  "timestamp": "20260315_160815_390",
+  "created_at": "2026-03-15T07:08:15Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 150847,
+      "sha256": "2366ee7e0dc1142a3f93c13c091b5f948836d0e8c36a3b81129cf28f593b57d2"
+    },
+    {
+      "relative_path": "frontend/renderer/workspace-view.js",
+      "snapshot_path": "source/frontend/renderer/workspace-view.js",
+      "size": 63049,
+      "sha256": "9d67437a71ca761b1184a6da36a71f8478e92f5741e0f68e1c6a17bbba33c15d"
+    },
+    {
+      "relative_path": "frontend/renderer/autofix-ai.js",
+      "snapshot_path": "source/frontend/renderer/autofix-ai.js",
+      "size": 73818,
+      "sha256": "8e30df2c8d5b09fb98e922e2e25e906e7844deb3c14254a15c25a72cb900a140"
+    },
+    {
+      "relative_path": "frontend/renderer/reviewed-linking.js",
+      "snapshot_path": "source/frontend/renderer/reviewed-linking.js",
+      "size": 31239,
+      "sha256": "ef1b2062e35af3b077364a8c937500596ce266e155fcf3fdbf91c5b3a2663a71"
+    },
+    {
+      "relative_path": "tools/perf/playwright_ui_real_smoke.js",
+      "snapshot_path": "source/tools/perf/playwright_ui_real_smoke.js",
+      "size": 24757,
+      "sha256": "8dab7d32826294683e9ea04922b1af5368ae8c748075627b60c272a04851eb96"
+    }
+  ]
+}

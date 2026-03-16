@@ -1,0 +1,51 @@
+{
+  "label": "renderer_linking_and_ui_noise_phase1",
+  "timestamp": "20260315_153544_830",
+  "created_at": "2026-03-15T06:35:44Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 188615,
+      "sha256": "ad3c7bd8be95e8920348b972514e40b7d02c36a35cad3827c93d84774d74fbf9"
+    },
+    {
+      "relative_path": "frontend/renderer/workspace-view.js",
+      "snapshot_path": "source/frontend/renderer/workspace-view.js",
+      "size": 64027,
+      "sha256": "f4798b0ef2a9258807a005334790740ba6bc7ef438c54dcb488f008d141c64c9"
+    },
+    {
+      "relative_path": "frontend/renderer/code-viewer.js",
+      "snapshot_path": "source/frontend/renderer/code-viewer.js",
+      "size": 36219,
+      "sha256": "c21006e2bb8c0600a118130967e136c5400b68e1f6e95e9ae0eaab78812b4748"
+    },
+    {
+      "relative_path": "frontend/renderer/autofix-ai.js",
+      "snapshot_path": "source/frontend/renderer/autofix-ai.js",
+      "size": 73256,
+      "sha256": "b36a63daf5216c86ac2b066921f376397d2112e820f0d2a5bf1a5ecb3e0fdf56"
+    },
+    {
+      "relative_path": "backend/core/api_dispatch_mixin.py",
+      "snapshot_path": "source/backend/core/api_dispatch_mixin.py",
+      "size": 22497,
+      "sha256": "e857c196dfca76a0fd8f0283ecc468798ea70e728dc591eefd1fa0d14500bc91"
+    },
+    {
+      "relative_path": "backend/tests/_api_general_cases.py",
+      "snapshot_path": "source/backend/tests/_api_general_cases.py",
+      "size": 101735,
+      "sha256": "e19f4ab6c30673141daa69c3cdfb788a6d1714e59f4aac7206af51844da1aaab"
+    },
+    {
+      "relative_path": "tools/perf/playwright_ui_real_smoke.js",
+      "snapshot_path": "source/tools/perf/playwright_ui_real_smoke.js",
+      "size": 24757,
+      "sha256": "8dab7d32826294683e9ea04922b1af5368ae8c748075627b60c272a04851eb96"
+    }
+  ]
+}

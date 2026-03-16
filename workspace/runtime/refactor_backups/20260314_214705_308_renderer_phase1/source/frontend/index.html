@@ -1,0 +1,334 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WinCC OA 코드 리뷰어</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Global Navigation -->
+    <nav class="nav-sidebar" aria-label="기본 내비게이션">
+        <button type="button" class="nav-item nav-item-spaced" id="nav-dashboard" aria-label="대시보드">🏠</button>
+        <button type="button" class="nav-item" id="nav-workspace" aria-label="작업공간">🖇</button>
+        <button type="button" class="nav-item nav-item-settings" aria-label="설정">⚙</button>
+    </nav>
+
+    <!-- Sidebar (File Tree) -->
+    <aside class="file-tree-sidebar">
+        <div class="sidebar-section-header">
+            <strong>프로젝트 파일</strong>
+        </div>
+        <div class="sidebar-ingest-tools">
+            <div class="sidebar-ingest-actions">
+                <button type="button" id="btn-add-external-files">외부 파일 추가</button>
+                <button type="button" id="btn-add-external-folder">폴더 선택</button>
+            </div>
+            <input type="file" id="external-file-input" multiple hidden>
+            <input type="file" id="external-folder-input" webkitdirectory directory multiple hidden>
+            <div id="external-input-summary" class="external-input-summary">세션 입력 없음</div>
+            <div id="external-input-list" class="external-input-list"></div>
+        </div>
+        <div id="file-list" class="sidebar-section-body">
+            <div><input type="checkbox" id="chk-all" checked> <strong>전체 선택</strong></div>
+            <div class="file-item"><input type="checkbox" checked> sample_panel.pnl</div>
+            <div class="file-item"><input type="checkbox" checked> main_logic.ctl</div>
+        </div>
+        <div class="filter-matrix">
+            <strong>결과 필터</strong>
+            <div class="filter-matrix-body">
+                <div><input type="checkbox" checked> P1 (정적 분석)</div>
+                <div><input type="checkbox" checked> P2 (CtrlppCheck)</div>
+                <div><input type="checkbox" checked> P3 (AI)</div>
+                <hr>
+                <div><input type="checkbox" checked> 치명</div>
+                <div><input type="checkbox" checked> 경고</div>
+                <div><input type="checkbox" checked> 정보</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="header">
+            <div class="header-title-block">
+                <span class="header-kicker">Industrial Review Console</span>
+                <span id="header-title">WinCC OA 코드 리뷰어 v2.3</span>
+            </div>
+            <div class="header-shell">
+                <div class="header-row header-row-controls">
+                    <label class="header-inline-label">
+                        <input type="checkbox" id="toggle-ctrlppcheck">
+                        CtrlppCheck 사용 (P2)
+                    </label>
+                    <div class="ai-context-toggle-group">
+                        <label class="header-toggle-label">
+                            <input type="checkbox" id="toggle-live-ai">
+                            Live AI 사용 (P3)
+                        </label>
+                        <label class="header-toggle-label">
+                            <span>P3 모델</span>
+                            <select id="select-ai-model" disabled>
+                                <option value="">기본 모델</option>
+                            </select>
+                        </label>
+                        <div class="ai-context-block" id="label-ai-context">
+                            <label class="header-toggle-label">
+                                <input type="checkbox" id="toggle-ai-context" disabled>
+                                Live AI에 프로젝트 MCP 문맥 포함
+                            </label>
+                            <div class="ai-context-help" id="ai-context-help" title="MCP 문맥 상태">
+                                MCP 문맥: 대기 중
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-row header-row-actions">
+                    <div class="header-status-chips">
+                        <div id="verification-badge" class="verification-badge verification-badge--unknown" title="검증 레벨 정보 없음">검증 레벨: UNKNOWN</div>
+                        <div id="verification-profile-card" class="verification-profile-card verification-profile-card--unknown" title="검증 프로파일 정보를 불러오는 중">검증 프로파일: 로딩 중...</div>
+                    </div>
+                    <div class="header-action-group">
+                        <div class="header-action-row header-action-row-buttons">
+                            <button id="btn-analyze">선택 항목 분석</button>
+                            <button id="btn-flush-excel" type="button" disabled>Excel 결과 생성</button>
+                        </div>
+                        <div class="header-action-row header-action-row-progress">
+                            <div id="analyze-progress-panel" class="analyze-progress-panel" style="display:none;" aria-live="polite">
+                                <div id="analyze-progress-status" class="analyze-progress-status">분석 중...</div>
+                                <div class="analyze-progress-track">
+                                    <div id="analyze-progress-bar" class="analyze-progress-bar"></div>
+                                </div>
+                                <div id="analyze-progress-meta" class="analyze-progress-meta">0% | 0/0 파일 | ETA 계산 중 | 경과 00:00</div>
+                            </div>
+                        </div>
+                        <div id="excel-report-controls" class="header-action-row excel-report-controls" aria-live="polite">
+                            <div class="excel-report-meta">
+                                <span id="excel-job-status" class="excel-job-status"></span>
+                                <button id="excel-download-toggle" class="excel-download-toggle" type="button" hidden aria-expanded="false">
+                                    Excel 0개
+                                </button>
+                            </div>
+                            <div id="excel-download-panel" class="excel-download-panel" hidden>
+                                <div id="excel-download-list" class="excel-download-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="dashboard-view">
+            <section class="dashboard-hero">
+                <div class="dashboard-hero-copy">
+                    <p class="dashboard-kicker">Release-Focused Review Surface</p>
+                    <h2>프로젝트 요약 대시보드</h2>
+                    <p class="dashboard-subtitle">정적 규칙, CtrlppCheck, Live AI 리뷰를 한 화면에서 묶고 우선 수정 대상을 바로 드러내는 홈 화면입니다.</p>
+                    <div class="dashboard-pill-row">
+                        <span class="dashboard-pill">P1 정적 규칙</span>
+                        <span class="dashboard-pill">P2 CtrlppCheck</span>
+                        <span class="dashboard-pill">P3 Live AI</span>
+                    </div>
+                </div>
+                <div class="dashboard-score-card">
+                    <div class="dashboard-score-head">
+                        <span>코드 품질 점수</span>
+                        <strong id="score-text">점수: 0/100</strong>
+                    </div>
+                    <div class="dashboard-score-track">
+                        <div id="score-bar" class="dashboard-score-bar"></div>
+                    </div>
+                    <p class="dashboard-score-footnote">릴리스 직전에는 점수보다 치명/경고 분포와 추천 Top 5를 함께 확인하세요.</p>
+                </div>
+            </section>
+
+            <section class="dashboard-metrics">
+                <article class="metric-card metric-card-primary">
+                    <div class="metric-label">전체 이슈</div>
+                    <div id="total-issues" class="metric-value">0</div>
+                    <div class="metric-note">현재 선택된 파일 기준 누적 검출 수</div>
+                </article>
+                <article class="metric-card metric-card-critical">
+                    <div class="metric-label">치명</div>
+                    <div id="critical-issues" class="metric-value">0</div>
+                    <div class="metric-note">릴리스 게이트에서 우선 차단 대상</div>
+                </article>
+                <article class="metric-card metric-card-warning">
+                    <div class="metric-label">경고</div>
+                    <div id="warning-issues" class="metric-value">0</div>
+                    <div class="metric-note">집중 hotspot과 중복 패턴 우선 검토</div>
+                </article>
+            </section>
+
+            <div class="review-insight-grid">
+                <section class="review-insight-card">
+                    <h3>중복 정리 요약</h3>
+                    <div id="dedupe-summary" class="review-insight-empty">분석 후 중복 정리 결과가 표시됩니다.</div>
+                </section>
+                <section class="review-insight-card">
+                    <h3>우선 수정 추천 Top 5</h3>
+                    <div id="priority-recommendations" class="review-insight-empty">분석 후 우선 수정 추천이 표시됩니다.</div>
+                </section>
+                <section class="review-insight-card">
+                    <h3>운영 검증 비교</h3>
+                    <div id="operations-compare" class="review-insight-empty">최근 benchmark/smoke 결과를 불러오는 중입니다.</div>
+                </section>
+                <section class="review-insight-card">
+                    <h3>규칙 / 의존성 상태</h3>
+                    <div id="rules-health-compare" class="review-insight-empty">규칙 및 optional dependency 상태를 불러오는 중입니다.</div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Workspace View (Hidden by default) -->
+        <div id="workspace-view" class="workspace-view" style="display: none;">
+            <section class="workspace-surface">
+                <div class="workspace-code-shell">
+                    <div class="workspace-section-heading">
+                        <div>
+                            <p class="workspace-section-kicker">Context</p>
+                            <h3>코드 뷰어</h3>
+                        </div>
+                    </div>
+                    <div class="code-viewer" id="code-viewer">
+                        // 파일을 선택하면 원본 코드와 위반 항목을 확인할 수 있습니다.
+                    </div>
+                </div>
+
+                <div class="workspace-results-shell">
+                    <div class="workspace-results-header">
+                        <div>
+                            <p class="workspace-section-kicker">Review Stream</p>
+                            <h3>결과 리스트</h3>
+                        </div>
+                    </div>
+
+                    <div id="workspace-filter-summary" class="workspace-filter-summary">
+                        <div class="workspace-filter-summary-copy">
+                            <span class="workspace-filter-summary-label">현재 적용 중인 보기 조건</span>
+                            <span id="workspace-filter-summary-text">기본 보기</span>
+                        </div>
+                    </div>
+
+                    <div id="workspace-quick-filter" class="workspace-quick-filter hidden">
+                        <div class="workspace-quick-filter-copy">
+                            <span class="workspace-quick-filter-label">현재 보기 기준</span>
+                            <span id="workspace-quick-filter-text"></span>
+                        </div>
+                        <button id="workspace-quick-filter-clear" type="button">필터 해제</button>
+                    </div>
+
+                    <div class="result-table">
+                        <table class="result-grid">
+                            <thead>
+                                <tr>
+                                    <th>출처</th>
+                                    <th>객체</th>
+                                    <th>심각도</th>
+                                    <th>메시지</th>
+                                </tr>
+                            </thead>
+                            <tbody id="result-body">
+                                <!-- Results will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Inspector Panel -->
+    <section class="inspector-panel">
+        <div class="inspector-header">
+            <p class="inspector-kicker">Action Surface</p>
+            <h3>이슈 상세</h3>
+            <p class="inspector-subtitle">결과 리스트에서 항목을 선택하면 핵심 설명과 변경 제안을 이 패널에서 바로 확인합니다.</p>
+            <div id="inspector-selection-meta" class="inspector-selection-meta hidden"></div>
+        </div>
+        <div class="inspector-tabs" role="tablist" aria-label="Inspector Tabs">
+            <button id="inspector-tab-detail" class="inspector-tab active" type="button" role="tab" aria-selected="true">이슈 상세</button>
+            <button id="inspector-tab-ai" class="inspector-tab" type="button" role="tab" aria-selected="false">AI 제안</button>
+        </div>
+        <div id="violation-detail-panel" class="inspector-content-panel active" role="tabpanel" aria-labelledby="inspector-tab-detail">
+            <div id="violation-detail" class="violation-detail">
+                <div class="inspector-empty-state">
+                    <strong>선택된 이슈가 없습니다.</strong>
+                    <p>결과 리스트 또는 추천 카드에서 항목을 선택하면 핵심 설명과 조치 방향을 여기에서 확인할 수 있습니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="ai-panel-wrap" class="inspector-content-panel" role="tabpanel" aria-labelledby="inspector-tab-ai">
+            <div id="ai-suggestion-card" class="ai-suggestion-card" style="display: none;">
+                <div class="ai-card-header">
+                    <span class="badge badge-p3">P3 AI</span>
+                    <strong>AI 개선 제안</strong>
+                </div>
+                <p id="ai-text" class="ai-text"></p>
+                <ul id="ai-summary-list" class="ai-summary-list"></ul>
+                <div id="ai-compare-preview" class="ai-compare-preview" style="display:none;"></div>
+                <div class="ai-primary-actions">
+                    <button id="btn-ai-generate" class="ai-primary-button ai-primary-button-blue">추가 AI 분석</button>
+                    <button id="btn-ai-diff" class="ai-primary-button ai-primary-button-blue">P1/P2 <> P3 비교</button>
+                    <button id="btn-ai-source-apply" class="ai-primary-button ai-primary-button-green" disabled>Source 적용</button>
+                    <button id="btn-ai-more" class="ai-primary-button ai-primary-button-slate">고급 옵션</button>
+                </div>
+                <div id="ai-more-actions" class="ai-more-actions" style="display:none;">
+                    <button id="btn-ai-review-toggle" type="button" class="ai-secondary-button">원문 보기</button>
+                    <pre id="ai-text-full" class="ai-text-full" style="display:none;"></pre>
+                    <div id="autofix-compare-panel" class="ai-subpanel ai-subpanel-compare" style="display:none;">
+                        <div class="ai-subpanel-title ai-subpanel-title-blue">Autofix Candidates</div>
+                        <div id="autofix-compare-buttons" class="ai-compare-buttons"></div>
+                        <p id="autofix-compare-meta" class="ai-compare-meta"></p>
+                    </div>
+                    <div id="autofix-validation-panel" class="ai-subpanel ai-subpanel-validation" style="display:none;">
+                        <div class="ai-subpanel-title ai-subpanel-title-green">Autofix Validation</div>
+                        <pre id="autofix-validation-text" class="ai-validation-text ai-validation-text-ok"></pre>
+                    </div>
+                    <div class="ai-secondary-actions">
+                        <button id="btn-ai-accept" class="ai-primary-button ai-primary-button-green">REVIEWED 적용</button>
+                        <button id="btn-ai-ignore" class="ai-primary-button ai-primary-button-gray">무시</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="autofix-diff-modal" class="diff-modal hidden" aria-hidden="true">
+        <div id="autofix-diff-modal-backdrop" class="diff-modal-backdrop"></div>
+        <div class="diff-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="autofix-diff-modal-title">
+            <div class="diff-modal-header">
+                <div class="diff-modal-header-copy">
+                    <p class="diff-modal-kicker">Issue To P3 Compare</p>
+                    <h3 id="autofix-diff-modal-title">P1/P2 <> P3 비교</h3>
+                    <div id="autofix-diff-modal-meta" class="diff-modal-meta"></div>
+                </div>
+                <button id="autofix-diff-modal-close" type="button" class="diff-modal-close">닫기</button>
+            </div>
+            <div id="autofix-diff-modal-summary" class="diff-modal-summary"></div>
+            <div id="autofix-diff-modal-candidates" class="diff-modal-candidates hidden"></div>
+            <div class="diff-modal-view-switch" role="tablist" aria-label="Diff View Tabs">
+                <button id="autofix-diff-view-split" class="diff-modal-view-button active" type="button" role="tab" aria-selected="true">원본 <> P3 비교</button>
+                <button id="autofix-diff-view-unified" class="diff-modal-view-button" type="button" role="tab" aria-selected="false">Source Patch Diff</button>
+            </div>
+            <div class="diff-modal-body">
+                <div id="autofix-diff-modal-split" class="diff-modal-split-view">
+                    <div class="diff-modal-pane">
+                        <div class="diff-modal-pane-title">원본 문제 맥락</div>
+                        <div id="autofix-diff-modal-before" class="diff-modal-pane-lines"></div>
+                    </div>
+                    <div class="diff-modal-pane">
+                        <div class="diff-modal-pane-title">P3 개선안</div>
+                        <div id="autofix-diff-modal-after" class="diff-modal-pane-lines"></div>
+                    </div>
+                </div>
+                <pre id="autofix-diff-modal-text" class="diff-modal-text hidden"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+    <script src="renderer.js"></script>
+</body>
+</html>

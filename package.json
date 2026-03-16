@@ -1,5 +1,11 @@
 {
+  "scripts": {
+    "test:frontend": "vitest run",
+    "test:frontend:watch": "vitest"
+  },
   "devDependencies": {
-    "playwright": "^1.58.2"
+    "jsdom": "^26.1.0",
+    "playwright": "^1.58.2",
+    "vitest": "^3.2.4"
   }
 }

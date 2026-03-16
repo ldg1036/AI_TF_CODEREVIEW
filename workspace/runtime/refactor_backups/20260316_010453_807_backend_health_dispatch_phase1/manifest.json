@@ -1,0 +1,27 @@
+{
+  "label": "backend_health_dispatch_phase1",
+  "timestamp": "20260316_010453_807",
+  "created_at": "2026-03-15T16:04:53Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "backend/core/health_check_mixin.py",
+      "snapshot_path": "source/backend/core/health_check_mixin.py",
+      "size": 48760,
+      "sha256": "2eab09ae6e1721879a994f7cfa2784b8464eddc246669023482be1377732aed3"
+    },
+    {
+      "relative_path": "backend/core/api_dispatch_mixin.py",
+      "snapshot_path": "source/backend/core/api_dispatch_mixin.py",
+      "size": 24426,
+      "sha256": "2bea1625ec8142f2b1e1ac5ce8ab7bd5a0a5a5b5a2bc29e9312594c213bb8162"
+    },
+    {
+      "relative_path": "backend/tests/_api_general_cases.py",
+      "snapshot_path": "source/backend/tests/_api_general_cases.py",
+      "size": 107867,
+      "sha256": "18f11629944905e5c331262c5ccbbd89fc79c032636ec765b6ba3005525327eb"
+    }
+  ]
+}

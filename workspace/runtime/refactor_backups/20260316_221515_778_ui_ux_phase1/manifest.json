@@ -1,0 +1,69 @@
+{
+  "label": "ui_ux_phase1",
+  "timestamp": "20260316_221515_778",
+  "created_at": "2026-03-16T13:15:15Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/index.html",
+      "snapshot_path": "source/frontend/index.html",
+      "size": 21881,
+      "sha256": "239cc233a34ad196f8e0ae241b126e8b56bb397b92d4199a9c3b902726c127e3"
+    },
+    {
+      "relative_path": "frontend/style.css",
+      "snapshot_path": "source/frontend/style.css",
+      "size": 70956,
+      "sha256": "f2a0061ec81521a95249b3c53e37aaecaf21d07a6f4a8534709eecfa4d3fad1c"
+    },
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 91154,
+      "sha256": "3566319aab90ad6eba5b1e58ea17f172325c711d5d14906c7108192fab522f65"
+    },
+    {
+      "relative_path": "frontend/renderer/app-shell.js",
+      "snapshot_path": "source/frontend/renderer/app-shell.js",
+      "size": 9163,
+      "sha256": "e35fd2985b7068f763437f2bbe051f53f47a4d11020b0d0ebb9bde9487e666ce"
+    },
+    {
+      "relative_path": "frontend/renderer/app-state.js",
+      "snapshot_path": "source/frontend/renderer/app-state.js",
+      "size": 5267,
+      "sha256": "4af9f5d538f3ff532fdf83e043b7de4a36b80678962c0d42c71c9466a2d750fd"
+    },
+    {
+      "relative_path": "frontend/renderer/workspace-view.js",
+      "snapshot_path": "source/frontend/renderer/workspace-view.js",
+      "size": 57480,
+      "sha256": "edf840cd48bab2b4b24da0c1cd8779436a34daed5ec2de955380fec71223e24b"
+    },
+    {
+      "relative_path": "frontend/renderer/workspace-chrome-helpers.js",
+      "snapshot_path": "source/frontend/renderer/workspace-chrome-helpers.js",
+      "size": 1810,
+      "sha256": "273928e24a354a4fb0125defa2deb1b2e6ef50a505d46ffe2fe9cb70ed879d56"
+    },
+    {
+      "relative_path": "frontend/renderer/dashboard-panels.js",
+      "snapshot_path": "source/frontend/renderer/dashboard-panels.js",
+      "size": 18384,
+      "sha256": "0749839c7fca7eb1317630c26c60725c7117b34d6f6fb61aab8499711e6cc68c"
+    },
+    {
+      "relative_path": "frontend/renderer/dashboard-state-helpers.js",
+      "snapshot_path": "source/frontend/renderer/dashboard-state-helpers.js",
+      "size": 12268,
+      "sha256": "c4f90142df2ad1a7656fd6f2dd2c1fe28a5f9537ee36a46925ca710fc5cfc90f"
+    },
+    {
+      "relative_path": "tools/release_gate.py",
+      "snapshot_path": "source/tools/release_gate.py",
+      "size": 27074,
+      "sha256": "e0b64efe7d66c37e7f5946393078722a72e516b858d4396059f12db1ce721f24"
+    }
+  ]
+}

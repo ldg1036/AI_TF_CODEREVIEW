@@ -1,0 +1,39 @@
+{
+  "label": "renderer_phase2_batch1",
+  "timestamp": "20260314_222836_896",
+  "created_at": "2026-03-14T13:28:36Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 246246,
+      "sha256": "d8773fea1e37d751c3af1609465f24adbab347e7e49f667e5c898da4eb39ef00"
+    },
+    {
+      "relative_path": "frontend/index.html",
+      "snapshot_path": "source/frontend/index.html",
+      "size": 19621,
+      "sha256": "58d44ad8916a05a18e72a13b5e2c03cbdc0e8e3347346946171e6ab1297e235a"
+    },
+    {
+      "relative_path": "frontend/renderer/code-viewer.js",
+      "snapshot_path": "source/frontend/renderer/code-viewer.js",
+      "size": 36739,
+      "sha256": "96d8fe3768c2e798c12727e583ef51f51b083959c92f18676a892dab619c62db"
+    },
+    {
+      "relative_path": "frontend/renderer/dashboard-panels.js",
+      "snapshot_path": "source/frontend/renderer/dashboard-panels.js",
+      "size": 25783,
+      "sha256": "8ece0562b1aca6927224090796ca15d611cf635a5cc21c6ee2e28b0a685a0b17"
+    },
+    {
+      "relative_path": "frontend/renderer/utils.js",
+      "snapshot_path": "source/frontend/renderer/utils.js",
+      "size": 15043,
+      "sha256": "2584e44163969c808805399de56841f7da0d8ed360048572b7e1b31d4fc14e07"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "label": "renderer_phase2_batch2",
+  "timestamp": "20260314_233024_531",
+  "created_at": "2026-03-14T14:30:24Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 233415,
+      "sha256": "5bd36245b66e3fefa5cbb721502c1c4524459a327abfb85b4e57dd526f952f9c"
+    },
+    {
+      "relative_path": "frontend/renderer/autofix-ai.js",
+      "snapshot_path": "source/frontend/renderer/autofix-ai.js",
+      "size": 225,
+      "sha256": "dbe0896dcb98b30db26c745650dfdbc94d07678216d7f3cfd42c69ccb6c21475"
+    },
+    {
+      "relative_path": "frontend/renderer/workspace-view.js",
+      "snapshot_path": "source/frontend/renderer/workspace-view.js",
+      "size": 61616,
+      "sha256": "0c6a8a6b3b24d6822deba714d10ae6f7c3088aade7b57ad2d152430d81c1e5bb"
+    },
+    {
+      "relative_path": "frontend/renderer/rules-manage.js",
+      "snapshot_path": "source/frontend/renderer/rules-manage.js",
+      "size": 23765,
+      "sha256": "38b3322303fb82f8f5ec5d6d025276294a44a1da27e9758a695533af190a6ff9"
+    },
+    {
+      "relative_path": "frontend/renderer/detail-panel.js",
+      "snapshot_path": "source/frontend/renderer/detail-panel.js",
+      "size": 23528,
+      "sha256": "68ccdf3ed97eef7ed4fc9104d073f56b8cac49da08d5c63f8b94dc6509c8e48c"
+    },
+    {
+      "relative_path": "frontend/index.html",
+      "snapshot_path": "source/frontend/index.html",
+      "size": 19621,
+      "sha256": "58d44ad8916a05a18e72a13b5e2c03cbdc0e8e3347346946171e6ab1297e235a"
+    }
+  ]
+}

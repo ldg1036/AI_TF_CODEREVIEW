@@ -1,0 +1,21 @@
+{
+  "label": "renderer_phase1",
+  "timestamp": "20260314_214705_308",
+  "created_at": "2026-03-14T12:47:05Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 317503,
+      "sha256": "30254b8eb73c11f90d5e14f024c8fe5e1d3abff60be04a43fd75a81ea19bfdf2"
+    },
+    {
+      "relative_path": "frontend/index.html",
+      "snapshot_path": "source/frontend/index.html",
+      "size": 19607,
+      "sha256": "853da61d4feebcfde9d8c8f4d2281133dcb18ecac21ce4a5d40393d15bff448d"
+    }
+  ]
+}

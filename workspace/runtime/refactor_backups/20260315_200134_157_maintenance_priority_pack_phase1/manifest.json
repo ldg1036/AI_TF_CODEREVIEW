@@ -1,0 +1,51 @@
+{
+  "label": "maintenance_priority_pack_phase1",
+  "timestamp": "20260315_200134_157",
+  "created_at": "2026-03-15T11:01:34Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "package.json",
+      "snapshot_path": "source/package.json",
+      "size": 59,
+      "sha256": "2c76b5c886942f9cb71e6a7cf6e48ee6c874038d1108758f608371fc1304436f"
+    },
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 127918,
+      "sha256": "74b158bad039e1f605b6b2ce1746f8a71e218237a248f609075e3ec1cb3056b5"
+    },
+    {
+      "relative_path": "frontend/renderer/rules-manage.js",
+      "snapshot_path": "source/frontend/renderer/rules-manage.js",
+      "size": 23765,
+      "sha256": "38b3322303fb82f8f5ec5d6d025276294a44a1da27e9758a695533af190a6ff9"
+    },
+    {
+      "relative_path": "backend/core/api_dispatch_mixin.py",
+      "snapshot_path": "source/backend/core/api_dispatch_mixin.py",
+      "size": 22767,
+      "sha256": "0e8a8ce2e692bbe922e32ce0c7e7b13936d73a0a0252c8b6f75e1d4c6ca7b8b4"
+    },
+    {
+      "relative_path": "backend/core/health_check_mixin.py",
+      "snapshot_path": "source/backend/core/health_check_mixin.py",
+      "size": 40686,
+      "sha256": "9fdca2c415ddfcfca0714630e969f09236c576c7fd4e54ecc821dc82d104712a"
+    },
+    {
+      "relative_path": "backend/tests/_api_general_cases.py",
+      "snapshot_path": "source/backend/tests/_api_general_cases.py",
+      "size": 102185,
+      "sha256": "2dbe5c6c0d18aa5f5309f5b6bca1e30f7b86be6e93c9058c419ead6d0056b534"
+    },
+    {
+      "relative_path": "tools/release_gate.py",
+      "snapshot_path": "source/tools/release_gate.py",
+      "size": 24768,
+      "sha256": "9a9dd45ba0a32278ef6e1930b9e9889346d1b7a51aca5d48a97ae5366dfb47c6"
+    }
+  ]
+}

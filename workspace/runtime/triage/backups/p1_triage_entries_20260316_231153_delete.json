@@ -1,0 +1,20 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1773670312907,
+  "entries": [
+    {
+      "triage_key": "benchmarkp1fixture.ctl||UNKNOWN||전역 변수 명명 규칙 위반 가능성: 'v1' (g_ 접두사 권장).||0",
+      "status": "suppressed",
+      "reason": "already reviewed in smoke",
+      "note": "triage smoke round trip",
+      "updated_at_ms": 1773670312907,
+      "match": {
+        "file": "BenchmarkP1Fixture.ctl",
+        "line": 0,
+        "rule_id": "UNKNOWN",
+        "message": "전역 변수 명명 규칙 위반 가능성: 'v1' (g_ 접두사 권장).",
+        "issue_id": "REVIEW-ONLY-BenchmarkP1Fixture.ctl-1"
+      }
+    }
+  ]
+}

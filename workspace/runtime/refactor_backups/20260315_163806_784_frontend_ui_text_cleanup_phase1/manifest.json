@@ -1,0 +1,33 @@
+{
+  "label": "frontend_ui_text_cleanup_phase1",
+  "timestamp": "20260315_163806_784",
+  "created_at": "2026-03-15T07:38:06Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 149195,
+      "sha256": "00c617a685bd447c35966ac80962bab549635a5ea845cdbc556e3a532bd91249"
+    },
+    {
+      "relative_path": "frontend/renderer/workspace-view.js",
+      "snapshot_path": "source/frontend/renderer/workspace-view.js",
+      "size": 49987,
+      "sha256": "bd05b563b63ec0129d83a1a53da0f85d82ce9115cd2653a1a7cf47b8e3158f97"
+    },
+    {
+      "relative_path": "frontend/renderer/autofix-ai.js",
+      "snapshot_path": "source/frontend/renderer/autofix-ai.js",
+      "size": 73818,
+      "sha256": "8e30df2c8d5b09fb98e922e2e25e906e7844deb3c14254a15c25a72cb900a140"
+    },
+    {
+      "relative_path": "frontend/renderer/dashboard-panels.js",
+      "snapshot_path": "source/frontend/renderer/dashboard-panels.js",
+      "size": 25995,
+      "sha256": "7c0b3294036b6fa2dcf471eb83a7ca2440d0729e60b70461119c9a9894c063f4"
+    }
+  ]
+}

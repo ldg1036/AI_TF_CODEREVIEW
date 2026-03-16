@@ -1,0 +1,27 @@
+{
+  "label": "frontend_ui_text_cleanup_phase2",
+  "timestamp": "20260315_170409_294",
+  "created_at": "2026-03-15T08:04:09Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 128025,
+      "sha256": "34f15a9a16c10d5dae4878d2a52efb6bf5a021c116aadf1e43aa67a666e3ced7"
+    },
+    {
+      "relative_path": "frontend/renderer/workspace-view.js",
+      "snapshot_path": "source/frontend/renderer/workspace-view.js",
+      "size": 49808,
+      "sha256": "a35978d8a90596b073b89e93daeb80ac6d587bc3f96563c22f9682906a14cd83"
+    },
+    {
+      "relative_path": "frontend/renderer/autofix-ai.js",
+      "snapshot_path": "source/frontend/renderer/autofix-ai.js",
+      "size": 73818,
+      "sha256": "8e30df2c8d5b09fb98e922e2e25e906e7844deb3c14254a15c25a72cb900a140"
+    }
+  ]
+}

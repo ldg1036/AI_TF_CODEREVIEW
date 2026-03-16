@@ -1,0 +1,93 @@
+{
+  "label": "p1_triage_phase1",
+  "timestamp": "20260316_211849_657",
+  "created_at": "2026-03-16T12:18:49Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "backend/server.py",
+      "snapshot_path": "source/backend/server.py",
+      "size": 5939,
+      "sha256": "7f9e50666e08c58c2b3fbc6919794299c1f355ed54d7b15e405277e703604cd7"
+    },
+    {
+      "relative_path": "backend/core/api_dispatch_mixin.py",
+      "snapshot_path": "source/backend/core/api_dispatch_mixin.py",
+      "size": 24571,
+      "sha256": "7c17c2e7e005e454784136b5914c164464aa436b77deead6b75804b861191cfe"
+    },
+    {
+      "relative_path": "backend/core/api_types.py",
+      "snapshot_path": "source/backend/core/api_types.py",
+      "size": 2758,
+      "sha256": "589cfae377fcddb9ba7843eee59599a49171661fa73732a38f450b46fc6d220c"
+    },
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 88772,
+      "sha256": "c6aee60200f3eecdd85a5d8182eed694df1280920b9e588d9102e93c5c687b97"
+    },
+    {
+      "relative_path": "frontend/renderer/app-state.js",
+      "snapshot_path": "source/frontend/renderer/app-state.js",
+      "size": 5112,
+      "sha256": "12be77d80168141be713d9df4db9c38bd689bdc7eb8a0c635585e4c0d1251605"
+    },
+    {
+      "relative_path": "frontend/renderer/app-shell.js",
+      "snapshot_path": "source/frontend/renderer/app-shell.js",
+      "size": 8987,
+      "sha256": "ffd511f38882afd1cfdc009518b44b495f6dc5a66a52ba57e9e8d62397abd4df"
+    },
+    {
+      "relative_path": "frontend/renderer/workspace-view.js",
+      "snapshot_path": "source/frontend/renderer/workspace-view.js",
+      "size": 56031,
+      "sha256": "cb5a01d8b5249e26b2de0657775e14ca9721cd7831feb19b80c9631e39e2cd5d"
+    },
+    {
+      "relative_path": "frontend/renderer/autofix-ai.js",
+      "snapshot_path": "source/frontend/renderer/autofix-ai.js",
+      "size": 73513,
+      "sha256": "3d158654f78b8df7d60af75f8ef29f5589ef6f880ecba07df128bef8eadc9a67"
+    },
+    {
+      "relative_path": "frontend/renderer/reviewed-linking.js",
+      "snapshot_path": "source/frontend/renderer/reviewed-linking.js",
+      "size": 31239,
+      "sha256": "ef1b2062e35af3b077364a8c937500596ce266e155fcf3fdbf91c5b3a2663a71"
+    },
+    {
+      "relative_path": "frontend/index.html",
+      "snapshot_path": "source/frontend/index.html",
+      "size": 21651,
+      "sha256": "510eea5fa6f1967f5a63110672ac8e7d0f15711faaeb34e1b4a8301ff906fe55"
+    },
+    {
+      "relative_path": "frontend/style.css",
+      "snapshot_path": "source/frontend/style.css",
+      "size": 67893,
+      "sha256": "a1386fc0b1862e595acec4a2e85cfd5848e25b4797eb71b70fc59a8e8d57368c"
+    },
+    {
+      "relative_path": "backend/tests/_api_general_cases.py",
+      "snapshot_path": "source/backend/tests/_api_general_cases.py",
+      "size": 107867,
+      "sha256": "18f11629944905e5c331262c5ccbbd89fc79c032636ec765b6ba3005525327eb"
+    },
+    {
+      "relative_path": "frontend/renderer/workspace-chrome-helpers.js",
+      "snapshot_path": "source/frontend/renderer/workspace-chrome-helpers.js",
+      "size": 1810,
+      "sha256": "273928e24a354a4fb0125defa2deb1b2e6ef50a505d46ffe2fe9cb70ed879d56"
+    },
+    {
+      "relative_path": "frontend/renderer/workspace-interaction-helpers.js",
+      "snapshot_path": "source/frontend/renderer/workspace-interaction-helpers.js",
+      "size": 4563,
+      "sha256": "0c550031585d0f43e797c3a684935410daf4695c0202cd6d62164c2b8845fee7"
+    }
+  ]
+}

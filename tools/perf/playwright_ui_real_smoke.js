@@ -136,6 +136,77 @@ function httpGetJson(url) {
   });
 }
 
+function httpPostJson(url, payload) {
+  return new Promise((resolve, reject) => {
+    const target = new URL(url);
+    const body = Buffer.from(JSON.stringify(payload || {}), "utf-8");
+    const req = http.request(
+      {
+        protocol: target.protocol,
+        hostname: target.hostname,
+        port: target.port,
+        path: `${target.pathname}${target.search}`,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": String(body.length),
+        },
+      },
+      (res) => {
+        const chunks = [];
+        res.on("data", (chunk) => chunks.push(chunk));
+        res.on("end", () => {
+          const text = Buffer.concat(chunks).toString("utf-8");
+          resolve({
+            status: res.statusCode || 0,
+            body: text,
+            json: (() => {
+              try {
+                return JSON.parse(text);
+              } catch (_err) {
+                return null;
+              }
+            })(),
+          });
+        });
+      },
+    );
+    req.on("error", reject);
+    req.setTimeout(5000, () => req.destroy(new Error("HTTP POST timeout")));
+    req.write(body);
+    req.end();
+  });
+}
+
+async function resetP1TriageEntries(baseUrl) {
+  const result = {
+    ok: true,
+    deleted_count: 0,
+    initial_count: 0,
+    errors: [],
+  };
+  try {
+    const listed = await httpGetJson(`${baseUrl}/api/triage/p1`);
+    const entries = Array.isArray(listed.json && listed.json.entries) ? listed.json.entries : [];
+    result.initial_count = entries.length;
+    for (const entry of entries) {
+      const triageKey = String((entry && entry.triage_key) || "").trim();
+      if (!triageKey) continue;
+      const deleted = await httpPostJson(`${baseUrl}/api/triage/p1/delete`, { triage_key: triageKey });
+      if (deleted.status !== 200) {
+        result.ok = false;
+        result.errors.push(`delete failed for ${triageKey}: ${deleted.status}`);
+        continue;
+      }
+      result.deleted_count += 1;
+    }
+  } catch (err) {
+    result.ok = false;
+    result.errors.push(String((err && err.message) || err || "triage reset failed"));
+  }
+  return result;
+}
+
 async function waitForServer(baseUrl, timeoutMs) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -219,6 +290,303 @@ async function readExcelUiState(page) {
       download_labels: downloadButtons.map((node) => String(node.textContent || "").trim()),
     };
   });
+}
+
+async function readSmokeUiState(page) {
+  return page.evaluate(() => {
+    const textOf = (id) => String((document.getElementById(id)?.textContent) || "").trim();
+    const resultRows = Array.from(document.querySelectorAll("#result-body tr.result-item-row"));
+    const selectedFiles = Array.from(document.querySelectorAll("#file-list input[data-file]:checked"))
+      .map((node) => String(node.getAttribute("data-file") || ""));
+    const diagnostics = (window.__rendererDiagnostics && typeof window.__rendererDiagnostics === "object")
+      ? window.__rendererDiagnostics
+      : {};
+    const reviewTargetCount = Number.parseInt(
+      String(diagnostics.workspace_filtered_row_count || textOf("current-review-issues") || "0"),
+      10,
+    ) || 0;
+    return {
+      file_list_dom_count: document.querySelectorAll("#file-list input[data-file]").length,
+      file_list_selected_count: selectedFiles.length,
+      file_list_selected_files: selectedFiles,
+      result_row_count: resultRows.length,
+      review_target_count: reviewTargetCount,
+      result_empty_text: String(document.querySelector("#result-body .result-empty-state")?.textContent || "").trim(),
+      total_issues: textOf("total-issues"),
+      current_review_issues: textOf("current-review-issues"),
+      critical_issues: textOf("critical-issues"),
+      warning_issues: textOf("warning-issues"),
+      workspace_visible: !!document.getElementById("workspace-view")
+        && getComputedStyle(document.getElementById("workspace-view")).display !== "none",
+      progress_panel_visible: !!document.getElementById("analyze-progress-panel")
+        && getComputedStyle(document.getElementById("analyze-progress-panel")).display !== "none",
+      progress_status_text: textOf("analyze-progress-status"),
+      progress_meta_text: textOf("analyze-progress-meta"),
+      last_renderer_error: String(window.__lastRendererError || ""),
+      renderer_diagnostics: diagnostics,
+    };
+  });
+}
+
+function effectiveReviewCount(snapshot = {}) {
+  const filteredCount = Number(snapshot.review_target_count || 0);
+  if (filteredCount > 0) return filteredCount;
+  return Number(snapshot.result_row_count || 0);
+}
+
+async function readTriageUiState(page) {
+  return page.evaluate(() => {
+    const section = document.querySelector("[data-triage-role='section']");
+    const statusNode = document.querySelector("[data-triage-role='status']");
+    const feedbackNode = document.querySelector("[data-triage-role='feedback']");
+    const activeRow = document.querySelector("#result-body tr.result-item-row.result-item-row-active");
+    const suppressedRows = Array.from(document.querySelectorAll("#result-body tr.result-item-row.result-item-row-suppressed"));
+    return {
+      section_present: !!section,
+      status_text: String((statusNode && statusNode.textContent) || "").trim(),
+      feedback_text: String((feedbackNode && feedbackNode.textContent) || "").trim(),
+      reason_value: String((document.querySelector("[data-triage-role='reason']")?.value) || "").trim(),
+      note_value: String((document.querySelector("[data-triage-role='note']")?.value) || "").trim(),
+      suppress_button_present: !!document.querySelector("[data-triage-role='suppress']"),
+      unsuppress_button_present: !!document.querySelector("[data-triage-role='unsuppress']"),
+      active_row_id: String((activeRow && activeRow.getAttribute("data-row-id")) || "").trim(),
+      suppressed_row_count: suppressedRows.length,
+      suppressed_row_ids: suppressedRows.map((row) => String(row.getAttribute("data-row-id") || "").trim()),
+      show_suppressed_checked: !!document.getElementById("workspace-command-show-suppressed")?.checked,
+    };
+  });
+}
+
+async function setShowSuppressedToggle(page, checked) {
+  return page.evaluate((nextChecked) => {
+    const checkbox = document.getElementById("workspace-command-show-suppressed");
+    if (!checkbox) {
+      return { ok: false, reason: "toggle not found" };
+    }
+    checkbox.checked = !!nextChecked;
+    checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+    return { ok: true, checked: !!checkbox.checked };
+  }, !!checked);
+}
+
+async function selectWorkspaceRow(page, { timeoutMs, source = "", suppressedOnly = false, rowId = "" } = {}) {
+  const selected = await page.evaluate(({ preferredSource, requireSuppressed, preferredRowId }) => {
+    const safeSource = String(preferredSource || "").trim().toUpperCase();
+    const safeRowId = String(preferredRowId || "").trim();
+    const rows = Array.from(document.querySelectorAll("#result-body tr.result-item-row"));
+    const match = rows.find((row) => {
+      if (safeRowId && String(row.getAttribute("data-row-id") || "").trim() !== safeRowId) return false;
+      if (requireSuppressed && !row.classList.contains("result-item-row-suppressed")) return false;
+      if (!safeSource) return true;
+      const badge = row.querySelector(".result-cell-source .badge");
+      const badgeText = String((badge && badge.textContent) || "").trim().toUpperCase();
+      return badgeText === safeSource;
+    });
+    if (!match) {
+      return { ok: false, rowId: "", source: safeSource };
+    }
+    match.click();
+    return {
+      ok: true,
+      rowId: String(match.getAttribute("data-row-id") || "").trim(),
+      source: safeSource,
+      suppressed: match.classList.contains("result-item-row-suppressed"),
+    };
+  }, { preferredSource: source, requireSuppressed: suppressedOnly, preferredRowId: rowId });
+  if (!selected.ok) {
+    return selected;
+  }
+  await page.waitForFunction(
+    (rowId) => {
+      const active = document.querySelector("#result-body tr.result-item-row.result-item-row-active");
+      return !!active && String(active.getAttribute("data-row-id") || "").trim() === String(rowId || "").trim();
+    },
+    selected.rowId,
+    { timeout: timeoutMs },
+  );
+  return selected;
+}
+
+async function runP1TriageSmoke(page, { timeoutMs }) {
+  const before = await readSmokeUiState(page);
+  const baselineCount = effectiveReviewCount(before);
+  const selectedP1 = await selectWorkspaceRow(page, { timeoutMs, source: "P1" });
+  if (!selectedP1.ok) {
+    return {
+      attempted: false,
+      completed: false,
+      skipped_reason: "no visible P1 row available",
+      baseline_row_count: baselineCount,
+      before,
+      after_suppress: null,
+      after_show_suppressed: null,
+      after_unsuppress: null,
+      selected_row_id: "",
+      suppressed_row_id: "",
+    };
+  }
+
+  await page.click("#inspector-tab-detail", { timeout: Math.min(timeoutMs, 15000) });
+  await page.waitForSelector("[data-triage-role='section']", { timeout: Math.min(timeoutMs, 15000) });
+
+  await page.locator("[data-triage-role='reason']").fill("already reviewed in smoke");
+  await page.locator("[data-triage-role='note']").fill("triage smoke round trip");
+  await page.click("[data-triage-role='suppress']", { timeout: Math.min(timeoutMs, 15000) });
+
+  const expectedSuppressedCount = Math.max(0, baselineCount - 1);
+  await page.waitForFunction(
+    ({ nextCount }) => {
+      const diagnostics = (window.__rendererDiagnostics && typeof window.__rendererDiagnostics === "object")
+        ? window.__rendererDiagnostics
+        : {};
+      const rowCount = Number((diagnostics.workspace_filtered_row_count) || 0);
+      const triageCount = Number((window.__rendererDiagnostics && window.__rendererDiagnostics.p1_triage_count) || 0);
+      return rowCount === nextCount && triageCount >= 1;
+    },
+    { nextCount: expectedSuppressedCount },
+    { timeout: Math.min(timeoutMs, 30000) },
+  );
+  const afterSuppress = {
+    ui: await readSmokeUiState(page),
+    triage: await readTriageUiState(page),
+  };
+
+  const showToggle = await setShowSuppressedToggle(page, true);
+  if (!showToggle.ok) {
+    throw new Error(`Failed to enable Show suppressed: ${showToggle.reason || "unknown"}`);
+  }
+  await page.waitForFunction(
+    ({ expectedCount, targetRowId }) => {
+      const diagnostics = (window.__rendererDiagnostics && typeof window.__rendererDiagnostics === "object")
+        ? window.__rendererDiagnostics
+        : {};
+      const rowCount = Number((diagnostics.workspace_filtered_row_count) || 0);
+      const targetRow = document.querySelector(`#result-body tr.result-item-row[data-row-id="${CSS.escape(String(targetRowId || ""))}"]`);
+      return rowCount === expectedCount && !!targetRow;
+    },
+    { expectedCount: baselineCount, targetRowId: selectedP1.rowId },
+    { timeout: Math.min(timeoutMs, 30000) },
+  );
+  const afterShowSuppressed = {
+    ui: await readSmokeUiState(page),
+    triage: await readTriageUiState(page),
+  };
+
+  const selectedSuppressed = await selectWorkspaceRow(page, {
+    timeoutMs,
+    source: "P1",
+    suppressedOnly: true,
+    rowId: selectedP1.rowId,
+  });
+  if (!selectedSuppressed.ok) {
+    throw new Error("Failed to re-select the suppressed P1 row");
+  }
+  await page.waitForFunction(
+    () => {
+      const statusNode = document.querySelector("[data-triage-role='status']");
+      const unsuppress = document.querySelector("[data-triage-role='unsuppress']");
+      return !!statusNode
+        && /(suppressed|숨김)/i.test(String(statusNode.textContent || ""))
+        && !!unsuppress;
+    },
+    { timeout: Math.min(timeoutMs, 15000) },
+  );
+
+  await page.click("[data-triage-role='unsuppress']", { timeout: Math.min(timeoutMs, 15000) });
+  await page.waitForFunction(
+    (expectedCount) => {
+      const diagnostics = (window.__rendererDiagnostics && typeof window.__rendererDiagnostics === "object")
+        ? window.__rendererDiagnostics
+        : {};
+      const rowCount = Number((diagnostics.workspace_filtered_row_count) || 0);
+      const suppressedCount = document.querySelectorAll("#result-body tr.result-item-row.result-item-row-suppressed").length;
+      const triageCount = Number((window.__rendererDiagnostics && window.__rendererDiagnostics.p1_triage_count) || 0);
+      return rowCount === expectedCount && suppressedCount === 0 && triageCount === 0;
+    },
+    baselineCount,
+    { timeout: Math.min(timeoutMs, 30000) },
+  );
+  const afterUnsuppress = {
+    ui: await readSmokeUiState(page),
+    triage: await readTriageUiState(page),
+  };
+
+  if (afterUnsuppress.triage.show_suppressed_checked) {
+    const hideToggle = await setShowSuppressedToggle(page, false);
+    if (!hideToggle.ok) {
+      throw new Error(`Failed to disable Show suppressed: ${hideToggle.reason || "unknown"}`);
+    }
+    await page.waitForFunction(
+      () => !document.getElementById("workspace-command-show-suppressed")?.checked,
+      { timeout: Math.min(timeoutMs, 15000) },
+    );
+  }
+
+  return {
+    attempted: true,
+    completed:
+      effectiveReviewCount(afterSuppress.ui) === expectedSuppressedCount
+      && effectiveReviewCount(afterShowSuppressed.ui) === baselineCount
+      && effectiveReviewCount(afterUnsuppress.ui) === baselineCount
+      && Number(afterShowSuppressed.triage.suppressed_row_count || 0) >= 1
+      && Number(afterUnsuppress.triage.suppressed_row_count || 0) === 0,
+    skipped_reason: "",
+    baseline_row_count: baselineCount,
+    before,
+    after_suppress: afterSuppress,
+    after_show_suppressed: afterShowSuppressed,
+    after_unsuppress: afterUnsuppress,
+    selected_row_id: selectedP1.rowId,
+    suppressed_row_id: selectedSuppressed.rowId,
+  };
+}
+
+function summarizeAnalyzeStatusPayload(payload) {
+  const progress = payload && typeof payload.progress === "object" ? payload.progress : {};
+  const result = payload && typeof payload.result === "object" ? payload.result : {};
+  const summary = result && typeof result.summary === "object" ? result.summary : {};
+  return {
+    status: String((payload && payload.status) || ""),
+    error: String((payload && payload.error) || ""),
+    request_id: String((payload && payload.request_id) || ""),
+    progress: {
+      total_files: Number(progress.total_files || 0),
+      completed_files: Number(progress.completed_files || 0),
+      failed_files: Number(progress.failed_files || 0),
+      percent: Number(progress.percent || 0),
+      current_file: String(progress.current_file || ""),
+      phase: String(progress.phase || ""),
+    },
+    result_summary: {
+      total: Number(summary.total || 0),
+      critical: Number(summary.critical || 0),
+      warning: Number(summary.warning || 0),
+      info: Number(summary.info || 0),
+      score: Number(summary.score || 0),
+    },
+  };
+}
+
+async function waitForAnalyzeOutcome(page, { timeoutMs }) {
+  const startedAt = Date.now();
+  let sawProgress = false;
+  while (Date.now() - startedAt < timeoutMs) {
+    const snapshot = await readSmokeUiState(page);
+    if (snapshot.progress_panel_visible) {
+      sawProgress = true;
+    }
+    if (effectiveReviewCount(snapshot) > 0) {
+      return { outcome: "rows_rendered", sawProgress, snapshot };
+    }
+    if (snapshot.last_renderer_error) {
+      return { outcome: "renderer_error", sawProgress, snapshot };
+    }
+    if (sawProgress && !snapshot.progress_panel_visible) {
+      return { outcome: "progress_finished_without_rows", sawProgress, snapshot };
+    }
+    await page.waitForTimeout(250);
+  }
+  return { outcome: "timeout", sawProgress, snapshot: await readSmokeUiState(page) };
 }
 
 async function runExcelSmoke(page, { timeoutMs }) {
@@ -313,13 +681,12 @@ async function runExcelSmoke(page, { timeoutMs }) {
   };
 }
 
-async function runSmoke(page, { baseUrl, timeoutMs, targetFile }) {
-  await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector("#file-list input[data-file]", { timeout: timeoutMs });
-
-  const selection = await page.evaluate((preferred) => {
+async function selectSmokeTarget(page, preferredFile) {
+  return page.evaluate((preferred) => {
     const all = Array.from(document.querySelectorAll("#file-list input[data-file]"));
-    const target = all.find((node) => node.getAttribute("data-file") === preferred) || all.find((node) => /\.ctl$/i.test(node.getAttribute("data-file") || "")) || all[0];
+    const target = all.find((node) => node.getAttribute("data-file") === preferred)
+      || all.find((node) => /\.ctl$/i.test(node.getAttribute("data-file") || ""))
+      || all[0];
     if (!target) {
       return { selectedFile: "", availableCount: 0 };
     }
@@ -329,36 +696,114 @@ async function runSmoke(page, { baseUrl, timeoutMs, targetFile }) {
       selectedFile: target.getAttribute("data-file") || "",
       availableCount: all.length,
     };
-  }, targetFile);
+  }, preferredFile);
+}
+
+async function setCheckboxValue(page, elementId, checked) {
+  return page.evaluate(({ id, nextChecked }) => {
+    const node = document.getElementById(String(id || ""));
+    if (!(node instanceof HTMLInputElement) || node.type !== "checkbox") {
+      return { ok: false, reason: "checkbox not found" };
+    }
+    node.checked = !!nextChecked;
+    node.dispatchEvent(new Event("change", { bubbles: true }));
+    return { ok: true, checked: !!node.checked };
+  }, { id: elementId, nextChecked: !!checked });
+}
+
+async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates = [] }) {
+  await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector("#file-list input[data-file]", { timeout: timeoutMs });
+
+  const candidates = Array.from(new Set([targetFile, ...targetCandidates].filter(Boolean)));
+  let selection = { selectedFile: "", availableCount: 0 };
+  let beforeClick = { buttonFound: false };
+  let beforeAnalyzeUi = {};
+  let analyzeOutcome = { outcome: "timeout", sawProgress: false, snapshot: await readSmokeUiState(page) };
+  const selectionAttempts = [];
+
+  async function attemptAnalyzeCandidates(ctrlppEnabled) {
+    const ctrlppResult = await setCheckboxValue(page, "toggle-ctrlppcheck", ctrlppEnabled);
+    if (!ctrlppResult.ok && ctrlppEnabled) {
+      return false;
+    }
+    for (const candidate of candidates) {
+      selection = await selectSmokeTarget(page, candidate);
+      if (!selection.selectedFile) {
+        continue;
+      }
+      beforeClick = await page.evaluate(() => {
+        const btn = document.getElementById("btn-analyze");
+        if (!btn) return { buttonFound: false };
+        const rect = btn.getBoundingClientRect().toJSON();
+        const center = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+        const atPoint = document.elementFromPoint(center.x, center.y);
+        return {
+          buttonFound: true,
+          buttonRect: rect,
+          interceptingNode: atPoint ? {
+            tag: atPoint.tagName,
+            id: atPoint.id,
+            className: atPoint.className,
+          } : null,
+        };
+      });
+      beforeAnalyzeUi = await readSmokeUiState(page);
+
+      await page.click("#btn-analyze", { timeout: Math.min(timeoutMs, 15000) });
+      analyzeOutcome = await waitForAnalyzeOutcome(page, { timeoutMs });
+      selectionAttempts.push({
+        file: selection.selectedFile,
+        ctrlpp_enabled: !!ctrlppEnabled,
+        outcome: analyzeOutcome.outcome,
+        review_target_count: Number(analyzeOutcome.snapshot?.review_target_count || 0),
+        result_row_count: Number(analyzeOutcome.snapshot?.result_row_count || 0),
+      });
+      if (effectiveReviewCount(analyzeOutcome.snapshot) > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  let foundRows = await attemptAnalyzeCandidates(false);
+  if (!foundRows) {
+    foundRows = await attemptAnalyzeCandidates(true);
+  }
 
   if (!selection.selectedFile) {
     throw new Error("Failed to select a file for UI smoke");
   }
 
-  const beforeClick = await page.evaluate(() => {
-    const btn = document.getElementById("btn-analyze");
-    if (!btn) return { buttonFound: false };
-    const rect = btn.getBoundingClientRect().toJSON();
-    const center = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
-    const atPoint = document.elementFromPoint(center.x, center.y);
+  if (effectiveReviewCount(analyzeOutcome.snapshot) <= 0) {
     return {
-      buttonFound: true,
-      buttonRect: rect,
-      interceptingNode: atPoint ? {
-        tag: atPoint.tagName,
-        id: atPoint.id,
-        className: atPoint.className,
-      } : null,
+      selection,
+      selectionAttempts,
+      beforeClick,
+      beforeAnalyzeUi,
+      analyzeOutcome,
+      aiOnDemand: {
+        attempted: false,
+        clicked: false,
+        completed: false,
+        skipped_reason: `analyze outcome=${analyzeOutcome.outcome}`,
+      },
+      excelOnDemand: {
+        attempted: false,
+        clicked: false,
+        completed: false,
+        skipped_reason: `analyze outcome=${analyzeOutcome.outcome}`,
+      },
+      afterRun: analyzeOutcome.snapshot,
     };
-  });
+  }
 
-  await page.click("#btn-analyze", { timeout: Math.min(timeoutMs, 15000) });
-  await page.waitForFunction(
-    () => document.querySelectorAll("#result-body tr.result-item-row").length > 0,
-    { timeout: timeoutMs },
-  );
+  const triageFlow = await runP1TriageSmoke(page, { timeoutMs });
 
-  await page.click("#result-body tr.result-item-row", { timeout: Math.min(timeoutMs, 15000) });
+  const selectedForAi = await selectWorkspaceRow(page, { timeoutMs });
+  if (!selectedForAi.ok) {
+    throw new Error("Failed to select a workspace row for AI smoke");
+  }
   await page.click("#inspector-tab-ai", { timeout: Math.min(timeoutMs, 15000) });
 
   const aiOnDemand = await page.evaluate(async () => {
@@ -443,21 +888,17 @@ async function runSmoke(page, { baseUrl, timeoutMs, targetFile }) {
 
   const excelOnDemand = await runExcelSmoke(page, { timeoutMs });
 
-  return {
-    selection,
-    beforeClick,
-    aiOnDemand,
-    excelOnDemand,
-    afterRun: await page.evaluate(() => ({
-      rows: document.querySelectorAll("#result-body tr.result-item-row").length,
-      totalIssues: document.getElementById("total-issues") ? String(document.getElementById("total-issues").textContent || "") : "",
-      criticalIssues: document.getElementById("critical-issues") ? String(document.getElementById("critical-issues").textContent || "") : "",
-      warningIssues: document.getElementById("warning-issues") ? String(document.getElementById("warning-issues").textContent || "") : "",
-      workspaceVisible: !!document.getElementById("workspace-view") && getComputedStyle(document.getElementById("workspace-view")).display !== "none",
-      resultBodyVisible: !!document.getElementById("result-body"),
-      progressPanelVisible: !!document.getElementById("analyze-progress-panel") && getComputedStyle(document.getElementById("analyze-progress-panel")).display !== "none",
-    })),
-  };
+    return {
+      selection,
+      selectionAttempts,
+      beforeClick,
+      beforeAnalyzeUi,
+      analyzeOutcome,
+      triageFlow,
+      aiOnDemand,
+      excelOnDemand,
+      afterRun: await readSmokeUiState(page),
+    };
 }
 
 async function main() {
@@ -511,6 +952,7 @@ async function main() {
   let backendChild = null;
   let browser;
   let context;
+  let triageCleanup = null;
 
   try {
     const backend = await ensureBackend({
@@ -526,6 +968,7 @@ async function main() {
       started_server: backend.startedServer,
       discovered_file_count: Array.isArray(backend.files) ? backend.files.length : 0,
     };
+    report.backend.triage_reset = await resetP1TriageEntries(baseUrl);
     const targetFile = pickTargetFile(backend.files, opts.targetFile);
     report.backend.selected_target_file = targetFile;
 
@@ -536,9 +979,81 @@ async function main() {
     report.environment.browser = await browser.version();
     context = await browser.newContext({ acceptDownloads: true });
     const page = await context.newPage();
+    const runtimeDiagnostics = {
+      console: [],
+      page_errors: [],
+      dialogs: [],
+      api: {
+        files: null,
+        analyze_start: null,
+        analyze_status_last: null,
+      },
+    };
+    page.on("console", (msg) => {
+      const type = String(msg.type() || "log");
+      if (type !== "error" && type !== "warning") return;
+      runtimeDiagnostics.console.push({
+        type,
+        text: String(msg.text() || ""),
+      });
+    });
+    page.on("pageerror", (err) => {
+      runtimeDiagnostics.page_errors.push(String((err && err.stack) || (err && err.message) || err || ""));
+    });
+    page.on("dialog", async (dialog) => {
+      runtimeDiagnostics.dialogs.push({
+        type: String(dialog.type() || ""),
+        message: String(dialog.message() || ""),
+      });
+      await dialog.dismiss();
+    });
+    page.on("response", async (response) => {
+      try {
+        const url = new URL(response.url());
+        if (url.origin !== baseUrl) return;
+        if (url.pathname === "/api/files") {
+          runtimeDiagnostics.api.files = {
+            status: response.status(),
+            body: await response.text(),
+          };
+          return;
+        }
+        if (url.pathname === "/api/analyze/start") {
+          let body = "";
+          try {
+            body = await response.text();
+          } catch (_err) {}
+          runtimeDiagnostics.api.analyze_start = {
+            status: response.status(),
+            body,
+          };
+          return;
+        }
+        if (url.pathname === "/api/analyze/status") {
+          let payload = null;
+          try {
+            payload = await response.json();
+          } catch (_err) {}
+          runtimeDiagnostics.api.analyze_status_last = {
+            status: response.status(),
+            payload: payload ? summarizeAnalyzeStatusPayload(payload) : null,
+          };
+        }
+      } catch (_err) {
+        // ignore diagnostics errors
+      }
+    });
     const runStarted = Date.now();
-    report.run = await runSmoke(page, { baseUrl, timeoutMs: opts.timeoutMs, targetFile });
+    report.run = await runSmoke(page, {
+      baseUrl,
+      timeoutMs: opts.timeoutMs,
+      targetFile,
+      targetCandidates: Array.isArray(backend.files) ? backend.files.map((file) => file && file.name).filter(Boolean) : [],
+    });
     report.run.elapsed_ms = Date.now() - runStarted;
+    report.diagnostics = runtimeDiagnostics;
+    const triageAttempted = !!(report.run.triageFlow && report.run.triageFlow.attempted);
+    const triageFlowHealthy = !triageAttempted || !!(report.run.triageFlow && report.run.triageFlow.completed);
     const aiAttempted = !!(report.run.aiOnDemand && report.run.aiOnDemand.attempted);
     const aiFlowHealthy = !aiAttempted || !!(report.run.aiOnDemand.clicked && report.run.aiOnDemand.completed);
     const excelAttempted = !!(report.run.excelOnDemand && report.run.excelOnDemand.attempted);
@@ -548,12 +1063,13 @@ async function main() {
       (!!report.run.excelOnDemand.completed &&
         Number(report.run.excelOnDemand.final?.download_button_count || 0) > 0 &&
         !!report.run.excelOnDemand.download_triggered);
+    const visibleReviewCount = effectiveReviewCount(report.run.afterRun || {});
     report.ok =
-      !!report.run.afterRun.workspaceVisible &&
-      Number.parseInt(report.run.afterRun.totalIssues || "0", 10) > 0 &&
-      Number(report.run.afterRun.rows || 0) > 0 &&
+      !!report.run.afterRun.workspace_visible &&
+      visibleReviewCount > 0 &&
       report.run.beforeClick.interceptingNode &&
       report.run.beforeClick.interceptingNode.id === "btn-analyze" &&
+      triageFlowHealthy &&
       aiFlowHealthy &&
       (excelSkipped || excelFlowHealthy);
     if (!report.ok) {
@@ -564,6 +1080,13 @@ async function main() {
     report.error = String(err && err.stack ? err.stack : err);
     throw err;
   } finally {
+    try {
+      triageCleanup = await resetP1TriageEntries(baseUrl);
+      report.backend = {
+        ...(report.backend || {}),
+        triage_cleanup: triageCleanup,
+      };
+    } catch (_err) {}
     try {
       if (context) await context.close();
     } catch (_err) {}

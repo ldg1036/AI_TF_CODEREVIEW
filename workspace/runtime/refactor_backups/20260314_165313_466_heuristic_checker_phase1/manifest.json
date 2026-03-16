@@ -1,0 +1,27 @@
+{
+  "label": "heuristic_checker_phase1",
+  "timestamp": "20260314_165313_466",
+  "created_at": "2026-03-14T07:53:13Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "backend/core/heuristic_checker.py",
+      "snapshot_path": "source/backend/core/heuristic_checker.py",
+      "size": 93879,
+      "sha256": "0642a01c009d17f5182ba3ff911123392e4f3f7ed7e7d58f34c0fe1f06a51a6f"
+    },
+    {
+      "relative_path": "backend/tests/test_api_and_reports.py",
+      "snapshot_path": "source/backend/tests/test_api_and_reports.py",
+      "size": 230730,
+      "sha256": "10e673e7d4f6e962431d56262e492309dfee02ebbe1b1fcf6bed1693f0da47c5"
+    },
+    {
+      "relative_path": "backend/system_verification.py",
+      "snapshot_path": "source/backend/system_verification.py",
+      "size": 72062,
+      "sha256": "39d052a7c9849b5ee06143e8b6064174813ce75e3d9eed57a2dd8fcc195bc9ff"
+    }
+  ]
+}

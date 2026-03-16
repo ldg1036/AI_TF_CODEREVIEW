@@ -1,0 +1,22 @@
+﻿{
+    "label":  "backend_entrypoint_phase1",
+    "created_at":  "2026-03-14T15:51:39.6670075+09:00",
+    "git_head":  "24ce60a7fd5837a0075e48ca9bd0a63a39cd51bc",
+    "files":  [
+                  {
+                      "path":  "backend/main.py",
+                      "sha256":  "4b4ad01f58867eba3f1d1aa8b3286cd492015a5bad81b3836c62b519a664b020",
+                      "size":  81548
+                  },
+                  {
+                      "path":  "backend/server.py",
+                      "sha256":  "bb8018adb5903e4b1515853e550a80d6ac2b8c05da7350413d2a68a550616547",
+                      "size":  49147
+                  },
+                  {
+                      "path":  "backend/tests/test_api_and_reports.py",
+                      "sha256":  "10e673e7d4f6e962431d56262e492309dfee02ebbe1b1fcf6bed1693f0da47c5",
+                      "size":  230730
+                  }
+              ]
+}

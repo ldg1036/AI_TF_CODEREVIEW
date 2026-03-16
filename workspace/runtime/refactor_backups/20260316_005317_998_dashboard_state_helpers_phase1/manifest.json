@@ -1,0 +1,27 @@
+{
+  "label": "dashboard_state_helpers_phase1",
+  "timestamp": "20260316_005317_998",
+  "created_at": "2026-03-15T15:53:18Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/renderer/dashboard-panels.js",
+      "snapshot_path": "source/frontend/renderer/dashboard-panels.js",
+      "size": 25995,
+      "sha256": "7c0b3294036b6fa2dcf471eb83a7ca2440d0729e60b70461119c9a9894c063f4"
+    },
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 88772,
+      "sha256": "c6aee60200f3eecdd85a5d8182eed694df1280920b9e588d9102e93c5c687b97"
+    },
+    {
+      "relative_path": "tools/release_gate.py",
+      "snapshot_path": "source/tools/release_gate.py",
+      "size": 26984,
+      "sha256": "661cce2562c910b0eda669d402facbe6a7b2e275a214bf80e7981c71824f5b2b"
+    }
+  ]
+}

@@ -1,0 +1,260 @@
+﻿{
+  "tool": "playwright_ui_real_smoke",
+  "started_at": "2026-03-15T15:57:42.615Z",
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "target_file_preference": "BenchmarkP1Fixture.ctl",
+    "timeout_ms": 120000,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "backend": {
+    "started_server": true,
+    "discovered_file_count": 4,
+    "selected_target_file": "BenchmarkP1Fixture.ctl"
+  },
+  "run": {
+    "selection": {
+      "selectedFile": "BenchmarkP1Fixture.ctl",
+      "availableCount": 4
+    },
+    "beforeClick": {
+      "buttonFound": true,
+      "buttonRect": {
+        "x": 572.203125,
+        "y": 85.859375,
+        "width": 148,
+        "height": 40,
+        "top": 85.859375,
+        "right": 720.203125,
+        "bottom": 125.859375,
+        "left": 572.203125
+      },
+      "interceptingNode": {
+        "tag": "BUTTON",
+        "id": "btn-analyze",
+        "className": ""
+      }
+    },
+    "beforeAnalyzeUi": {
+      "file_list_dom_count": 4,
+      "file_list_selected_count": 1,
+      "file_list_selected_files": [
+        "BenchmarkP1Fixture.ctl"
+      ],
+      "result_row_count": 0,
+      "result_empty_text": "",
+      "total_issues": "0",
+      "critical_issues": "0",
+      "warning_issues": "0",
+      "workspace_visible": false,
+      "progress_panel_visible": false,
+      "progress_status_text": "분석 중...",
+      "progress_meta_text": "0% | 0/0 파일 | ETA 계산 중 | 경과 00:00",
+      "last_renderer_error": "",
+      "renderer_diagnostics": {
+        "boot_status": "ready",
+        "file_list_status": "ready",
+        "selected_file_count": 0,
+        "result_row_count": 0,
+        "file_list_dom_count": 4,
+        "file_list_empty_message": ""
+      }
+    },
+    "analyzeOutcome": {
+      "outcome": "rows_rendered",
+      "sawProgress": true,
+      "snapshot": {
+        "file_list_dom_count": 4,
+        "file_list_selected_count": 1,
+        "file_list_selected_files": [
+          "BenchmarkP1Fixture.ctl"
+        ],
+        "result_row_count": 6,
+        "result_empty_text": "",
+        "total_issues": "6",
+        "critical_issues": "0",
+        "warning_issues": "5",
+        "workspace_visible": true,
+        "progress_panel_visible": false,
+        "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+        "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:00",
+        "last_renderer_error": "",
+        "renderer_diagnostics": {
+          "boot_status": "ready",
+          "file_list_status": "ready",
+          "selected_file_count": 1,
+          "result_row_count": 6,
+          "file_list_dom_count": 4,
+          "file_list_empty_message": "",
+          "analyze_status": "completed",
+          "analyze_error": "",
+          "selected_input_source_count": 0,
+          "progress_panel_visible": false,
+          "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+          "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:00",
+          "analyze_job_id": "02c839f62c1c4db1aa64bb8140b23a6a",
+          "analyze_poll_interval_ms": 500,
+          "last_analyze_progress": {
+            "total_files": 1,
+            "completed_files": 1,
+            "failed_files": 0,
+            "percent": 100,
+            "current_file": "BenchmarkP1Fixture.ctl",
+            "phase": "analyze_file_done"
+          },
+          "last_analyze_poll": {
+            "status": "completed",
+            "request_id": "9d50fdd20c53454081ce560fa0dc160d"
+          },
+          "last_analyze_result_summary": {
+            "total": 6,
+            "critical": 0,
+            "warning": 5,
+            "info": 1,
+            "score": 74
+          },
+          "workspace_filtered_row_count": 6
+        }
+      }
+    },
+    "aiOnDemand": {
+      "attempted": true,
+      "clicked": true,
+      "completed": true,
+      "skipped_reason": "",
+      "button_id": "btn-ai-generate",
+      "button_text_before": "추가 AI 분석",
+      "button_text_after": "추가 AI 분석",
+      "status_text": ""
+    },
+    "excelOnDemand": {
+      "attempted": true,
+      "clicked": true,
+      "completed": true,
+      "skipped_reason": "",
+      "initial": {
+        "present": true,
+        "disabled": false,
+        "button_text": "Flush Excel queue",
+        "status_text": "Excel 0/1 | running 1",
+        "download_button_count": 0,
+        "download_labels": []
+      },
+      "final": {
+        "present": true,
+        "disabled": false,
+        "button_text": "Flush Excel queue",
+        "status_text": "Excel 1 files ready",
+        "download_button_count": 1,
+        "download_labels": [
+          "Download"
+        ]
+      },
+      "download_triggered": true,
+      "suggested_filename": "CodeReview_Submission_BenchmarkP1Fixture_20260316_005746_138799.xlsx",
+      "download_error": ""
+    },
+    "afterRun": {
+      "file_list_dom_count": 4,
+      "file_list_selected_count": 1,
+      "file_list_selected_files": [
+        "BenchmarkP1Fixture.ctl"
+      ],
+      "result_row_count": 6,
+      "result_empty_text": "",
+      "total_issues": "6",
+      "critical_issues": "0",
+      "warning_issues": "5",
+      "workspace_visible": true,
+      "progress_panel_visible": false,
+      "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+      "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:00",
+      "last_renderer_error": "",
+      "renderer_diagnostics": {
+        "boot_status": "ready",
+        "file_list_status": "ready",
+        "selected_file_count": 1,
+        "result_row_count": 6,
+        "file_list_dom_count": 4,
+        "file_list_empty_message": "",
+        "analyze_status": "completed",
+        "analyze_error": "",
+        "selected_input_source_count": 0,
+        "progress_panel_visible": false,
+        "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+        "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:00",
+        "analyze_job_id": "02c839f62c1c4db1aa64bb8140b23a6a",
+        "analyze_poll_interval_ms": 500,
+        "last_analyze_progress": {
+          "total_files": 1,
+          "completed_files": 1,
+          "failed_files": 0,
+          "percent": 100,
+          "current_file": "BenchmarkP1Fixture.ctl",
+          "phase": "analyze_file_done"
+        },
+        "last_analyze_poll": {
+          "status": "completed",
+          "request_id": "9d50fdd20c53454081ce560fa0dc160d"
+        },
+        "last_analyze_result_summary": {
+          "total": 6,
+          "critical": 0,
+          "warning": 5,
+          "info": 1,
+          "score": 74
+        },
+        "workspace_filtered_row_count": 6
+      }
+    },
+    "elapsed_ms": 821
+  },
+  "diagnostics": {
+    "console": [],
+    "page_errors": [],
+    "dialogs": [],
+    "api": {
+      "files": {
+        "status": 200,
+        "body": "{\"files\": [{\"name\": \"BenchmarkP1Fixture.ctl\", \"type\": \"ctl\", \"selectable\": true}, {\"name\": \"GoldenTime.ctl\", \"type\": \"ctl\", \"selectable\": true}, {\"name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl\", \"type\": \"pnl\", \"selectable\": true}, {\"name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt\", \"type\": \"txt\", \"selectable\": true}]}"
+      },
+      "analyze_start": {
+        "status": 202,
+        "body": "{\"job_id\": \"02c839f62c1c4db1aa64bb8140b23a6a\", \"status\": \"queued\", \"progress\": {\"total_files\": 1, \"completed_files\": 0, \"failed_files\": 0, \"percent\": 0, \"current_file\": \"\", \"phase\": \"queued\"}, \"poll_interval_ms\": 500, \"request_id\": \"9d50fdd20c53454081ce560fa0dc160d\"}"
+      },
+      "analyze_status_last": {
+        "status": 200,
+        "payload": {
+          "status": "completed",
+          "error": "",
+          "request_id": "9d50fdd20c53454081ce560fa0dc160d",
+          "progress": {
+            "total_files": 1,
+            "completed_files": 1,
+            "failed_files": 0,
+            "percent": 100,
+            "current_file": "BenchmarkP1Fixture.ctl",
+            "phase": "analyze_file_done"
+          },
+          "result_summary": {
+            "total": 6,
+            "critical": 0,
+            "warning": 5,
+            "info": 1,
+            "score": 74
+          }
+        }
+      }
+    }
+  },
+  "ok": true,
+  "finished_at": "2026-03-15T15:57:46.834Z"
+}

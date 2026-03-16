@@ -1,0 +1,33 @@
+{
+  "label": "autofix_mixin_phase1",
+  "timestamp": "20260314_172019_207",
+  "created_at": "2026-03-14T08:20:19Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "backend/core/autofix_mixin.py",
+      "snapshot_path": "source/backend/core/autofix_mixin.py",
+      "size": 118919,
+      "sha256": "8553e20235dbf1a5d253d7bb30d6aba1bb1f82c5677d1ae85ae71e09133bacf1"
+    },
+    {
+      "relative_path": "backend/tests/test_api_and_reports.py",
+      "snapshot_path": "source/backend/tests/test_api_and_reports.py",
+      "size": 230730,
+      "sha256": "10e673e7d4f6e962431d56262e492309dfee02ebbe1b1fcf6bed1693f0da47c5"
+    },
+    {
+      "relative_path": "backend/main.py",
+      "snapshot_path": "source/backend/main.py",
+      "size": 23892,
+      "sha256": "c1a4b0da8df76dca62ce61465edc171e172f41227275adde423a50ba342a7ad2"
+    },
+    {
+      "relative_path": "backend/core/autofix_http_mixin.py",
+      "snapshot_path": "source/backend/core/autofix_http_mixin.py",
+      "size": 13001,
+      "sha256": "db7dff373a274ecc48c1294158ccc0f5803ae3ec54b25a2e3c248433414a7d97"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "label": "workspace_split_resize_phase1",
+  "timestamp": "20260316_230352_356",
+  "created_at": "2026-03-16T14:03:52Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/index.html",
+      "snapshot_path": "source/frontend/index.html",
+      "size": 24965,
+      "sha256": "8e2ff4bf2d880d73965da2ee216744c9816b1bbf63e069578e87808eee9b0568"
+    },
+    {
+      "relative_path": "frontend/style.css",
+      "snapshot_path": "source/frontend/style.css",
+      "size": 74249,
+      "sha256": "8b7edf12ace05acb3d347524959bf98dbc46781a628bde832c2309fdc596b52e"
+    },
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 94862,
+      "sha256": "4e9d422ef99d2f9ce749729641125945566d14f5aea539f89eaf2b4f5df98fd0"
+    },
+    {
+      "relative_path": "frontend/renderer/app-shell.js",
+      "snapshot_path": "source/frontend/renderer/app-shell.js",
+      "size": 9940,
+      "sha256": "918d84078ba3effc949dc1e74521818a6e2b2d43a62a3d4ca08c4ffa080c4702"
+    },
+    {
+      "relative_path": "frontend/renderer/app-state.js",
+      "snapshot_path": "source/frontend/renderer/app-state.js",
+      "size": 5450,
+      "sha256": "3bbc76792f603d153dfe4ba4b2d186d46c0f206681f064a293c4a09aa479ada1"
+    },
+    {
+      "relative_path": "frontend/renderer/workspace-view.js",
+      "snapshot_path": "source/frontend/renderer/workspace-view.js",
+      "size": 65956,
+      "sha256": "eb306bfabb864e57adb129489a698c4868449e7f375efd09fe1163b824f6279c"
+    },
+    {
+      "relative_path": "tools/release_gate.py",
+      "snapshot_path": "source/tools/release_gate.py",
+      "size": 27127,
+      "sha256": "356908afec7f7f05b2065149b595ccc033b259bc9d473fb3cce542dc7d889043"
+    }
+  ]
+}

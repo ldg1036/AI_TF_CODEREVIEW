@@ -1,0 +1,36 @@
+name: quality-gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+      - "codex/**"
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install Python dependency
+        run: python -m pip install --upgrade pip openpyxl
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Run local quality gate
+        run: python tools/run_local_quality_gate.py
+      - name: Upload release-gate artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gate-artifacts
+          path: |
+            CodeReview_Report/release_gate_*.json
+            CodeReview_Report/release_gate_*.md

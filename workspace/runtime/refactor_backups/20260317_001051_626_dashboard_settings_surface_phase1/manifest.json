@@ -1,0 +1,63 @@
+{
+  "label": "dashboard_settings_surface_phase1",
+  "timestamp": "20260317_001051_626",
+  "created_at": "2026-03-16T15:10:51Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "git_head": "24ce60a",
+  "files": [
+    {
+      "relative_path": "frontend/index.html",
+      "snapshot_path": "source/frontend/index.html",
+      "size": 25514,
+      "sha256": "ee96f395d6b37288ad216fbad94527c589f67ac3aa3a020159ceb7e9cc4d3c62"
+    },
+    {
+      "relative_path": "frontend/style.css",
+      "snapshot_path": "source/frontend/style.css",
+      "size": 78589,
+      "sha256": "97ce0f67fd3dd96d73f4d7713563e1e715a7cbe5389c2d45cb0a5c0b55a0ab1f"
+    },
+    {
+      "relative_path": "frontend/renderer.js",
+      "snapshot_path": "source/frontend/renderer.js",
+      "size": 95229,
+      "sha256": "6b9eff1c4b0ac4c4781178d434aa375fdc91cfa258d3424a51767ac2430164d5"
+    },
+    {
+      "relative_path": "frontend/renderer/app-shell.js",
+      "snapshot_path": "source/frontend/renderer/app-shell.js",
+      "size": 10177,
+      "sha256": "6e9812f6c08bdf8823512bd9115c47cd9a4a2b4801f08b0d076c2928d40a34ad"
+    },
+    {
+      "relative_path": "frontend/renderer/app-state.js",
+      "snapshot_path": "source/frontend/renderer/app-state.js",
+      "size": 5524,
+      "sha256": "63834c594a6e0e7b1638a267a28af08b85c4e26a626194660c43cf0c36cf415b"
+    },
+    {
+      "relative_path": "frontend/renderer/dashboard-panels.js",
+      "snapshot_path": "source/frontend/renderer/dashboard-panels.js",
+      "size": 18631,
+      "sha256": "a517d72ae8f67139f5b40d04c541de57f5335164fac54fa4d5bd15d0e817d691"
+    },
+    {
+      "relative_path": "frontend/renderer/dashboard-state-helpers.js",
+      "snapshot_path": "source/frontend/renderer/dashboard-state-helpers.js",
+      "size": 12488,
+      "sha256": "02222eb85ebb0b58226f8fe2b3013a7843b0908fbf812484fe52e830de1a7a10"
+    },
+    {
+      "relative_path": "frontend/renderer/rules-manage.js",
+      "snapshot_path": "source/frontend/renderer/rules-manage.js",
+      "size": 30900,
+      "sha256": "2ae6049599427b44528da4e451b7828e8c944a67440e61a6e2228cded1ca02e3"
+    },
+    {
+      "relative_path": "frontend/renderer/dashboard-state-helpers.test.js",
+      "snapshot_path": "source/frontend/renderer/dashboard-state-helpers.test.js",
+      "size": 5158,
+      "sha256": "2d35a374794121df7590ba771639ec3c33b4c005b1fc2027f321f13dfdc6030c"
+    }
+  ]
+}

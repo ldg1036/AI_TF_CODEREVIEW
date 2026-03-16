@@ -1,0 +1,34 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1773665545411,
+  "entries": [
+    {
+      "triage_key": "benchmarkp1fixture.ctl||UNKNOWN||전역 변수 명명 규칙 위반 가능성: 'v1' (g_ 접두사 권장).||0",
+      "status": "suppressed",
+      "reason": "already reviewed in smoke",
+      "note": "triage smoke round trip",
+      "updated_at_ms": 1773665465381,
+      "match": {
+        "file": "BenchmarkP1Fixture.ctl",
+        "line": 0,
+        "rule_id": "UNKNOWN",
+        "message": "전역 변수 명명 규칙 위반 가능성: 'v1' (g_ 접두사 권장).",
+        "issue_id": "REVIEW-ONLY-BenchmarkP1Fixture.ctl-1"
+      }
+    },
+    {
+      "triage_key": "benchmarkp1fixture.ctl||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||0",
+      "status": "suppressed",
+      "reason": "already reviewed in smoke",
+      "note": "triage smoke round trip",
+      "updated_at_ms": 1773665545411,
+      "match": {
+        "file": "BenchmarkP1Fixture.ctl",
+        "line": 0,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "REVIEW-ONLY-BenchmarkP1Fixture.ctl-2"
+      }
+    }
+  ]
+}

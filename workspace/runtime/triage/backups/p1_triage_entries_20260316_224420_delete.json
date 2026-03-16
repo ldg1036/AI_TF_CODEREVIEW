@@ -1,0 +1,20 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1773668660629,
+  "entries": [
+    {
+      "triage_key": "benchmarkp1fixture.ctl||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||0",
+      "status": "suppressed",
+      "reason": "already reviewed in smoke",
+      "note": "triage smoke round trip",
+      "updated_at_ms": 1773668576337,
+      "match": {
+        "file": "BenchmarkP1Fixture.ctl",
+        "line": 0,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "REVIEW-ONLY-BenchmarkP1Fixture.ctl-2"
+      }
+    }
+  ]
+}
