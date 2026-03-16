@@ -1,235 +1,224 @@
 # User Operations Guide
 
-Last Updated: 2026-03-09
+Last Updated: 2026-03-17
 
-## Goal
+## 목적
 
-This guide is for operators who need to run the WinCC OA code review program reliably without reading developer-only documentation.
+이 문서는 운영자나 리뷰 담당자가 개발 문서를 깊게 읽지 않고도 프로그램을 안정적으로 실행하고 사용하는 데 필요한 현재 기준 사용 방법을 정리합니다.
 
-## 1. Before You Start
+## 1. 시작 전 준비
 
-Required:
-
-- Windows environment
-- Python 3.10+ installed and available in `PATH`
-- project files present in `CodeReview_Data`
+필수:
+- Windows 환경
+- Python 3.10+
 - `python -m pip install -r requirements-dev.txt`
+- 입력 파일이 `CodeReview_Data` 또는 외부 선택 경로에 준비됨
 
-Recommended:
-
+권장:
 - `npm install`
 - `npx playwright install chromium`
 
-Optional tools:
-
+선택 의존성:
 - `CtrlppCheck`
 - `Ollama`
 - Playwright browser runtime
 
-Missing optional tools should fail soft in normal operation.
+선택 의존성이 없어도 기본 분석은 fail-soft로 계속 동작합니다.
 
-## 2. Main Run Modes
+## 2. 실행 모드
 
-### UI mode
-
-Start the server:
+### UI 모드
 
 ```powershell
 python backend/server.py
 ```
 
-Open:
+접속:
 
 ```text
 http://127.0.0.1:8765
 ```
 
-Use the dashboard cards for quick status checks:
-
-- operations compare
-- rules / dependency health
-
-Use issue detail for code-level review actions:
-
-- `AI 제안` tab
-- `P1/P2 <> P3` compare popup
-- on-demand AI review and patch-oriented follow-up
-
-### CLI mode
+### CLI 모드
 
 ```powershell
 python backend/main.py --selected-files GoldenTime.ctl
 ```
 
-Use this when you want a targeted analysis without the UI.
+## 3. 화면 구조
 
-## 3. Release Gate Shortcuts
+### 대시보드
+- 프로젝트 요약
+- 전체 이슈 / 현재 검토 대상 / 치명 / 경고
+- 중복 정리 요약
+- 우선 수정 추천
+- compact 시스템 상태 요약
 
-Standard local gate:
+참고:
+- 자세한 운영 검증과 규칙 관리는 더 이상 대시보드에 직접 나오지 않습니다.
+- `설정에서 자세히 보기` 또는 좌측 `설정`으로 이동합니다.
 
-```powershell
-.\run_release_gate.bat
-```
+### 작업공간
+- 파일 목록 / 파일 검색
+- 코드 뷰어
+- 결과 리스트 / 결과 검색
+- preset 버튼 (`기본 보기`, `P1만`, `치명/경고`)
+- P1 triage
+- AI / compare / autofix
 
-Live AI scope:
+작업공간 주요 동작:
+- 코드 뷰어와 결과 리스트 사이 높이 드래그 조절
+- 첫 결과 자동 선택
+- `이전 이슈`, `다음 이슈`, `코드 보기`, `상세 탭`, `AI 탭`
+- `숨김 처리 포함` 토글
 
-```powershell
-.\run_release_gate.bat live-ai
-```
+### 설정
+- 운영 검증 상세
+  - UI benchmark
+  - real UI smoke
+  - Ctrlpp integration
+- 규칙 / 의존성 관리
+  - dependency readiness
+  - rule list / create / replace / delete
+  - import dry-run preview
+  - rollback latest
 
-CI-style lightweight gate:
+## 4. 분석 흐름
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\run_release_gate.ps1 -Mode ci
-```
+UI 기본 분석은 비동기 경로를 사용합니다.
 
-## 4. What The Dashboard Cards Mean
+- `POST /api/analyze/start`
+- `GET /api/analyze/status`
 
-### Operations compare
+UI에서 보이는 항목:
+- 진행률
+- ETA
+- 경과 시간
+- 최종 결과 요약
 
-Shows the latest benchmark / smoke results for:
+필요 시 `/api/analyze` 동기 경로도 계속 지원됩니다.
 
-- UI benchmark
-- UI real smoke
-- Ctrlpp integration smoke
+## 5. P1 Triage 사용법
 
-### Rules / dependency health
+P1 항목은 triage를 통해 숨김 처리할 수 있습니다.
 
-Shows:
+기본 동작:
+- 숨김 처리된 P1은 기본 결과 리스트에서 숨김
+- `숨김 처리 포함`을 켜면 다시 보임
+- 재분석 후에도 동일 fingerprint의 P1 이슈는 계속 숨김 유지
 
-- enabled P1 rules versus total P1 rules
-- detector distribution
-- `openpyxl`, `CtrlppCheck`, `Playwright` availability
+상세 패널에서 가능한 작업:
+- `숨김 처리`
+- `숨김 해제`
+- `사유`
+- `메모`
 
-This card now supports a limited management flow:
+저장 위치:
+- `workspace/runtime/triage/p1_triage_entries.json`
 
-- open the rule list
-- create a new P1 rule
-- edit an existing P1 rule
-- toggle `enabled`
-- delete a rule
-- export rules to JSON
-- import rules from JSON with merge or replace mode
-- save the change and reload the checker configuration
+## 6. Rules Manage 사용법
 
-Current editing model:
+설정 화면에서 다음 작업을 할 수 있습니다.
 
-- detector and `meta` values are edited as JSON
-- validation runs on save before configuration is reloaded
+- 규칙 목록 확인
+- 새 규칙 생성
+- 기존 규칙 수정 / 삭제
+- `enabled` 토글 저장
+- JSON export
+- import preview (`merge`, `replace`)
+- rollback latest
 
-Still not included:
+현재 편집 모델:
+- detector / meta는 JSON 형태 편집
+- 저장 전 validation 수행
 
-- detector-type-specific visual form editor
-- import dry-run preview before apply
-- bulk multi-select editing
+## 7. 릴리스 게이트 단축 명령
 
-### Issue detail compare
-
-P3 compare is handled from issue detail, not from a dashboard run-to-run card.
-
-Use this when you need to compare:
-
-- selected `P1` or `P2` issue context
-- generated `P3` review or mock review
-- optional patch diff after prepare/apply
-
-## 5. Checklist Automation In Reports
-
-Excel checklist results are now interpreted with a conservative automation policy.
-
-Meaning of the main result columns:
-
-- `F (1차 검증)`: `OK`, `NG`, `N/A`
-- `G (검증 결과)`: automatic guidance or reason text
-- `H (비고)`: template remark column, kept empty or preserved from template
-
-Checklist automation levels:
-
-- `완전 자동`
-  - `Loop문 내에 처리 조건`
-  - rule applies only when a `while` pattern exists
-  - `while` 없음: `N/A`
-  - `while` 있음 + 위반 검출: `NG`
-  - `while` 있음 + 위반 없음: `OK`
-- `부분 자동`
-  - `메모리 누수 체크`
-  - `하드코딩 지양`
-  - `디버깅용 로그 작성 확인`
-  - violation detected: `NG`
-  - no violation detected: `N/A` with partial-automation guidance
-- `수동 확인`
-  - `쿼리 주석 처리`
-  - stays `N/A` because required comment quality (`기능명_날짜_HWC`) is not trusted by regex-only checks
-
-Interpretation rule:
-
-- `NG` means a mapped rule violation was found
-- `OK` is used only for full-automation items
-- `N/A` means either the item is not applicable or it still requires operator review
-## 6. Performance Checks
-
-### End-to-end benchmark
-
-Start the server and run:
+빠른 게이트:
 
 ```powershell
-python tools/http_perf_baseline.py --dataset-name local-sample --iterations 3
+python tools/run_local_quality_gate.py
 ```
 
-### Heuristic-only baseline
-
-Use this when scan-path performance changed:
+확장 게이트:
 
 ```powershell
-python tools/http_perf_baseline.py `
-  --focus heuristic `
-  --selected-files GoldenTime.ctl `
-  --iterations 3
+python tools/run_local_extended_gate.py
 ```
 
-Interpretation:
+통합 게이트:
 
-- `same_findings=true` must hold
-- `with_context_avg_ms` should be less than or equal to `without_context_avg_ms`
+```powershell
+python tools/release_gate.py
+python tools/release_gate.py --profile ci
+```
 
-## 7. Common Trouble Cases
+## 8. 자주 쓰는 검증
 
-### UI does not open
+프론트 변경:
 
-Check:
+```powershell
+npm run test:frontend
+node tools/playwright_ui_real_smoke.js --timeout-ms 120000
+```
 
-- `python backend/server.py` is running
-- port `8765` is free
+백엔드 / API 변경:
 
-### Rules / dependency card shows degraded
+```powershell
+python -m unittest backend.tests.test_api_and_reports -v
+python backend/system_verification.py
+```
 
-Typical causes:
+rules / config 변경:
 
-- `openpyxl` not installed
-- Playwright browser not installed
-- Ctrlpp binary unavailable
+```powershell
+python backend/tools/check_config_rule_alignment.py --json
+python backend/tools/analyze_template_coverage.py
+```
 
-This does not automatically block static analysis. It means optional capabilities are reduced.
+## 9. 자주 발생하는 문제
 
-### Heuristic baseline fails immediately
+### UI가 열리지 않음
 
-Check:
+확인:
+- `python backend/server.py`가 실행 중인지
+- `8765` 포트가 사용 가능한지
 
-- backend server is running before executing `tools/http_perf_baseline.py`
-- selected file exists in the dataset
+### 대시보드에 상세 운영 카드가 없음
 
-### UI benchmark fails
+정상입니다.
 
-Check:
+- 운영 검증 상세와 규칙 관리는 `설정` 화면으로 이동했습니다.
 
-- Playwright package is installed
-- Chromium browser is installed
-- the machine is not under unusual load
+### 결과가 안 보임
 
-## 8. Remaining Scope Notes
+확인:
+- 파일 선택 여부
+- source / severity 필터
+- 결과 검색 입력
+- `숨김 처리 포함` 상태
+- triage로 P1이 숨겨졌는지
 
-Current operator UI scope supports full P1 rule CRUD and import / export management.
+### rules / dependency가 degraded로 보임
 
-Not included yet:
+주요 원인:
+- `openpyxl` 미설치
+- Playwright browser 미설치
+- Ctrlpp binary 미설치
 
-- detector-specific rich form editing
+기본 정적 분석 자체가 자동으로 막히는 것은 아닙니다.
+
+### UI smoke 또는 benchmark가 실패함
+
+확인:
+- `npm install`
+- `npx playwright install chromium`
+- 브라우저/머신 부하
+
+## 10. 현재 범위에 없는 것
+
+아직 포함하지 않은 것:
+- detector-type 전용 rich form editor
+- triage owner / history / expires_at
+- 모바일 전용 반응형 재설계
+- rules manage full history UI

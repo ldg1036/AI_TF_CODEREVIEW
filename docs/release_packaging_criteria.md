@@ -1,109 +1,108 @@
 # Release Packaging Criteria
 
-Last Updated: 2026-03-06
+Last Updated: 2026-03-17
 
-## Goal
+## 목적
 
-Define what should be included in a final deliverable package and what should be treated as runtime output only.
+최종 전달 패키지에 무엇을 포함하고, 무엇을 runtime 산출물로만 취급할지 정의합니다.
 
-## 1. Minimum Release Acceptance
+## 1. 최소 릴리스 수용 기준
 
-A build is ready to package when these are true:
-- `.\run_release_gate.bat` passes
-- if live AI is part of the promised scope, `.\run_release_gate.bat live-ai` passes
-- latest release gate JSON and Markdown summaries are available
+아래가 충족되면 패키징 가능한 상태로 봅니다.
 
-## 2. Package Contents
+- `python tools/run_local_quality_gate.py` 통과
+- 필요 시 `python tools/run_local_extended_gate.py` 통과
+- 또는 `python tools/release_gate.py` 기준 통과
+- 최신 gate JSON / Markdown 요약이 존재
 
-Include:
+## 2. 패키지에 포함할 것
+
+기본 포함:
 - `backend/`
 - `frontend/`
-- `Config/`
-- `CodeReview_Data/` only if the delivery is expected to include sample or fixture inputs
 - `tools/`
+- `Config/`
+- `docs/`
 - `requirements-dev.txt`
 - `package.json`
 - `package-lock.json`
 - `README.md`
-- `docs/user_operations_guide.md`
-- `docs/release_gate_checklist.md`
-- `docs/release_packaging_criteria.md`
 
-Include only when needed by the recipient:
-- `tools/CtrlppCheck/` runtime install cache
-- `node_modules/`
+상황에 따라 포함:
+- `CodeReview_Data/` 샘플 또는 fixture 전달이 필요할 때
+- `tools/CtrlppCheck/` 오프라인 환경일 때
 
-Guideline:
-- do not ship bulky caches unless the target environment is offline or preinstallation is intentionally part of delivery
+## 3. 소스 패키지로 보지 않을 것
 
-## 3. Do Not Treat As Source Deliverables
-
-Do not package as canonical source artifacts:
+기본적으로 포함하지 않음:
 - `CodeReview_Report/`
-- temporary logs
-- ad-hoc benchmark outputs not referenced by the release notes
-- editor-specific or local machine metadata
+- 임시 로그
+- ad-hoc benchmark 결과
+- local cache
+- `workspace/runtime/refactor_backups/`
+- `workspace/runtime/triage/`
+- `workspace/runtime/rule_backups/`
 
-These are runtime or evidence artifacts, not part of the clean source package.
+이들은 runtime / evidence 산출물입니다.
 
-## 4. Optional Dependency Policy
+## 4. 선택 의존성 정책
 
 ### CtrlppCheck
+- 기본은 optional
+- 실제 납품 범위에 포함되면 smoke 결과를 같이 확인
 
-Policy:
-- optional unless explicitly required by the delivery scope
-- if required, confirm the binary is installable and the direct smoke passes
-
-### Ollama / Live AI
-
-Policy:
-- optional unless live AI is part of the acceptance scope
-- if required, confirm the live AI release gate passes
+### Live AI / Ollama
+- 기본은 optional
+- 실제 acceptance scope에 포함될 때만 필수 검증
 
 ### Playwright
+- 정상 런타임 필수는 아님
+- UI smoke / benchmark를 전달 범위에 포함할 때만 필요
 
-Policy:
-- optional for normal runtime
-- required only for UI benchmark and real UI smoke validation
-
-## 5. Recommended Packaging Profiles
+## 5. 권장 패키징 프로필
 
 ### Clean source package
 
-Use when:
-- recipient can install dependencies locally
+대상:
+- 수신 측이 직접 설치 가능
 
-Include:
-- source, config, docs, wrappers
+포함:
+- 소스
+- 설정
+- 문서
+- 실행 wrapper
 
-Exclude:
-- runtime reports
-- downloaded browsers
-- runtime caches
+제외:
+- runtime 리포트
+- browser cache
+- triage / rule backup / refactor backup
 
 ### Operator-ready local package
 
-Use when:
-- recipient is non-developer
-- environment is controlled or partly offline
+대상:
+- 비개발자 운영자
+- 반오프라인 / 통제된 환경
 
-Include:
-- clean source package contents
-- optionally `tools/CtrlppCheck/`
-- optionally Playwright browser/runtime if the target machine cannot install it itself
+추가 고려:
+- `tools/CtrlppCheck/`
+- 필요 시 Playwright browser/runtime
 
-## 6. Release Notes Checklist
+## 6. 릴리스 노트에 남길 것
 
-For each packaged build, record:
+각 패키지마다 기록:
 - release date
-- release gate JSON path
-- release gate Markdown path
-- whether live AI was included in scope
-- whether Ctrlpp was included in scope
-- any intentional optional dependency exclusions
+- gate JSON 경로
+- gate Markdown 경로
+- Live AI 포함 여부
+- Ctrlpp 포함 여부
+- 선택 의존성 제외 여부
+- 현재 UI 구조
+  - 대시보드: 요약
+  - 작업공간: 리뷰 작업
+  - 설정: 운영 / 규칙 관리
 
-## 7. Recommended Final Decision Rule
+## 7. 최종 판단 규칙
 
-Use this simple rule:
-- if the promised features are covered by the passed release gate profile, package it
-- if a promised optional feature was not checked, do not claim it as release-ready
+간단한 기준:
+- 약속한 기능이 실제 통과한 gate 범위에 포함되면 패키징
+- 확인하지 않은 optional 기능은 release-ready라고 주장하지 않음

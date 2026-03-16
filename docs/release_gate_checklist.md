@@ -1,49 +1,79 @@
 # Release Gate Checklist
 
-Last Updated: 2026-03-09
+Last Updated: 2026-03-17
 
-## Goal
+## 목적
 
-Use this checklist before treating a WinCC OA code review build as release-ready.
+릴리스 가능한 빌드인지 판단하기 전에 최소한 확인해야 할 게이트를 정리합니다.
 
-## 0. Environment Precheck
-
-Run once before release checks:
+## 0. 환경 준비
 
 ```powershell
 python --version
 node --version
 python -m pip install -r requirements-dev.txt
+npm install
 ```
 
-Optional UI smoke/benchmark runtime:
+선택 UI 런타임:
 
 ```powershell
-npm install
 npx playwright install chromium
 ```
 
-## 1. Core Regression Gate
-
-Run these first:
+## 1. 빠른 코어 게이트
 
 ```powershell
-python -m unittest discover backend/tests -v
-python backend/tools/run_verification_profile.py --profile core --include-report
+python -m unittest backend.tests.test_api_and_reports -v
+python backend/system_verification.py
 python backend/tools/check_config_rule_alignment.py --json
 python backend/tools/analyze_template_coverage.py
-python -W error::DeprecationWarning -m unittest backend.tests.test_api_and_reports backend.tests.test_winccoa_context_server
+npm run test:frontend
+```
+
+통과 기준:
+- backend test green
+- `system_verification` green
+- config alignment mismatch `0`
+- template coverage `Client 15/15`, `Server 20/20`
+- frontend unit green
+
+## 2. 문법 / 정적 게이트
+
+```powershell
+python -m py_compile backend/main.py backend/server.py
 node --check frontend/renderer.js
 ```
 
-Pass criteria:
+필요 시 추가:
 
-- backend tests pass except documented optional skips
-- config / rule alignment mismatch is `0`
-- template coverage is `Client 15/15`, `Server 20/20`
-- frontend syntax passes
+```powershell
+node --check frontend/renderer/dashboard-panels.js
+node --check frontend/renderer/workspace-view.js
+```
 
-## 2. Optional Dependency Gate
+## 3. UI 게이트
+
+real smoke:
+
+```powershell
+node tools/playwright_ui_real_smoke.js --timeout-ms 120000
+```
+
+benchmark:
+
+```powershell
+node tools/playwright_ui_benchmark.js --iterations 3
+```
+
+통과 기준:
+- analyze 경로 정상
+- workspace 진입 가능
+- 결과 row 렌더링
+- code jump / detail / AI 흐름 정상
+- triage suppress / unsuppress smoke가 포함된 경우 round-trip 성공
+
+## 4. 선택 의존성 게이트
 
 ### Ctrlpp
 
@@ -51,7 +81,7 @@ Pass criteria:
 python tools/run_ctrlpp_integration_smoke.py --allow-missing-binary --skip-unittest
 ```
 
-When production actually requires Ctrlpp:
+실제 배포 범위에 Ctrlpp가 포함되면:
 
 ```powershell
 python tools/run_ctrlpp_integration_smoke.py
@@ -59,116 +89,84 @@ python tools/run_ctrlpp_integration_smoke.py
 
 ### Live AI
 
-Representative run:
+대표 분석:
 
 ```powershell
 python backend/main.py --selected-files BenchmarkP1Fixture.ctl --enable-live-ai --ai-with-context
 ```
 
-Pass criteria:
+통과 기준:
+- optional dependency가 없더라도 fail-soft 유지
+- 실제 포함 범위라면 analyze 완료
 
-- analyze completes
-- fail-soft behavior is preserved when optional AI infrastructure is unavailable
+## 5. 운영 API 확인
 
-## 3. Frontend Gate
-
-### UI benchmark
-
-```powershell
-node tools/playwright_ui_benchmark.js --iterations 3
-```
-
-### Real UI smoke
-
-```powershell
-node tools/playwright_ui_real_smoke.js --target-file BenchmarkP1Fixture.ctl
-```
-
-Pass criteria:
-
-- analyze button is clickable
-- async analyze flow completes
-- workspace becomes visible
-- result rows render
-- operations compare and rules / dependency health cards do not block workspace activation
-- issue detail `AI 제안` tab and `P1/P2 <> P3` compare flow do not block workspace activation
-
-## 4. Performance-Sensitive Gate
-
-Use this when heuristic, report, or pipeline timing changed.
-
-### End-to-end HTTP baseline
-
-```powershell
-python backend/server.py
-```
-
-In another terminal:
-
-```powershell
-python tools/http_perf_baseline.py `
-  --dataset-name local-sample `
-  --discover-count 1 `
-  --ctrlpp off,on `
-  --live-ai off `
-  --defer-excel off,on `
-  --iterations 3 `
-  --flush-excel
-```
-
-### Heuristic same-build baseline
-
-```powershell
-python tools/http_perf_baseline.py `
-  --focus heuristic `
-  --selected-files GoldenTime.ctl `
-  --iterations 3
-```
-
-Pass criteria:
-
-- representative violation set is unchanged
-- `same_findings=true`
-- `with_context_avg_ms <= without_context_avg_ms`
-
-## 5. Operator Visibility Gate
-
-Verify these operator-facing APIs are healthy:
-
+최소 확인 대상:
 - `GET /api/health/deps`
 - `GET /api/operations/latest`
 - `GET /api/rules/health`
-- `GET /api/rules/list`
-- `GET /api/rules/export`
-- `POST /api/rules/create`
-- `POST /api/rules/replace`
-- `POST /api/rules/delete`
-- `POST /api/rules/import`
+- `GET /api/triage/p1`
+- rules manage 관련 `/api/rules/*`
 
-Minimum expectations:
+확인 포인트:
+- dependency 상태 정확성
+- 운영 검증 결과 payload 해석 가능
+- rules health가 enabled / detector distribution을 정상 표시
+- rules import dry-run / rollback latest 동작
+- triage API가 빈 파일/정상 파일/삭제 경로에서 안전하게 동작
 
-- dependency state is accurate
-- recent benchmark / smoke compare payload is readable
-- rules / dependency health shows enabled rule counts and detector distribution
-- rule management endpoints can load, persist, and reload P1 rule changes safely
-- issue detail P3 compare flow is usable after analysis completes
+## 6. 화면 구조 확인
 
-## 6. Artifacts To Keep
+현재 UI 계약:
+- 대시보드: 요약 중심
+- 작업공간: 실제 리뷰 작업
+- 설정: 운영 검증 상세 + 규칙 / 의존성 관리
 
-Keep the latest:
+확인 포인트:
+- 대시보드에 규칙 관리 폼이 직접 보이지 않음
+- `설정` nav 동작
+- `설정에서 자세히 보기` CTA 동작
 
+## 7. 게이트 단축 명령
+
+빠른 로컬 게이트:
+
+```powershell
+python tools/run_local_quality_gate.py
+```
+
+확장 로컬 게이트:
+
+```powershell
+python tools/run_local_extended_gate.py
+```
+
+통합 게이트:
+
+```powershell
+python tools/release_gate.py
+python tools/release_gate.py --profile ci
+```
+
+## 8. 보관할 산출물
+
+최소 보관:
+- `CodeReview_Report/release_gate_*.json`
+- `CodeReview_Report/release_gate_*.md`
+- `tools/integration_results/ui_real_smoke_*.json`
+- `tools/benchmark_results/ui_benchmark_*.json`
+- `tools/integration_results/ctrlpp_integration_*.json`
+
+필요 시 추가:
 - `CodeReview_Report/verification_summary_*.json`
 - `CodeReview_Report/template_coverage_*.json`
 - `CodeReview_Report/*/analysis_summary.json`
-- `tools/integration_results/ctrlpp_integration_*.json`
-- `tools/integration_results/ui_real_smoke_*.json`
-- `tools/benchmark_results/ui_benchmark_*.json`
-- `docs/perf_baselines/http_perf_baseline_*.json`
 
-## 7. Operator Notes
+## 9. 최종 판단 기준
 
-- `CtrlppCheck`, `Ollama`, and `Playwright` remain optional dependencies unless the release scope explicitly requires them.
-- For heuristic changes, prefer same-build baseline review over direct comparison with old historical HTTP baseline JSON.
-- Rules / dependency health now supports full P1 rule CRUD and import / export workflow.
-- P3 comparison is part of issue-detail workflow, not a dashboard run-to-run compare flow.
-- Detector-specific rich editing UI is still a follow-up enhancement, not a release blocker.
+다음이면 release-ready로 판단 가능합니다.
+
+- 약속한 범위의 기능이 현재 게이트로 확인됨
+- 필수 게이트가 green
+- 선택 기능은 실제 포함 범위일 때만 별도 확인됨
+- fail-soft 기능을 필수 기능처럼 문서화하거나 주장하지 않음

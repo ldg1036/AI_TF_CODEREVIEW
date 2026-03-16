@@ -1,115 +1,76 @@
 # Performance Baselines and Quality Gates
 
-Last Updated: 2026-03-08
+Last Updated: 2026-03-17
 
-## Goal
+## 목표
 
-Performance checks in this project now separate three questions:
+이 프로젝트의 성능 검사는 아래 3가지를 분리해서 판단합니다.
 
-- Is the frontend still responsive?
-- Is the end-to-end analyze path still acceptable?
-- Did heuristic scan changes actually improve scan cost without changing findings?
+- 프론트 UI가 여전히 반응하는가
+- end-to-end analyze 경로가 허용 범위인가
+- heuristic 최적화가 실제로 scan 비용을 줄였는가
 
-## Available Performance Tools
+## 사용 가능한 도구
 
 - UI benchmark: `node tools/playwright_ui_benchmark.js`
-- Real UI smoke: `node tools/playwright_ui_real_smoke.js`
-- HTTP analyze baseline: `python tools/http_perf_baseline.py`
-- Heuristic same-build baseline: `python tools/http_perf_baseline.py --focus heuristic`
+- real UI smoke: `node tools/playwright_ui_real_smoke.js`
+- HTTP baseline: `python tools/http_perf_baseline.py`
+- heuristic same-build baseline: `python tools/http_perf_baseline.py --focus heuristic`
 
-## Dashboard Observability
+## 현재 UI 관측 구조
 
-The default operator dashboard now focuses on two cards:
+### 대시보드
+- compact 시스템 상태 요약만 표시
+- 최근 smoke / benchmark 한 줄 요약
+- dependency badge 요약
 
-- operations compare
-  - recent benchmark / smoke runs
-- rules / dependency health
-  - P1 enabled / total
-  - detector distribution
-  - `openpyxl`, `CtrlppCheck`, `Playwright` availability
-  - rule management panel with P1 CRUD and import / export actions
+### 설정
+- 운영 검증 상세
+  - UI benchmark
+  - UI real smoke
+  - Ctrlpp integration
+- 규칙 / 의존성 관리
 
-P3 comparison is no longer presented as a dashboard run-to-run card. It is handled from issue detail as `P1/P2 <> P3` compare in the right-side panel.
+즉, 운영 검증 상세 비교 카드는 더 이상 대시보드의 기본 카드가 아니라 `설정` 화면에 있습니다.
 
-`operations compare` is read-only. `rules / dependency health` includes limited operational editing for P1 rule configuration.
+## 프론트 기준 성능 체크
 
-## Backend Timing Signals
+### 빠른 프론트 회귀
 
-Primary runtime metrics still come from `POST /api/analyze`.
+```powershell
+npm run test:frontend
+```
 
-Important fields:
+### Real UI smoke
 
-- `metrics.timings_ms.total`
-- `metrics.timings_ms.collect`
-- `metrics.timings_ms.analyze`
-- `metrics.timings_ms.heuristic`
-- `metrics.timings_ms.report`
-- `metrics.timings_ms.excel`
+```powershell
+node tools/playwright_ui_real_smoke.js --timeout-ms 120000
+```
 
-Interpretation rule:
+현재 smoke는 다음까지 포함해 검증합니다.
+- workspace 진입
+- 결과 row 렌더링
+- code jump
+- detail / AI 경로
+- P1 triage suppress / unsuppress round-trip
 
-- Use `total` for release-facing end-to-end behavior
-- Use `analyze` and `heuristic` for scan-path changes
-- Do not judge heuristic improvements only by `total` when report / Excel cost is significant
+### UI benchmark
 
-## Heuristic Same-Build Baseline
+```powershell
+node tools/playwright_ui_benchmark.js --iterations 3
+```
 
-The heuristic-focused mode exists to avoid misleading comparisons against older historical HTTP baselines.
+## 백엔드 기준 성능 체크
 
-Run:
+### End-to-end HTTP baseline
+
+먼저 서버 실행:
 
 ```powershell
 python backend/server.py
 ```
 
-In another terminal:
-
-```powershell
-python tools/http_perf_baseline.py `
-  --focus heuristic `
-  --selected-files GoldenTime.ctl `
-  --iterations 3
-```
-
-Output is written to `docs/perf_baselines/`.
-
-Current example:
-
-- `docs/perf_baselines/http_perf_baseline_local-sample_20260308_123340.json`
-
-Expected JSON fields:
-
-- `dataset_name`
-- `selected_files`
-- `comparison_basis`
-- `metrics_focus`
-- `violation_signature`
-- `same_build_ab`
-  - `without_context_avg_ms`
-  - `with_context_avg_ms`
-  - `delta_ms`
-  - `improvement_percent`
-  - `same_findings`
-- `notes`
-
-Interpretation:
-
-- `same_findings` must stay `true`
-- `with_context_avg_ms` should be less than or equal to `without_context_avg_ms`
-- Use this result for heuristic-only optimization review
-- Do not compare this directly with 2026-02-25 historical HTTP baselines
-
-## End-to-End HTTP Baseline
-
-For release-sensitive backend changes, use the regular HTTP matrix.
-
-Run:
-
-```powershell
-python backend/server.py
-```
-
-In another terminal:
+다른 터미널:
 
 ```powershell
 python tools/http_perf_baseline.py `
@@ -122,40 +83,63 @@ python tools/http_perf_baseline.py `
   --flush-excel
 ```
 
-Use this to judge:
-
+판단 대상:
 - full request latency
-- report / Excel cost
+- report / Excel 비용
 - optional dependency overhead
 
-## Regression Rules
+### Heuristic same-build baseline
 
-Recommended rules:
+```powershell
+python tools/http_perf_baseline.py `
+  --focus heuristic `
+  --selected-files GoldenTime.ctl `
+  --iterations 3
+```
 
-- UI benchmark: treat `p95` drift over `20%` as suspicious
-- HTTP analyze baseline: treat `total`, `analyze`, or `report` drift over `20%` as suspicious unless explained
-- Heuristic same-build baseline:
+판단 규칙:
+- `same_findings=true`
+- `with_context_avg_ms <= without_context_avg_ms`
+
+## 주요 백엔드 timing field
+
+주요 필드:
+- `metrics.timings_ms.total`
+- `metrics.timings_ms.collect`
+- `metrics.timings_ms.analyze`
+- `metrics.timings_ms.heuristic`
+- `metrics.timings_ms.report`
+- `metrics.timings_ms.excel`
+
+해석 원칙:
+- release 관점: `total`
+- scan-path 관점: `analyze`, `heuristic`
+- report / Excel 비용이 큰 변경은 `report`, `excel`도 따로 본다
+
+## 권장 threshold
+
+- UI benchmark: `p95` drift 20% 이상이면 의심
+- HTTP baseline: `total`, `analyze`, `report` drift 20% 이상이면 확인
+- heuristic same-build baseline:
   - `same_findings=true`
   - `with_context_avg_ms <= without_context_avg_ms`
 
-## Noise Handling
+## 노이즈 처리
 
-- Run at least `3` iterations
-- Compare on the same machine profile
-- Keep `live_ai`, `ctrlpp`, `defer_excel_reports`, and selected file set identical
-- If one run spikes once, rerun before calling it a regression
+- 최소 `3`회 반복
+- 같은 머신 profile에서 비교
+- `live_ai`, `ctrlpp`, `defer_excel_reports`, selected file set을 맞춤
+- 단발 spike는 재실행 후 판단
 
-## Storage Convention
-
-Store performance artifacts in:
+## 산출물 저장 위치
 
 - `docs/perf_baselines/`
 - `tools/benchmark_results/`
 - `tools/integration_results/`
 
-Suggested interpretation order:
-
-1. UI benchmark
-2. UI real smoke
-3. HTTP baseline
-4. heuristic same-build baseline
+권장 확인 순서:
+1. `npm run test:frontend`
+2. `node tools/playwright_ui_real_smoke.js`
+3. `node tools/playwright_ui_benchmark.js`
+4. `python tools/http_perf_baseline.py`
+5. heuristic same-build baseline
