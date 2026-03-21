@@ -36,6 +36,7 @@ function buildWorkspaceRowSearchText(row = {}) {
         basenamePath(row && row.file),
         row && row.file,
         row && row.message,
+        row && row.ruleId,
         row && row.rule_id,
         row && row.messageSearchToken,
         ruleIds.join(" "),

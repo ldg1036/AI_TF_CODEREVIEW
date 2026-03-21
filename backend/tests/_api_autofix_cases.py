@@ -3,6 +3,94 @@ from ._api_integration_test_base import _require_openpyxl
 
 
 class ApiAutofixCasesMixin:
+    def test_on_demand_ai_review_generate_can_prepare_autofix_in_same_session(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "LIVE REVIEW\n```ctl\nif (isValid) {\n  return;\n}\n```"
+        )
+
+        analyze_status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": False, "mode": "Static"},
+        )
+        self.assertEqual(analyze_status, 200)
+        violation = ((analyze_payload.get("violations", {}) or {}).get("P1", [])[0] or {}).get("violations", [])[0]
+        session_id = str(analyze_payload.get("output_dir", "") or "")
+
+        generate_status, generate_payload = self._request(
+            "POST",
+            "/api/ai-review/generate",
+            {
+                "violation": violation,
+                "enable_live_ai": True,
+                "session_id": session_id,
+            },
+        )
+        self.assertEqual(generate_status, 200)
+        self.assertTrue(bool(generate_payload.get("available")))
+        self.assertEqual(str(generate_payload.get("session_id", "")), session_id)
+        self.assertTrue(bool(generate_payload.get("cached_session_updated")))
+        review_item = generate_payload.get("review_item", {}) or {}
+
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": review_item.get("file", "sample.ctl"),
+                "object": review_item.get("object", "sample.ctl"),
+                "event": review_item.get("event", "Global"),
+                "review": review_item.get("review", ""),
+                "issue_id": review_item.get("parent_issue_id", ""),
+                "session_id": session_id,
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        self.assertEqual(str(prepare_payload.get("generator_type", "")), "llm")
+        self.assertTrue(bool(prepare_payload.get("proposal_id")))
+
+    def test_on_demand_ai_review_generate_can_apply_reviewed_in_same_session(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "LIVE REVIEW\n```ctl\nif (isValid) {\n  return;\n}\n```"
+        )
+
+        analyze_status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": False, "mode": "Static"},
+        )
+        self.assertEqual(analyze_status, 200)
+        violation = ((analyze_payload.get("violations", {}) or {}).get("P1", [])[0] or {}).get("violations", [])[0]
+        session_id = str(analyze_payload.get("output_dir", "") or "")
+
+        generate_status, generate_payload = self._request(
+            "POST",
+            "/api/ai-review/generate",
+            {
+                "violation": violation,
+                "enable_live_ai": True,
+                "session_id": session_id,
+            },
+        )
+        self.assertEqual(generate_status, 200)
+        review_item = generate_payload.get("review_item", {}) or {}
+
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/ai-review/apply",
+            {
+                "file": review_item.get("file", "sample.ctl"),
+                "object": review_item.get("object", "sample.ctl"),
+                "event": review_item.get("event", "Global"),
+                "review": review_item.get("review", ""),
+                "output_dir": session_id,
+            },
+        )
+        self.assertEqual(apply_status, 200)
+        self.assertTrue(bool(apply_payload.get("applied")))
+        self.assertGreaterEqual(int(apply_payload.get("applied_blocks", 0) or 0), 1)
+
     def test_autofix_prepare_and_apply_ctl_diff_flow(self):
         self._force_single_internal_violation()
         self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
@@ -520,7 +608,10 @@ class ApiAutofixCasesMixin:
             )
             self.assertEqual(prepare_status, 200)
             compare_meta = prepare_payload.get("compare_meta", {})
-            self.assertEqual(compare_meta.get("selection_policy"), "instruction_validity_then_syntax_then_rule")
+            self.assertEqual(
+                compare_meta.get("selection_policy"),
+                "instruction_validity_then_syntax_then_artifact_free_then_live_llm_then_rule",
+            )
             self.assertIsInstance(compare_meta.get("selected_compare_score", {}), dict)
             self.assertGreaterEqual(int((compare_meta.get("selected_compare_score", {}) or {}).get("total", 0) or 0), 0)
             selected_pid = str(prepare_payload.get("selected_proposal_id", ""))
@@ -533,6 +624,52 @@ class ApiAutofixCasesMixin:
             self.assertEqual(str((selected or {}).get("generator_type", "")), "llm")
         finally:
             self.app._build_autofix_proposal_from_rule_template = original_rule_builder
+
+    def test_autofix_compare_selection_avoids_llm_example_artifacts(self):
+        self._force_single_internal_violation()
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "요약: 예시 코드를 그룹 호출로 바꾸세요.\n\n"
+            "코드:\n```cpp\n"
+            "setValue(\"obj_auto_sel1\", \"enabled\", false);\n"
+            "setValue(\"obj_auto_sel2\", \"enabled\", false);\n"
+            "=> setMultiValue(\"obj_auto_sel1\", \"enabled\", false,\n"
+            "                 \"obj_auto_sel2\", \"enabled\", false);\n"
+            "```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "auto",
+                "prepare_mode": "compare",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        selected_pid = str(prepare_payload.get("selected_proposal_id", ""))
+        selected = next(
+            (item for item in (prepare_payload.get("proposals") or []) if str((item or {}).get("proposal_id", "")) == selected_pid),
+            {},
+        )
+        self.assertEqual(str((selected or {}).get("generator_type", "")), "rule")
+        llm_view = next(
+            (item for item in (prepare_payload.get("proposals") or []) if str((item or {}).get("generator_type", "")) == "llm"),
+            {},
+        )
+        quality_preview = (llm_view or {}).get("quality_preview", {}) or {}
+        validation_errors = quality_preview.get("validation_errors", []) or []
+        self.assertIn("contains_example_arrow", validation_errors)
 
     def test_autofix_apply_rejects_hash_mismatch(self):
         self._force_single_internal_violation()

@@ -253,8 +253,10 @@ class LLMReviewer:
                 "1. Respond in Korean.\n"
                 "2. Keep the fix local to the shown snippet.\n"
                 "3. Do not redesign the function or add broad refactors.\n"
-                "4. Output only one short summary sentence and one cpp code block.\n"
-                "5. Avoid explanations, lists, risk sections, or extra headings.\n\n"
+                "4. Reuse the exact identifiers, datapoint names, variables, and literal values from the shown snippet.\n"
+                "5. Do not invent placeholder names, sample object paths, or before/after markers such as =>.\n"
+                "6. Output only one short summary sentence and one cpp code block.\n"
+                "7. Avoid explanations, lists, risk sections, or extra headings.\n\n"
                 "[Output Format]\n"
                 "요약: <한 문장>\n\n"
                 "코드:\n"
@@ -274,11 +276,13 @@ class LLMReviewer:
             f"{json.dumps(violations, ensure_ascii=False)}\n\n"
             "[Requirements]\n"
             "1. Respond in Korean.\n"
-            "2. Output only one short summary sentence and one code block.\n"
-            "3. Do NOT output sections such as Critical Risks, Mitigation Guidance, numbered lists, or broad code review.\n"
-            "4. Focus only on directly improving the parent finding and any linked P2 findings.\n"
-            "5. Keep the change minimal and within the parent issue scope.\n"
-            "6. Keep function/API names in original English.\n\n"
+            "2. Reuse the exact identifiers, datapoint names, variables, and literal values from the shown snippet.\n"
+            "3. Do not invent placeholder names, sample object paths, or before/after markers such as =>.\n"
+            "4. Output only one short summary sentence and one code block.\n"
+            "5. Do NOT output sections such as Critical Risks, Mitigation Guidance, numbered lists, or broad code review.\n"
+            "6. Focus only on directly improving the parent finding and any linked P2 findings.\n"
+            "7. Keep the change minimal and within the parent issue scope.\n"
+            "8. Keep function/API names in original English.\n\n"
             "[Output Format]\n"
             "요약: <한 문장>\n\n"
             "코드:\n"
@@ -294,6 +298,34 @@ class LLMReviewer:
         if not match:
             return ""
         return match.group(1).strip()
+
+    @classmethod
+    def _normalize_review_code_block(cls, text: str) -> str:
+        code = cls._extract_first_code_block(text)
+        if not code:
+            return ""
+        lines = code.splitlines()
+        if any("=>" in str(line or "") for line in lines):
+            normalized = []
+            saw_arrow = False
+            for raw in lines:
+                line = str(raw or "").rstrip()
+                stripped = line.strip()
+                if not stripped:
+                    if saw_arrow and normalized and normalized[-1] != "":
+                        normalized.append("")
+                    continue
+                if "=>" in stripped:
+                    saw_arrow = True
+                    after = stripped.split("=>", 1)[1].strip()
+                    if after:
+                        normalized.append(after)
+                    continue
+                if saw_arrow:
+                    normalized.append(line)
+            if normalized:
+                lines = normalized
+        return "\n".join(lines).strip()
 
     @staticmethod
     def _extract_summary_line(text: str) -> str:
@@ -313,7 +345,7 @@ class LLMReviewer:
 
     def _normalize_review_output(self, text: str) -> str:
         summary = self._extract_summary_line(text)
-        code = self._extract_first_code_block(text)
+        code = self._normalize_review_code_block(text)
         if not code:
             code = "// TODO: 위반 항목에 맞는 최소 수정 코드를 여기에 작성하세요."
         return f"{summary}\n\n코드:\n```cpp\n{code}\n```"

@@ -846,7 +846,11 @@ export function createWorkspaceController({ dom, state, caches, virtualState, he
         messageMeta.className = "result-message-meta";
         const metaParts = [];
         const lineNo = positiveLineOrZero(rowData && rowData.line);
-        const primaryRuleId = Array.isArray(rowData && rowData.ruleIds) ? String(rowData.ruleIds[0] || "").trim() : "";
+        const primaryRuleId = String(
+            (rowData && (rowData.ruleId || rowData.rule_id))
+            || (Array.isArray(rowData && rowData.ruleIds) ? rowData.ruleIds[0] : "")
+            || "",
+        ).trim();
         if (lineNo > 0) metaParts.push(`line ${lineNo}`);
         if (primaryRuleId) metaParts.push(primaryRuleId);
         if (Number.parseInt(rowData && rowData.duplicateCount, 10) > 1) metaParts.push(`duplicates ${Number.parseInt(rowData && rowData.duplicateCount, 10)}`);
@@ -990,10 +994,21 @@ export function createWorkspaceController({ dom, state, caches, virtualState, he
             const baseLines = Array.isArray(baseViolation._duplicate_lines) ? baseViolation._duplicate_lines : [];
             const uniqueLines = Array.from(new Set(lines.concat(baseLines).map((line) => positiveLineOrZero(line)).filter((line) => line > 0))).sort((a, b) => a - b);
             const primaryLine = positiveLineOrZero(baseViolation._primary_line || baseViolation.line) || uniqueLines[0] || 0;
-            const groupedRules = Array.from(new Set(matchedItems.map((item) => String(item.violation && item.violation.rule_id || "").trim()).filter(Boolean)));
+            const canonicalRuleId = String(baseViolation.rule_id || "").trim();
+            const groupedRules = canonicalRuleId ? [canonicalRuleId] : [];
+            matchedItems
+                .map((item) => String(item.violation && item.violation.rule_id || "").trim())
+                .filter(Boolean)
+                .forEach((ruleId) => {
+                    if (!groupedRules.includes(ruleId)) groupedRules.push(ruleId);
+                });
             const baseGroupedRules = Array.isArray(baseViolation._group_rule_ids) ? baseViolation._group_rule_ids : [];
-            groupedRules.push(...baseGroupedRules.map((value) => String(value || "").trim()).filter(Boolean));
-            if (!groupedRules.length && baseViolation.rule_id) groupedRules.push(String(baseViolation.rule_id));
+            baseGroupedRules
+                .map((value) => String(value || "").trim())
+                .filter(Boolean)
+                .forEach((ruleId) => {
+                    if (!groupedRules.includes(ruleId)) groupedRules.push(ruleId);
+                });
             const groupedMessages = Array.from(new Set(matchedItems.map((item) => String(item.violation && item.violation.message || "").trim()).filter(Boolean)));
             const baseGroupedMessages = Array.isArray(baseViolation._group_messages) ? baseViolation._group_messages : [];
             groupedMessages.push(...baseGroupedMessages.map((value) => String(value || "").trim()).filter(Boolean));
@@ -1005,11 +1020,14 @@ export function createWorkspaceController({ dom, state, caches, virtualState, he
             if (!groupedIssues.length && baseViolation.issue_id) groupedIssues.push(String(baseViolation.issue_id));
             const duplicateCountFromBase = Number.parseInt(baseViolation._duplicate_count, 10);
             const duplicateCount = Number.isFinite(duplicateCountFromBase) && duplicateCountFromBase > 0 ? duplicateCountFromBase : Math.max(1, matchedItems.length || 1);
+            const canonicalSeverity = String(baseViolation.severity || "Info");
 
             const enriched = {
                 ...baseViolation,
                 priority_origin: "P1",
                 line: primaryLine || baseViolation.line || 0,
+                rule_id: canonicalRuleId || baseViolation.rule_id || "",
+                severity: canonicalSeverity,
                 _duplicate_count: duplicateCount,
                 _duplicate_lines: uniqueLines,
                 _primary_line: primaryLine,
@@ -1027,12 +1045,14 @@ export function createWorkspaceController({ dom, state, caches, virtualState, he
                 rowId: `p1:${jumpReadyViolation.issue_id || `${jumpReadyViolation.object || "global"}:${jumpReadyViolation.line || 0}:${rowMessage}`}`,
                 source: "P1",
                 object: violationDisplayFile(baseViolation, "Global") || "Global",
-                severity: baseViolation.severity || "Info",
+                severity: canonicalSeverity,
                 message: rowMessage,
                 file: violationResolvedFile(baseViolation),
                 line: primaryLine || baseViolation.line || 0,
                 issueId: jumpReadyViolation.issue_id || "",
                 duplicateCount,
+                ruleId: String(jumpReadyViolation.rule_id || canonicalRuleId || groupedRules[0] || "").trim(),
+                rule_id: String(jumpReadyViolation.rule_id || canonicalRuleId || groupedRules[0] || "").trim(),
                 ruleIds: Array.from(new Set(groupedRules)),
                 onClick: async (selectionToken) => {
                     await runWorkspaceSelection(jumpReadyViolation, eventName || "Global", selectionToken);

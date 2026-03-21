@@ -1,0 +1,17 @@
+{
+  "started_at": "2026-03-21T12:47:16.831Z",
+  "base_url": "http://127.0.0.1:8765",
+  "artifact": "D:\\AI_TF_CODEREVIEW-main\\tools\\integration_results\\ai_prepare_recheck_20260321124716.json",
+  "generate": null,
+  "compare_before": null,
+  "compare_after": null,
+  "browser_console": [],
+  "page_errors": [],
+  "server_stdout_tail": [],
+  "server_stderr_tail": [
+    "2026-03-21 21:47:17 [INFO] __main__: Server started: http://127.0.0.1:8765"
+  ],
+  "status": "failed",
+  "error": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8765/\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:8765/\", waiting until \"domcontentloaded\"\u001b[22m\n\n    at [stdin]:29:15",
+  "finished_at": "2026-03-21T12:47:20.561Z"
+}

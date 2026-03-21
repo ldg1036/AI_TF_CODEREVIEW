@@ -1,0 +1,51 @@
+﻿{
+  "tool": "playwright_ui_real_smoke",
+  "started_at": "2026-03-21T13:18:03.604Z",
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "target_file_preference": "BenchmarkP1Fixture.ctl",
+    "timeout_ms": 180000,
+    "with_live_ai_compare_prepare": true,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "backend": {
+    "started_server": true,
+    "discovered_file_count": 4,
+    "triage_reset": {
+      "ok": true,
+      "deleted_count": 0,
+      "initial_count": 0,
+      "errors": []
+    },
+    "selected_target_file": "BenchmarkP1Fixture.ctl",
+    "triage_cleanup": {
+      "ok": true,
+      "deleted_count": 0,
+      "initial_count": 0,
+      "errors": []
+    }
+  },
+  "startupProbe": {
+    "root_ok": true,
+    "style_ok": true,
+    "renderer_ok": true,
+    "ok": true,
+    "status_codes": {
+      "root": 200,
+      "style": 200,
+      "renderer": 200
+    },
+    "errors": {}
+  },
+  "ok": false,
+  "error": "page.waitForFunction: Timeout 30000ms exceeded.\n    at runAiComparePrepareSmoke (D:\\AI_TF_CODEREVIEW-main\\tools\\perf\\playwright_ui_real_smoke.js:778:14)\n    at runSmoke (D:\\AI_TF_CODEREVIEW-main\\tools\\perf\\playwright_ui_real_smoke.js:1157:32)\n    at async main (D:\\AI_TF_CODEREVIEW-main\\tools\\perf\\playwright_ui_real_smoke.js:1335:18)",
+  "finished_at": "2026-03-21T13:18:40.455Z"
+}

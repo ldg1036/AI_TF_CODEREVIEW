@@ -55,6 +55,7 @@ class PayloadDict(TypedDict, total=False):
     report_jobs: Dict[str, Any]
     ai_review_statuses: List[Any]
     request_id: str
+    p1_config_health: Dict[str, Any]
 
 
 class CtrlppPreflightPayload(TypedDict):
@@ -463,6 +464,7 @@ class DirectoryAnalysisPipeline:
             "ai_review_statuses": self._json_clone(payload.get("ai_review_statuses", [])),
             "errors": self._json_clone(payload.get("errors", [])),
             "report_paths": self._json_clone(payload.get("report_paths", {})),
+            "p1_config_health": self._json_clone(payload.get("p1_config_health", {})),
             "output_dir": str(payload.get("output_dir", "") or output_dir),
             "request_id": str(payload.get("request_id", "") or ""),
             "file_summaries": self._build_file_summaries(payload),

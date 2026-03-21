@@ -34,3 +34,9 @@ jobs:
           path: |
             CodeReview_Report/release_gate_*.json
             CodeReview_Report/release_gate_*.md
+            CodeReview_Report/p1_rule_matrix_release_gate_*.json
+            CodeReview_Report/p1_sample_audit_release_gate_*.json
+            docs/perf_baselines/p1_rule_matrix_*.json
+            docs/perf_baselines/p1_rule_matrix_*.md
+            docs/perf_baselines/p1_sample_audit_*.json
+            docs/perf_baselines/p1_sample_audit_*.md

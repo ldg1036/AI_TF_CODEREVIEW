@@ -1,0 +1,647 @@
+﻿{
+  "tool": "playwright_ui_real_smoke",
+  "started_at": "2026-03-21T13:08:35.214Z",
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "target_file_preference": "BenchmarkP1Fixture.ctl",
+    "timeout_ms": 120000,
+    "with_live_ai_compare_prepare": false,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "backend": {
+    "started_server": true,
+    "discovered_file_count": 4,
+    "triage_reset": {
+      "ok": true,
+      "deleted_count": 0,
+      "initial_count": 0,
+      "errors": []
+    },
+    "selected_target_file": "BenchmarkP1Fixture.ctl",
+    "triage_cleanup": {
+      "ok": true,
+      "deleted_count": 0,
+      "initial_count": 0,
+      "errors": []
+    }
+  },
+  "startupProbe": {
+    "root_ok": true,
+    "style_ok": true,
+    "renderer_ok": true,
+    "ok": true,
+    "status_codes": {
+      "root": 200,
+      "style": 200,
+      "renderer": 200
+    },
+    "errors": {}
+  },
+  "run": {
+    "selection": {
+      "selectedFile": "BenchmarkP1Fixture.ctl",
+      "availableCount": 4
+    },
+    "selectionAttempts": [
+      {
+        "file": "BenchmarkP1Fixture.ctl",
+        "ctrlpp_enabled": false,
+        "outcome": "rows_rendered",
+        "review_target_count": 37,
+        "result_row_count": 37
+      }
+    ],
+    "beforeClick": {
+      "buttonFound": true,
+      "buttonRect": {
+        "x": 426,
+        "y": 249,
+        "width": 148,
+        "height": 40,
+        "top": 249,
+        "right": 574,
+        "bottom": 289,
+        "left": 426
+      },
+      "interceptingNode": {
+        "tag": "BUTTON",
+        "id": "btn-analyze",
+        "className": ""
+      }
+    },
+    "beforeAnalyzeUi": {
+      "file_list_dom_count": 4,
+      "file_list_selected_count": 1,
+      "file_list_selected_files": [
+        "BenchmarkP1Fixture.ctl"
+      ],
+      "result_row_count": 0,
+      "review_target_count": 0,
+      "result_empty_text": "",
+      "total_issues": "0",
+      "current_review_issues": "0",
+      "critical_issues": "0",
+      "warning_issues": "0",
+      "workspace_visible": false,
+      "progress_panel_visible": false,
+      "progress_status_text": "분석 중...",
+      "progress_meta_text": "0% | 0/0 파일 | ETA 계산 중 | 경과 00:00",
+      "last_renderer_error": "",
+      "renderer_diagnostics": {
+        "boot_status": "ready",
+        "file_list_status": "ready",
+        "selected_file_count": 4,
+        "result_row_count": 0,
+        "p1_triage_count": 0,
+        "p1_triage_error": "",
+        "workspace_code_pane_height_px": 380,
+        "workspace_resize_active": false,
+        "workspace_hidden_suppressed_count": 0,
+        "active_primary_view": "dashboard",
+        "file_list_dom_count": 4,
+        "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+        "file_list_query": ""
+      }
+    },
+    "analyzeOutcome": {
+      "outcome": "rows_rendered",
+      "sawProgress": true,
+      "snapshot": {
+        "file_list_dom_count": 4,
+        "file_list_selected_count": 1,
+        "file_list_selected_files": [
+          "BenchmarkP1Fixture.ctl"
+        ],
+        "result_row_count": 37,
+        "review_target_count": 37,
+        "result_empty_text": "",
+        "total_issues": "46",
+        "current_review_issues": "37",
+        "critical_issues": "0",
+        "warning_issues": "43",
+        "workspace_visible": true,
+        "progress_panel_visible": false,
+        "progress_status_text": "Completed | POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt | File complete",
+        "progress_meta_text": "100% | 3/3 files | ETA 00:00 | Elapsed 00:00",
+        "last_renderer_error": "",
+        "renderer_diagnostics": {
+          "boot_status": "ready",
+          "file_list_status": "ready",
+          "selected_file_count": 4,
+          "result_row_count": 37,
+          "p1_triage_count": 0,
+          "p1_triage_error": "",
+          "workspace_code_pane_height_px": 380,
+          "workspace_resize_active": false,
+          "workspace_hidden_suppressed_count": 0,
+          "active_primary_view": "workspace",
+          "file_list_dom_count": 4,
+          "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+          "file_list_query": "",
+          "analyze_status": "completed",
+          "analyze_error": "",
+          "selected_input_source_count": 0,
+          "progress_panel_visible": false,
+          "progress_status_text": "Completed | POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt | File complete",
+          "progress_meta_text": "100% | 3/3 files | ETA 00:00 | Elapsed 00:00",
+          "analyze_job_id": "eb1005d76b1e41bab037606a27d18ffa",
+          "analyze_poll_interval_ms": 500,
+          "last_analyze_progress": {
+            "total_files": 3,
+            "completed_files": 3,
+            "failed_files": 0,
+            "percent": 100,
+            "current_file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+            "phase": "analyze_file_done"
+          },
+          "last_analyze_poll": {
+            "status": "completed",
+            "request_id": "735aa3b257a147ea9521df826698c13e"
+          },
+          "last_analyze_result_summary": {
+            "total": 46,
+            "critical": 0,
+            "warning": 43,
+            "info": 3,
+            "score": 0
+          },
+          "workspace_filtered_row_count": 37
+        }
+      }
+    },
+    "triageFlow": {
+      "attempted": true,
+      "completed": true,
+      "skipped_reason": "",
+      "baseline_row_count": 37,
+      "before": {
+        "file_list_dom_count": 4,
+        "file_list_selected_count": 1,
+        "file_list_selected_files": [
+          "BenchmarkP1Fixture.ctl"
+        ],
+        "result_row_count": 37,
+        "review_target_count": 37,
+        "result_empty_text": "",
+        "total_issues": "46",
+        "current_review_issues": "37",
+        "critical_issues": "0",
+        "warning_issues": "43",
+        "workspace_visible": true,
+        "progress_panel_visible": false,
+        "progress_status_text": "Completed | POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt | File complete",
+        "progress_meta_text": "100% | 3/3 files | ETA 00:00 | Elapsed 00:00",
+        "last_renderer_error": "",
+        "renderer_diagnostics": {
+          "boot_status": "ready",
+          "file_list_status": "ready",
+          "selected_file_count": 4,
+          "result_row_count": 37,
+          "p1_triage_count": 0,
+          "p1_triage_error": "",
+          "workspace_code_pane_height_px": 380,
+          "workspace_resize_active": false,
+          "workspace_hidden_suppressed_count": 0,
+          "active_primary_view": "workspace",
+          "file_list_dom_count": 4,
+          "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+          "file_list_query": "",
+          "analyze_status": "completed",
+          "analyze_error": "",
+          "selected_input_source_count": 0,
+          "progress_panel_visible": false,
+          "progress_status_text": "Completed | POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt | File complete",
+          "progress_meta_text": "100% | 3/3 files | ETA 00:00 | Elapsed 00:00",
+          "analyze_job_id": "eb1005d76b1e41bab037606a27d18ffa",
+          "analyze_poll_interval_ms": 500,
+          "last_analyze_progress": {
+            "total_files": 3,
+            "completed_files": 3,
+            "failed_files": 0,
+            "percent": 100,
+            "current_file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+            "phase": "analyze_file_done"
+          },
+          "last_analyze_poll": {
+            "status": "completed",
+            "request_id": "735aa3b257a147ea9521df826698c13e"
+          },
+          "last_analyze_result_summary": {
+            "total": 46,
+            "critical": 0,
+            "warning": 43,
+            "info": 3,
+            "score": 0
+          },
+          "workspace_filtered_row_count": 37
+        }
+      },
+      "after_suppress": {
+        "ui": {
+          "file_list_dom_count": 4,
+          "file_list_selected_count": 1,
+          "file_list_selected_files": [
+            "BenchmarkP1Fixture.ctl"
+          ],
+          "result_row_count": 36,
+          "review_target_count": 36,
+          "result_empty_text": "",
+          "total_issues": "46",
+          "current_review_issues": "36",
+          "critical_issues": "0",
+          "warning_issues": "43",
+          "workspace_visible": true,
+          "progress_panel_visible": false,
+          "progress_status_text": "Completed | POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt | File complete",
+          "progress_meta_text": "100% | 3/3 files | ETA 00:00 | Elapsed 00:00",
+          "last_renderer_error": "",
+          "renderer_diagnostics": {
+            "boot_status": "ready",
+            "file_list_status": "ready",
+            "selected_file_count": 4,
+            "result_row_count": 36,
+            "p1_triage_count": 1,
+            "p1_triage_error": "",
+            "workspace_code_pane_height_px": 380,
+            "workspace_resize_active": false,
+            "workspace_hidden_suppressed_count": 1,
+            "active_primary_view": "workspace",
+            "file_list_dom_count": 4,
+            "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+            "file_list_query": "",
+            "analyze_status": "completed",
+            "analyze_error": "",
+            "selected_input_source_count": 0,
+            "progress_panel_visible": false,
+            "progress_status_text": "Completed | POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt | File complete",
+            "progress_meta_text": "100% | 3/3 files | ETA 00:00 | Elapsed 00:00",
+            "analyze_job_id": "eb1005d76b1e41bab037606a27d18ffa",
+            "analyze_poll_interval_ms": 500,
+            "last_analyze_progress": {
+              "total_files": 3,
+              "completed_files": 3,
+              "failed_files": 0,
+              "percent": 100,
+              "current_file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+              "phase": "analyze_file_done"
+            },
+            "last_analyze_poll": {
+              "status": "completed",
+              "request_id": "735aa3b257a147ea9521df826698c13e"
+            },
+            "last_analyze_result_summary": {
+              "total": 46,
+              "critical": 0,
+              "warning": 43,
+              "info": 3,
+              "score": 0
+            },
+            "workspace_filtered_row_count": 36
+          }
+        },
+        "triage": {
+          "section_present": true,
+          "status_text": "표시 중",
+          "feedback_text": "",
+          "reason_value": "",
+          "note_value": "",
+          "suppress_button_present": true,
+          "unsuppress_button_present": false,
+          "active_row_id": "p1:P1-COMP-01-9a2152b964",
+          "suppressed_row_count": 0,
+          "suppressed_row_ids": [],
+          "show_suppressed_checked": false
+        }
+      },
+      "after_show_suppressed": {
+        "ui": {
+          "file_list_dom_count": 4,
+          "file_list_selected_count": 1,
+          "file_list_selected_files": [
+            "BenchmarkP1Fixture.ctl"
+          ],
+          "result_row_count": 37,
+          "review_target_count": 37,
+          "result_empty_text": "",
+          "total_issues": "46",
+          "current_review_issues": "37",
+          "critical_issues": "0",
+          "warning_issues": "43",
+          "workspace_visible": true,
+          "progress_panel_visible": false,
+          "progress_status_text": "Completed | POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt | File complete",
+          "progress_meta_text": "100% | 3/3 files | ETA 00:00 | Elapsed 00:00",
+          "last_renderer_error": "",
+          "renderer_diagnostics": {
+            "boot_status": "ready",
+            "file_list_status": "ready",
+            "selected_file_count": 4,
+            "result_row_count": 37,
+            "p1_triage_count": 1,
+            "p1_triage_error": "",
+            "workspace_code_pane_height_px": 380,
+            "workspace_resize_active": false,
+            "workspace_hidden_suppressed_count": 0,
+            "active_primary_view": "workspace",
+            "file_list_dom_count": 4,
+            "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+            "file_list_query": "",
+            "analyze_status": "completed",
+            "analyze_error": "",
+            "selected_input_source_count": 0,
+            "progress_panel_visible": false,
+            "progress_status_text": "Completed | POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt | File complete",
+            "progress_meta_text": "100% | 3/3 files | ETA 00:00 | Elapsed 00:00",
+            "analyze_job_id": "eb1005d76b1e41bab037606a27d18ffa",
+            "analyze_poll_interval_ms": 500,
+            "last_analyze_progress": {
+              "total_files": 3,
+              "completed_files": 3,
+              "failed_files": 0,
+              "percent": 100,
+              "current_file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+              "phase": "analyze_file_done"
+            },
+            "last_analyze_poll": {
+              "status": "completed",
+              "request_id": "735aa3b257a147ea9521df826698c13e"
+            },
+            "last_analyze_result_summary": {
+              "total": 46,
+              "critical": 0,
+              "warning": 43,
+              "info": 3,
+              "score": 0
+            },
+            "workspace_filtered_row_count": 37
+          }
+        },
+        "triage": {
+          "section_present": true,
+          "status_text": "표시 중",
+          "feedback_text": "",
+          "reason_value": "",
+          "note_value": "",
+          "suppress_button_present": true,
+          "unsuppress_button_present": false,
+          "active_row_id": "p1:P1-COMP-01-9a2152b964",
+          "suppressed_row_count": 1,
+          "suppressed_row_ids": [
+            "p1:P1-CLEAN-DUP-01-69dda97cc0"
+          ],
+          "show_suppressed_checked": true
+        }
+      },
+      "after_unsuppress": {
+        "ui": {
+          "file_list_dom_count": 4,
+          "file_list_selected_count": 1,
+          "file_list_selected_files": [
+            "BenchmarkP1Fixture.ctl"
+          ],
+          "result_row_count": 37,
+          "review_target_count": 37,
+          "result_empty_text": "",
+          "total_issues": "46",
+          "current_review_issues": "37",
+          "critical_issues": "0",
+          "warning_issues": "43",
+          "workspace_visible": true,
+          "progress_panel_visible": false,
+          "progress_status_text": "Completed | POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt | File complete",
+          "progress_meta_text": "100% | 3/3 files | ETA 00:00 | Elapsed 00:00",
+          "last_renderer_error": "",
+          "renderer_diagnostics": {
+            "boot_status": "ready",
+            "file_list_status": "ready",
+            "selected_file_count": 4,
+            "result_row_count": 37,
+            "p1_triage_count": 0,
+            "p1_triage_error": "",
+            "workspace_code_pane_height_px": 380,
+            "workspace_resize_active": false,
+            "workspace_hidden_suppressed_count": 0,
+            "active_primary_view": "workspace",
+            "file_list_dom_count": 4,
+            "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+            "file_list_query": "",
+            "analyze_status": "completed",
+            "analyze_error": "",
+            "selected_input_source_count": 0,
+            "progress_panel_visible": false,
+            "progress_status_text": "Completed | POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt | File complete",
+            "progress_meta_text": "100% | 3/3 files | ETA 00:00 | Elapsed 00:00",
+            "analyze_job_id": "eb1005d76b1e41bab037606a27d18ffa",
+            "analyze_poll_interval_ms": 500,
+            "last_analyze_progress": {
+              "total_files": 3,
+              "completed_files": 3,
+              "failed_files": 0,
+              "percent": 100,
+              "current_file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+              "phase": "analyze_file_done"
+            },
+            "last_analyze_poll": {
+              "status": "completed",
+              "request_id": "735aa3b257a147ea9521df826698c13e"
+            },
+            "last_analyze_result_summary": {
+              "total": 46,
+              "critical": 0,
+              "warning": 43,
+              "info": 3,
+              "score": 0
+            },
+            "workspace_filtered_row_count": 37
+          }
+        },
+        "triage": {
+          "section_present": true,
+          "status_text": "표시 중",
+          "feedback_text": "",
+          "reason_value": "",
+          "note_value": "",
+          "suppress_button_present": true,
+          "unsuppress_button_present": false,
+          "active_row_id": "p1:P1-CLEAN-DUP-01-69dda97cc0",
+          "suppressed_row_count": 0,
+          "suppressed_row_ids": [],
+          "show_suppressed_checked": true
+        }
+      },
+      "selected_row_id": "p1:P1-CLEAN-DUP-01-69dda97cc0",
+      "suppressed_row_id": "p1:P1-CLEAN-DUP-01-69dda97cc0"
+    },
+    "liveAiToggle": {
+      "ok": true,
+      "checked": false
+    },
+    "aiOnDemand": {
+      "attempted": true,
+      "clicked": true,
+      "completed": true,
+      "skipped_reason": "",
+      "button_id": "btn-ai-generate",
+      "button_text_before": "추가 AI 분석",
+      "button_text_after": "추가 AI 분석",
+      "status_text": ""
+    },
+    "aiComparePrepare": {
+      "attempted": false,
+      "compare_opened": false,
+      "prepare_clicked": false,
+      "patch_ready": false,
+      "unified_view_opened": false,
+      "candidate_labels": [],
+      "selected_candidate": "",
+      "diff_excerpt": "",
+      "contains_obj_auto_sel": false,
+      "contains_arrow_marker": false,
+      "contains_placeholder_system_obj": false,
+      "contains_real_dp_names": false,
+      "skipped_reason": "optional compare/prepare smoke disabled",
+      "before": null,
+      "after": null
+    },
+    "excelOnDemand": {
+      "attempted": false,
+      "clicked": false,
+      "completed": true,
+      "skipped_reason": "excel files already available",
+      "initial": {
+        "present": true,
+        "disabled": false,
+        "button_text": "Flush Excel queue",
+        "status_text": "Excel 0/3 | pending 2 | running 1",
+        "download_button_count": 1,
+        "download_labels": [
+          "Download"
+        ]
+      },
+      "final": {
+        "present": true,
+        "disabled": false,
+        "button_text": "Flush Excel queue",
+        "status_text": "Excel 0/3 | pending 2 | running 1",
+        "download_button_count": 1,
+        "download_labels": [
+          "Download"
+        ]
+      },
+      "download_triggered": false,
+      "suggested_filename": "",
+      "download_error": ""
+    },
+    "afterRun": {
+      "file_list_dom_count": 4,
+      "file_list_selected_count": 1,
+      "file_list_selected_files": [
+        "BenchmarkP1Fixture.ctl"
+      ],
+      "result_row_count": 37,
+      "review_target_count": 37,
+      "result_empty_text": "",
+      "total_issues": "46",
+      "current_review_issues": "37",
+      "critical_issues": "0",
+      "warning_issues": "43",
+      "workspace_visible": true,
+      "progress_panel_visible": false,
+      "progress_status_text": "Completed | POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt | File complete",
+      "progress_meta_text": "100% | 3/3 files | ETA 00:00 | Elapsed 00:00",
+      "last_renderer_error": "",
+      "renderer_diagnostics": {
+        "boot_status": "ready",
+        "file_list_status": "ready",
+        "selected_file_count": 4,
+        "result_row_count": 37,
+        "p1_triage_count": 0,
+        "p1_triage_error": "",
+        "workspace_code_pane_height_px": 380,
+        "workspace_resize_active": false,
+        "workspace_hidden_suppressed_count": 0,
+        "active_primary_view": "workspace",
+        "file_list_dom_count": 4,
+        "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+        "file_list_query": "",
+        "analyze_status": "completed",
+        "analyze_error": "",
+        "selected_input_source_count": 0,
+        "progress_panel_visible": false,
+        "progress_status_text": "Completed | POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt | File complete",
+        "progress_meta_text": "100% | 3/3 files | ETA 00:00 | Elapsed 00:00",
+        "analyze_job_id": "eb1005d76b1e41bab037606a27d18ffa",
+        "analyze_poll_interval_ms": 500,
+        "last_analyze_progress": {
+          "total_files": 3,
+          "completed_files": 3,
+          "failed_files": 0,
+          "percent": 100,
+          "current_file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+          "phase": "analyze_file_done"
+        },
+        "last_analyze_poll": {
+          "status": "completed",
+          "request_id": "735aa3b257a147ea9521df826698c13e"
+        },
+        "last_analyze_result_summary": {
+          "total": 46,
+          "critical": 0,
+          "warning": 43,
+          "info": 3,
+          "score": 0
+        },
+        "workspace_filtered_row_count": 37
+      }
+    },
+    "elapsed_ms": 1563
+  },
+  "diagnostics": {
+    "console": [],
+    "page_errors": [],
+    "dialogs": [],
+    "api": {
+      "files": {
+        "status": 200,
+        "body": "{\"files\": [{\"name\": \"BenchmarkP1Fixture.ctl\", \"type\": \"ctl\", \"selectable\": true}, {\"name\": \"GoldenTime.ctl\", \"type\": \"ctl\", \"selectable\": true}, {\"name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl\", \"type\": \"pnl\", \"selectable\": true}, {\"name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt\", \"type\": \"txt\", \"selectable\": true}]}"
+      },
+      "analyze_start": {
+        "status": 202,
+        "body": "{\"job_id\": \"eb1005d76b1e41bab037606a27d18ffa\", \"status\": \"queued\", \"progress\": {\"total_files\": 4, \"completed_files\": 0, \"failed_files\": 0, \"percent\": 0, \"current_file\": \"\", \"phase\": \"queued\"}, \"poll_interval_ms\": 500, \"request_id\": \"735aa3b257a147ea9521df826698c13e\"}"
+      },
+      "analyze_status_last": {
+        "status": 200,
+        "payload": {
+          "status": "completed",
+          "error": "",
+          "request_id": "735aa3b257a147ea9521df826698c13e",
+          "progress": {
+            "total_files": 3,
+            "completed_files": 3,
+            "failed_files": 0,
+            "percent": 100,
+            "current_file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+            "phase": "analyze_file_done"
+          },
+          "result_summary": {
+            "total": 46,
+            "critical": 0,
+            "warning": 43,
+            "info": 3,
+            "score": 0
+          }
+        }
+      }
+    }
+  },
+  "ok": true,
+  "finished_at": "2026-03-21T13:08:40.488Z"
+}

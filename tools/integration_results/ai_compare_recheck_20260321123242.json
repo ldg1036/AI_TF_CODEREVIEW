@@ -1,0 +1,9 @@
+﻿{
+  "started_at": "2026-03-21T12:32:42.075Z",
+  "base_url": "http://127.0.0.1:8776",
+  "file": "BenchmarkP1Fixture.ctl",
+  "ok": false,
+  "started_server": true,
+  "error": "page.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"????\")')\u001b[22m\n\n    at [stdin]:70:16",
+  "finished_at": "2026-03-21T12:33:13.230Z"
+}

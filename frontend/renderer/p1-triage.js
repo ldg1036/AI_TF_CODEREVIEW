@@ -34,9 +34,12 @@ function normalizeTriageEntry(entryLike) {
 }
 
 export function buildP1TriageMatch(violation = {}) {
-    const primaryRuleId = Array.isArray(violation.ruleIds)
-        ? String(violation.ruleIds[0] || "").trim()
-        : String(violation.rule_id || violation.ruleId || "").trim();
+    const primaryRuleId = String(
+        violation.ruleId
+        || violation.rule_id
+        || (Array.isArray(violation.ruleIds) ? violation.ruleIds[0] : "")
+        || "",
+    ).trim();
     return {
         file: violationResolvedFile(violation, String(violation.object || "")).trim(),
         line: positiveLineOrZero(violation._primary_line || violation.line),
@@ -104,7 +107,7 @@ export function applyP1TriageToRow(row = {}, triageByKey = new Map()) {
     const meta = getP1TriageMeta({
         file: row.file,
         line: row.line,
-        rule_id: Array.isArray(row.ruleIds) ? row.ruleIds[0] : row.rule_id,
+        rule_id: row.ruleId || row.rule_id || (Array.isArray(row.ruleIds) ? row.ruleIds[0] : ""),
         message: row.message,
         issue_id: row.issueId,
         object: row.object,

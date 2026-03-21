@@ -83,6 +83,7 @@ class HeuristicChecker(
         self.allowed_rule_items = self._build_allowed_rule_items()
         self.legacy_detector_handlers = self._build_legacy_detector_handlers()
         self.p1_rule_defs = self._load_p1_rule_defs(rules_path)
+        self.p1_config_health = self._evaluate_p1_config_health(rules_path)
         self.item_filter_fallback_rule_ids_by_type = self._build_item_filter_fallback_rule_ids_by_type()
 
     @staticmethod
@@ -1273,45 +1274,224 @@ class HeuristicChecker(
             )
         return findings
 
-    def check_event(self, event_data: Dict, file_type: str = "Client") -> List[Dict]:
-        violations = []
-        code = event_data["code"]
-        analysis_code = self._remove_comments(code)
-        event_name = event_data["event"]
-        base_line = int(event_data.get("line_start", 1) or 1)
-        analysis_context = self._build_analysis_context(analysis_code)
-        anchor_line = self._first_function_line(analysis_code, context=analysis_context)
+    def check_style_name_rules(self, code: str) -> List[Dict]:
+        findings = []
+        lines = code.splitlines()
+        function_start = len(lines) + 1
+        for idx, line in enumerate(lines, 1):
+            stripped = line.strip()
+            if re.match(
+                r"^(?:main|void|int|float|string|bool|mapping|time|anytype|dyn_[a-zA-Z0-9_]+)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(",
+                stripped,
+            ) or re.match(r"^main\s*\(", stripped):
+                function_start = idx
+                break
 
-        if len(analysis_code) > 300000:
-            return [
+        has_function_signature = function_start <= len(lines)
+        generic_global_names = {"name", "path", "file", "data", "temp", "value", "result", "ret", "flag", "count", "idx", "list", "map", "buffer"}
+        decl_pattern = re.compile(
+            r"^\s*(const\s+)?(?:int|float|string|bool|mapping|time|anytype|dyn_[a-zA-Z0-9_]+)\s+([a-zA-Z_][a-zA-Z0-9_]*)"
+        )
+
+        for idx, line in enumerate(lines, 1):
+            stripped = line.strip()
+            if not stripped or stripped.startswith("//"):
+                continue
+            if re.match(r"^\s*(?:void|int|float|string|bool|mapping|time|anytype|dyn_[a-zA-Z0-9_]+)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(", stripped) or re.match(r"^\s*main\s*\(", stripped):
+                continue
+            match = decl_pattern.match(stripped)
+            if not match:
+                continue
+
+            is_const = bool(match.group(1))
+            name = match.group(2)
+            is_global = idx < function_start
+
+            if is_const and not name.startswith("g_") and not re.fullmatch(r"[A-Z][A-Z0-9_]*", name):
+                findings.append(
+                    {
+                        "rule_id": "STYLE-NAME-01",
+                        "rule_item": "명명 규칙 및 코딩 스타일 준수 확인",
+                        "severity": "Low",
+                        "line": idx,
+                        "message": f"상수 명명 규칙 위반 가능성: '{name}' (UPPER_SNAKE 권장).",
+                    }
+                )
+                break
+
+            if (
+                has_function_signature
+                and is_global
+                and not is_const
+                and not name.startswith("g_")
+                and (len(name) <= 8 or name.lower() in generic_global_names)
+            ):
+                findings.append(
+                    {
+                        "rule_id": "STYLE-NAME-01",
+                        "rule_item": "명명 규칙 및 코딩 스타일 준수 확인",
+                        "severity": "Low",
+                        "line": idx,
+                        "message": f"전역 변수 명명 규칙 위반 가능성: '{name}' (g_ 접두사 권장).",
+                    }
+                )
+                break
+
+            if (
+                re.search(r"(cfg|config)", name, re.IGNORECASE)
+                and not name.startswith(("cfg_", "g_"))
+                and not re.search(r"(?:_file|_filename|_path|_list)$", name, re.IGNORECASE)
+                and re.search(r"\b(?:strsplit|paCfgReadValue|paCfgReadValueList|load_config|config_file|raw_config_list)\b", code, re.IGNORECASE)
+            ):
+                findings.append(
+                    {
+                        "rule_id": "STYLE-NAME-01",
+                        "rule_item": "명명 규칙 및 코딩 스타일 준수 확인",
+                        "severity": "Low",
+                        "line": idx,
+                        "message": f"설정 변수 명명 규칙 위반 가능성: '{name}' (cfg_ 접두사 권장).",
+                    }
+                )
+                break
+
+        return findings
+
+    def check_config_format_consistency(self, code: str) -> List[Dict]:
+        findings = []
+        if not self._has_strong_config_context(code):
+            return findings
+        if "strsplit" not in code:
+            return findings
+
+        split_calls = self._collect_strsplit_calls(code)
+        delimiters_by_source: Dict[str, set[str]] = {}
+        for source, delimiter in split_calls:
+            delimiters_by_source.setdefault(source, set()).add(delimiter)
+        if any(len(delimiters) >= 2 for delimiters in delimiters_by_source.values()):
+            line = self._line_from_offset(code, code.find("strsplit"), base_line=1)
+            findings.append(
                 {
-                    "issue_id": "INFO-SIZE",
-                    "rule_id": "INFO",
-                    "rule_item": "시스템 보호",
-                    "severity": "Info",
-                    "line": 0,
-                    "message": f"파일 크기가 너무 커서 ({len(analysis_code)} bytes) 정밀 분석을 건너뜁니다.",
+                    "rule_id": "CFG-01",
+                    "rule_item": "config 항목 정합성 확인",
+                    "severity": "Warning",
+                    "line": line,
+                    "message": "config 파싱 형식 불일치 가능성, delimiter/필드수 검증 권장.",
                 }
-            ]
-
-        if self.p1_rule_defs:
-            configured = self._run_configured_p1_rules(
-                code=code,
-                analysis_code=analysis_code,
-                event_name=event_name,
-                base_line=base_line,
-                anchor_line=anchor_line,
-                file_type=file_type,
-                context=analysis_context,
             )
-            dedup = {v["issue_id"]: v for v in configured}
-            dedup_list = list(dedup.values())
-            return self._filter_violations_by_file_type(dedup_list, file_type=file_type)
+            return findings
+
+        has_parts_access = bool(re.search(r"\b(?:parts|tokens|fields)\s*\[\s*\d+\s*\]", code))
+        has_len_check = bool(
+            re.search(r"\b(?:dynlen|len)\s*\(\s*(?:parts|tokens|fields)\s*\)\s*(?:<|<=|>|>=|==|!=)\s*\d+", code)
+        )
+        if has_parts_access and not has_len_check:
+            line = self._line_from_offset(code, re.search(r"\b(?:parts|tokens|fields)\s*\[\s*\d+\s*\]", code).start(), 1)
+            findings.append(
+                {
+                    "rule_id": "CFG-01",
+                    "rule_item": "config 항목 정합성 확인",
+                    "severity": "Warning",
+                    "line": line,
+                    "message": "config 파싱 형식 불일치 가능성, delimiter/필드수 검증 권장.",
+                }
+            )
+        return findings
+
+    def check_division_zero_guard(self, code: str) -> List[Dict]:
+        findings = []
+        if not self._has_strong_config_context(code):
+            return findings
+        lines = code.splitlines()
+        for idx, line in enumerate(lines, 1):
+            sanitized = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'', '""', line)
+            if "/" not in sanitized:
+                continue
+            if re.search(r"//", sanitized):
+                continue
+            if re.search(r"\bmax\s*\(\s*1\s*,", sanitized, re.IGNORECASE):
+                continue
+            if re.search(r"\?.*/.*:", sanitized):
+                continue
+
+            for match in re.finditer(r"/\s*((?:\([^)]+\)\s*)*[A-Za-z_][A-Za-z0-9_]*|\([^)]+\))", sanitized):
+                denom_expr = match.group(1).strip()
+                if re.fullmatch(r"\d+(?:\.\d+)?", denom_expr):
+                    continue
+                denom_vars = [
+                    token
+                    for token in re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", denom_expr)
+                    if token.lower() not in {"float", "int", "double", "long", "bool", "string", "time", "mapping", "dyn_anytype", "dyn_float", "dyn_int", "dyn_string"}
+                ]
+                if not denom_vars:
+                    continue
+                if self._has_nearby_division_guard(lines, idx, denom_vars):
+                    continue
+
+                guard_found = False
+                for lookback in range(max(1, idx - 3), idx + 1):
+                    ctx = lines[lookback - 1]
+                    for denom in denom_vars:
+                        has_non_zero_guard = bool(
+                            re.search(rf"\b{re.escape(denom)}\b\s*!=\s*0", ctx)
+                            or re.search(rf"\b{re.escape(denom)}\b\s*(>|>=)\s*1", ctx)
+                            or re.search(rf"\b{re.escape(denom)}\b\s*(<=|==)\s*0", ctx)
+                        )
+                        has_if_guard = bool(re.search(rf"\bif\s*\([^)]*\b{re.escape(denom)}\b[^)]*\)", ctx))
+                        if has_non_zero_guard and has_if_guard:
+                            guard_found = True
+                            break
+                        if has_if_guard and re.search(r"\b(return|continue|break)\b", "\n".join(lines[lookback - 1 : min(len(lines), lookback + 2)])):
+                            guard_found = True
+                            break
+                    if guard_found:
+                        break
+
+                if guard_found:
+                    continue
+
+                findings.append(
+                    {
+                        "rule_id": "SAFE-DIV-01",
+                        "rule_item": "config 항목 정합성 확인",
+                        "severity": "Warning",
+                        "line": idx,
+                        "message": "분모 0 가능성 감지, 나눗셈 전 guard 조건 추가 권장.",
+                    }
+                )
+                return findings
+        return findings
+
+    @staticmethod
+    def _dedupe_p1_violations(violations: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        deduped: Dict[tuple, Dict[str, Any]] = {}
+        for violation in violations or []:
+            if not isinstance(violation, dict):
+                continue
+            key = (
+                str(violation.get("rule_id", "") or ""),
+                int(violation.get("line", 0) or 0),
+                str(violation.get("message", "") or ""),
+                str(violation.get("file", "") or ""),
+            )
+            if key not in deduped:
+                deduped[key] = violation
+        return list(deduped.values())
+
+    def _run_legacy_p1_rules(
+        self,
+        code: str,
+        analysis_code: str,
+        event_name: str,
+        base_line: int,
+        anchor_line: int,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict[str, Any]]:
+        violations: List[Dict[str, Any]] = []
 
         for rule_id, info in self.technical_patterns.items():
             match = re.search(info["pattern"], analysis_code, re.DOTALL | re.MULTILINE)
             if match:
-                match_line = self._line_from_offset(analysis_code, match.start(), base_line=base_line, context=analysis_context)
+                match_line = self._line_from_offset(analysis_code, match.start(), base_line=base_line, context=context)
                 violations.append(
                     {
                         "issue_id": self._build_issue_id(rule_id, analysis_code, match_line, event_name),
@@ -1362,7 +1542,7 @@ class HeuristicChecker(
             rule_name = getattr(check_func, "__name__", "")
             check_input = code if use_original else analysis_code
             if not use_original and rule_name in self._CONTEXT_AWARE_RULE_NAMES:
-                findings = check_func(check_input, context=analysis_context)
+                findings = check_func(check_input, context=context)
             else:
                 findings = check_func(check_input)
             for finding in findings:
@@ -1397,8 +1577,56 @@ class HeuristicChecker(
                 }
             )
 
-        dedup = {v["issue_id"]: v for v in violations}
-        dedup_list = list(dedup.values())
+        return violations
+
+    def check_event(self, event_data: Dict, file_type: str = "Client") -> List[Dict]:
+        violations = []
+        code = event_data["code"]
+        analysis_code = self._remove_comments(code)
+        event_name = event_data["event"]
+        base_line = int(event_data.get("line_start", 1) or 1)
+        analysis_context = self._build_analysis_context(analysis_code)
+        anchor_line = self._first_function_line(analysis_code, context=analysis_context)
+
+        if len(analysis_code) > 300000:
+            return [
+                {
+                    "issue_id": "INFO-SIZE",
+                    "rule_id": "INFO",
+                    "rule_item": "시스템 보호",
+                    "severity": "Info",
+                    "line": 0,
+                    "message": f"파일 크기가 너무 커서 ({len(analysis_code)} bytes) 정밀 분석을 건너뜁니다.",
+                }
+            ]
+
+        if self.p1_rule_defs:
+            configured = self._run_configured_p1_rules(
+                code=code,
+                analysis_code=analysis_code,
+                event_name=event_name,
+                base_line=base_line,
+                anchor_line=anchor_line,
+                file_type=file_type,
+                context=analysis_context,
+            )
+            if not bool((self.p1_config_health or {}).get("degraded", False)):
+                dedup_list = self._dedupe_p1_violations(configured)
+                return self._filter_violations_by_file_type(dedup_list, file_type=file_type)
+            violations.extend(configured)
+
+        violations.extend(
+            self._run_legacy_p1_rules(
+                code=code,
+                analysis_code=analysis_code,
+                event_name=event_name,
+                base_line=base_line,
+                anchor_line=anchor_line,
+                context=analysis_context,
+            )
+        )
+
+        dedup_list = self._dedupe_p1_violations(violations)
         return self._filter_violations_by_file_type(dedup_list, file_type=file_type)
 
     def analyze_raw_code(self, file_path: str, code: str, file_type: str = "Client") -> List[Dict]:

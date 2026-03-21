@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import re
@@ -398,6 +399,50 @@ class LiveAIReviewMixin:
             return ("dpget" in text) and self._review_has_multi_call_example(rule, review_text)
         return True
 
+    @staticmethod
+    def _domain_hint_instruction(parent_rule_id: Any) -> str:
+        rule = str(parent_rule_id or "").strip().upper()
+        shared = (
+            "반드시 focused snippet에 이미 나온 식별자, DP 이름, 변수명, literal 값을 그대로 사용하세요. "
+            "obj_auto_sel1, obj_auto_sel2, System1:Obj1 같은 placeholder를 새로 만들지 마세요. "
+            "before/after 설명이나 '=>' 마커를 출력하지 말고, 최종 수정 코드만 WinCC OA CONTROL fenced code block으로 제시하세요."
+        )
+        if rule == "PERF-SETMULTIVALUE-ADOPT-01":
+            return (
+                f"{shared} "
+                "반복된 setValue 호출이 보이면 snippet에 나온 동일한 호출들을 하나의 setMultiValue 호출로 묶어 제시하세요."
+            )
+        if rule == "PERF-GETMULTIVALUE-ADOPT-01":
+            return (
+                f"{shared} "
+                "반복된 getValue 호출이 보이면 snippet에 나온 동일한 호출들을 하나의 getMultiValue 호출로 묶어 제시하세요."
+            )
+        if rule == "PERF-DPSET-BATCH-01":
+            return (
+                f"{shared} "
+                "반복된 dpSet 호출이 보이면 dpSetWait 같은 다른 API로 바꾸지 말고, snippet에 나온 동일한 DPE/value 쌍을 하나의 grouped dpSet 호출로 묶어 제시하세요."
+            )
+        if rule == "PERF-DPGET-BATCH-01":
+            return (
+                f"{shared} "
+                "반복된 dpGet 호출이 보이면 dpGetAll 같은 다른 API로 바꾸지 말고, snippet에 나온 동일한 DPE/target 쌍을 하나의 grouped dpGet 호출로 묶어 제시하세요."
+            )
+        return ""
+
+    @staticmethod
+    def _review_has_example_artifacts(review_text: Any) -> bool:
+        text = str(review_text or "")
+        if not text:
+            return False
+        if re.search(r"(^|\n)\s*=>\s*", text):
+            return True
+        placeholder_patterns = (
+            r"\bobj_auto_sel\d+\b",
+            r"\bSystem1:Obj\d+(?:\.[A-Za-z_][\w]*)?\b",
+            r"\bbSel\d+\b",
+        )
+        return any(re.search(pattern, text, flags=re.IGNORECASE) for pattern in placeholder_patterns)
+
     def _resolve_violation_target_path(self, violation: Dict[str, Any]) -> str:
         file_path = str((violation or {}).get("file_path", "") or "").strip()
         file_name = str((violation or {}).get("file", "") or "").strip()
@@ -465,6 +510,7 @@ class LiveAIReviewMixin:
         enable_live_ai: Optional[bool] = None,
         ai_model_name: Optional[str] = None,
         ai_with_context: bool = False,
+        output_dir: Optional[str] = None,
         request_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         if not isinstance(violation, dict):
@@ -492,7 +538,8 @@ class LiveAIReviewMixin:
             parent_rule_id = context_item.get("parent_rule_id", "")
             needs_hint = self._rule_requires_domain_hint(parent_rule_id)
             has_hint = self._review_has_domain_hint(parent_rule_id, (review_item or {}).get("review", ""))
-            if review_item and needs_hint and not has_hint:
+            has_artifacts = self._review_has_example_artifacts((review_item or {}).get("review", ""))
+            if review_item and needs_hint and (not has_hint or has_artifacts):
                 reinforced = dict(context_item)
                 reinforced_todo = dict((context_item.get("todo_prompt_context") or {}))
                 hint_text = self._domain_hint_instruction(parent_rule_id)
@@ -515,7 +562,10 @@ class LiveAIReviewMixin:
                 if retried_review_item:
                     review_item = retried_review_item
                     status_meta = retried_status_meta
-                if not self._review_has_domain_hint(parent_rule_id, (review_item or {}).get("review", "")):
+                if (
+                    not self._review_has_domain_hint(parent_rule_id, (review_item or {}).get("review", ""))
+                    or self._review_has_example_artifacts((review_item or {}).get("review", ""))
+                ):
                     domain_warning = (
                         "도메인 가이드 검증 경고: 멀티 API 변환 키워드 또는 묶음 처리 코드 예시(setMultiValue/getMultiValue, dpSetWait/dpGetAll)가 부족합니다."
                     )
@@ -560,13 +610,112 @@ class LiveAIReviewMixin:
                     "parent_line": self._safe_int(context_item.get("parent_line", 0), 0),
                 }
 
-        return {
+        persisted = False
+        session_output_dir = os.path.normpath(str(output_dir or "").strip()) if str(output_dir or "").strip() else ""
+        if session_output_dir and (review_item or status_meta):
+            persisted = self._persist_generated_ai_review(
+                target_output_dir=session_output_dir,
+                violation=violation,
+                review_item=review_item,
+                status_item=status_meta,
+            )
+
+        result = {
             "request_id": str(request_id or uuid.uuid4().hex),
             "available": bool(review_item),
             "message": "P3 review generated" if review_item else str(status_meta.get("detail", "") or "P3 review unavailable"),
             "review_item": review_item,
             "status_item": status_meta,
         }
+        if session_output_dir:
+            result["session_id"] = session_output_dir
+            result["output_dir"] = session_output_dir
+            result["cached_session_updated"] = bool(persisted)
+        return result
+
+    @staticmethod
+    def _generated_ai_review_key(item: Dict[str, Any]) -> Tuple[str, str, str, str]:
+        if not isinstance(item, dict):
+            return ("", "", "", "")
+        return (
+            str(item.get("parent_issue_id", "") or "").strip(),
+            str(item.get("object", "") or "").strip(),
+            str(item.get("event", "Global") or "Global").strip(),
+            str(item.get("review", "") or "").strip(),
+        )
+
+    @staticmethod
+    def _generated_ai_status_key(item: Dict[str, Any]) -> Tuple[str, str, str, str]:
+        if not isinstance(item, dict):
+            return ("", "", "", "")
+        return (
+            str(item.get("parent_issue_id", "") or "").strip(),
+            str(item.get("status", "") or "").strip(),
+            str(item.get("reason", "") or "").strip(),
+            str(item.get("detail", "") or "").strip(),
+        )
+
+    def _persist_generated_ai_review(
+        self,
+        *,
+        target_output_dir: str,
+        violation: Dict[str, Any],
+        review_item: Optional[Dict[str, Any]],
+        status_item: Optional[Dict[str, Any]],
+    ) -> bool:
+        file_hint = str((violation or {}).get("file_path", "") or (violation or {}).get("file", "") or "").strip()
+        if not file_hint:
+            return False
+        try:
+            _session_output_dir, session, resolved_cache_key, cached = self._resolve_review_session_and_file(
+                file_name=file_hint,
+                output_dir=target_output_dir,
+            )
+        except Exception:
+            return False
+
+        report_data = cached.get("report_data")
+        if not isinstance(report_data, dict):
+            return False
+
+        file_lock = self._get_session_file_lock(session, resolved_cache_key)
+        with file_lock:
+            changed = False
+
+            if isinstance(review_item, dict):
+                ai_reviews = report_data.setdefault("ai_reviews", [])
+                if isinstance(ai_reviews, list):
+                    target_key = self._generated_ai_review_key(review_item)
+                    replace_idx = -1
+                    for idx, item in enumerate(ai_reviews):
+                        if self._generated_ai_review_key(item if isinstance(item, dict) else {}) == target_key:
+                            replace_idx = idx
+                            break
+                    if replace_idx >= 0:
+                        ai_reviews[replace_idx] = json.loads(json.dumps(review_item, ensure_ascii=False))
+                    else:
+                        ai_reviews.append(json.loads(json.dumps(review_item, ensure_ascii=False)))
+                    changed = True
+
+            if isinstance(status_item, dict):
+                ai_statuses = report_data.setdefault("ai_review_statuses", [])
+                if isinstance(ai_statuses, list):
+                    target_key = self._generated_ai_status_key(status_item)
+                    replace_idx = -1
+                    for idx, item in enumerate(ai_statuses):
+                        if self._generated_ai_status_key(item if isinstance(item, dict) else {}) == target_key:
+                            replace_idx = idx
+                            break
+                    if replace_idx >= 0:
+                        ai_statuses[replace_idx] = json.loads(json.dumps(status_item, ensure_ascii=False))
+                    else:
+                        ai_statuses.append(json.loads(json.dumps(status_item, ensure_ascii=False)))
+                    changed = True
+
+            if changed:
+                cached["updated_at"] = self._iso_now()
+                self._touch_review_session(session)
+            return changed
 
     def _build_parent_issue_contexts(
         self,

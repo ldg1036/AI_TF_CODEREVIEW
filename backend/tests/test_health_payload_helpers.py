@@ -34,19 +34,33 @@ class HealthPayloadHelpersTests(unittest.TestCase):
                 "ctrlppcheck": {"available": False},
                 "playwright": {"available": False},
             },
+            p1_config_health={
+                "mode": "degraded_fallback",
+                "degraded": True,
+                "enabled_rule_count": 2,
+                "unknown_review_rule_ids": ["MISSING-01"],
+                "unknown_review_rule_id_count": 1,
+                "unsupported_detector_ops": ["RULE-01:composite:missing_op"],
+                "reason_codes": ["unknown_rule_ids", "unsupported_detector_ops"],
+                "reason_text": "unknown_rule_ids, unsupported_detector_ops",
+            },
             generated_at_ms=123456,
         )
 
         self.assertEqual(payload["generated_at_ms"], 123456)
         self.assertEqual(payload["status"], "degraded")
         self.assertIn("CtrlppCheck missing", payload["message"])
+        self.assertIn("unknown_rule_ids", payload["message"])
         self.assertEqual(payload["rules"]["p1_total"], 3)
         self.assertEqual(payload["rules"]["p1_enabled"], 2)
+        self.assertEqual(payload["rules"]["review_applicability_unknown_rule_id_count"], 1)
         self.assertEqual(payload["rules"]["detector_counts"]["regex"], 1)
         self.assertEqual(payload["rules"]["detector_counts"]["composite"], 1)
         self.assertEqual(payload["rules"]["detector_counts"]["line_repeat"], 1)
         self.assertEqual(payload["rules"]["file_type_counts"]["Client"], 2)
         self.assertEqual(payload["rules"]["file_type_counts"]["Server"], 1)
+        self.assertTrue(payload["p1_config_health"]["degraded"])
+        self.assertEqual(payload["p1_config_health"]["mode"], "degraded_fallback")
 
     def test_summarize_operational_payloads_and_delta(self):
         benchmark_summary = summarize_ui_benchmark_payload(
@@ -80,6 +94,23 @@ class HealthPayloadHelpersTests(unittest.TestCase):
         self.assertEqual(smoke_summary["rows"], 6)
         self.assertEqual(delta["analyze_ui_avg_ms"], -30.0)
         self.assertEqual(delta["code_jump_avg_ms"], -10.0)
+
+    def test_summarize_ui_real_smoke_payload_uses_fallback_row_fields(self):
+        from_result_row_count = summarize_ui_real_smoke_payload(
+            {
+                "ok": True,
+                "run": {"elapsed_ms": 777, "afterRun": {"result_row_count": 32}},
+            }
+        )
+        from_review_target_count = summarize_ui_real_smoke_payload(
+            {
+                "ok": True,
+                "run": {"elapsed_ms": 778, "afterRun": {"review_target_count": 5}},
+            }
+        )
+
+        self.assertEqual(from_result_row_count["rows"], 32)
+        self.assertEqual(from_review_target_count["rows"], 5)
 
     def test_build_analysis_run_collection_includes_invalid_run_summary(self):
         payload = build_analysis_run_collection(

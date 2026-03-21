@@ -1,0 +1,9 @@
+﻿{
+  "started_at": "2026-03-21T12:35:30.135Z",
+  "base_url": "http://127.0.0.1:8776",
+  "file": "BenchmarkP1Fixture.ctl",
+  "ok": false,
+  "started_server": true,
+  "error": "page.waitForFunction: Timeout 30000ms exceeded.\n    at [stdin]:127:16",
+  "finished_at": "2026-03-21T12:36:08.792Z"
+}

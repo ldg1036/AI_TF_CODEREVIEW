@@ -53,6 +53,7 @@ class AIReviewHttpMixin:
         enable_live_ai = typed_body.get("enable_live_ai", None)
         ai_model_name = typed_body.get("ai_model_name", None)
         ai_with_context = typed_body.get("ai_with_context", False)
+        output_dir = typed_body.get("output_dir") or typed_body.get("session_id") or None
 
         if not isinstance(violation, dict):
             raise ValueError("violation must be an object")
@@ -62,6 +63,8 @@ class AIReviewHttpMixin:
             raise ValueError("ai_model_name must be a string when provided")
         if not isinstance(ai_with_context, bool):
             raise ValueError("ai_with_context must be a boolean")
+        if output_dir is not None and not isinstance(output_dir, str):
+            raise ValueError("output_dir/session_id must be a string when provided")
 
         logger.info(
             "AI generate request start id=%s issue_id=%s rule_id=%s",
@@ -74,6 +77,7 @@ class AIReviewHttpMixin:
             enable_live_ai=enable_live_ai,
             ai_model_name=cast(Optional[str], ai_model_name),
             ai_with_context=bool(ai_with_context),
+            output_dir=cast(Optional[str], output_dir),
             request_id=request_id,
         )
         self._send_json(HTTPStatus.OK, result)

@@ -68,6 +68,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--benchmark-code-lines", type=int, default=6000, help="Mock code lines per file")
     parser.add_argument("--ui-target-file", default="BenchmarkP1Fixture.ctl", help="Preferred real UI smoke target file")
     parser.add_argument("--with-live-ai", action="store_true", help="Run optional live AI integration check")
+    parser.add_argument("--with-live-ai-ui", action="store_true", help="Run optional Playwright live AI compare/prepare UI smoke")
     parser.add_argument("--live-ai-with-context", action="store_true", help="Request MCP context during live AI check")
     parser.add_argument("--live-ai-target-file", default="BenchmarkP1Fixture.ctl", help="Preferred file for live AI check")
     parser.add_argument("--live-ai-min-successful-files", type=int, default=1, help="Minimum successful file count for live AI gate")
@@ -92,6 +93,38 @@ def read_json(path: Path) -> Optional[Dict[str, Any]]:
         except json.JSONDecodeError:
             continue
     return None
+
+
+def capture_stdout_json_artifact(row: Dict[str, Any], artifact_path: Path) -> None:
+    stdout_full = str(row.get("_stdout_full") or "").strip()
+    if not stdout_full:
+        return
+    try:
+        payload = json.loads(stdout_full)
+    except json.JSONDecodeError:
+        return
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    artifact_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    row["artifact_path"] = str(artifact_path)
+    row["artifact_exists"] = True
+    row["artifact_json"] = payload
+
+
+def capture_generated_json_artifact(row: Dict[str, Any], prefix: str) -> None:
+    output = str(row.get("_stdout_full") or "")
+    generated_path = ""
+    for line in output.splitlines():
+        if line.startswith(prefix):
+            generated_path = line.split("=", 1)[1].strip()
+            break
+    if not generated_path:
+        return
+    artifact_path = Path(generated_path)
+    if not artifact_path.exists():
+        return
+    row["artifact_path"] = str(artifact_path)
+    row["artifact_exists"] = True
+    row["artifact_json"] = read_json(artifact_path)
 
 
 def run_command(
@@ -284,6 +317,37 @@ def evaluate_check(row: Dict[str, Any]) -> Dict[str, Any]:
             s_total = int(server.get("rule_count", -1))
             verdict["details"].append(f"client={c_match}/{c_total}, server={s_match}/{s_total}")
             verdict["ok"] = verdict["ok"] and c_match == c_total and s_match == s_total and c_total > 0 and s_total > 0
+    elif name == "p1_rule_matrix":
+        summary = artifact.get("summary") if isinstance(artifact, dict) else None
+        if isinstance(summary, dict):
+            enabled = int(summary.get("enabled_rules", -1))
+            supported = int(summary.get("supported_rules", -1))
+            unsupported = int(summary.get("unsupported_rules", -1))
+            positive_rate = float(summary.get("positive_detection_rate", 0.0) or 0.0)
+            negative_rate = float(summary.get("negative_not_detected_rate", 0.0) or 0.0)
+            mismatch_rate = float(summary.get("checker_vs_api_mismatch_rate", 0.0) or 0.0)
+            verdict["details"].append(
+                f"enabled={enabled}, supported={supported}, unsupported={unsupported}, positive={positive_rate:.2f}, negative={negative_rate:.2f}, mismatch={mismatch_rate:.2f}"
+            )
+            verdict["ok"] = (
+                verdict["ok"]
+                and enabled > 0
+                and supported == enabled
+                and unsupported == 0
+                and positive_rate >= 100.0
+                and negative_rate >= 100.0
+                and mismatch_rate == 0.0
+            )
+    elif name == "p1_sample_audit":
+        summary = artifact.get("summary") if isinstance(artifact, dict) else None
+        if isinstance(summary, dict):
+            recall = float(summary.get("macro_core_recall_pct", 0.0) or 0.0)
+            missing = int(summary.get("total_core_missing", -1))
+            unexpected = int(summary.get("unexpected_detected_rule_count", -1))
+            verdict["details"].append(
+                f"core_recall={recall:.2f}, missing={missing}, unexpected={unexpected}"
+            )
+            verdict["ok"] = verdict["ok"] and recall >= 100.0 and missing == 0 and unexpected == 0
     elif name == "ctrlpp_smoke":
         status = str(artifact.get("status", ""))
         verdict["details"].append(f"status={status}")
@@ -308,6 +372,7 @@ def evaluate_check(row: Dict[str, Any]) -> Dict[str, Any]:
         run = artifact.get("run") or {}
         after = run.get("afterRun") or {}
         before = run.get("beforeClick") or {}
+        startup_probe = artifact.get("startupProbe") or {}
         intercepting = before.get("interceptingNode") or {}
         row_count = after.get("rows")
         if row_count is None:
@@ -319,9 +384,57 @@ def evaluate_check(row: Dict[str, Any]) -> Dict[str, Any]:
         if workspace_visible is None:
             workspace_visible = after.get("workspace_visible")
         verdict["details"].append(
-            f"rows={row_count}, total={total_issues}, intercept_id={intercepting.get('id')}"
+            "rows={rows}, total={total}, intercept_id={intercept}, startup={root}/{style}/{renderer}".format(
+                rows=row_count,
+                total=total_issues,
+                intercept=intercepting.get("id"),
+                root=(startup_probe.get("status_codes") or {}).get("root"),
+                style=(startup_probe.get("status_codes") or {}).get("style"),
+                renderer=(startup_probe.get("status_codes") or {}).get("renderer"),
+            )
         )
-        verdict["ok"] = verdict["ok"] and ok and bool(workspace_visible) and int(row_count or 0) > 0
+        verdict["ok"] = (
+            verdict["ok"]
+            and ok
+            and bool(startup_probe.get("ok", True))
+            and bool(workspace_visible)
+            and int(row_count or 0) > 0
+        )
+    elif name == "live_ai_ui":
+        ok = bool(artifact.get("ok"))
+        startup_probe = artifact.get("startupProbe") or {}
+        run = artifact.get("run") or {}
+        ai_compare = run.get("aiComparePrepare") or {}
+        verdict["details"].append(
+            "startup={root}/{style}/{renderer}, compare_opened={compare}, prepare_clicked={prepare}, patch_ready={patch}, unified={unified}, real_names={real}, artifacts={artifacts}".format(
+                root=(startup_probe.get("status_codes") or {}).get("root"),
+                style=(startup_probe.get("status_codes") or {}).get("style"),
+                renderer=(startup_probe.get("status_codes") or {}).get("renderer"),
+                compare=ai_compare.get("compare_opened"),
+                prepare=ai_compare.get("prepare_clicked"),
+                patch=ai_compare.get("patch_ready"),
+                unified=ai_compare.get("unified_view_opened"),
+                real=ai_compare.get("contains_real_dp_names"),
+                artifacts=(
+                    bool(ai_compare.get("contains_obj_auto_sel"))
+                    or bool(ai_compare.get("contains_arrow_marker"))
+                    or bool(ai_compare.get("contains_placeholder_system_obj"))
+                ),
+            )
+        )
+        verdict["ok"] = (
+            verdict["ok"]
+            and ok
+            and bool(startup_probe.get("ok"))
+            and bool(ai_compare.get("compare_opened"))
+            and (bool(ai_compare.get("prepare_clicked")) or bool((ai_compare.get("before") or {}).get("patch_ready")))
+            and bool(ai_compare.get("patch_ready"))
+            and bool(ai_compare.get("unified_view_opened"))
+            and bool(ai_compare.get("contains_real_dp_names"))
+            and not bool(ai_compare.get("contains_obj_auto_sel"))
+            and not bool(ai_compare.get("contains_arrow_marker"))
+            and not bool(ai_compare.get("contains_placeholder_system_obj"))
+        )
     elif name == "live_ai":
         status = str(artifact.get("status", ""))
         summary = artifact.get("summary") or {}
@@ -417,10 +530,13 @@ def main() -> int:
     verification_artifact = artifact_dir / f"verification_summary_release_gate_{stamp_compact()}.json"
     config_alignment_artifact = artifact_dir / f"config_alignment_release_gate_{stamp_compact()}.json"
     template_coverage_artifact = artifact_dir / f"template_coverage_release_gate_{stamp_compact()}.json"
+    p1_matrix_artifact = artifact_dir / f"p1_rule_matrix_release_gate_{stamp_compact()}.json"
+    p1_sample_audit_artifact = artifact_dir / f"p1_sample_audit_release_gate_{stamp_compact()}.json"
     ctrlpp_artifact = PROJECT_ROOT / "tools" / "integration_results" / f"ctrlpp_release_gate_{stamp_compact()}.json"
     ui_benchmark_artifact = PROJECT_ROOT / "tools" / "benchmark_results" / f"ui_benchmark_release_gate_{stamp_compact()}.json"
     ui_smoke_artifact = PROJECT_ROOT / "tools" / "integration_results" / f"ui_real_smoke_release_gate_{stamp_compact()}.json"
     live_ai_artifact = PROJECT_ROOT / "tools" / "integration_results" / f"live_ai_release_gate_{stamp_compact()}.json"
+    live_ai_ui_artifact = PROJECT_ROOT / "tools" / "integration_results" / f"live_ai_ui_release_gate_{stamp_compact()}.json"
 
     checks: List[Dict[str, Any]] = []
 
@@ -432,6 +548,7 @@ def main() -> int:
                 "-m",
                 "unittest",
                 "backend.tests.test_api_and_reports",
+                "backend.tests.test_server_entrypoint",
                 "backend.tests.test_todo_rule_mining",
                 "backend.tests.test_winccoa_context_server",
                 "-v",
@@ -492,6 +609,29 @@ def main() -> int:
         template_row["artifact_json"] = read_json(generated)
         if generated.exists():
             template_coverage_artifact.write_text(generated.read_text(encoding="utf-8"), encoding="utf-8")
+
+    checks.append(
+        run_command(
+            name="p1_rule_matrix",
+            command=[args.python, "backend/tools/verify_p1_rules_matrix.py"],
+            verbose=args.verbose,
+        )
+    )
+    capture_generated_json_artifact(checks[-1], "json=")
+    if checks[-1].get("artifact_json"):
+        p1_matrix_artifact.write_text(json.dumps(checks[-1]["artifact_json"], ensure_ascii=False, indent=2), encoding="utf-8")
+        checks[-1]["artifact_path"] = str(p1_matrix_artifact)
+        checks[-1]["artifact_exists"] = True
+        checks[-1]["artifact_json"] = read_json(p1_matrix_artifact)
+
+    checks.append(
+        run_command(
+            name="p1_sample_audit",
+            command=[args.python, "backend/tools/audit_p1_sample_precision_recall.py", "--write-report"],
+            verbose=args.verbose,
+        )
+    )
+    capture_stdout_json_artifact(checks[-1], p1_sample_audit_artifact)
 
     checks.append(
         run_command(
@@ -611,6 +751,24 @@ def main() -> int:
         }
         checks.append(live_ai_row)
 
+    if args.with_live_ai_ui:
+        checks.append(
+            run_command(
+                name="live_ai_ui",
+                command=[
+                    args.node,
+                    "tools/playwright_ui_real_smoke.js",
+                    "--target-file",
+                    args.ui_target_file,
+                    "--with-live-ai-compare-prepare",
+                    "--output",
+                    str(live_ai_ui_artifact),
+                ],
+                artifact_path=live_ai_ui_artifact,
+                verbose=args.verbose,
+            )
+        )
+
     summary = summarize_checks(checks)
     payload = {
         "tool": "release_gate",
@@ -627,6 +785,7 @@ def main() -> int:
             "benchmark_code_lines": args.benchmark_code_lines,
             "ui_target_file": args.ui_target_file,
             "with_live_ai": bool(args.with_live_ai),
+            "with_live_ai_ui": bool(args.with_live_ai_ui),
             "live_ai_with_context": bool(args.live_ai_with_context),
             "live_ai_target_file": args.live_ai_target_file,
             "live_ai_min_successful_files": int(args.live_ai_min_successful_files),

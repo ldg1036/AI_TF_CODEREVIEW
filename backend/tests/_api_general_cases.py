@@ -214,6 +214,65 @@ class ApiGeneralCasesMixin:
             self.assertIn("REG-GOOD", found_first)
             self.assertEqual(found_first, found_second)
 
+    def test_temp_rule_config_marks_checker_health_degraded_for_unknown_review_rule_ids(self):
+        self._install_temp_rule_config(
+            [
+                {
+                    "rule_id": "TEST-01",
+                    "item": "test-item",
+                    "enabled": True,
+                    "file_types": ["Server"],
+                    "order": 10,
+                    "detector": {"kind": "regex", "pattern": r"DebugN"},
+                    "finding": {"severity": "Warning", "message": "debug match"},
+                }
+            ],
+            parsed_rows=[{"type": "Server", "item": "test-item"}],
+            review_applicability={
+                "items": {
+                    "broken-link": {
+                        "required_rule_ids": ["MISSING-01"],
+                    }
+                }
+            },
+        )
+
+        health = dict(getattr(self.app.checker, "p1_config_health", {}) or {})
+        self.assertTrue(bool(health.get("degraded", False)))
+        self.assertEqual(str(health.get("mode", "")), "degraded_fallback")
+        self.assertIn("unknown_rule_ids", list(health.get("reason_codes", []) or []))
+        self.assertEqual(list(health.get("unknown_review_rule_ids", []) or []), ["MISSING-01"])
+
+    def test_degraded_p1_config_runs_legacy_fallback_detection(self):
+        self._install_temp_rule_config(
+            [
+                {
+                    "rule_id": "TEST-01",
+                    "item": "test-item",
+                    "enabled": True,
+                    "file_types": ["Server"],
+                    "order": 10,
+                    "detector": {"kind": "regex", "pattern": r"DebugN"},
+                    "finding": {"severity": "Warning", "message": "debug match"},
+                }
+            ],
+            parsed_rows=[],
+            review_applicability={
+                "items": {
+                    "broken-link": {
+                        "required_rule_ids": ["MISSING-01"],
+                    }
+                }
+            },
+        )
+
+        found = self._analyze_rule_ids_for_code(
+            'main() {\n dpSet("A.B.C", 1);\n dpGet("A.B.D", x);\n }',
+            file_type="Server",
+        )
+        self.assertIn("EXC-DP-01", found)
+        self.assertIn("EXC-TRY-01", found)
+
     def test_get_api_health_deps(self):
         status, payload = self._request("GET", "/api/health/deps")
         self.assertEqual(status, 200)
@@ -251,6 +310,10 @@ class ApiGeneralCasesMixin:
         self.assertIn("regex_count", rules)
         self.assertIn("composite_count", rules)
         self.assertIn("line_repeat_count", rules)
+        self.assertIn("review_applicability_unknown_rule_id_count", rules)
+        self.assertIn("p1_config_health", payload)
+        self.assertIn("mode", payload.get("p1_config_health", {}))
+        self.assertIn("degraded", payload.get("p1_config_health", {}))
         self.assertIn("openpyxl", payload.get("dependencies", {}))
         self.assertIn("ctrlppcheck", payload.get("dependencies", {}))
         self.assertIn("playwright", payload.get("dependencies", {}))
@@ -297,6 +360,85 @@ class ApiGeneralCasesMixin:
         self.assertEqual(rows[0].get("id"), "cfg-test-01")
         self.assertTrue(bool(rows[0].get("enabled")))
         self.assertEqual(rows[1].get("detector_kind"), "composite")
+
+    def test_get_api_rules_list_reads_utf8_sig_rule_defs(self):
+        config_dir = self._install_temp_rule_config(
+            [
+                {
+                    "id": "cfg-test-01",
+                    "order": 10,
+                    "enabled": True,
+                    "file_types": ["Client"],
+                    "rule_id": "TEST-01",
+                    "item": "BOM rule",
+                    "detector": {"kind": "regex"},
+                    "finding": {"severity": "Warning", "message": "message-1"},
+                },
+            ],
+            parsed_rows=[{"type": "Client"}],
+        )
+        with open(os.path.join(config_dir, "p1_rule_defs.json"), "w", encoding="utf-8-sig") as handle:
+            json.dump(
+                [
+                    {
+                        "id": "cfg-test-01",
+                        "order": 10,
+                        "enabled": True,
+                        "file_types": ["Client"],
+                        "rule_id": "TEST-01",
+                        "item": "BOM rule",
+                        "detector": {"kind": "regex"},
+                        "finding": {"severity": "Warning", "message": "message-1"},
+                    },
+                ],
+                handle,
+                ensure_ascii=False,
+                indent=2,
+            )
+
+        status, payload = self._request("GET", "/api/rules/list")
+        self.assertEqual(status, 200)
+        self.assertEqual(len(payload.get("rules", [])), 1)
+        self.assertEqual(str((payload.get("rules", [])[0] or {}).get("rule_id", "")), "TEST-01")
+
+    def test_get_api_rules_export_reads_utf8_sig_rule_defs(self):
+        config_dir = self._install_temp_rule_config(
+            [
+                {
+                    "id": "cfg-test-01",
+                    "order": 10,
+                    "enabled": True,
+                    "file_types": ["Client"],
+                    "rule_id": "TEST-01",
+                    "item": "BOM rule",
+                    "detector": {"kind": "regex"},
+                    "finding": {"severity": "Warning", "message": "message-1"},
+                },
+            ]
+        )
+        with open(os.path.join(config_dir, "p1_rule_defs.json"), "w", encoding="utf-8-sig") as handle:
+            json.dump(
+                [
+                    {
+                        "id": "cfg-test-01",
+                        "order": 10,
+                        "enabled": True,
+                        "file_types": ["Client"],
+                        "rule_id": "TEST-01",
+                        "item": "BOM rule",
+                        "detector": {"kind": "regex"},
+                        "finding": {"severity": "Warning", "message": "message-1"},
+                    },
+                ],
+                handle,
+                ensure_ascii=False,
+                indent=2,
+            )
+
+        status, payload = self._request("GET", "/api/rules/export")
+        self.assertEqual(status, 200)
+        self.assertEqual(len(payload.get("rules", [])), 1)
+        self.assertEqual(str((payload.get("rules", [])[0] or {}).get("rule_id", "")), "TEST-01")
 
     def test_post_api_rules_update_persists_and_reloads(self):
         config_dir = self._install_temp_rule_config(
@@ -767,6 +909,34 @@ class ApiGeneralCasesMixin:
         self.assertEqual(categories.get("ui_benchmark", {}).get("latest", {}).get("source_file"), "ui_benchmark_20260101_020202.json")
         self.assertEqual(categories.get("ui_real_smoke", {}).get("latest", {}).get("selected_file"), "GoldenTime.ctl")
 
+    def test_get_api_operations_latest_uses_result_row_count_when_rows_missing(self):
+        benchmark_dir = os.path.join(self.data_dir, "benchmark_results")
+        integration_dir = os.path.join(self.data_dir, "integration_results")
+        os.makedirs(benchmark_dir, exist_ok=True)
+        os.makedirs(integration_dir, exist_ok=True)
+        self.app.operational_result_dirs = {
+            "ui_benchmark": benchmark_dir,
+            "ui_real_smoke": integration_dir,
+            "ctrlpp_integration": integration_dir,
+        }
+
+        ui_smoke = os.path.join(integration_dir, "ui_real_smoke_20260101_020202.json")
+        with open(ui_smoke, "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "ok": True,
+                    "backend": {"selected_target_file": "BenchmarkP1Fixture.ctl"},
+                    "run": {"elapsed_ms": 777, "afterRun": {"result_row_count": 32, "totalIssues": "32"}},
+                    "finished_at": "2026-01-01T02:02:02Z",
+                },
+                f,
+            )
+
+        status, payload = self._request("GET", "/api/operations/latest")
+        self.assertEqual(status, 200)
+        categories = payload.get("categories", {})
+        self.assertEqual(categories.get("ui_real_smoke", {}).get("latest", {}).get("rows"), 32)
+
     def test_get_api_analysis_diff_latest_returns_recent_compare_payload(self):
         older_dir = os.path.join(self.data_dir, "20260101_010101")
         newer_dir = os.path.join(self.data_dir, "20260101_020202")
@@ -971,6 +1141,9 @@ class ApiGeneralCasesMixin:
         self.assertIn("p1_total", payload["summary"])
         self.assertIn("p2_total", payload["summary"])
         self.assertIn("p3_total", payload["summary"])
+        self.assertIn("p1_config_health", payload)
+        self.assertIn("mode", payload.get("p1_config_health", {}))
+        self.assertIn("degraded", payload.get("p1_config_health", {}))
         self.assertIn("verification_level", payload["summary"])
         self.assertIn(payload["summary"]["verification_level"], {"CORE_ONLY", "CORE+REPORT"})
         self.assertIn("optional_dependencies", payload.get("metrics", {}))
@@ -983,6 +1156,12 @@ class ApiGeneralCasesMixin:
         self.assertIn("excel_total", payload["metrics"]["timings_ms"])
         self.assertIn("llm_calls", payload["metrics"])
         self.assertIn("convert_cache", payload["metrics"])
+        flattened_p1_total = sum(
+            len(group.get("violations", []) or [])
+            for group in (payload.get("violations", {}) or {}).get("P1", []) or []
+            if isinstance(group, dict)
+        )
+        self.assertEqual(int(payload.get("summary", {}).get("p1_total", -1)), flattened_p1_total)
         output_dir = str(payload.get("output_dir", "") or "")
         summary_path = os.path.join(output_dir, "analysis_summary.json")
         self.assertTrue(os.path.exists(summary_path))
@@ -990,6 +1169,8 @@ class ApiGeneralCasesMixin:
             summary_payload = json.load(f)
         self.assertIn("summary", summary_payload)
         self.assertIn("file_summaries", summary_payload)
+        self.assertIn("p1_config_health", summary_payload)
+        self.assertEqual(int(summary_payload.get("summary", {}).get("p1_total", -1)), flattened_p1_total)
         self.assertEqual(str(summary_payload.get("output_dir", "")), output_dir)
         self.assertEqual(str(summary_payload.get("request_id", "")), str(payload.get("request_id", "")))
 

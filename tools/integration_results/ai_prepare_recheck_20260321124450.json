@@ -1,0 +1,17 @@
+{
+  "started_at": "2026-03-21T12:44:50.738Z",
+  "base_url": "http://127.0.0.1:8765",
+  "artifact": "D:\\AI_TF_CODEREVIEW-main\\tools\\integration_results\\ai_prepare_recheck_20260321124450.json",
+  "generate": null,
+  "compare_before": null,
+  "compare_after": null,
+  "browser_console": [],
+  "page_errors": [],
+  "server_stdout_tail": [],
+  "server_stderr_tail": [
+    "2026-03-21 21:44:51 [INFO] __main__: Server started: http://127.0.0.1:8765"
+  ],
+  "status": "failed",
+  "error": "Error: server did not become ready\n    at waitForServer ([stdin]:13:180)\n    at async [stdin]:24:4",
+  "finished_at": "2026-03-21T12:46:22.992Z"
+}

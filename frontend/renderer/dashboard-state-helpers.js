@@ -179,24 +179,38 @@ export function deriveRulesHealthState({
 
     const rules = payload.rules || {};
     const deps = payload.dependencies || {};
+    const p1Health = payload.p1_config_health || {};
     const fileTypes = rules.file_type_counts || {};
     const footnoteParts = [
+        `P1_total=${Number(rules.p1_total || 0)}`,
         `Client=${Number(fileTypes.Client || 0)}`,
         `Server=${Number(fileTypes.Server || 0)}`,
     ];
+    const reasonCodes = Array.isArray(p1Health.reason_codes)
+        ? p1Health.reason_codes.filter((value) => String(value || "").trim())
+        : [];
     const message = String(payload.message || "").trim();
     if (message) {
-        footnoteParts.push(`degraded=${message}`);
+        footnoteParts.push(`status=${message}`);
+    }
+    if (reasonCodes.length) {
+        footnoteParts.push(`p1_health=${reasonCodes.join(",")}`);
+    }
+    const unsupported = Array.isArray(p1Health.unsupported_detector_ops)
+        ? p1Health.unsupported_detector_ops.filter((value) => String(value || "").trim())
+        : [];
+    if (unsupported.length) {
+        footnoteParts.push(`unsupported=${unsupported.join(", ")}`);
     }
 
     return {
         className: "rules-health-list",
         emptyMessage: "",
         summaryItems: [
-            { label: "P1 사용", value: `${Number(rules.p1_enabled || 0)}/${Number(rules.p1_total || 0)}` },
-            { label: "regex", value: `${Number(rules.regex_count || 0)}` },
-            { label: "composite", value: `${Number(rules.composite_count || 0)}` },
-            { label: "line_repeat", value: `${Number(rules.line_repeat_count || 0)}` },
+            { label: "P1 활성", value: `${Number(p1Health.enabled_rule_count ?? rules.p1_enabled ?? 0)}` },
+            { label: "미참조 rule_id", value: `${Number(p1Health.unknown_review_rule_id_count ?? rules.review_applicability_unknown_rule_id_count ?? 0)}` },
+            { label: "Degraded", value: p1Health.degraded ? "YES" : "NO" },
+            { label: "Mode", value: String(p1Health.mode || "configured") },
         ],
         dependencyBadges: [
             { label: "openpyxl", available: !!((deps.openpyxl || {}).available) },

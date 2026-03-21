@@ -1121,6 +1121,19 @@ function buildAfterRowsFromProposal(proposal) {
     return [];
 }
 
+function createDiffPaneLine(lineNo, text, kind) {
+    const row = document.createElement("div");
+    row.className = `diff-pane-line diff-pane-line-${kind || "context"}`;
+    const number = document.createElement("span");
+    number.className = "diff-pane-line-number";
+    number.textContent = lineNo > 0 ? String(lineNo) : "";
+    const content = document.createElement("span");
+    content.className = "diff-pane-line-text";
+    content.textContent = String(text || "");
+    row.append(number, content);
+    return row;
+}
+
 function createComparePreviewColumn(title, rows, kindClass = "") {
     const column = document.createElement("div");
     column.className = `ai-compare-preview-column ${kindClass}`.trim();

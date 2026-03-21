@@ -335,6 +335,58 @@ export function createAutofixAiController({ dom, state, helpers }) {
         return `${compact.slice(0, 197)}...`;
     }
 
+    function buildQualityPreviewSummaryLines(qualityPreview) {
+        const preview = (qualityPreview && typeof qualityPreview === "object") ? qualityPreview : {};
+        if (!Object.keys(preview).length) return [];
+        const boolText = (value) => (value ? "yes" : "no");
+        const lines = [];
+        const validationParts = [];
+        if (Object.prototype.hasOwnProperty.call(preview, "hash_match")) {
+            validationParts.push(`hash ${boolText(!!preview.hash_match)}`);
+        }
+        if (Object.prototype.hasOwnProperty.call(preview, "anchors_match")) {
+            validationParts.push(`anchors ${boolText(!!preview.anchors_match)}`);
+        }
+        if (Object.prototype.hasOwnProperty.call(preview, "syntax_check_passed")) {
+            validationParts.push(`syntax ${boolText(!!preview.syntax_check_passed)}`);
+        }
+        if (validationParts.length) {
+            lines.push(`Validation preview: ${validationParts.join(" | ")}`);
+        }
+        const regressionParts = [];
+        if (Object.prototype.hasOwnProperty.call(preview, "heuristic_regression_count")) {
+            regressionParts.push(`heuristic ${Number.parseInt(preview.heuristic_regression_count, 10) || 0}`);
+        }
+        if (Object.prototype.hasOwnProperty.call(preview, "ctrlpp_regression_count")) {
+            regressionParts.push(`ctrlpp ${Number.parseInt(preview.ctrlpp_regression_count, 10) || 0}`);
+        }
+        if (Object.prototype.hasOwnProperty.call(preview, "semantic_violation_count")) {
+            regressionParts.push(`semantic ${Number.parseInt(preview.semantic_violation_count, 10) || 0}`);
+        }
+        if (regressionParts.length) {
+            lines.push(`Regression preview: ${regressionParts.join(" | ")}`);
+        }
+        const modeParts = [];
+        const locatorMode = String(preview.locator_mode || "").trim();
+        const applyEngineMode = String(preview.apply_engine_mode || "").trim();
+        const instructionMode = String(preview.instruction_mode || "").trim();
+        if (locatorMode) modeParts.push(`locator ${locatorMode}`);
+        if (applyEngineMode) modeParts.push(`apply ${applyEngineMode}`);
+        if (instructionMode) modeParts.push(`instruction ${instructionMode}`);
+        if (modeParts.length) {
+            lines.push(`Execution mode: ${modeParts.join(" | ")}`);
+        }
+        const errors = Array.isArray(preview.validation_errors)
+            ? preview.validation_errors.map((item) => String(item || "").trim()).filter(Boolean)
+            : [];
+        if (errors.length) {
+            lines.push(`Validation errors: ${errors.slice(0, 2).join(" | ")}`);
+        } else if (preview.rejected_reason) {
+            lines.push(`Rejected reason: ${String(preview.rejected_reason || "").trim()}`);
+        }
+        return lines.slice(0, 4);
+    }
+
     function buildAiSummaryLines(violation, aiMatch, proposal) {
         const activeProposal = (proposal && typeof proposal === "object") ? proposal : null;
         const lines = [];
@@ -357,7 +409,7 @@ export function createAutofixAiController({ dom, state, helpers }) {
             if (fileName) lines.push(`????????? ${fileName}`);
             lines.push("No generator metadata was attached, so the source file and summary are being used as the fallback context.");
         }
-        qualityPreviewSummaryLines(activeProposal && activeProposal.quality_preview).forEach((line) => {
+        buildQualityPreviewSummaryLines(activeProposal && activeProposal.quality_preview).forEach((line) => {
             if (line) lines.push(line);
         });
         return lines.slice(0, 4);
@@ -425,8 +477,18 @@ export function createAutofixAiController({ dom, state, helpers }) {
         const fallbackProposal = proposals[0] || {};
         let selected = String(data.selected_proposal_id || "");
         if (!selected || !proposals.some((item) => String(item.proposal_id) === selected)) {
-            const ruleProposal = proposals.find((item) => String(item.generator_type || "").toLowerCase() === "rule");
-            selected = String((ruleProposal || fallbackProposal).proposal_id || "");
+            const ranked = [...proposals].sort((left, right) => {
+                const leftScore = Number.parseInt((((left || {}).compare_score || {}).total || 0), 10) || 0;
+                const rightScore = Number.parseInt((((right || {}).compare_score || {}).total || 0), 10) || 0;
+                if (rightScore !== leftScore) return rightScore - leftScore;
+                const leftLiveLlm = String((left || {}).generator_type || "").toLowerCase() === "llm"
+                    && String((left || {}).source || "").toLowerCase() === "live-ai";
+                const rightLiveLlm = String((right || {}).generator_type || "").toLowerCase() === "llm"
+                    && String((right || {}).source || "").toLowerCase() === "live-ai";
+                if (leftLiveLlm !== rightLiveLlm) return rightLiveLlm ? 1 : -1;
+                return 0;
+            });
+            selected = String(((ranked[0] || fallbackProposal).proposal_id) || "");
         }
         return {
             proposals,
@@ -591,6 +653,7 @@ export function createAutofixAiController({ dom, state, helpers }) {
             enable_live_ai: !!aiOptions.enableLiveAi,
             ai_model_name: String(aiOptions.aiModelName || ""),
             ai_with_context: !!aiOptions.aiWithContext,
+            session_id: (state.analysisData && state.analysisData.output_dir) || undefined,
         };
         const response = await fetch("/api/ai-review/generate", {
             method: "POST",
@@ -684,8 +747,20 @@ export function createAutofixAiController({ dom, state, helpers }) {
         const safeAfterRows = Array.isArray(afterRows) && afterRows.length
             ? afterRows
             : [{ lineNo: 0, text: "Could not build the after view.", kind: "placeholder" }];
-        dom.diffModalBefore.replaceChildren(...safeBeforeRows.map((item) => createDiffPaneLine(item.lineNo, item.text, item.kind)));
-        dom.diffModalAfter.replaceChildren(...safeAfterRows.map((item) => createDiffPaneLine(item.lineNo, item.text, item.kind)));
+        const makeLine = (lineNo, text, kind) => {
+            const row = document.createElement("div");
+            row.className = `diff-pane-line diff-pane-line-${kind || "context"}`;
+            const number = document.createElement("span");
+            number.className = "diff-pane-line-number";
+            number.textContent = lineNo > 0 ? String(lineNo) : "";
+            const content = document.createElement("span");
+            content.className = "diff-pane-line-text";
+            content.textContent = String(text || "");
+            row.append(number, content);
+            return row;
+        };
+        dom.diffModalBefore.replaceChildren(...safeBeforeRows.map((item) => makeLine(item.lineNo, item.text, item.kind)));
+        dom.diffModalAfter.replaceChildren(...safeAfterRows.map((item) => makeLine(item.lineNo, item.text, item.kind)));
     }
 
     async function buildDiffModalContext(violation, aiMatch, bundle, eventName) {

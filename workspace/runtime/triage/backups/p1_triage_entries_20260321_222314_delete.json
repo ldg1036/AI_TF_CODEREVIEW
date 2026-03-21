@@ -1,0 +1,20 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1774099394493,
+  "entries": [
+    {
+      "triage_key": "d:/ai_tf_codereview-main/codereview_data/benchmarkp1fixture.ctl||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||8",
+      "status": "suppressed",
+      "reason": "already reviewed in smoke",
+      "note": "triage smoke round trip",
+      "updated_at_ms": 1774099394493,
+      "match": {
+        "file": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+        "line": 8,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-0662654103"
+      }
+    }
+  ]
+}

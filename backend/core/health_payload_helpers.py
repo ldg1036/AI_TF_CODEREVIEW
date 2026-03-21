@@ -49,6 +49,7 @@ def build_rules_health_payload(
     parsed_rules: List[Dict[str, Any]],
     dependencies: Dict[str, Any],
     *,
+    p1_config_health: Optional[Dict[str, Any]] = None,
     generated_at_ms: int,
 ) -> Dict[str, Any]:
     detector_counts: Dict[str, int] = {"regex": 0, "composite": 0, "line_repeat": 0}
@@ -80,6 +81,14 @@ def build_rules_health_payload(
         dep = dependencies.get(dep_key, {}) if isinstance(dependencies, dict) else {}
         if not bool(dep.get("available", False)):
             degraded_reasons.append(dep_label)
+    normalized_p1_config_health = dict(p1_config_health) if isinstance(p1_config_health, dict) else {}
+    p1_reason_codes = [
+        str(code).strip()
+        for code in (normalized_p1_config_health.get("reason_codes", []) or [])
+        if str(code).strip()
+    ]
+    if bool(normalized_p1_config_health.get("degraded", False)):
+        degraded_reasons.extend([code for code in p1_reason_codes if code not in degraded_reasons])
 
     return {
         "available": True,
@@ -89,11 +98,26 @@ def build_rules_health_payload(
         "rules": {
             "p1_total": len([row for row in p1_rule_defs if isinstance(row, dict)]),
             "p1_enabled": enabled_count,
+            "review_applicability_unknown_rule_id_count": safe_int(
+                normalized_p1_config_health.get("unknown_review_rule_id_count", 0)
+            ),
             "detector_counts": detector_counts,
             "file_type_counts": file_type_counts,
             "regex_count": int(detector_counts.get("regex", 0)),
             "composite_count": int(detector_counts.get("composite", 0)),
             "line_repeat_count": int(detector_counts.get("line_repeat", 0)),
+        },
+        "p1_config_health": {
+            "mode": str(normalized_p1_config_health.get("mode", "configured") or "configured"),
+            "degraded": bool(normalized_p1_config_health.get("degraded", False)),
+            "enabled_rule_count": safe_int(normalized_p1_config_health.get("enabled_rule_count", enabled_count)),
+            "unknown_review_rule_ids": list(normalized_p1_config_health.get("unknown_review_rule_ids", []) or []),
+            "unknown_review_rule_id_count": safe_int(
+                normalized_p1_config_health.get("unknown_review_rule_id_count", 0)
+            ),
+            "unsupported_detector_ops": list(normalized_p1_config_health.get("unsupported_detector_ops", []) or []),
+            "reason_codes": p1_reason_codes,
+            "reason_text": str(normalized_p1_config_health.get("reason_text", "") or ""),
         },
         "dependencies": {
             "openpyxl": dependencies.get("openpyxl", {}),
@@ -127,11 +151,16 @@ def summarize_ui_benchmark_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
 def summarize_ui_real_smoke_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
     run = payload.get("run", {}) if isinstance(payload.get("run"), dict) else {}
     after_run = run.get("afterRun", {}) if isinstance(run.get("afterRun"), dict) else {}
+    rows = after_run.get("rows", None)
+    if rows in (None, ""):
+        rows = after_run.get("result_row_count", None)
+    if rows in (None, ""):
+        rows = after_run.get("review_target_count", 0)
     return {
         "status": "passed" if bool(payload.get("ok", False)) else "failed",
         "finished_at": str(payload.get("finished_at", "") or payload.get("started_at", "") or ""),
         "elapsed_ms": safe_float(run.get("elapsed_ms")),
-        "rows": int(after_run.get("rows", 0) or 0),
+        "rows": int(rows or 0),
         "total_issues": str(after_run.get("totalIssues", "") or ""),
         "selected_file": str(((payload.get("backend") or {}).get("selected_target_file", "")) or ""),
     }

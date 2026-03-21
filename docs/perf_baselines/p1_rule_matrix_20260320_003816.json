@@ -1,0 +1,52 @@
+{
+  "generated_at": "2026-03-20T00:38:16",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "summary": {
+    "enabled_rules": 1,
+    "supported_rules": 0,
+    "unsupported_rules": 1,
+    "positive_detection_rate": 0.0,
+    "negative_not_detected_rate": 0.0,
+    "checker_vs_api_mismatch_rate": 0.0,
+    "checker_vs_api_checked_rules": 0
+  },
+  "failures": {
+    "NO_POSITIVE_HIT": [],
+    "FALSE_POSITIVE_ON_NEGATIVE": [],
+    "RULE_ID_MISMATCH": [],
+    "TYPE_ROUTING_MISMATCH": [],
+    "CASE_GENERATION_UNSUPPORTED": [
+      "TEST-01"
+    ],
+    "CHECKER_API_MISMATCH": []
+  },
+  "results": [
+    {
+      "rule_id": "TEST-01",
+      "expected_rule_ids": [
+        "TEST-01",
+        "cfg-test-01"
+      ],
+      "file_type": "Client",
+      "detector_kind": "regex",
+      "detector_op": "",
+      "supported_case": false,
+      "unsupported_reason": "CASE_GENERATION_UNSUPPORTED",
+      "case_source": "unknown",
+      "case_notes": "",
+      "positive_detected": false,
+      "negative_not_detected": false,
+      "rule_id_match": false,
+      "file_type_match": false,
+      "target_positive_hit": false,
+      "target_negative_clear": false,
+      "collateral_positive_ids": [],
+      "collateral_negative_ids": [],
+      "checker_positive_ids": [],
+      "checker_negative_ids": [],
+      "api_positive_ids": [],
+      "api_negative_ids": [],
+      "checker_api_match": null
+    }
+  ]
+}

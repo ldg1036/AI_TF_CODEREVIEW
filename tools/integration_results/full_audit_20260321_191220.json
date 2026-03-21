@@ -1,0 +1,202 @@
+{
+  "generated_at": "2026-03-21T19:31:30+09:00",
+  "audit_session_dir": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_191220",
+  "server": {
+    "base_url": "http://127.0.0.1:8871",
+    "launcher": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_191220\\server_launcher.py",
+    "stdout_log": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_191220\\server_stdout.log",
+    "stderr_log": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_191220\\server_stderr.log",
+    "process_id": 32524
+  },
+  "readiness": {
+    "npx_available": true,
+    "ai_provider": "ollama",
+    "ai_model": "qwen2.5-coder:3b",
+    "ollama_url": "http://localhost:11434/api/generate",
+    "ctrlpp_installed_version": "v1.0.2",
+    "api_ai_models_available": true,
+    "api_rules_health": {
+      "p1_enabled": 42,
+      "unknown_review_rule_id_count": 0,
+      "degraded": false,
+      "mode": "configured"
+    }
+  },
+  "baseline_checks": {
+    "config_alignment": {
+      "status": "passed",
+      "unknown_rule_ids": 0,
+      "p1_enabled": 42,
+      "p1_total": 43
+    },
+    "template_coverage": {
+      "status": "passed",
+      "client_coverage_pct": 100.0,
+      "server_coverage_pct": 100.0,
+      "report": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\template_coverage_20260321_190947.json"
+    },
+    "p1_rule_matrix": {
+      "status": "passed",
+      "positive_rate_pct": 100.0,
+      "negative_rate_pct": 100.0,
+      "mismatch_rate_pct": 0.0,
+      "report": "D:\\AI_TF_CODEREVIEW-main\\docs\\perf_baselines\\p1_rule_matrix_20260321_190949.json"
+    },
+    "test_api_and_reports": {
+      "status": "passed",
+      "tests_run": 171,
+      "skipped": 1
+    },
+    "test_winccoa_context_server": {
+      "status": "passed",
+      "tests_run": 6
+    },
+    "test_frontend": {
+      "status": "passed",
+      "tests_run": 47
+    },
+    "ctrlpp_integration_smoke": {
+      "status": "passed",
+      "finding_count": 2,
+      "report": "D:\\AI_TF_CODEREVIEW-main\\tools\\integration_results\\ctrlpp_integration_20260321_101001.json"
+    },
+    "playwright_ui_real_smoke": {
+      "status": "passed",
+      "row_count_from_artifact": 32,
+      "report": "D:\\AI_TF_CODEREVIEW-main\\tools\\integration_results\\ui_real_smoke_20260321101001.json"
+    }
+  },
+  "sample_comparison": {
+    "BenchmarkP1Fixture.ctl": {
+      "manual_expected_rules": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-SETMULTIVALUE-ADOPT-01"
+      ],
+      "cli_p1_only_rules": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-SETMULTIVALUE-ADOPT-01"
+      ],
+      "cli_p1_p2_added_rules": [
+        "voidReturnValueMissingInformation"
+      ],
+      "ui_row_count_p1_only": 4,
+      "ui_row_count_p1_p2": 5,
+      "excel_match": true,
+      "manual_vs_auto": "matched",
+      "artifacts": {
+        "p1_only_summary": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_191709_152191\\analysis_summary.json",
+        "p1_p2_summary": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_191709_244476\\analysis_summary.json"
+      }
+    },
+    "GoldenTime.ctl": {
+      "manual_expected_rules": [
+        "HARD-01",
+        "HARD-03",
+        "PERF-EV-01",
+        "STYLE-IDX-01"
+      ],
+      "cli_p1_only_rules": [
+        "HARD-01",
+        "HARD-03",
+        "PERF-EV-01",
+        "STYLE-IDX-01"
+      ],
+      "cli_p1_p2_added_count": 43,
+      "ui_row_count_p1_only": 4,
+      "excel_match": true,
+      "manual_vs_auto": "matched_in_backend_but_ui_labels_wrong",
+      "artifacts": {
+        "p1_only_summary": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_191709_352290\\analysis_summary.json",
+        "p1_p2_summary": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_191709_463078\\analysis_summary.json"
+      }
+    }
+  },
+  "feature_checks": {
+    "analysis_diff_additive": {
+      "benchmark_p2_added": 1,
+      "goldentime_p2_added": 43,
+      "artifact": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_191220\\api_runs.json"
+    },
+    "excel_reports": {
+      "all_checked_runs_matched_summary_counts": true
+    },
+    "file_boundary": {
+      "raw_txt_analysis_total": 38,
+      "txt_source_view_ok": true,
+      "pnl_prefer_source_ok": true,
+      "artifact": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_191220\\api_misc_checks.json"
+    },
+    "live_ai_backend": {
+      "generate_ok": true,
+      "source": "live",
+      "artifact": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_191220\\ai_generate_benchmark.json"
+    },
+    "autofix_copy_rule_template": {
+      "prepare_ok": true,
+      "apply_status": 409,
+      "error_code": "SEMANTIC_GUARD_BLOCKED"
+    },
+    "autofix_original_live_session": {
+      "prepare_ok": true,
+      "apply_ok": true,
+      "restored_hash_match": true,
+      "artifact": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_191220\\autofix_original_benchmark_live_session.json"
+    }
+  },
+  "findings": [
+    {
+      "severity": "high",
+      "category": "UI/??? ??",
+      "title": "GoldenTime UI? ?? rule_id? REVIEW-ONLY/UNKNOWN/PERF-05? ???? ???"
+    },
+    {
+      "severity": "high",
+      "category": "UI/??? ??",
+      "title": "Benchmark UI?? EXC-DP-01 ??? EXC-TRY-01? ?? ???"
+    },
+    {
+      "severity": "high",
+      "category": "AI ??? ??",
+      "title": "UI AI ? generate? qualityPreviewSummaryLines is not defined? ???"
+    },
+    {
+      "severity": "high",
+      "category": "??? ??? ???",
+      "title": "?? ai-review/generate ??? autofix/prepare ??? ???? ?? 404? ???"
+    },
+    {
+      "severity": "medium",
+      "category": "??/?? ???",
+      "title": "rules/list? rules/export? BOM JSON ?? ??? ?? ???"
+    },
+    {
+      "severity": "medium",
+      "category": "UI/??? ??",
+      "title": "?? ?? ??? UI Real Smoke ? ?? 0?? ?? ???"
+    },
+    {
+      "severity": "medium",
+      "category": "autofix ???/?? ??",
+      "title": "?? autofix? ?? ??? ????? ?? ?? ??? ?? HARD-02 ?? ??? ???"
+    },
+    {
+      "severity": "low",
+      "category": "?? ??",
+      "title": "mixed-encoding txt/pnl ??? ????? ??? ?? ??? BOM/??? ???? ??"
+    }
+  ],
+  "overall_judgement": {
+    "rule_detection_engine": "backend core is correct for the two benchmark CTL samples",
+    "human_trust_level": "limited by frontend label/rendering defects and AI/autofix integration contract issues",
+    "pass_criteria": {
+      "manual_expected_rule_miss": 0,
+      "unexpected_critical_false_positive": 0,
+      "excel_vs_summary_mismatch": 0,
+      "autofix_restore_hash_mismatch": 0
+    }
+  }
+}

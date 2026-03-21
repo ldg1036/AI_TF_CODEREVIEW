@@ -152,6 +152,7 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
             "config_dir": config_dir,
             "p1_total": len(getattr(self.checker, "p1_rule_defs", []) or []),
             "p1_enabled": len([row for row in (getattr(self.checker, "p1_rule_defs", []) or []) if bool((row or {}).get("enabled", True))]),
+            "p1_config_health": dict(getattr(self.checker, "p1_config_health", {}) or {}),
         }
 
     def analyze_file(
@@ -449,6 +450,11 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
                     else:
                         info += 1
 
+        p1_total = sum(
+            len(group.get("violations", []) or [])
+            for group in p1_groups
+            if isinstance(group, dict)
+        )
         score = max(0, 100 - (critical * 15 + warning * 5 + info))
         return {
             "summary": {
@@ -457,12 +463,13 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
                 "warning": warning,
                 "info": info,
                 "score": score,
-                "p1_total": len(p1_groups),
+                "p1_total": p1_total,
                 "p2_total": len(p2),
                 "p3_total": len(p3),
             },
             "violations": {"P1": p1_groups, "P2": p2, "P3": p3},
             "ai_review_statuses": ai_review_statuses,
+            "p1_config_health": dict(getattr(self.checker, "p1_config_health", {}) or {}),
         }
 
     def run_directory_analysis(

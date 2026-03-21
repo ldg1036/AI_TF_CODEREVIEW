@@ -1,0 +1,2083 @@
+{
+  "generated_at": "2026-03-21T19:09:49",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "summary": {
+    "enabled_rules": 42,
+    "supported_rules": 42,
+    "unsupported_rules": 0,
+    "positive_detection_rate": 100.0,
+    "negative_not_detected_rate": 100.0,
+    "checker_vs_api_mismatch_rate": 0.0,
+    "checker_vs_api_checked_rules": 41
+  },
+  "failures": {
+    "NO_POSITIVE_HIT": [],
+    "FALSE_POSITIVE_ON_NEGATIVE": [],
+    "RULE_ID_MISMATCH": [],
+    "TYPE_ROUTING_MISMATCH": [],
+    "CASE_GENERATION_UNSUPPORTED": [],
+    "CHECKER_API_MISMATCH": []
+  },
+  "results": [
+    {
+      "rule_id": "PERF-01",
+      "expected_rule_ids": [
+        "PERF-01",
+        "cfg-perf-01"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "callback_delay_usage",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "collateral_negative_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_positive_ids": [
+        "EXC-DP-01",
+        "PERF-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_negative_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "api_positive_ids": [
+        "EXC-DP-01",
+        "PERF-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "api_negative_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-02",
+      "expected_rule_ids": [
+        "PERF-02",
+        "cfg-perf-02"
+      ],
+      "file_type": "Server",
+      "detector_kind": "regex",
+      "detector_op": "",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "regex wildcard FROM '*.**' trigger",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "PERF-02",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "PERF-02",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "HARD-01",
+      "expected_rule_ids": [
+        "HARD-01",
+        "cfg-hard-01"
+      ],
+      "file_type": "Server",
+      "detector_kind": "regex",
+      "detector_op": "",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "checker_positive_ids": [
+        "HARD-01",
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "api_positive_ids": [
+        "HARD-01",
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "DB-01",
+      "expected_rule_ids": [
+        "DB-01",
+        "cfg-db-01"
+      ],
+      "file_type": "Server",
+      "detector_kind": "regex",
+      "detector_op": "",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "DB-02",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "DB-02",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "DB-01",
+        "DB-02",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "DB-02",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "DB-01",
+        "DB-02",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "DB-02",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-02-WHERE-DPT-IN-01",
+      "expected_rule_ids": [
+        "PERF-02-WHERE-DPT-IN-01",
+        "cfg-perf-02-dpt-in-01"
+      ],
+      "file_type": "Server",
+      "detector_kind": "regex",
+      "detector_op": "",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "PERF-02-WHERE-DPT-IN-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "PERF-02-WHERE-DPT-IN-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "DB-02",
+      "expected_rule_ids": [
+        "DB-02",
+        "cfg-db-02"
+      ],
+      "file_type": "Server",
+      "detector_kind": "regex",
+      "detector_op": "",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "DB-02",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "DB-02",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "SEC-01",
+      "expected_rule_ids": [
+        "SEC-01",
+        "legacy-check_sql_injection"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "sql_injection",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "sprintf + SQL keyword + %s",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "DB-01",
+        "DB-02",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "DB-01",
+        "DB-02",
+        "SEC-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "DB-01",
+        "DB-02",
+        "SEC-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "legacy-check_complexity",
+      "expected_rule_ids": [
+        "COMP-01",
+        "COMP-02",
+        "legacy-check_complexity"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "complexity",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "line-count trigger (>500 lines) for COMP-01",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "CLEAN-DUP-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "CLEAN-DUP-01",
+        "COMP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "CLEAN-DUP-01",
+        "COMP-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "UNUSED-01",
+      "expected_rule_ids": [
+        "UNUSED-01",
+        "legacy-check_unused_variables"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "unused_variables",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "DB-ERR-01",
+      "expected_rule_ids": [
+        "DB-ERR-01",
+        "legacy-check_db_query_error"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "db_query_error",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "query call without logging",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "DB-02",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "DB-02",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "DB-02",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "DB-02",
+        "DB-ERR-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "DB-02",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "EXC-DP-01",
+      "expected_rule_ids": [
+        "EXC-DP-01",
+        "legacy-check_dp_function_exception"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "dp_function_exception",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "dp function call missing exception contract",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "CFG-01",
+      "expected_rule_ids": [
+        "CFG-01",
+        "legacy-check_config_format_consistency"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "config_format_consistency",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "same source split with conflicting delimiters",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "EXC-TRY-01",
+        "STYLE-HEADER-01",
+        "STYLE-NAME-01",
+        "UNUSED-01"
+      ],
+      "collateral_negative_ids": [
+        "CLEAN-DEAD-01",
+        "STYLE-HEADER-01",
+        "STYLE-NAME-01"
+      ],
+      "checker_positive_ids": [
+        "CFG-01",
+        "EXC-TRY-01",
+        "STYLE-HEADER-01",
+        "STYLE-NAME-01",
+        "UNUSED-01"
+      ],
+      "checker_negative_ids": [
+        "CLEAN-DEAD-01",
+        "STYLE-HEADER-01",
+        "STYLE-NAME-01"
+      ],
+      "api_positive_ids": [
+        "CFG-01",
+        "EXC-TRY-01",
+        "STYLE-HEADER-01",
+        "STYLE-NAME-01",
+        "UNUSED-01"
+      ],
+      "api_negative_ids": [
+        "CLEAN-DEAD-01",
+        "STYLE-HEADER-01",
+        "STYLE-NAME-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "CFG-ERR-01",
+      "expected_rule_ids": [
+        "CFG-ERR-01",
+        "legacy-check_config_error_contract"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "config_error_contract",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "continue without fail return",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "EXC-TRY-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "CLEAN-DEAD-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "CFG-ERR-01",
+        "EXC-TRY-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "CLEAN-DEAD-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "CFG-ERR-01",
+        "EXC-TRY-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "CLEAN-DEAD-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-03",
+      "expected_rule_ids": [
+        "PERF-03",
+        "legacy-check_while_delay_policy"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "while_delay_policy",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "collateral_negative_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_positive_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_negative_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "api_positive_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "api_negative_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-03-ACTIVE-DELAY-01",
+      "expected_rule_ids": [
+        "PERF-03-ACTIVE-DELAY-01",
+        "cfg-perf-03-active-delay-01"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "while_delay_outside_active",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-EV-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-EV-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03-ACTIVE-DELAY-01",
+        "PERF-EV-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-EV-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03-ACTIVE-DELAY-01",
+        "PERF-EV-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-EV-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-EV-01",
+      "expected_rule_ids": [
+        "PERF-EV-01",
+        "legacy-check_event_exchange_minimization"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "event_exchange_minimization",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "PERF-DPSET-BATCH-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "PERF-DPSET-BATCH-01",
+        "PERF-EV-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "PERF-DPSET-BATCH-01",
+        "PERF-EV-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-05",
+      "expected_rule_ids": [
+        "PERF-05",
+        "legacy-check_dpset_timed_context"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "dpset_timed_context",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "PERF-05",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "PERF-05",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-DPGET-BATCH-01",
+      "expected_rule_ids": [
+        "PERF-DPGET-BATCH-01",
+        "legacy-check_dpget_batch_optimization"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "dpget_batch_optimization",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "collateral_negative_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_positive_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "PERF-DPGET-BATCH-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_negative_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "api_positive_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "PERF-DPGET-BATCH-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "api_negative_ids": [
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-DPSET-BATCH-01",
+      "expected_rule_ids": [
+        "PERF-DPSET-BATCH-01",
+        "legacy-check_dpset_batch_optimization"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "dpset_batch_optimization",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "PERF-EV-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "PERF-DPSET-BATCH-01",
+        "PERF-EV-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-03",
+        "PERF-DPSET-BATCH-01",
+        "PERF-EV-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-SETVALUE-BATCH-01",
+      "expected_rule_ids": [
+        "PERF-SETVALUE-BATCH-01",
+        "legacy-check_setvalue_batch_optimization"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "setvalue_batch_optimization",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "ACTIVE-01",
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "ACTIVE-01",
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "ACTIVE-01",
+        "PERF-03",
+        "PERF-SETVALUE-BATCH-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "ACTIVE-01",
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "ACTIVE-01",
+        "PERF-03",
+        "PERF-SETVALUE-BATCH-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "ACTIVE-01",
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+      "expected_rule_ids": [
+        "PERF-SETMULTIVALUE-ADOPT-01",
+        "legacy-check_setmultivalue_adoption"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "setmultivalue_adoption",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "nearby setValue cluster without setMultiValue",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "ACTIVE-01",
+        "PERF-SETMULTIVALUE-ADOPT-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "ACTIVE-01",
+        "PERF-SETMULTIVALUE-ADOPT-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "ACTIVE-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-GETMULTIVALUE-ADOPT-01",
+      "expected_rule_ids": [
+        "PERF-GETMULTIVALUE-ADOPT-01",
+        "cfg-getmultivalue-adopt-01"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "getmultivalue_adoption",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "nearby getValue cluster without getMultiValue/cache",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "PERF-GETMULTIVALUE-ADOPT-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "PERF-GETMULTIVALUE-ADOPT-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-GETVALUE-BATCH-01",
+      "expected_rule_ids": [
+        "PERF-GETVALUE-BATCH-01",
+        "legacy-check_getvalue_batch_optimization"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "getvalue_batch_optimization",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "PERF-03",
+        "PERF-GETVALUE-BATCH-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "PERF-03",
+        "PERF-GETVALUE-BATCH-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "EXC-TRY-01",
+      "expected_rule_ids": [
+        "EXC-TRY-01",
+        "legacy-check_try_catch_for_risky_ops"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "try_catch_for_risky_ops",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "HARD-02",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "collateral_negative_ids": [
+        "ACTIVE-01",
+        "HARD-02",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "HARD-02",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_negative_ids": [
+        "ACTIVE-01",
+        "HARD-02",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "api_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "HARD-02",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "api_negative_ids": [
+        "ACTIVE-01",
+        "HARD-02",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "SAFE-DIV-01",
+      "expected_rule_ids": [
+        "SAFE-DIV-01",
+        "legacy-check_division_zero_guard"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "division_zero_guard",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "strong config parsing context division without guard",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "SAFE-DIV-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "SAFE-DIV-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "PERF-AGG-01",
+      "expected_rule_ids": [
+        "PERF-AGG-01",
+        "legacy-check_manual_aggregation_pattern"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "manual_aggregation_pattern",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "PERF-03",
+        "PERF-AGG-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "PERF-03",
+        "PERF-AGG-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "MEM-01",
+      "expected_rule_ids": [
+        "MEM-01",
+        "legacy-check_memory_leaks_advanced"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "memory_leaks_advanced",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "MEM-01",
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "MEM-01",
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "PERF-03",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "VAL-01",
+      "expected_rule_ids": [
+        "VAL-01",
+        "legacy-check_input_validation"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "input_validation",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "input source without validation helper",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_negative_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "api_negative_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "STD-01",
+      "expected_rule_ids": [
+        "STD-01",
+        "legacy-check_coding_standards_advanced"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "coding_standards_advanced",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "declaration semicolon missing",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "checker_positive_ids": [
+        "STD-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "api_positive_ids": [
+        "STD-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "STYLE-NAME-01",
+      "expected_rule_ids": [
+        "STYLE-NAME-01",
+        "legacy-check_style_name_rules"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "style_name_rules",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "generic global without g_ prefix remains a style hit",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "STYLE-HEADER-01",
+        "STYLE-NAME-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "STYLE-HEADER-01",
+        "STYLE-NAME-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "STYLE-INDENT-01",
+      "expected_rule_ids": [
+        "STYLE-INDENT-01",
+        "legacy-check_style_indent_rules"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "style_indent_mixed",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "checker_positive_ids": [
+        "STYLE-HEADER-01",
+        "STYLE-INDENT-01",
+        "UNUSED-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "api_positive_ids": [
+        "STYLE-HEADER-01",
+        "STYLE-INDENT-01",
+        "UNUSED-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "STYLE-HEADER-01",
+      "expected_rule_ids": [
+        "STYLE-HEADER-01",
+        "legacy-check_style_header_rules"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "style_header_rules",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "header comment count threshold(>=2) clear",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "UNUSED-01"
+      ],
+      "collateral_negative_ids": [
+        "UNUSED-01"
+      ],
+      "checker_positive_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "checker_negative_ids": [
+        "UNUSED-01"
+      ],
+      "api_positive_ids": [
+        "STYLE-HEADER-01",
+        "UNUSED-01"
+      ],
+      "api_negative_ids": [
+        "UNUSED-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "STYLE-IDX-01",
+      "expected_rule_ids": [
+        "STYLE-IDX-01",
+        "legacy-check_magic_index_usage"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "magic_index_usage",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "STYLE-HEADER-01",
+        "STYLE-IDX-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "STYLE-HEADER-01",
+        "STYLE-IDX-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "HARD-02",
+      "expected_rule_ids": [
+        "HARD-02",
+        "legacy-check_hardcoding_extended"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "hardcoding_extended",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "collateral_negative_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "HARD-02",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_negative_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "api_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "HARD-02",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "api_negative_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "STYLE-HEADER-01",
+        "VAL-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "HARD-03",
+      "expected_rule_ids": [
+        "HARD-03",
+        "legacy-check_float_literal_hardcoding"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "float_literal_hardcoding",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "repeated float literal hardcoding",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "HARD-03",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "HARD-03",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "CLEAN-DEAD-01",
+      "expected_rule_ids": [
+        "CLEAN-DEAD-01",
+        "legacy-check_dead_code"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "dead_code",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "CLEAN-DEAD-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "CLEAN-DEAD-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "CLEAN-DUP-01",
+      "expected_rule_ids": [
+        "CLEAN-DUP-01",
+        "cfg-clean-dup-01"
+      ],
+      "file_type": "Server",
+      "detector_kind": "line_repeat",
+      "detector_op": "",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "HARD-02",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "HARD-02",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "ACTIVE-01",
+        "CLEAN-DUP-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "HARD-02",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "HARD-02",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "ACTIVE-01",
+        "CLEAN-DUP-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "HARD-02",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "HARD-02",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "UI-BLOCK",
+      "expected_rule_ids": [
+        "UI-BLOCK",
+        "legacy-ui-block-initialize-delay"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "ui_block_initialize_delay",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "Initialize event + delay(",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [],
+      "collateral_negative_ids": [
+        "ACTIVE-01"
+      ],
+      "checker_positive_ids": [
+        "UI-BLOCK"
+      ],
+      "checker_negative_ids": [
+        "ACTIVE-01"
+      ],
+      "api_positive_ids": [],
+      "api_negative_ids": [],
+      "checker_api_match": null
+    },
+    {
+      "rule_id": "LOG-DBG-01",
+      "expected_rule_ids": [
+        "LOG-DBG-01",
+        "cfg-log-dbg-01"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "debug_logging_presence",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "trigger word exists but no writeLog/DebugN/DebugTN call",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "LOG-DBG-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "LOG-DBG-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "LOG-LEVEL-01",
+      "expected_rule_ids": [
+        "LOG-LEVEL-01",
+        "cfg-log-level-01"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "logging_level_policy",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "error trigger logged only at info level",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "LOG-LEVEL-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "LOG-LEVEL-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "ACTIVE-01",
+      "expected_rule_ids": [
+        "ACTIVE-01",
+        "cfg-active-01"
+      ],
+      "file_type": "Server",
+      "detector_kind": "composite",
+      "detector_op": "script_active_condition_check",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "op_fallback",
+      "case_notes": "",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "collateral_negative_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_negative_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_positive_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "api_negative_ids": [
+        "EXC-DP-01",
+        "STYLE-HEADER-01"
+      ],
+      "checker_api_match": true
+    },
+    {
+      "rule_id": "DUP-ACT-01",
+      "expected_rule_ids": [
+        "DUP-ACT-01",
+        "cfg-dup-act-01"
+      ],
+      "file_type": "Client",
+      "detector_kind": "composite",
+      "detector_op": "duplicate_action_handling",
+      "supported_case": true,
+      "unsupported_reason": "",
+      "case_source": "rule_catalog",
+      "case_notes": "duplicate same target/attr with no guard keyword",
+      "positive_detected": true,
+      "negative_not_detected": true,
+      "target_positive_hit": true,
+      "target_negative_clear": true,
+      "rule_id_match": true,
+      "file_type_match": true,
+      "collateral_positive_ids": [
+        "PERF-SETMULTIVALUE-ADOPT-01"
+      ],
+      "collateral_negative_ids": [
+        "PERF-SETMULTIVALUE-ADOPT-01"
+      ],
+      "checker_positive_ids": [
+        "DUP-ACT-01",
+        "PERF-SETMULTIVALUE-ADOPT-01"
+      ],
+      "checker_negative_ids": [
+        "PERF-SETMULTIVALUE-ADOPT-01"
+      ],
+      "api_positive_ids": [
+        "DUP-ACT-01",
+        "PERF-SETMULTIVALUE-ADOPT-01"
+      ],
+      "api_negative_ids": [
+        "PERF-SETMULTIVALUE-ADOPT-01"
+      ],
+      "checker_api_match": true
+    }
+  ]
+}

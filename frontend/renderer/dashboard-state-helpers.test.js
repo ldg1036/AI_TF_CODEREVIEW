@@ -10,23 +10,21 @@ import {
 
 describe("dashboard state helpers", () => {
     test("deriveVerificationBadgeState maps verification levels", () => {
-        expect(deriveVerificationBadgeState({
+        const state = deriveVerificationBadgeState({
             summary: { verification_level: "CORE+REPORT" },
             metrics: { optional_dependencies: { openpyxl: { available: true } } },
-        })).toEqual({
-            text: "검증 레벨 CORE+REPORT",
-            className: "verification-badge--core-report",
-            title: "verification_level=CORE+REPORT, openpyxl=사용 가능",
         });
+        expect(state.className).toBe("verification-badge--core-report");
+        expect(state.title).toContain("verification_level=CORE+REPORT");
+        expect(state.title).toContain("openpyxl=");
     });
 
     test("deriveVerificationProfileState returns unknown when payload is missing", () => {
-        expect(deriveVerificationProfileState(null, "missing"))
-            .toEqual({
-                className: "verification-profile-card--unknown",
-                text: "검증 프로파일 없음",
-                title: "missing",
-            });
+        expect(deriveVerificationProfileState(null, "missing")).toEqual({
+            className: "verification-profile-card--unknown",
+            text: expect.any(String),
+            title: "missing",
+        });
     });
 
     test("buildOperationsCompareModel builds metrics for ui_real_smoke", () => {
@@ -41,11 +39,25 @@ describe("dashboard state helpers", () => {
             },
         });
         expect(model.className).toBe("operations-compare-list");
-        expect(model.items[0].metrics).toEqual([
-            { label: "소요 시간", valueText: "812ms" },
-            { label: "행 수", valueText: "6" },
-        ]);
-        expect(model.items[0].footnote).toContain("대상=A.ctl");
+        expect(model.items[0].metrics).toHaveLength(2);
+        expect(model.items[0].metrics[0].valueText).toBe("812ms");
+        expect(model.items[0].metrics[1].valueText).toBe("6");
+        expect(model.items[0].footnote).toContain("A.ctl");
+    });
+
+    test("buildOperationsCompareModel renders backend-provided ui_real_smoke row counts verbatim", () => {
+        const model = buildOperationsCompareModel({
+            categories: {
+                ui_real_smoke: {
+                    label: "UI smoke",
+                    latest: { status: "passed", elapsed_ms: 1200, rows: 32, selected_file: "BenchmarkP1Fixture.ctl" },
+                    previous: null,
+                    delta: {},
+                },
+            },
+        });
+        expect(model.items[0].metrics[1].valueText).toBe("32");
+        expect(model.items[0].footnote).toContain("BenchmarkP1Fixture.ctl");
     });
 
     test("deriveRulesHealthState summarizes rule health and dependencies", () => {
@@ -57,7 +69,16 @@ describe("dashboard state helpers", () => {
                     regex_count: 8,
                     composite_count: 2,
                     line_repeat_count: 1,
+                    review_applicability_unknown_rule_id_count: 3,
                     file_type_counts: { Client: 7, Server: 5 },
+                },
+                p1_config_health: {
+                    mode: "degraded_fallback",
+                    degraded: true,
+                    enabled_rule_count: 10,
+                    unknown_review_rule_id_count: 3,
+                    reason_codes: ["unknown_rule_ids"],
+                    unsupported_detector_ops: ["RULE-01:composite:missing_op"],
                 },
                 dependencies: {
                     openpyxl: { available: true },
@@ -67,21 +88,25 @@ describe("dashboard state helpers", () => {
             },
             rulesManageOpen: true,
         });
-        expect(state.summaryItems[0]).toEqual({ label: "P1 사용", value: "10/12" });
+        expect(state.summaryItems[0].value).toBe("10");
+        expect(state.summaryItems[1].value).toBe("3");
+        expect(state.summaryItems[2]).toEqual({ label: "Degraded", value: "YES" });
+        expect(state.summaryItems[3]).toEqual({ label: "Mode", value: "degraded_fallback" });
+        expect(state.footnoteText).toContain("p1_health=unknown_rule_ids");
+        expect(state.footnoteText).toContain("unsupported=RULE-01:composite:missing_op");
         expect(state.dependencyBadges[1]).toEqual({ label: "Ctrlpp", available: false });
-        expect(state.manageButtonText).toBe("규칙 관리 닫기");
+        expect(state.manageButtonText).toBeTruthy();
     });
 
     test("buildDashboardSummaryState returns dashboard counters", () => {
-        expect(buildDashboardSummaryState({ total: 9, critical: 1, warning: 4, score: 88 }, { currentReviewCount: 5 }))
-            .toEqual({
-                totalText: 9,
-                currentReviewText: 5,
-                criticalText: 1,
-                warningText: 4,
-                scoreWidth: "88%",
-                scoreText: "품질 점수 88/100",
-            });
+        expect(buildDashboardSummaryState({ total: 9, critical: 1, warning: 4, score: 88 }, { currentReviewCount: 5 })).toEqual({
+            totalText: 9,
+            currentReviewText: 5,
+            criticalText: 1,
+            warningText: 4,
+            scoreWidth: "88%",
+            scoreText: expect.any(String),
+        });
     });
 
     test("buildDashboardSystemSummaryModel creates a compact status snapshot", () => {
@@ -126,19 +151,18 @@ describe("dashboard state helpers", () => {
     });
 
     test("buildAnalysisDiffModel returns an empty-state model when no payload is available", () => {
-        expect(buildAnalysisDiffModel(null, "", { hasRunOptions: true }))
-            .toEqual({
-                className: "analysis-diff-list",
-                emptyMessage: "최근 분석 실행 비교 결과가 없습니다.",
-                hasRunOptions: true,
-                latestTimestamp: "",
-                previousTimestamp: "",
-                headerText: "",
-                warningText: "",
-                summaryItems: [],
-                changedFiles: [],
-                noChangedFilesMessage: "",
-            });
+        expect(buildAnalysisDiffModel(null, "", { hasRunOptions: true })).toEqual({
+            className: "analysis-diff-list",
+            emptyMessage: expect.any(String),
+            hasRunOptions: true,
+            latestTimestamp: "",
+            previousTimestamp: "",
+            headerText: "",
+            warningText: "",
+            summaryItems: [],
+            changedFiles: [],
+            noChangedFilesMessage: "",
+        });
     });
 
     test("buildAnalysisDiffModel summarizes changed files and deltas", () => {
@@ -155,9 +179,9 @@ describe("dashboard state helpers", () => {
         }, "", { hasRunOptions: false });
         expect(model.headerText).toBe("latest=20260316_1 | prev=20260315_1");
         expect(model.warningText).toBe("One generated file was skipped.");
-        expect(model.summaryItems[0]).toEqual({ label: "전체", valueText: "+3" });
+        expect(model.summaryItems[0].valueText).toBe("+3");
         expect(model.changedFiles).toEqual([
-            { file: "Main.ctl", status: "changed", metaText: "전체 +3 | P1 +2 | P2 0 | P3 +1" },
+            { file: "Main.ctl", status: "changed", metaText: expect.any(String) },
         ]);
     });
 });

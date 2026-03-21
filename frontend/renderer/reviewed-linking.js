@@ -116,6 +116,56 @@ function isGroupedRuleConflict(effectiveRuleId, itemRule) {
     return isDpGetVsGetMultiConflict || isDpSetVsSetMultiConflict;
 }
 
+function sortMatchedItemsByCanonicalFit(items, effectiveRuleId, lineNo, blockMessage) {
+    const normalizedTargetRuleId = normalizeP1RuleId(effectiveRuleId);
+    const normalizedMessage = normalizeReviewedMessageKey(blockMessage);
+    const targetLine = positiveLineOrZero(lineNo);
+    const scoreItem = (item) => {
+        const violation = (item && item.violation && typeof item.violation === "object") ? item.violation : {};
+        const ruleId = normalizeP1RuleId(violation.rule_id);
+        const line = positiveLineOrZero(violation.line);
+        const message = normalizeReviewedMessageKey(violation.message);
+        let score = 0;
+        if (normalizedTargetRuleId && normalizedTargetRuleId !== "UNKNOWN" && ruleId === normalizedTargetRuleId) score += 8;
+        if (targetLine > 0 && line > 0) {
+            const delta = Math.abs(line - targetLine);
+            if (delta === 0) score += 6;
+            else if (delta <= 2) score += 4;
+            else if (delta <= 5) score += 2;
+            else if (delta <= 10) score += 1;
+        }
+        if (normalizedMessage && message && normalizedMessage === message) score += 3;
+        if (String(violation.issue_id || "").trim()) score += 1;
+        return score;
+    };
+    return [...(Array.isArray(items) ? items : [])].sort((left, right) => {
+        const scoreDiff = scoreItem(right) - scoreItem(left);
+        if (scoreDiff !== 0) return scoreDiff;
+        return positiveLineOrZero((left && left.violation && left.violation.line) || 0)
+            - positiveLineOrZero((right && right.violation && right.violation.line) || 0);
+    });
+}
+
+function buildReviewedCandidateFileKeys(reviewedFile, metaFile) {
+    const rawCandidates = [metaFile, reviewedFile];
+    const reviewedBase = basenamePath(reviewedFile);
+    if (reviewedBase) {
+        rawCandidates.push(reviewedBase);
+        if (/_reviewed\.txt$/i.test(reviewedBase)) {
+            rawCandidates.push(reviewedBase.replace(/_reviewed\.txt$/i, ".ctl"));
+        }
+        if (/\.txt$/i.test(reviewedBase) && !/\.ctl$/i.test(reviewedBase)) {
+            rawCandidates.push(reviewedBase.replace(/\.txt$/i, ".ctl"));
+        }
+    }
+    return Array.from(new Set(rawCandidates.map((value) => fileIdentityKey(value)).filter(Boolean)));
+}
+
+function matchesCandidateFileKeys(itemFileKey, candidateFileKeys) {
+    if (!Array.isArray(candidateFileKeys) || !candidateFileKeys.length) return true;
+    return candidateFileKeys.some((candidateFileKey) => sameFileIdentity(itemFileKey, candidateFileKey));
+}
+
 export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pickHigherSeverity }) {
     const flattenedP1 = buildFlattenedP1Items(p1Groups);
     const ruleSeverityById = buildRuleSeverityById(flattenedP1, pickHigherSeverity);
@@ -179,7 +229,8 @@ export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pic
             }
             const effectiveRuleId = normalizedRuleId !== "UNKNOWN" ? normalizedRuleId : inferredRuleId;
             const blockMessage = String(block.message || "").trim();
-            const secondaryKey = [fileIdentityKey(meta.file || reviewedFile), lineNo, effectiveRuleId, blockMessage].join("||");
+            const candidateFileKeys = buildReviewedCandidateFileKeys(reviewedFile, meta.file || reviewedFile);
+            const secondaryKeys = candidateFileKeys.map((fileKey) => [fileKey, lineNo, effectiveRuleId, blockMessage].join("||"));
 
             let matched = [];
             let matchedReason = "";
@@ -187,17 +238,45 @@ export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pic
                 matched = (byIssueId.get(issueId) || []).filter((item) => !usedFlatKeys.has(item.flatKey));
                 if (matched.length) matchedReason = "meta_exact";
             }
-            if (!matched.length && (lineNo > 0 || ruleId || blockMessage) && bySecondary.has(secondaryKey)) {
-                matched = (bySecondary.get(secondaryKey) || []).filter((item) => !usedFlatKeys.has(item.flatKey));
-                if (matched.length) matchedReason = "secondary_exact";
+            if (!matched.length && (lineNo > 0 || ruleId || blockMessage)) {
+                for (const secondaryKey of secondaryKeys) {
+                    if (!bySecondary.has(secondaryKey)) continue;
+                    matched = (bySecondary.get(secondaryKey) || []).filter((item) => !usedFlatKeys.has(item.flatKey));
+                    if (matched.length) {
+                        matchedReason = "secondary_exact";
+                        break;
+                    }
+                }
+                if (!matched.length) {
+                    matched = flattenedP1.filter((item) => {
+                        if (usedFlatKeys.has(item.flatKey)) return false;
+                        if (!matchesCandidateFileKeys(item.fileKey, candidateFileKeys)) return false;
+                        if (lineNo > 0 && positiveLineOrZero(item.violation.line) !== lineNo) return false;
+                        if (effectiveRuleId !== "UNKNOWN" && normalizeP1RuleId(item.violation.rule_id) !== effectiveRuleId) return false;
+                        if (blockMessage && String(item.violation.message || "").trim() !== blockMessage) return false;
+                        return true;
+                    });
+                    if (matched.length) matchedReason = "secondary_fuzzy_file";
+                }
+            }
+            if (!matched.length && effectiveRuleId !== "UNKNOWN" && candidateFileKeys.length) {
+                const ruleOnlyCandidates = flattenedP1.filter((item) => {
+                    if (usedFlatKeys.has(item.flatKey)) return false;
+                    if (!matchesCandidateFileKeys(item.fileKey, candidateFileKeys)) return false;
+                    return normalizeP1RuleId(item.violation.rule_id) === effectiveRuleId;
+                });
+                if (ruleOnlyCandidates.length === 1) {
+                    matched = ruleOnlyCandidates;
+                    matchedReason = "inferred_rule_only";
+                    mappingDiagnostics.reviewed_inferred_match_success_count += 1;
+                }
             }
             if (!matched.length && effectiveRuleId !== "UNKNOWN") {
-                const targetFile = fileIdentityKey(meta.file || reviewedFile);
                 const targetLine = lineNo > 0 ? lineNo : positiveLineOrZero(block.todo_line);
                 const inferredPrefix = p1RulePrefixGroup(effectiveRuleId);
                 const proximityCandidates = flattenedP1.filter((item) => {
                     if (usedFlatKeys.has(item.flatKey)) return false;
-                    if (fileIdentityKey(item.fileKey) !== targetFile) return false;
+                    if (!matchesCandidateFileKeys(item.fileKey, candidateFileKeys)) return false;
                     const itemRule = normalizeP1RuleId(item.violation.rule_id);
                     if (itemRule === "UNKNOWN") return false;
                     if (isGroupedRuleConflict(effectiveRuleId, itemRule)) return false;
@@ -217,8 +296,11 @@ export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pic
             }
 
             if (matched.length) {
+                matched = sortMatchedItemsByCanonicalFit(matched, effectiveRuleId, lineNo, blockMessage);
                 matched.forEach((item) => usedFlatKeys.add(item.flatKey));
                 const top = matched[0];
+                const backendRuleId = String((top && top.violation && top.violation.rule_id) || "").trim();
+                const backendSeverity = String((top && top.violation && top.violation.severity) || "").trim();
                 const representative = {
                     ...top.violation,
                     file: top.violation.file || reviewedFile,
@@ -226,9 +308,9 @@ export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pic
                     object: top.violation.object || top.rowObject || reviewedFile,
                     message: top.violation.message || blockMessage,
                     line: positiveLineOrZero(top.violation.line) || lineNo || positiveLineOrZero(block.todo_line),
-                    rule_id: top.violation.rule_id || effectiveRuleId || ruleId,
+                    rule_id: backendRuleId || effectiveRuleId || ruleId,
                     issue_id: top.violation.issue_id || issueId,
-                    severity: top.violation.severity || block.severity || "Info",
+                    severity: backendSeverity || block.severity || "Info",
                     _reviewed_todo_line: positiveLineOrZero(block.todo_line),
                     _reviewed_block_indexes: [idx + 1],
                     _reviewed_original_message: blockMessage || "",
@@ -336,9 +418,30 @@ export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pic
         });
     });
 
+    const leftoverItems = flattenedP1.filter((item) => !usedFlatKeys.has(item.flatKey));
+    leftoverItems.forEach((item) => {
+        rowPlans.push({
+            baseViolation: {
+                ...item.violation,
+                file: item.violation.file || item.fileKey,
+                file_path: item.violation.file_path || item.violation.file || item.fileKey,
+                object: item.violation.object || item.rowObject || item.fileKey,
+                line: positiveLineOrZero(item.violation.line),
+                rule_id: String(item.violation.rule_id || "").trim(),
+                severity: String(item.violation.severity || "Info"),
+            },
+            eventName: item.eventName || "Global",
+            syncState: "violation-only",
+            originLabel: "p1",
+            matchedItems: [item],
+            overrideMessage: "",
+            syncReason: "violation_only",
+        });
+    });
+
     return {
         rowPlans,
-        leftoverCount: flattenedP1.filter((item) => !usedFlatKeys.has(item.flatKey)).length,
+        leftoverCount: leftoverItems.length,
         syncedCount,
         reviewOnlyCount,
         mappingDiagnostics: {

@@ -147,6 +147,147 @@ class CheckerRuleLoaderMixin:
             print(f"[!] Error loading p1 rule defs: {e}")
             return []
 
+    @staticmethod
+    def _iter_rule_ids_from_obj(obj: Any):
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                if "rule_id" in str(key).lower():
+                    rid = str(value or "").strip()
+                    if rid:
+                        yield rid
+                yield from CheckerRuleLoaderMixin._iter_rule_ids_from_obj(value)
+        elif isinstance(obj, list):
+            for value in obj:
+                yield from CheckerRuleLoaderMixin._iter_rule_ids_from_obj(value)
+
+    def _collect_known_rule_ids(self, rule_rows: List[Dict[str, Any]]) -> set[str]:
+        known_rule_ids: set[str] = set()
+        for row in rule_rows:
+            if not isinstance(row, dict):
+                continue
+            known_rule_ids.update(self._iter_rule_ids_from_obj(row))
+        return known_rule_ids
+
+    @staticmethod
+    def _load_json_file(path: str, default: Any) -> Any:
+        try:
+            if not path or not os.path.exists(path):
+                return default
+            with open(path, "r", encoding="utf-8-sig") as handle:
+                return json.load(handle)
+        except Exception:
+            return default
+
+    def _load_review_applicability_items(self, rules_path: str) -> Dict[str, Any]:
+        cfg_dir = os.path.dirname(os.path.abspath(rules_path))
+        applicability_path = os.path.join(cfg_dir, "review_applicability.json")
+        payload = self._load_json_file(applicability_path, default={})
+        items = payload.get("items", {}) if isinstance(payload, dict) else {}
+        return items if isinstance(items, dict) else {}
+
+    def _collect_review_applicability_unknown_rule_ids(
+        self,
+        items: Dict[str, Any],
+        known_rule_ids: set[str],
+    ) -> List[str]:
+        unknown_rule_ids: List[str] = []
+        seen: set[str] = set()
+        for cfg in items.values():
+            if not isinstance(cfg, dict):
+                continue
+            required_rule_ids = cfg.get("required_rule_ids") or []
+            if not isinstance(required_rule_ids, list):
+                continue
+            for rule_id in required_rule_ids:
+                rid = str(rule_id or "").strip()
+                if not rid or rid in known_rule_ids or rid in seen:
+                    continue
+                seen.add(rid)
+                unknown_rule_ids.append(rid)
+        return sorted(unknown_rule_ids)
+
+    def _describe_unsupported_detector(self, rule_def: Dict[str, Any]) -> str:
+        rule_id = str(rule_def.get("rule_id", rule_def.get("id", "")) or "").strip() or "(unknown)"
+        detector = rule_def.get("detector", {}) if isinstance(rule_def.get("detector"), dict) else {}
+        kind = str(detector.get("kind", "") or "").strip().lower()
+
+        if not kind:
+            return f"{rule_id}:missing_kind"
+
+        if kind == "regex":
+            pattern = str(detector.get("pattern", "") or "")
+            invalid_regex_error = str(detector.get("_invalid_regex_error", "") or "")
+            if not pattern.strip():
+                return f"{rule_id}:regex:missing_pattern"
+            if invalid_regex_error:
+                return f"{rule_id}:regex:invalid_pattern"
+            return ""
+
+        if kind == "line_repeat":
+            return ""
+
+        if kind == "legacy_handler":
+            handler_name = str(detector.get("handler", "") or "").strip()
+            if not handler_name:
+                return f"{rule_id}:legacy_handler:missing_handler"
+            if handler_name not in self.legacy_detector_handlers:
+                return f"{rule_id}:legacy_handler:{handler_name}"
+            return ""
+
+        if kind == "composite":
+            op = str(detector.get("op", "") or "").strip().lower()
+            if not op:
+                return f"{rule_id}:composite:missing_op"
+            if op not in getattr(self, "COMPOSITE_OP_DISPATCH", {}):
+                return f"{rule_id}:composite:{op}"
+            return ""
+
+        return f"{rule_id}:kind:{kind}"
+
+    def _evaluate_p1_config_health(self, rules_path: str) -> Dict[str, Any]:
+        total_rule_count = len([row for row in self.p1_rule_defs if isinstance(row, dict)])
+        enabled_rules = [
+            row
+            for row in self.p1_rule_defs
+            if isinstance(row, dict) and bool(row.get("enabled", True))
+        ]
+        enabled_rule_count = len(enabled_rules)
+        review_applicability_items = self._load_review_applicability_items(rules_path)
+        known_rule_ids = self._collect_known_rule_ids(self.p1_rule_defs)
+        unknown_review_rule_ids = self._collect_review_applicability_unknown_rule_ids(
+            review_applicability_items,
+            known_rule_ids,
+        )
+        unsupported_detector_ops: List[str] = []
+        seen_unsupported: set[str] = set()
+        for row in enabled_rules:
+            issue = self._describe_unsupported_detector(row)
+            if not issue or issue in seen_unsupported:
+                continue
+            seen_unsupported.add(issue)
+            unsupported_detector_ops.append(issue)
+
+        reason_codes: List[str] = []
+        if enabled_rule_count <= 0:
+            reason_codes.append("no_enabled_rules")
+        if unknown_review_rule_ids:
+            reason_codes.append("unknown_rule_ids")
+        if unsupported_detector_ops:
+            reason_codes.append("unsupported_detector_ops")
+
+        return {
+            "mode": "degraded_fallback" if reason_codes else "configured",
+            "degraded": bool(reason_codes),
+            "reason_codes": reason_codes,
+            "reason_text": ", ".join(reason_codes),
+            "total_rule_count": total_rule_count,
+            "enabled_rule_count": enabled_rule_count,
+            "review_applicability_item_count": len(review_applicability_items),
+            "unknown_review_rule_ids": unknown_review_rule_ids,
+            "unknown_review_rule_id_count": len(unknown_review_rule_ids),
+            "unsupported_detector_ops": unsupported_detector_ops,
+        }
+
     def _build_legacy_detector_handlers(self) -> Dict[str, Callable]:
         return {
             "check_sql_injection": self.check_sql_injection,

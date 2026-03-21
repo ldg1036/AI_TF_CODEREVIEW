@@ -62,6 +62,7 @@ class HealthCheckMixin:
             p1_rule_defs,
             parsed_rules,
             dependencies if isinstance(dependencies, dict) else {},
+            p1_config_health=dict(getattr(checker, "p1_config_health", {}) or {}),
             generated_at_ms=self._epoch_ms(),
         )
 
@@ -103,7 +104,7 @@ class HealthCheckMixin:
         defs_path = self._rules_defs_path()
         if not os.path.exists(defs_path):
             raise FileNotFoundError(f"p1_rule_defs.json not found: {defs_path}")
-        with open(defs_path, "r", encoding="utf-8") as handle:
+        with open(defs_path, "r", encoding=ARTIFACT_JSON_ENCODING) as handle:
             payload = json.load(handle)
         if not isinstance(payload, list):
             raise RuntimeError("p1_rule_defs.json must be a list")

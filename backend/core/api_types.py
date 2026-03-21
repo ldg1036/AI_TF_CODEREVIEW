@@ -37,6 +37,8 @@ class AIReviewGenerateRequestBody(TypedDict, total=False):
     enable_live_ai: Optional[bool]
     ai_model_name: Optional[str]
     ai_with_context: bool
+    output_dir: Optional[str]
+    session_id: Optional[str]
 
 
 class AutofixPrepareRequestBody(TypedDict, total=False):

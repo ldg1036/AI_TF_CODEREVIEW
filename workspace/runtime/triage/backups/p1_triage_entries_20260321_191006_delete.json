@@ -1,0 +1,20 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1774087806744,
+  "entries": [
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||UNKNOWN||동일 코드 라인 반복(3회 이상) 감지.||0",
+      "status": "suppressed",
+      "reason": "already reviewed in smoke",
+      "note": "triage smoke round trip",
+      "updated_at_ms": 1774087806744,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 0,
+        "rule_id": "UNKNOWN",
+        "message": "동일 코드 라인 반복(3회 이상) 감지.",
+        "issue_id": "REVIEW-ONLY-POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt-1"
+      }
+    }
+  ]
+}

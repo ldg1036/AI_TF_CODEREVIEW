@@ -42,20 +42,22 @@ _RULE_CASES: Dict[str, Dict[str, Any]] = {
         "file_type": "Server",
         "positive_code": (
             "bool load_config(){\n"
-            "  string config_line = lineA;\n"
-            "  dyn_string a = strsplit(lineA, \",\");\n"
-            "  dyn_string b = strsplit(lineB, \";\");\n"
+            "  string config_line = raw_config_list[1];\n"
+            "  dyn_string a = strsplit(config_line, \",\");\n"
+            "  dyn_string b = strsplit(config_line, \";\");\n"
             "  return true;\n"
             "}"
         ),
         "negative_code": (
             "bool load_config(){\n"
-            "  dyn_string a = strsplit(lineA, \",\");\n"
-            "  if (dynlen(a) < 3) { return false; }\n"
+            "  string config_line = raw_config_list[1];\n"
+            "  dyn_string parts = strsplit(config_line, \"|\");\n"
+            "  dyn_string tank_list = strsplit(parts[6], \",\");\n"
+            "  if (dynlen(parts) < 7) { return false; }\n"
             "  return true;\n"
             "}"
         ),
-        "notes": "mixed delimiter strsplit trigger",
+        "notes": "same source split with conflicting delimiters",
     },
     "CFG-ERR-01": {
         "file_type": "Server",
@@ -104,17 +106,22 @@ _RULE_CASES: Dict[str, Dict[str, Any]] = {
     "SAFE-DIV-01": {
         "file_type": "Server",
         "positive_code": (
-            "void load_config(){\n"
-            "  string config_value = \"x\";\n"
+            "bool load_config(){\n"
+            "  dyn_string parts = strsplit(raw_config_list[1], \"|\");\n"
+            "  int count = dynlen(parts);\n"
             "  ratio = total / count;\n"
+            "  return true;\n"
             "}"
         ),
         "negative_code": (
-            "void load_config(){\n"
-            "  if (count != 0) { ratio = total / count; }\n"
+            "bool load_config(){\n"
+            "  dyn_string parts = strsplit(raw_config_list[1], \"|\");\n"
+            "  int count = dynlen(parts);\n"
+            "  if (count > 0) { ratio = total / (float)count; }\n"
+            "  return true;\n"
             "}"
         ),
-        "notes": "config-context division without guard",
+        "notes": "strong config parsing context division without guard",
     },
     "PERF-DPSET-CHAIN": {
         "file_type": "Server",
@@ -204,6 +211,24 @@ _RULE_CASES: Dict[str, Dict[str, Any]] = {
         ),
         "notes": "trigger word exists but no writeLog/DebugN/DebugTN call",
     },
+    "LOG-LEVEL-01": {
+        "file_type": "Server",
+        "positive_code": (
+            "main(){\n"
+            "  catch {\n"
+            "    writeLog(\"Script\", \"failed\", LV_INFO);\n"
+            "  }\n"
+            "}"
+        ),
+        "negative_code": (
+            "main(){\n"
+            "  catch {\n"
+            "    writeLog(\"Script\", \"failed\", LV_WARN);\n"
+            "  }\n"
+            "}"
+        ),
+        "notes": "error trigger logged only at info level",
+    },
     "DUP-ACT-01": {
         "file_type": "Client",
         "positive_code": (
@@ -238,6 +263,23 @@ _RULE_CASES: Dict[str, Dict[str, Any]] = {
             "}\n"
         ),
         "notes": "header comment count threshold(>=2) clear",
+    },
+    "STYLE-NAME-01": {
+        "file_type": "Server",
+        "positive_code": (
+            "int value = 0;\n"
+            "main(){\n"
+            "  DebugN(value);\n"
+            "}\n"
+        ),
+        "negative_code": (
+            "int g_value = 0;\n"
+            "const int g_release_version = 1;\n"
+            "main(){\n"
+            "  DebugN(g_value);\n"
+            "}\n"
+        ),
+        "notes": "generic global without g_ prefix remains a style hit",
     },
 }
 

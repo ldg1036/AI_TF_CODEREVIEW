@@ -59,6 +59,7 @@ class CompositeRulesMixin:
     """Mixin contributing composite-rule op handlers to HeuristicChecker."""
 
     COMPOSITE_OP_DISPATCH: Dict[str, str] = {
+        "callback_delay_usage": "_composite_callback_delay_usage",
         "sql_injection": "_composite_sql_injection",
         "db_query_error": "_composite_db_query_error",
         "dp_function_exception": "_composite_dp_function_exception",
@@ -98,6 +99,85 @@ class CompositeRulesMixin:
     }
 
     # -- helpers (delegated to HeuristicChecker via self) ---------------------
+
+    @staticmethod
+    def _normalize_symbol_text(value: str) -> str:
+        return re.sub(r"\s+", "", str(value or ""))
+
+    def _has_strong_config_context(self, code: str) -> bool:
+        if not self._has_config_context(code):
+            return False
+        strong_signals = [
+            r"\bpaCfgReadValue(?:List)?\s*\(",
+            r"\bload_config\s*\(",
+            r"\bconfig_file\b",
+            r"\braw_config_list\b",
+            r"\bstrsplit\s*\(",
+            r"\b(?:parts|tokens|fields)\s*\[",
+            r"\bdynlen\s*\(\s*(?:parts|tokens|fields)\s*\)",
+        ]
+        score = sum(1 for pattern in strong_signals if re.search(pattern, code, re.IGNORECASE))
+        return score >= 2
+
+    def _collect_strsplit_calls(self, code: str) -> List[tuple[str, str]]:
+        calls: List[tuple[str, str]] = []
+        for match in re.finditer(r'\bstrsplit\s*\(\s*([^,]+?)\s*,\s*"([^"]+)"\s*\)', code):
+            source = self._normalize_symbol_text(match.group(1))
+            delimiter = str(match.group(2) or "")
+            if source and delimiter:
+                calls.append((source, delimiter))
+        return calls
+
+    def _has_nearby_division_guard(self, lines: List[str], idx: int, denom_vars: List[str]) -> bool:
+        window_start = max(1, idx - 6)
+        window_text = "\n".join(lines[window_start - 1:idx])
+        for denom in denom_vars:
+            if re.search(rf"\bif\s*\([^)]*\b{re.escape(denom)}\b[^)]*(?:!=\s*0|>\s*0|>=\s*1)\s*\)", window_text):
+                return True
+            if re.search(rf"\b{re.escape(denom)}\b\s*=\s*(?:0*\.\d*[1-9]\d*|[1-9]\d*(?:\.\d+)?)\b", window_text):
+                return True
+            if re.search(rf"\bif\s*\([^)]*\b{re.escape(denom)}\b[^)]*\)", window_text) and re.search(r"\b(return|continue|break)\b", window_text):
+                return True
+        return False
+
+    def _has_strong_error_logging(self, code: str, trigger_offset: int) -> bool:
+        trigger_line = self._line_from_offset(code, trigger_offset, base_line=1)
+        lines = code.splitlines()
+        window_start = max(1, trigger_line - 6)
+        window_end = min(len(lines), trigger_line + 6)
+        window_text = "\n".join(lines[window_start - 1:window_end])
+        if re.search(r"\bwriteLog\s*\([^)]*LV_(?:ERR|WARN)\b", window_text, re.IGNORECASE):
+            return True
+        if re.search(r"\bwriteLog\s*\([^)]*(?:getLastException|getLastError|Exception|Failed|Error)\b[^)]*LV_(?:ERR|WARN)\b", code, re.IGNORECASE):
+            return True
+        return False
+
+    def _find_callback_delay_offset(self, code: str, context: Optional[Dict[str, Any]] = None) -> int:
+        func_defs = self._get_function_bodies(code, context=context)
+        if not func_defs:
+            return -1
+        for match in re.finditer(r"\b(?:dpConnect|dpQueryConnect(?:Single)?)\s*\((.*?)\)\s*;", code, re.IGNORECASE | re.DOTALL):
+            args = match.group(1)
+            callback_names: List[str] = []
+            for literal in re.findall(r'"([A-Za-z_][A-Za-z0-9_]*)"', args):
+                if literal in func_defs and literal not in callback_names:
+                    callback_names.append(literal)
+            for bare_name in re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\b", args):
+                if bare_name in func_defs and bare_name not in callback_names:
+                    callback_names.append(bare_name)
+            for callback_name in callback_names:
+                body = func_defs.get(callback_name, "")
+                if not re.search(r"\bdelay\s*\(", body, re.IGNORECASE):
+                    continue
+                func_match = re.search(
+                    rf"\b(?:void|int|float|string|bool|mapping|time|anytype|dyn_[a-zA-Z0-9_]+)\s+{re.escape(callback_name)}\s*\([^\)]*\)\s*\{{",
+                    code,
+                    re.IGNORECASE,
+                )
+                if func_match:
+                    return func_match.start()
+                return match.start()
+        return -1
 
     def _composite_sql_injection(self, ctx: CompositeRuleContext) -> List[Dict]:
         sql_keywords_raw = str(ctx.detector.get("sql_keywords_pattern", r"\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN)\b"))
@@ -191,6 +271,13 @@ class CompositeRulesMixin:
                 ctx.analysis_code, ctx.event_name,
             ))
         return findings
+
+    def _composite_callback_delay_usage(self, ctx: CompositeRuleContext) -> List[Dict]:
+        hit_offset = self._find_callback_delay_offset(ctx.analysis_code)
+        if hit_offset < 0:
+            return []
+        absolute_line = self._line_from_offset(ctx.analysis_code, hit_offset, base_line=ctx.base_line)
+        return [self._build_p1_issue(ctx.rule_id, ctx.rule_item, ctx.severity, absolute_line, ctx.static_message, ctx.analysis_code, ctx.event_name)]
 
     def _composite_unused_variables(self, ctx: CompositeRuleContext) -> List[Dict]:
         max_code_length = int(ctx.detector.get("max_code_length", 100000) or 100000)
@@ -542,12 +629,15 @@ class CompositeRulesMixin:
         return []
 
     def _composite_config_format_consistency(self, ctx: CompositeRuleContext) -> List[Dict]:
-        if not self._has_config_context(ctx.analysis_code):
+        if not self._has_strong_config_context(ctx.analysis_code):
             return []
         if "strsplit" not in ctx.analysis_code:
             return []
-        delimiters = set(re.findall(r'\bstrsplit\s*\([^,]+,\s*\"([^\"]+)\"\s*\)', ctx.analysis_code))
-        if len(delimiters) >= int(ctx.detector.get("delimiter_mismatch_threshold", 2) or 2):
+        split_calls = self._collect_strsplit_calls(ctx.analysis_code)
+        delimiters_by_source: Dict[str, set[str]] = {}
+        for source, delimiter in split_calls:
+            delimiters_by_source.setdefault(source, set()).add(delimiter)
+        if any(len(delimiters) >= int(ctx.detector.get("delimiter_mismatch_threshold", 2) or 2) for delimiters in delimiters_by_source.values()):
             pos = ctx.analysis_code.find("strsplit")
             absolute_line = self._line_from_offset(ctx.analysis_code, pos, base_line=ctx.base_line)
             return [self._build_p1_issue(ctx.rule_id, ctx.rule_item, ctx.severity, absolute_line, ctx.static_message, ctx.analysis_code, ctx.event_name)]
@@ -597,7 +687,7 @@ class CompositeRulesMixin:
         return [self._build_p1_issue(ctx.rule_id, ctx.rule_item, ctx.severity, absolute_line, ctx.static_message, ctx.analysis_code, ctx.event_name)]
 
     def _composite_division_zero_guard(self, ctx: CompositeRuleContext) -> List[Dict]:
-        if not self._has_config_context(ctx.analysis_code):
+        if not self._has_strong_config_context(ctx.analysis_code):
             return []
         lines = ctx.analysis_code.splitlines()
         for idx, line in enumerate(lines, 1):
@@ -610,18 +700,20 @@ class CompositeRulesMixin:
                 continue
             if re.search(r"\?.*/.*:", sanitized):
                 continue
-            for match in re.finditer(r"/\s*([A-Za-z_][A-Za-z0-9_]*|\([^)]+\))", sanitized):
+            for match in re.finditer(r"/\s*((?:\([^)]+\)\s*)*[A-Za-z_][A-Za-z0-9_]*|\([^)]+\))", sanitized):
                 denom_expr = match.group(1).strip()
                 if re.fullmatch(r"\d+(?:\.\d+)?", denom_expr):
                     continue
-                if denom_expr.startswith("(") and denom_expr.endswith(")"):
-                    inner = denom_expr[1:-1]
-                    denom_vars = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", inner)
-                else:
-                    denom_vars = [denom_expr]
+                denom_vars = [
+                    token
+                    for token in re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", denom_expr)
+                    if token.lower() not in {"float", "int", "double", "long", "bool", "string", "time", "mapping", "dyn_anytype", "dyn_float", "dyn_int", "dyn_string"}
+                ]
                 if not denom_vars:
                     continue
-                guard_found = False
+                guard_found = self._has_nearby_division_guard(lines, idx, denom_vars)
+                if guard_found:
+                    continue
                 for lookback in range(max(1, idx - 3), idx + 1):
                     ctx_line = lines[lookback - 1]
                     for denom in denom_vars:
@@ -1103,3 +1195,63 @@ class CompositeRulesMixin:
                 continue
             compressed.append(finding)
         return compressed
+
+    def _composite_style_name_rules(self, ctx: CompositeRuleContext) -> List[Dict]:
+        lines = ctx.analysis_code.splitlines()
+        function_start = len(lines) + 1
+        for idx, line in enumerate(lines, 1):
+            stripped = line.strip()
+            if _FUNCTION_START_PATTERN.match(stripped) or _MAIN_FUNCTION_PATTERN.match(stripped):
+                function_start = idx
+                break
+        has_function_signature = function_start <= len(lines)
+        generic_global_names = {"name", "path", "file", "data", "temp", "value", "result", "ret", "flag", "count", "idx", "list", "map", "buffer"}
+        for idx, line in enumerate(lines, 1):
+            stripped = line.strip()
+            if not stripped or stripped.startswith("//"):
+                continue
+            if _STYLE_FUNCTION_PATTERN.match(stripped) or _MAIN_FUNCTION_PATTERN.match(stripped):
+                continue
+            m = _STYLE_DECL_PATTERN.match(stripped)
+            if not m:
+                continue
+            is_const = bool(m.group(1))
+            name = m.group(2)
+            is_global = idx < function_start
+            if is_const and not name.startswith("g_") and not re.fullmatch(r"[A-Z][A-Z0-9_]*", name):
+                msg = f"?곸닔 紐낅챸 洹쒖튃 ?꾨컲 媛?μ꽦: '{name}' (UPPER_SNAKE 沅뚯옣)."
+                return [self._build_p1_issue(ctx.rule_id, ctx.rule_item, ctx.severity, ctx.base_line + idx - 1, msg, ctx.analysis_code, ctx.event_name)]
+            if (
+                has_function_signature
+                and is_global
+                and not is_const
+                and not name.startswith("g_")
+                and (len(name) <= 8 or name.lower() in generic_global_names)
+            ):
+                msg = f"?꾩뿭 蹂??紐낅챸 洹쒖튃 ?꾨컲 媛?μ꽦: '{name}' (g_ ?묐몢??沅뚯옣)."
+                return [self._build_p1_issue(ctx.rule_id, ctx.rule_item, ctx.severity, ctx.base_line + idx - 1, msg, ctx.analysis_code, ctx.event_name)]
+            if (
+                re.search(r"(cfg|config)", name, re.IGNORECASE)
+                and not name.startswith(("cfg_", "g_"))
+                and not re.search(r"(?:_file|_filename|_path|_list)$", name, re.IGNORECASE)
+                and re.search(r"\b(?:strsplit|paCfgReadValue|paCfgReadValueList|load_config|config_file|raw_config_list)\b", ctx.analysis_code, re.IGNORECASE)
+            ):
+                msg = f"?ㅼ젙 蹂??紐낅챸 洹쒖튃 ?꾨컲 媛?μ꽦: '{name}' (cfg_ ?묐몢??沅뚯옣)."
+                return [self._build_p1_issue(ctx.rule_id, ctx.rule_item, ctx.severity, ctx.base_line + idx - 1, msg, ctx.analysis_code, ctx.event_name)]
+        return []
+
+    def _composite_logging_level_policy(self, ctx: CompositeRuleContext) -> List[Dict]:
+        trigger_pattern = str(ctx.detector.get("trigger_pattern", r"\b(?:catch|getLastError|err(?:or)?|fail(?:ed|ure)?)\b"))
+        trigger = re.search(trigger_pattern, ctx.analysis_code, re.IGNORECASE)
+        if not trigger:
+            return []
+        log_pattern = str(ctx.detector.get("log_pattern", r"\b(?:writeLog|DebugN|DebugTN)\s*\("))
+        if not re.search(log_pattern, ctx.analysis_code, re.IGNORECASE):
+            return []
+        debug_pattern = str(ctx.detector.get("debug_pattern", r"\b(?:DBG1|DBG2|DebugN|DebugTN)\b"))
+        if re.search(debug_pattern, ctx.analysis_code, re.IGNORECASE):
+            return []
+        if self._has_strong_error_logging(ctx.analysis_code, trigger.start()):
+            return []
+        absolute_line = self._line_from_offset(ctx.analysis_code, trigger.start(), base_line=ctx.base_line)
+        return [self._build_p1_issue(ctx.rule_id, ctx.rule_item, ctx.severity, absolute_line, ctx.static_message, ctx.analysis_code, ctx.event_name)]

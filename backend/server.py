@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 import sys
@@ -126,7 +127,21 @@ class CodeInspectorHandler(
             logger.exception("Analyze request done id=%s status=500 error=%s", request_id, exc)
 
 
-def run_server(port=8765):
+def build_server_arg_parser():
+    parser = argparse.ArgumentParser(
+        description="Run the WinCC OA code review HTTP server",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("--host", default="127.0.0.1", help="Host interface to bind")
+    parser.add_argument("--port", type=int, default=8765, help="TCP port to bind")
+    return parser
+
+
+def parse_server_args(argv=None):
+    return build_server_arg_parser().parse_args(argv)
+
+
+def run_server(host="127.0.0.1", port=8765):
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -138,8 +153,8 @@ def run_server(port=8765):
     def handler(*args, **kwargs):
         return CodeInspectorHandler(*args, app=app, frontend_dir=frontend_dir, **kwargs)
 
-    server = ThreadingHTTPServer(("127.0.0.1", port), handler)
-    logger.info("Server started: http://127.0.0.1:%d", port)
+    server = ThreadingHTTPServer((host, port), handler)
+    logger.info("Server started: http://%s:%d", host, port)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -148,5 +163,11 @@ def run_server(port=8765):
         server.server_close()
 
 
+def main(argv=None):
+    args = parse_server_args(argv)
+    run_server(host=args.host, port=args.port)
+    return 0
+
+
 if __name__ == "__main__":
-    run_server()
+    raise SystemExit(main())

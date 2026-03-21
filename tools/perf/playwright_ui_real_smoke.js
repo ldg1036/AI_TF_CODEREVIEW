@@ -19,6 +19,8 @@ Options:
   --timeout-ms <n>           End-to-end timeout per major wait (default: 120000)
   --target-file <name>       Prefer this file when selecting a focused smoke target
   --output <path>            JSON result path (default: tools/integration_results/ui_real_smoke_<ts>.json)
+  --with-live-ai-compare-prepare
+                              Extend smoke to Generate -> Compare -> Prepare patch
   --headed                   Run browser in headed mode
   --no-sandbox               Chromium --no-sandbox launch arg
   --help                     Show this help
@@ -37,6 +39,7 @@ function parseArgs(argv) {
     timeoutMs: 120000,
     targetFile: "BenchmarkP1Fixture.ctl",
     output: "",
+    withLiveAiComparePrepare: false,
     headed: false,
     noSandbox: false,
     help: false,
@@ -83,6 +86,9 @@ function parseArgs(argv) {
         opts.output = String(nextValue(i, arg));
         i += 1;
         break;
+      case "--with-live-ai-compare-prepare":
+        opts.withLiveAiComparePrepare = true;
+        break;
       case "--headed":
         opts.headed = true;
         break;
@@ -111,7 +117,7 @@ function writeJsonReport(outputPath, payload) {
   fs.writeFileSync(outputPath, body, "utf-8");
 }
 
-function httpGetJson(url) {
+function httpGet(url) {
   return new Promise((resolve, reject) => {
     const req = http.get(url, (res) => {
       const chunks = [];
@@ -134,6 +140,10 @@ function httpGetJson(url) {
     req.on("error", reject);
     req.setTimeout(3000, () => req.destroy(new Error("HTTP GET timeout")));
   });
+}
+
+function httpGetJson(url) {
+  return httpGet(url);
 }
 
 function httpPostJson(url, payload) {
@@ -224,11 +234,7 @@ async function waitForServer(baseUrl, timeoutMs) {
 }
 
 function startBackendServer({ projectRoot, host, port, python }) {
-  const args = [
-    "-c",
-    "import sys; sys.path.insert(0, r'" + projectRoot.replace(/\\/g, "\\\\") + "\\backend'); "
-      + "from server import run_server; run_server(port=" + String(port) + ")",
-  ];
+  const args = ["backend/server.py", "--host", String(host), "--port", String(port)];
   const child = spawn(python, args, {
     cwd: projectRoot,
     stdio: ["ignore", "pipe", "pipe"],
@@ -257,6 +263,35 @@ async function ensureBackend({ projectRoot, baseUrl, host, port, python, timeout
     const files = await waitForServer(baseUrl, timeoutMs);
     return { child, startedServer: true, files };
   }
+}
+
+async function probeStartupAssets(baseUrl) {
+  const targets = {
+    root: `${baseUrl}/`,
+    style: `${baseUrl}/style.css`,
+    renderer: `${baseUrl}/renderer.js`,
+  };
+  const statuses = {};
+  const errors = {};
+
+  for (const [key, url] of Object.entries(targets)) {
+    try {
+      const response = await httpGet(url);
+      statuses[key] = Number(response.status || 0);
+    } catch (err) {
+      statuses[key] = 0;
+      errors[key] = String((err && err.message) || err || "request failed");
+    }
+  }
+
+  return {
+    root_ok: statuses.root === 200,
+    style_ok: statuses.style === 200,
+    renderer_ok: statuses.renderer === 200,
+    ok: statuses.root === 200 && statuses.style === 200 && statuses.renderer === 200,
+    status_codes: statuses,
+    errors,
+  };
 }
 
 function pickTargetFile(files, preferredName) {
@@ -369,14 +404,16 @@ async function setShowSuppressedToggle(page, checked) {
   }, !!checked);
 }
 
-async function selectWorkspaceRow(page, { timeoutMs, source = "", suppressedOnly = false, rowId = "" } = {}) {
-  const selected = await page.evaluate(({ preferredSource, requireSuppressed, preferredRowId }) => {
+async function selectWorkspaceRow(page, { timeoutMs, source = "", suppressedOnly = false, rowId = "", containsText = "" } = {}) {
+  const selected = await page.evaluate(({ preferredSource, requireSuppressed, preferredRowId, preferredText }) => {
     const safeSource = String(preferredSource || "").trim().toUpperCase();
     const safeRowId = String(preferredRowId || "").trim();
+    const safeText = String(preferredText || "").trim().toUpperCase();
     const rows = Array.from(document.querySelectorAll("#result-body tr.result-item-row"));
     const match = rows.find((row) => {
       if (safeRowId && String(row.getAttribute("data-row-id") || "").trim() !== safeRowId) return false;
       if (requireSuppressed && !row.classList.contains("result-item-row-suppressed")) return false;
+      if (safeText && !String(row.innerText || "").trim().toUpperCase().includes(safeText)) return false;
       if (!safeSource) return true;
       const badge = row.querySelector(".result-cell-source .badge");
       const badgeText = String((badge && badge.textContent) || "").trim().toUpperCase();
@@ -392,7 +429,7 @@ async function selectWorkspaceRow(page, { timeoutMs, source = "", suppressedOnly
       source: safeSource,
       suppressed: match.classList.contains("result-item-row-suppressed"),
     };
-  }, { preferredSource: source, requireSuppressed: suppressedOnly, preferredRowId: rowId });
+  }, { preferredSource: source, requireSuppressed: suppressedOnly, preferredRowId: rowId, preferredText: containsText });
   if (!selected.ok) {
     return selected;
   }
@@ -681,6 +718,166 @@ async function runExcelSmoke(page, { timeoutMs }) {
   };
 }
 
+async function readAiComparePrepareState(page) {
+  return page.evaluate(() => {
+    const modal = document.getElementById("autofix-diff-modal");
+    const meta = String((document.getElementById("autofix-diff-modal-meta")?.innerText) || "").trim();
+    const summary = String((document.getElementById("autofix-diff-modal-summary")?.innerText) || "").trim();
+    const diffText = String((document.getElementById("autofix-diff-modal-text")?.innerText) || "").trim();
+    const candidateButtons = Array.from(document.querySelectorAll("#autofix-diff-modal-candidates button")).map((btn) => ({
+      label: String(btn.innerText || "").trim(),
+      active: btn.classList.contains("diff-modal-candidate-active"),
+    }));
+    const activeCandidate = candidateButtons.find((item) => item.active);
+    const metaProposalMatch = meta.match(/Proposal\\s+([A-Z_]+)/i);
+    const prepareButtonPresent = Array.from(document.querySelectorAll("#autofix-diff-modal-summary button"))
+      .some((btn) => /Prepare patch/i.test(String(btn.innerText || "")));
+    const unifiedButton = document.getElementById("autofix-diff-view-unified");
+    const patchReady = /Patch ready/i.test(meta) || /A source patch diff is available\\./i.test(summary);
+    const realDpNameMatches = Array.from(
+      diffText.matchAll(/A\.B\.C[123]/g),
+      (match) => String((match && match[0]) || "").trim(),
+    ).filter(Boolean);
+    const distinctRealDpNames = Array.from(new Set(realDpNameMatches));
+    return {
+      modal_visible: !!modal && !modal.classList.contains("hidden"),
+      meta,
+      summary,
+      patch_ready: patchReady,
+      prepare_button_present: prepareButtonPresent,
+      unified_enabled: !!unifiedButton && !unifiedButton.disabled,
+      candidate_labels: candidateButtons.map((item) => item.label),
+      selected_candidate: String(
+        (activeCandidate && activeCandidate.label)
+        || (metaProposalMatch && metaProposalMatch[1])
+        || "",
+      ).trim(),
+      diff_excerpt: diffText.slice(0, 2000),
+      contains_obj_auto_sel: /obj_auto_sel/i.test(diffText),
+      contains_arrow_marker: /=>/.test(diffText),
+      contains_placeholder_system_obj: /System1:Obj1/i.test(diffText),
+      contains_real_dp_names: distinctRealDpNames.length >= 2,
+    };
+  });
+}
+
+async function runAiComparePrepareSmoke(page, { timeoutMs }) {
+  const result = {
+    attempted: true,
+    compare_opened: false,
+    prepare_clicked: false,
+    patch_ready: false,
+    unified_view_opened: false,
+    candidate_labels: [],
+    selected_candidate: "",
+    diff_excerpt: "",
+    contains_obj_auto_sel: false,
+    contains_arrow_marker: false,
+    contains_placeholder_system_obj: false,
+    contains_real_dp_names: false,
+    skipped_reason: "",
+    before: null,
+    after: null,
+  };
+
+  await page.waitForFunction(
+    () => {
+      const button = document.getElementById("btn-ai-diff");
+      return !!button && !button.disabled && typeof button.onclick === "function";
+    },
+    { timeout: Math.min(timeoutMs, 30000) },
+  );
+
+  const compareClick = await page.evaluate(() => {
+    const button = document.getElementById("btn-ai-diff");
+    const style = button ? window.getComputedStyle(button) : null;
+    const visible = !!button && style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
+    if (!button) {
+      return { ok: false, reason: "compare button not found", visible: false, disabled: false };
+    }
+    if (button.disabled) {
+      return { ok: false, reason: "compare button disabled", visible, disabled: true };
+    }
+    button.click();
+    return { ok: true, visible, disabled: false };
+  });
+  if (!compareClick.ok) {
+    result.attempted = false;
+    result.skipped_reason = String(compareClick.reason || "compare button unavailable");
+    return result;
+  }
+  await page.waitForFunction(
+    () => {
+      const modal = document.getElementById("autofix-diff-modal");
+      return !!modal && !modal.classList.contains("hidden");
+    },
+    { timeout: timeoutMs },
+  );
+  result.compare_opened = true;
+
+  await page.waitForFunction(
+    () => {
+      const meta = String((document.getElementById("autofix-diff-modal-meta")?.innerText) || "");
+      const summary = String((document.getElementById("autofix-diff-modal-summary")?.innerText) || "");
+      return meta.includes("Patch missing") || meta.includes("Patch ready") || summary.includes("Prepare patch");
+    },
+    { timeout: Math.min(timeoutMs, 30000) },
+  );
+
+  result.before = await readAiComparePrepareState(page);
+
+  if (!result.before.patch_ready) {
+    await page.waitForFunction(
+      () => Array.from(document.querySelectorAll("#autofix-diff-modal-summary button"))
+        .some((btn) => /Prepare patch/i.test(String(btn.innerText || ""))),
+      { timeout: Math.min(timeoutMs, 30000) },
+    );
+    const prepareClick = await page.evaluate(() => {
+      const button = Array.from(document.querySelectorAll("#autofix-diff-modal-summary button"))
+        .find((btn) => /Prepare patch/i.test(String(btn.innerText || "")));
+      if (!button) return { ok: false, reason: "prepare button not found" };
+      if (button.disabled) return { ok: false, reason: "prepare button disabled" };
+      button.click();
+      return { ok: true };
+    });
+    if (!prepareClick.ok) {
+      throw new Error(String(prepareClick.reason || "Prepare patch click failed"));
+    }
+    result.prepare_clicked = true;
+  }
+
+  await page.waitForFunction(
+    () => {
+      const meta = String((document.getElementById("autofix-diff-modal-meta")?.innerText) || "");
+      const summary = String((document.getElementById("autofix-diff-modal-summary")?.innerText) || "");
+      const unifiedButton = document.getElementById("autofix-diff-view-unified");
+      return (
+        /Patch ready/i.test(meta)
+        || /A source patch diff is available\\./i.test(summary)
+        || (!!unifiedButton && !unifiedButton.disabled)
+      );
+    },
+    { timeout: timeoutMs },
+  );
+
+  const unifiedButton = page.locator("#autofix-diff-view-unified");
+  if ((await unifiedButton.count()) && (await unifiedButton.isEnabled())) {
+    await unifiedButton.click({ timeout: Math.min(timeoutMs, 15000) });
+    result.unified_view_opened = true;
+  }
+
+  result.after = await readAiComparePrepareState(page);
+  result.patch_ready = !!(result.after && result.after.patch_ready);
+  result.candidate_labels = Array.isArray(result.after && result.after.candidate_labels) ? result.after.candidate_labels : [];
+  result.selected_candidate = String((result.after && result.after.selected_candidate) || "");
+  result.diff_excerpt = String((result.after && result.after.diff_excerpt) || "");
+  result.contains_obj_auto_sel = !!(result.after && result.after.contains_obj_auto_sel);
+  result.contains_arrow_marker = !!(result.after && result.after.contains_arrow_marker);
+  result.contains_placeholder_system_obj = !!(result.after && result.after.contains_placeholder_system_obj);
+  result.contains_real_dp_names = !!(result.after && result.after.contains_real_dp_names);
+  return result;
+}
+
 async function selectSmokeTarget(page, preferredFile) {
   return page.evaluate((preferred) => {
     const all = Array.from(document.querySelectorAll("#file-list input[data-file]"));
@@ -711,9 +908,39 @@ async function setCheckboxValue(page, elementId, checked) {
   }, { id: elementId, nextChecked: !!checked });
 }
 
-async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates = [] }) {
+async function ensureCheckboxCheckedByClick(page, selector, checked, { timeoutMs }) {
+  const locator = page.locator(selector);
+  if (!(await locator.count())) {
+    return { ok: false, reason: "checkbox not found" };
+  }
+  const current = await locator.isChecked();
+  if (current !== !!checked) {
+    await locator.click({ timeout: Math.min(timeoutMs, 15000) });
+  }
+  return { ok: true, checked: await locator.isChecked() };
+}
+
+async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates = [], withLiveAiComparePrepare = false }) {
   await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#file-list input[data-file]", { timeout: timeoutMs });
+
+  if (withLiveAiComparePrepare) {
+    const liveAiToggle = await ensureCheckboxCheckedByClick(page, "#toggle-live-ai", true, { timeoutMs });
+    if (!liveAiToggle.ok) {
+      throw new Error(`Failed to enable Live AI before analyze: ${liveAiToggle.reason || "unknown"}`);
+    }
+    await page.waitForFunction(
+      () => {
+        const toggle = document.getElementById("toggle-live-ai");
+        const modelSelect = document.getElementById("select-ai-model");
+        return !!toggle
+          && !!toggle.checked
+          && !!modelSelect
+          && !modelSelect.disabled;
+      },
+      { timeout: Math.min(timeoutMs, 30000) },
+    );
+  }
 
   const candidates = Array.from(new Set([targetFile, ...targetCandidates].filter(Boolean)));
   let selection = { selectedFile: "", availableCount: 0 };
@@ -782,11 +1009,29 @@ async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates
       beforeClick,
       beforeAnalyzeUi,
       analyzeOutcome,
+      liveAiToggle: { ok: true, checked: false },
       aiOnDemand: {
         attempted: false,
         clicked: false,
         completed: false,
         skipped_reason: `analyze outcome=${analyzeOutcome.outcome}`,
+      },
+      aiComparePrepare: {
+        attempted: false,
+        compare_opened: false,
+        prepare_clicked: false,
+        patch_ready: false,
+        unified_view_opened: false,
+        candidate_labels: [],
+        selected_candidate: "",
+        diff_excerpt: "",
+        contains_obj_auto_sel: false,
+        contains_arrow_marker: false,
+        contains_placeholder_system_obj: false,
+        contains_real_dp_names: false,
+        skipped_reason: `analyze outcome=${analyzeOutcome.outcome}`,
+        before: null,
+        after: null,
       },
       excelOnDemand: {
         attempted: false,
@@ -800,7 +1045,34 @@ async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates
 
   const triageFlow = await runP1TriageSmoke(page, { timeoutMs });
 
-  const selectedForAi = await selectWorkspaceRow(page, { timeoutMs });
+  let liveAiToggle = { ok: true, checked: false };
+  if (withLiveAiComparePrepare) {
+    liveAiToggle = await ensureCheckboxCheckedByClick(page, "#toggle-live-ai", true, { timeoutMs });
+    if (!liveAiToggle.ok) {
+      throw new Error(`Failed to enable Live AI: ${liveAiToggle.reason || "unknown"}`);
+    }
+    await page.waitForFunction(
+      () => {
+        const toggle = document.getElementById("toggle-live-ai");
+        const modelSelect = document.getElementById("select-ai-model");
+        return !!toggle
+          && !!toggle.checked
+          && !!modelSelect
+          && !modelSelect.disabled;
+      },
+      { timeout: Math.min(timeoutMs, 30000) },
+    );
+    await page.fill("#workspace-result-search", "PERF-SETMULTIVALUE-ADOPT-01");
+    await page.waitForFunction(
+      () => document.querySelectorAll("#result-body tr.result-item-row").length > 0,
+      { timeout: Math.min(timeoutMs, 30000) },
+    );
+  }
+
+  const selectedForAi = await selectWorkspaceRow(page, {
+    timeoutMs,
+    source: withLiveAiComparePrepare ? "P1" : "",
+  });
   if (!selectedForAi.ok) {
     throw new Error("Failed to select a workspace row for AI smoke");
   }
@@ -886,19 +1158,50 @@ async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates
     }
   });
 
+  let aiComparePrepare = {
+    attempted: false,
+    compare_opened: false,
+    prepare_clicked: false,
+    patch_ready: false,
+    unified_view_opened: false,
+    candidate_labels: [],
+    selected_candidate: "",
+    diff_excerpt: "",
+    contains_obj_auto_sel: false,
+    contains_arrow_marker: false,
+    contains_placeholder_system_obj: false,
+    contains_real_dp_names: false,
+    skipped_reason: "optional compare/prepare smoke disabled",
+    before: null,
+    after: null,
+  };
+  if (withLiveAiComparePrepare) {
+    if (aiOnDemand.clicked && aiOnDemand.completed) {
+      aiComparePrepare = await runAiComparePrepareSmoke(page, { timeoutMs });
+    } else {
+      aiComparePrepare = {
+        ...aiComparePrepare,
+        attempted: false,
+        skipped_reason: `ai on-demand incomplete: ${String(aiOnDemand.skipped_reason || aiOnDemand.status_text || "unknown")}`,
+      };
+    }
+  }
+
   const excelOnDemand = await runExcelSmoke(page, { timeoutMs });
 
-    return {
-      selection,
-      selectionAttempts,
-      beforeClick,
-      beforeAnalyzeUi,
-      analyzeOutcome,
-      triageFlow,
-      aiOnDemand,
-      excelOnDemand,
-      afterRun: await readSmokeUiState(page),
-    };
+  return {
+    selection,
+    selectionAttempts,
+    beforeClick,
+    beforeAnalyzeUi,
+    analyzeOutcome,
+    triageFlow,
+    liveAiToggle,
+    aiOnDemand,
+    aiComparePrepare,
+    excelOnDemand,
+    afterRun: await readSmokeUiState(page),
+  };
 }
 
 async function main() {
@@ -939,6 +1242,7 @@ async function main() {
       port: opts.port,
       target_file_preference: opts.targetFile,
       timeout_ms: opts.timeoutMs,
+      with_live_ai_compare_prepare: opts.withLiveAiComparePrepare,
       headed: opts.headed,
       no_sandbox: opts.noSandbox,
     },
@@ -968,6 +1272,13 @@ async function main() {
       started_server: backend.startedServer,
       discovered_file_count: Array.isArray(backend.files) ? backend.files.length : 0,
     };
+    report.startupProbe = await probeStartupAssets(baseUrl);
+    if (!report.startupProbe.ok) {
+      throw new Error(
+        "Server/static readiness failure: "
+        + JSON.stringify(report.startupProbe.status_codes || {}),
+      );
+    }
     report.backend.triage_reset = await resetP1TriageEntries(baseUrl);
     const targetFile = pickTargetFile(backend.files, opts.targetFile);
     report.backend.selected_target_file = targetFile;
@@ -1049,6 +1360,7 @@ async function main() {
       timeoutMs: opts.timeoutMs,
       targetFile,
       targetCandidates: Array.isArray(backend.files) ? backend.files.map((file) => file && file.name).filter(Boolean) : [],
+      withLiveAiComparePrepare: opts.withLiveAiComparePrepare,
     });
     report.run.elapsed_ms = Date.now() - runStarted;
     report.diagnostics = runtimeDiagnostics;
@@ -1056,6 +1368,19 @@ async function main() {
     const triageFlowHealthy = !triageAttempted || !!(report.run.triageFlow && report.run.triageFlow.completed);
     const aiAttempted = !!(report.run.aiOnDemand && report.run.aiOnDemand.attempted);
     const aiFlowHealthy = !aiAttempted || !!(report.run.aiOnDemand.clicked && report.run.aiOnDemand.completed);
+    const aiComparePrepare = report.run.aiComparePrepare || {};
+    const aiComparePrepareHealthy =
+      !opts.withLiveAiComparePrepare
+      || (
+        !!aiComparePrepare.compare_opened
+        && (!!aiComparePrepare.prepare_clicked || !!(aiComparePrepare.before && aiComparePrepare.before.patch_ready))
+        && !!aiComparePrepare.patch_ready
+        && !!aiComparePrepare.unified_view_opened
+        && !aiComparePrepare.contains_obj_auto_sel
+        && !aiComparePrepare.contains_arrow_marker
+        && !aiComparePrepare.contains_placeholder_system_obj
+        && !!aiComparePrepare.contains_real_dp_names
+      );
     const excelAttempted = !!(report.run.excelOnDemand && report.run.excelOnDemand.attempted);
     const excelSkipped = !!(report.run.excelOnDemand && report.run.excelOnDemand.skipped_reason);
     const excelFlowHealthy =
@@ -1065,12 +1390,14 @@ async function main() {
         !!report.run.excelOnDemand.download_triggered);
     const visibleReviewCount = effectiveReviewCount(report.run.afterRun || {});
     report.ok =
+      !!(report.startupProbe && report.startupProbe.ok) &&
       !!report.run.afterRun.workspace_visible &&
       visibleReviewCount > 0 &&
       report.run.beforeClick.interceptingNode &&
       report.run.beforeClick.interceptingNode.id === "btn-analyze" &&
       triageFlowHealthy &&
       aiFlowHealthy &&
+      aiComparePrepareHealthy &&
       (excelSkipped || excelFlowHealthy);
     if (!report.ok) {
       throw new Error("Real-server UI smoke assertions failed");

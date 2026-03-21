@@ -299,23 +299,36 @@ class AutoFixProposalMixin:
             if isinstance(item, dict):
                 item["instruction_preview"] = self._instruction_preview_for_proposal(item, file_name)
 
-        def _score(item: Dict) -> Tuple[int, int, int]:
+        def _score(item: Dict) -> Tuple[int, int, int, int, int]:
             preview = item.get("instruction_preview", {}) if isinstance(item, dict) else {}
             quality = item.get("quality_preview", {}) if isinstance(item, dict) else {}
+            validation_errors = quality.get("validation_errors", []) if isinstance(quality, dict) else []
+            artifact_errors = {
+                str(err or "")
+                for err in (validation_errors if isinstance(validation_errors, list) else [])
+                if str(err or "").strip()
+            }
             valid_instruction = 1 if bool(preview.get("valid", False)) else 0
             syntax_ok = 1 if bool(quality.get("syntax_check_passed", True)) else 0
+            artifact_free = 0 if artifact_errors else 1
+            prefer_live_llm = 1 if (
+                str(item.get("generator_type", "")).lower() == "llm"
+                and str(item.get("source", "")).lower() == "live-ai"
+            ) else 0
             prefer_rule = 1 if str(item.get("generator_type", "")).lower() == "rule" else 0
             item["compare_score"] = {
                 "instruction_valid": valid_instruction,
                 "syntax_ok": syntax_ok,
+                "artifact_free": artifact_free,
+                "prefer_live_llm": prefer_live_llm,
                 "prefer_rule": prefer_rule,
-                "total": (valid_instruction * 100) + (syntax_ok * 10) + prefer_rule,
+                "total": (valid_instruction * 100) + (syntax_ok * 20) + (artifact_free * 5) + (prefer_live_llm * 2) + prefer_rule,
             }
-            return (valid_instruction, syntax_ok, prefer_rule)
+            return (valid_instruction, syntax_ok, artifact_free, prefer_live_llm, prefer_rule)
 
         selected = max([p for p in proposals if isinstance(p, dict)], key=_score)
-        selected["selection_reason"] = "max(score=instruction_valid*100 + syntax_ok*10 + prefer_rule)"
-        return selected, "instruction_validity_then_syntax_then_rule"
+        selected["selection_reason"] = "max(score=instruction_valid*100 + syntax_ok*20 + artifact_free*5 + prefer_live_llm*2 + prefer_rule)"
+        return selected, "instruction_validity_then_syntax_then_artifact_free_then_live_llm_then_rule"
 
     def _store_autofix_proposal(self, session: Dict, proposal: Dict):
         autofix = session.setdefault("autofix", {})

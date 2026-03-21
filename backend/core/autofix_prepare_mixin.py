@@ -1,10 +1,31 @@
 import os
+import re
 import uuid
 from typing import Dict, List, Optional, Tuple
 
 
 class AutoFixPrepareMixin:
     """Host class should provide session helpers plus proposal helper methods."""
+
+    @staticmethod
+    def _ai_review_code_block_quality_errors(source_content: str, code_block: str) -> List[str]:
+        text = str(code_block or "")
+        if not text.strip():
+            return ["missing_code_block"]
+        errors: List[str] = []
+        if re.search(r"(^|\n)\s*=>\s*", text):
+            errors.append("contains_example_arrow")
+        source_lower = str(source_content or "").lower()
+        placeholder_patterns = (
+            ("contains_placeholder_obj_auto_sel", r"\bobj_auto_sel\d+\b"),
+            ("contains_placeholder_system_obj", r"\bSystem1:Obj\d+(?:\.[A-Za-z_][\w]*)?\b"),
+            ("contains_placeholder_bsel", r"\bbSel\d+\b"),
+        )
+        for error_code, pattern in placeholder_patterns:
+            match = re.search(pattern, text, flags=re.IGNORECASE)
+            if match and match.group(0).lower() not in source_lower:
+                errors.append(error_code)
+        return errors
 
     def _find_matching_ai_review(self, report_data: Dict, object_name: str, event_name: str, review_text: str, issue_id: str = ""):
         target_obj = str(object_name or "")
@@ -86,6 +107,7 @@ class AutoFixPrepareMixin:
         code_block = self._extract_review_code_block(str(ai_review.get("review", "")))
         if not str(code_block).strip():
             raise ValueError("AI review does not contain a code block for autofix")
+        quality_errors = self._ai_review_code_block_quality_errors(source_content, code_block)
 
         reference_line = source_lines[insert_at - 1] if 0 <= (insert_at - 1) < len(source_lines) else ""
         indent = self._line_indent(reference_line)
@@ -111,6 +133,7 @@ class AutoFixPrepareMixin:
             "fallback_used": False,
             "snippet_based": True,
             "ai_review_source": str(ai_review.get("source", "") or ""),
+            "quality_error_codes": list(quality_errors),
         }
         proposal = self._build_autofix_proposal_from_candidate(
             session_output_dir=session_output_dir,
@@ -130,7 +153,7 @@ class AutoFixPrepareMixin:
                 "syntax_check_passed": self._basic_syntax_check(new_content),
                 "heuristic_regression_count": 0,
                 "ctrlpp_regression_count": 0,
-                "errors": [],
+                "errors": list(quality_errors),
             },
             llm_meta=llm_meta,
             extra_private_fields={

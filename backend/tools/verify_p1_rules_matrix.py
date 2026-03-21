@@ -79,6 +79,10 @@ def _preferred_file_type(rule: Dict[str, Any]) -> str:
 
 def _op_case(op: str) -> RuleCase:
     cases: Dict[str, Tuple[str, str]] = {
+        "callback_delay_usage": (
+            'void OnDpChanged(){ delay(1); }\nmain(){ dpConnect("OnDpChanged", "System1:Example.Value:_online.._value"); }',
+            'void OnDpChanged(){ DebugN("ok"); }\nmain(){ dpConnect("OnDpChanged", "System1:Example.Value:_online.._value"); delay(1); }',
+        ),
         "sql_injection": (
             'main(){ sprintf(sql, "SELECT * FROM users WHERE name = \'%s\'", input); }',
             'main(){ dpQuery("SELECT * FROM users WHERE id = $1", args); }',

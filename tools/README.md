@@ -34,6 +34,7 @@ Last Updated: 2026-03-17
 - 결과 row 렌더링
 - code jump / detail / AI 경로
 - P1 triage suppress / unsuppress round-trip
+- 선택 플래그로 `Generate -> Compare -> Prepare patch` 실브라우저 검증 가능
 
 또한 현재 fixture 특성상 기본 후보에서 결과가 없으면:
 - 다른 target file 재시도
@@ -76,9 +77,11 @@ python tools/run_local_extended_gate.py
 
 ```powershell
 node tools/playwright_ui_real_smoke.js --timeout-ms 120000
+node tools/playwright_ui_real_smoke.js --timeout-ms 180000 --target-file BenchmarkP1Fixture.ctl --with-live-ai-compare-prepare
 node tools/playwright_ui_benchmark.js --iterations 3
 python tools/http_perf_baseline.py --dataset-name local-sample --iterations 3
 python tools/run_ctrlpp_integration_smoke.py --allow-missing-binary --skip-unittest
+python tools/release_gate.py --profile local --with-live-ai --with-live-ai-ui
 ```
 
 ## 호환성 entrypoint
