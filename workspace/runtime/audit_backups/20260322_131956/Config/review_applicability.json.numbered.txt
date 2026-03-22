@@ -1,0 +1,112 @@
+﻿00001: {
+00002:   "manual_only_items": [
+00003:     "荑쇰━ 二쇱꽍 泥섎━",
+00004:     "DB Query Error"
+00005:   ],
+00006:   "manual_condition_keywords": [],
+00007:   "items": {
+00008:     "Event, Ctrl Manager ?대깽??援먰솚 ?잛닔 理쒖냼??: {
+00009:       "required_rule_ids": [
+00010:         "PERF-EV-01",
+00011:         "PERF-DPSET-CHAIN",
+00012:         "PERF-DPSET-BATCH-01",
+00013:         "PERF-DPGET-BATCH-01",
+00014:         "PERF-SETVALUE-BATCH-01",
+00015:         "PERF-SETMULTIVALUE-ADOPT-01",
+00016:         "PERF-GETVALUE-BATCH-01"
+00017:       ]
+00018:     },
+00019:     "config ??ぉ ?뺥빀???뺤씤": {
+00020:       "required_rule_ids": [
+00021:         "CFG-01",
+00022:         "CFG-ERR-01",
+00023:         "SAFE-DIV-01"
+00024:       ]
+00025:     },
+00026:     "紐낅챸 洹쒖튃 諛?肄붾뵫 ?ㅽ???以???뺤씤": {
+00027:       "required_rule_ids": [
+00028:         "STYLE-NAME-01",
+00029:         "STYLE-INDENT-01",
+00030:         "STYLE-HEADER-01",
+00031:         "STD-01",
+00032:         "STYLE-IDX-01"
+00033:       ]
+00034:     },
+00035:     "遺덊븘?뷀븳 肄붾뱶 吏??: {
+00036:       "required_rule_ids": [
+00037:         "UNUSED-01",
+00038:         "CLEAN-DEAD-01",
+00039:         "CLEAN-DUP-01",
+00040:         "COMP-01",
+00041:         "COMP-02",
+00042:         "PERF-AGG-01"
+00043:       ]
+00044:     },
+00045:     "?섎뱶肄붾뵫 吏??: {
+00046:       "automation_mode": "auto_violation_only",
+00047:       "required_rule_ids": [
+00048:         "HARD-01",
+00049:         "HARD-02",
+00050:         "HARD-03"
+00051:       ]
+00052:     },
+00053:     "DP Query 理쒖쟻??援ы쁽": {
+00054:       "required_rule_ids": [
+00055:         "PERF-02",
+00056:         "PERF-02-WHERE-DPT-IN-01",
+00057:         "DB-01",
+00058:         "DB-02",
+00059:         "DB-ERR-01",
+00060:         "SEC-01"
+00061:       ]
+00062:     },
+00063:     "Raima DB 利앷? 諛⑹?": {
+00064:       "required_rule_ids": [
+00065:         "PERF-05"
+00066:       ]
+00067:     },
+00068:     "硫붾え由??꾩닔 泥댄겕": {
+00069:       "automation_mode": "auto_violation_only",
+00070:       "required_rule_ids": [
+00071:         "MEM-01"
+00072:       ]
+00073:     },
+00074:     "諛붿씤??荑쇰━ 泥섎━": {
+00075:       "required_rule_ids": [
+00076:         "SEC-01",
+00077:         "DB-01"
+00078:       ]
+00079:     },
+00080:     "荑쇰━ 寃利?: {
+00081:       "required_rule_ids": [
+00082:         "DB-01",
+00083:         "DB-02",
+00084:         "DB-ERR-01",
+00085:         "SEC-01"
+00086:       ]
+00087:     },
+00088:     "Loop臾??댁뿉 泥섎━ 議곌굔": {
+00089:       "automation_mode": "auto_full",
+00090:       "applicability_probe": {
+00091:         "pattern": "\\bwhile\\s*\\("
+00092:       },
+00093:       "required_rule_ids": [
+00094:         "PERF-03",
+00095:         "PERF-03-ACTIVE-DELAY-01"
+00096:       ]
+00097:     },
+00098:     "?붾쾭源낆슜 濡쒓렇 ?묒꽦 ?뺤씤": {
+00099:       "automation_mode": "auto_violation_only",
+00100:       "required_rule_ids": [
+00101:         "LOG-DBG-01",
+00102:         "LOG-LEVEL-01"
+00103:       ]
+00104:     },
+00105:     "荑쇰━ 二쇱꽍 泥섎━": {
+00106:       "automation_mode": "manual",
+00107:       "required_rule_ids": [
+00108:         "DB-02"
+00109:       ]
+00110:     }
+00111:   }
+00112: }

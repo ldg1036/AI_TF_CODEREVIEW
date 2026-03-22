@@ -1,0 +1,57 @@
+[
+    {
+        "rule_id":  "EXC-DP-01",
+        "issue_id":  "P1-EXC-DP-01-9b39c7f5d6",
+        "prepare_allow_apply":  true,
+        "prepare_blocked":  "",
+        "apply_status":  409,
+        "apply_applied":  null,
+        "apply_error_code":  "",
+        "apply_rejected":  "",
+        "apply_semantic":  ""
+    },
+    {
+        "rule_id":  "PERF-SETMULTIVALUE-ADOPT-01",
+        "issue_id":  "P1-PERF-SETMULTIVALUE-ADOPT-01-4b8c8448a0",
+        "prepare_allow_apply":  true,
+        "prepare_blocked":  "",
+        "apply_status":  409,
+        "apply_applied":  null,
+        "apply_error_code":  "",
+        "apply_rejected":  "",
+        "apply_semantic":  ""
+    },
+    {
+        "rule_id":  "EXC-TRY-01",
+        "issue_id":  "P1-EXC-TRY-01-e510be386b",
+        "prepare_allow_apply":  true,
+        "prepare_blocked":  "",
+        "apply_status":  409,
+        "apply_applied":  null,
+        "apply_error_code":  "",
+        "apply_rejected":  "",
+        "apply_semantic":  ""
+    },
+    {
+        "rule_id":  "STYLE-HEADER-01",
+        "issue_id":  "P1-STYLE-HEADER-01-99259438e2",
+        "prepare_allow_apply":  true,
+        "prepare_blocked":  "",
+        "apply_status":  200,
+        "apply_applied":  true,
+        "apply_error_code":  null,
+        "apply_rejected":  "",
+        "apply_semantic":  "no_risk_delta"
+    },
+    {
+        "rule_id":  "ACTIVE-01",
+        "issue_id":  "P1-ACTIVE-01-bc9ad90421",
+        "prepare_allow_apply":  true,
+        "prepare_blocked":  "",
+        "apply_status":  200,
+        "apply_applied":  true,
+        "apply_error_code":  null,
+        "apply_rejected":  "",
+        "apply_semantic":  "no_risk_delta"
+    }
+]

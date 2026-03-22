@@ -1,0 +1,42 @@
+[
+    {
+        "case":  "benchmark_p1",
+        "output_dir":  "4",
+        "summary_path":  "4\\analysis_summary.json",
+        "total":  null,
+        "p1_total":  null,
+        "p2_total":  null,
+        "p3_total":  null,
+        "score":  null
+    },
+    {
+        "case":  "benchmark_p1_p2",
+        "output_dir":  "4",
+        "summary_path":  "4\\analysis_summary.json",
+        "total":  null,
+        "p1_total":  null,
+        "p2_total":  null,
+        "p3_total":  null,
+        "score":  null
+    },
+    {
+        "case":  "goldentime_p1",
+        "output_dir":  "6",
+        "summary_path":  "6\\analysis_summary.json",
+        "total":  null,
+        "p1_total":  null,
+        "p2_total":  null,
+        "p3_total":  null,
+        "score":  null
+    },
+    {
+        "case":  "goldentime_p1_p2",
+        "output_dir":  "6",
+        "summary_path":  "6\\analysis_summary.json",
+        "total":  null,
+        "p1_total":  null,
+        "p2_total":  null,
+        "p3_total":  null,
+        "score":  null
+    }
+]

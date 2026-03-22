@@ -1489,7 +1489,7 @@ class ApiAutofixCasesMixin:
         self.assertGreaterEqual(int(stats_payload.get("token_fallback_attempt_count", 0) or 0), 1)
         self.assertGreaterEqual(int(stats_payload.get("token_fallback_ambiguous_count", 0) or 0), 1)
 
-    def test_autofix_apply_semantic_guard_blocked_and_stats(self):
+    def test_autofix_apply_prepared_allow_apply_is_not_reblocked_by_semantic_guard(self):
         self._force_single_internal_violation()
         status, analyze_payload = self._request(
             "POST",
@@ -1528,12 +1528,67 @@ class ApiAutofixCasesMixin:
             quality_preview["semantic_verdict"] = "allow_apply"
             quality_preview["validation_errors"] = []
             quality_preview["blocking_errors"] = []
+            quality_preview["prepared_proposal_id"] = prepare_payload.get("proposal_id")
+            quality_preview["proposal_ready"] = True
 
         apply_status, apply_payload = self._request(
             "POST",
             "/api/autofix/apply",
             {
                 "proposal_id": prepare_payload.get("proposal_id"),
+                "prepared_proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+            },
+        )
+        self.assertEqual(apply_status, 200)
+        self.assertTrue(bool(apply_payload.get("applied", False)))
+        self.assertEqual(str(apply_payload.get("prepared_proposal_id", "")), str(prepare_payload.get("proposal_id", "")))
+        quality = apply_payload.get("quality_metrics", {}) or {}
+        self.assertTrue(bool(quality.get("allow_apply", False)))
+
+        stats_status, stats_payload = self._request(
+            "GET",
+            "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
+        )
+        self.assertEqual(stats_status, 200)
+
+    def test_autofix_apply_reports_source_changed_since_prepare(self):
+        self._force_single_internal_violation()
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": False, "mode": "Static"},
+        )
+        self.assertEqual(status, 200)
+        p1_group = (analyze_payload.get("violations", {}) or {}).get("P1", [])[0]
+        violation = (p1_group.get("violations") or [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": p1_group.get("object", "sample.ctl"),
+                "event": p1_group.get("event", "Global"),
+                "review": "",
+                "issue_id": violation.get("issue_id", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "rule",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        with open(os.path.join(self.data_dir, "sample.ctl"), "a", encoding="utf-8") as handle:
+            handle.write("\n// drift\n")
+
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "prepared_proposal_id": prepare_payload.get("proposal_id"),
                 "session_id": analyze_payload.get("output_dir", ""),
                 "file": "sample.ctl",
                 "expected_base_hash": prepare_payload.get("base_hash"),
@@ -1542,19 +1597,37 @@ class ApiAutofixCasesMixin:
             },
         )
         self.assertEqual(apply_status, 409)
-        self.assertEqual(apply_payload.get("error_code"), "SEMANTIC_GUARD_BLOCKED")
-        quality = apply_payload.get("quality_metrics", {})
-        self.assertFalse(bool(quality.get("semantic_check_passed", True)))
-        self.assertGreaterEqual(int(quality.get("semantic_violation_count", 0) or 0), 1)
-        self.assertIn("semantic guard blocked", str(quality.get("rejected_reason", "")).lower())
+        self.assertEqual(str(apply_payload.get("error_code", "")), "SOURCE_CHANGED_SINCE_PREPARE")
 
-        stats_status, stats_payload = self._request(
-            "GET",
-            "/api/autofix/stats?" + urllib.parse.urlencode({"session_id": analyze_payload.get("output_dir", "")}),
+    def test_autofix_prepare_exposes_prepared_proposal_contract_fields(self):
+        self._force_single_internal_violation()
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": False, "mode": "Static"},
         )
-        self.assertEqual(stats_status, 200)
-        self.assertGreaterEqual(int(stats_payload.get("semantic_guard_checked_count", 0) or 0), 1)
-        self.assertGreaterEqual(int(stats_payload.get("semantic_guard_blocked_count", 0) or 0), 1)
+        self.assertEqual(status, 200)
+        p1_group = (analyze_payload.get("violations", {}) or {}).get("P1", [])[0]
+        violation = (p1_group.get("violations") or [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": p1_group.get("object", "sample.ctl"),
+                "event": p1_group.get("event", "Global"),
+                "review": "",
+                "issue_id": violation.get("issue_id", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "generator_preference": "rule",
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        self.assertEqual(str(prepare_payload.get("prepared_proposal_id", "")), str(prepare_payload.get("proposal_id", "")))
+        quality = prepare_payload.get("quality_preview", {}) or {}
+        self.assertEqual(str(quality.get("prepared_proposal_id", "")), str(prepare_payload.get("proposal_id", "")))
+        self.assertTrue(bool(quality.get("proposal_ready", False)))
+        self.assertIn("blocked_reason_text", quality)
 
     def test_autofix_apply_multi_hunk_success_and_stats(self):
         with open(os.path.join(self.data_dir, "sample.ctl"), "w", encoding="utf-8") as f:
@@ -1964,6 +2037,7 @@ class ApiAutofixCasesMixin:
             "/api/autofix/apply",
             {
                 "proposal_id": prepare_payload.get("proposal_id"),
+                "prepared_proposal_id": prepare_payload.get("prepared_proposal_id", prepare_payload.get("proposal_id")),
                 "session_id": analyze_payload.get("output_dir", ""),
                 "file": "sample.ctl",
                 "expected_base_hash": prepare_payload.get("base_hash"),
@@ -1976,4 +2050,5 @@ class ApiAutofixCasesMixin:
         quality = apply_payload.get("quality_metrics", {}) or {}
         self.assertFalse(bool(quality.get("allow_apply", True)))
         self.assertIn("target_issue_not_reduced", quality.get("blocked_reason_codes", []) or [])
+        self.assertTrue(str(quality.get("blocked_reason_text", "") or ""))
 

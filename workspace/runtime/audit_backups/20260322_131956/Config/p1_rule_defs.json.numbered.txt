@@ -1,0 +1,1088 @@
+﻿00001: [
+00002:   {
+00003:     "id": "cfg-perf-01",
+00004:     "order": 10,
+00005:     "enabled": true,
+00006:     "file_types": [
+00007:       "Client",
+00008:       "Server"
+00009:     ],
+00010:     "rule_id": "PERF-01",
+00011:     "item": "비동기 처리(dpConnect, dpQueryConnectSingle) 시 Callback 함수 병목 요소 최소화",
+00012:     "detector": {
+00013:       "kind": "composite",
+00014:       "op": "callback_delay_usage"
+00015:     },
+00016:     "finding": {
+00017:       "severity": "Critical",
+00018:       "message": "Callback 내부 delay 사용 감지."
+00019:     },
+00020:     "meta": {
+00021:       "migrated_from": "technical_patterns",
+00022:       "allow_item_filter_fallback": true
+00023:     }
+00024:   },
+00025:   {
+00026:     "id": "cfg-perf-02",
+00027:     "order": 20,
+00028:     "enabled": true,
+00029:     "file_types": [
+00030:       "Client",
+00031:       "Server"
+00032:     ],
+00033:     "rule_id": "PERF-02",
+00034:     "item": "DP Query 최적화 구현",
+00035:     "detector": {
+00036:       "kind": "regex",
+00037:       "pattern": "dpQuery.*FROM.*[\\\"'](\\*\\*|\\*\\.\\*)[\\\"']",
+00038:       "flags": [
+00039:         "DOTALL",
+00040:         "MULTILINE"
+00041:       ]
+00042:     },
+00043:     "finding": {
+00044:       "severity": "Warning",
+00045:       "message": "DP Query 전체 범위 조회 패턴 감지."
+00046:     },
+00047:     "meta": {
+00048:       "migrated_from": "technical_patterns"
+00049:     }
+00050:   },
+00051:   {
+00052:     "id": "cfg-hard-01",
+00053:     "order": 30,
+00054:     "enabled": true,
+00055:     "file_types": [
+00056:       "Client",
+00057:       "Server"
+00058:     ],
+00059:     "rule_id": "HARD-01",
+00060:     "item": "하드코딩 지양",
+00061:     "detector": {
+00062:       "kind": "regex",
+00063:       "pattern": "\\b(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b|https?://[^\\s\\\"']+|[\\\"']config/[^\\n\\\"']+[\\\"']",
+00064:       "flags": [
+00065:         "DOTALL",
+00066:         "MULTILINE"
+00067:       ]
+00068:     },
+00069:     "finding": {
+00070:       "severity": "Medium",
+00071:       "message": "IP/URL/설정 경로 하드코딩 감지."
+00072:     },
+00073:     "meta": {
+00074:       "migrated_from": "technical_patterns"
+00075:     }
+00076:   },
+00077:   {
+00078:     "id": "cfg-db-01",
+00079:     "order": 40,
+00080:     "enabled": true,
+00081:     "file_types": [
+00082:       "Client",
+00083:       "Server"
+00084:     ],
+00085:     "rule_id": "DB-01",
+00086:     "item": "바인딩 쿼리 처리",
+00087:     "detector": {
+00088:       "kind": "regex",
+00089:       "pattern": "sprintf.*(SELECT|INSERT|UPDATE|DELETE)",
+00090:       "flags": [
+00091:         "DOTALL",
+00092:         "MULTILINE"
+00093:       ]
+00094:     },
+00095:     "finding": {
+00096:       "severity": "Critical",
+00097:       "message": "문자열 SQL 조합 감지."
+00098:     },
+00099:     "meta": {
+00100:       "migrated_from": "technical_patterns"
+00101:     }
+00102:   },
+00103:   {
+00104:     "id": "cfg-perf-02-dpt-in-01",
+00105:     "order": 41,
+00106:     "enabled": true,
+00107:     "file_types": [
+00108:       "Client",
+00109:       "Server"
+00110:     ],
+00111:     "rule_id": "PERF-02-WHERE-DPT-IN-01",
+00112:     "item": "DP Query 최적화 구현",
+00113:     "detector": {
+00114:       "kind": "regex",
+00115:       "pattern": "dpQuery[\\s\\S]{0,1200}WHERE[\\s\\S]{0,400}_DPT\\s+IN\\s*\\(",
+00116:       "flags": [
+00117:         "DOTALL",
+00118:         "MULTILINE"
+00119:       ]
+00120:     },
+00121:     "finding": {
+00122:       "severity": "Warning",
+00123:       "message": "DP Query WHERE clause uses _DPT IN (prefer = condition)."
+00124:     },
+00125:     "meta": {
+00126:       "migrated_from": "manual_gap_fill",
+00127:       "migration_stage": "draft"
+00128:     }
+00129:   },
+00130:   {
+00131:     "id": "cfg-db-02",
+00132:     "order": 50,
+00133:     "enabled": true,
+00134:     "file_types": [
+00135:       "Client",
+00136:       "Server"
+00137:     ],
+00138:     "rule_id": "DB-02",
+00139:     "item": "쿼리 주석 처리",
+00140:     "detector": {
+00141:       "kind": "regex",
+00142:       "pattern": "^(?!\\s*//)[^\\n]*\\b(SELECT|INSERT|UPDATE|DELETE)\\b",
+00143:       "flags": [
+00144:         "DOTALL",
+00145:         "MULTILINE"
+00146:       ]
+00147:     },
+00148:     "finding": {
+00149:       "severity": "Info",
+00150:       "message": "쿼리 주석 누락 가능성 감지."
+00151:     },
+00152:     "meta": {
+00153:       "migrated_from": "technical_patterns"
+00154:     }
+00155:   },
+00156:   {
+00157:     "id": "legacy-check_sql_injection",
+00158:     "order": 60,
+00159:     "enabled": true,
+00160:     "file_types": [
+00161:       "Client",
+00162:       "Server"
+00163:     ],
+00164:     "detector": {
+00165:       "kind": "composite",
+00166:       "op": "sql_injection",
+00167:       "sql_keywords_pattern": "\\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN)\\b",
+00168:       "sprintf_pattern": "sprintf.*%s"
+00169:     },
+00170:     "meta": {
+00171:       "migrated_from": "check_sql_injection",
+00172:       "migration_stage": "batch4a-composite"
+00173:     },
+00174:     "rule_id": "SEC-01",
+00175:     "item": "바인딩 쿼리 처리",
+00176:     "finding": {
+00177:       "severity": "Critical",
+00178:       "message": "sprintf 기반 동적 SQL 구성 패턴 감지."
+00179:     }
+00180:   },
+00181:   {
+00182:     "id": "legacy-check_complexity",
+00183:     "order": 70,
+00184:     "enabled": true,
+00185:     "file_types": [
+00186:       "Client",
+00187:       "Server"
+00188:     ],
+00189:     "detector": {
+00190:       "kind": "composite",
+00191:       "op": "complexity",
+00192:       "max_code_length": 100000,
+00193:       "max_lines": 500,
+00194:       "max_scan_lines": 2000,
+00195:       "max_depth": 10,
+00196:       "line_rule_id": "COMP-01",
+00197:       "line_rule_item": "불필요한 코드 지양",
+00198:       "line_severity": "Medium",
+00199:       "line_message_prefix": "함수 길이 과다",
+00200:       "depth_rule_id": "COMP-02",
+00201:       "depth_rule_item": "불필요한 코드 지양",
+00202:       "depth_severity": "Medium",
+00203:       "depth_message_prefix": "제어문 중첩 과다"
+00204:     },
+00205:     "meta": {
+00206:       "migrated_from": "check_complexity",
+00207:       "migration_stage": "batch4c-composite"
+00208:     },
+00209:     "item": "불필요한 코드 지양",
+00210:     "finding": {
+00211:       "severity": "Medium",
+00212:       "message": "함수 길이/제어문 중첩 복잡도 과다 패턴 감지."
+00213:     }
+00214:   },
+00215:   {
+00216:     "id": "legacy-check_unused_variables",
+00217:     "order": 80,
+00218:     "enabled": true,
+00219:     "file_types": [
+00220:       "Client",
+00221:       "Server"
+00222:     ],
+00223:     "detector": {
+00224:       "kind": "composite",
+00225:       "op": "unused_variables",
+00226:       "max_code_length": 100000,
+00227:       "usage_threshold": 1,
+00228:       "exception_prefixes": [
+00229:         "param_",
+00230:         "cfg_",
+00231:         "g_",
+00232:         "manager_",
+00233:         "query_",
+00234:         "Script",
+00235:         "is_",
+00236:         "thread_",
+00237:         "dp_"
+00238:       ],
+00239:       "exception_vars": [
+00240:         "return_value",
+00241:         "i",
+00242:         "j",
+00243:         "k",
+00244:         "idx",
+00245:         "cnt",
+00246:         "count",
+00247:         "len",
+00248:         "size",
+00249:         "ret",
+00250:         "result",
+00251:         "success",
+00252:         "ok",
+00253:         "error",
+00254:         "err"
+00255:       ],
+00256:       "message_prefix": "미사용 변수 감지"
+00257:     },
+00258:     "meta": {
+00259:       "migrated_from": "check_unused_variables",
+00260:       "migration_stage": "batch4c-composite"
+00261:     },
+00262:     "rule_id": "UNUSED-01",
+00263:     "item": "불필요한 코드 지양",
+00264:     "finding": {
+00265:       "severity": "Low",
+00266:       "message": "미사용 변수 감지."
+00267:     }
+00268:   },
+00269:   {
+00270:     "id": "legacy-check_db_query_error",
+00271:     "order": 90,
+00272:     "enabled": true,
+00273:     "file_types": [
+00274:       "Client",
+00275:       "Server"
+00276:     ],
+00277:     "detector": {
+00278:       "kind": "composite",
+00279:       "op": "db_query_error",
+00280:       "query_call_pattern": "\\b(dpQuery|dbGet)\\b"
+00281:     },
+00282:     "meta": {
+00283:       "migrated_from": "check_db_query_error",
+00284:       "migration_stage": "batch4a-composite"
+00285:     },
+00286:     "rule_id": "DB-ERR-01",
+00287:     "item": "DB Query Error",
+00288:     "finding": {
+00289:       "severity": "Warning",
+00290:       "message": "DB Query 실패 로그 기능(writeLog/DebugTN) 누락 가능성."
+00291:     }
+00292:   },
+00293:   {
+00294:     "id": "legacy-check_dp_function_exception",
+00295:     "order": 100,
+00296:     "enabled": true,
+00297:     "file_types": [
+00298:       "Client",
+00299:       "Server"
+00300:     ],
+00301:     "detector": {
+00302:       "kind": "composite",
+00303:       "op": "dp_function_exception",
+00304:       "dp_call_pattern": "\\b(dpSet|dpGet|dpQuery|dpConnect)\\s*\\([^;]+\\)\\s*;"
+00305:     },
+00306:     "meta": {
+00307:       "migrated_from": "check_dp_function_exception",
+00308:       "migration_stage": "batch4a-composite"
+00309:     },
+00310:     "rule_id": "EXC-DP-01",
+00311:     "item": "DP 함수 예외 처리",
+00312:     "finding": {
+00313:       "severity": "Warning",
+00314:       "message": "DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성."
+00315:     }
+00316:   },
+00317:   {
+00318:     "id": "legacy-check_config_format_consistency",
+00319:     "order": 110,
+00320:     "enabled": true,
+00321:     "file_types": [
+00322:       "Server"
+00323:     ],
+00324:     "detector": {
+00325:       "kind": "composite",
+00326:       "op": "config_format_consistency",
+00327:       "delimiter_mismatch_threshold": 2
+00328:     },
+00329:     "meta": {
+00330:       "migrated_from": "check_config_format_consistency",
+00331:       "migration_stage": "batch2-composite"
+00332:     },
+00333:     "rule_id": "CFG-01",
+00334:     "item": "config 항목 정합성 확인",
+00335:     "finding": {
+00336:       "severity": "Warning",
+00337:       "message": "config 파싱 형식 불일치 가능성, delimiter/필드수 검증 권장."
+00338:     }
+00339:   },
+00340:   {
+00341:     "id": "legacy-check_config_error_contract",
+00342:     "order": 120,
+00343:     "enabled": true,
+00344:     "file_types": [
+00345:       "Server"
+00346:     ],
+00347:     "detector": {
+00348:       "kind": "composite",
+00349:       "op": "config_error_contract"
+00350:     },
+00351:     "meta": {
+00352:       "migrated_from": "check_config_error_contract",
+00353:       "migration_stage": "batch2-composite"
+00354:     },
+00355:     "rule_id": "CFG-ERR-01",
+00356:     "item": "config 항목 정합성 확인",
+00357:     "finding": {
+00358:       "severity": "Warning",
+00359:       "message": "Error 케이스에서 함수 실패 반환/중단 처리 권장."
+00360:     }
+00361:   },
+00362:   {
+00363:     "id": "legacy-check_while_delay_policy",
+00364:     "order": 130,
+00365:     "enabled": true,
+00366:     "file_types": [
+00367:       "Server"
+00368:     ],
+00369:     "detector": {
+00370:       "kind": "composite",
+00371:       "op": "while_delay_policy"
+00372:     },
+00373:     "meta": {
+00374:       "migrated_from": "check_while_delay_policy",
+00375:       "migration_stage": "batch2-composite"
+00376:     },
+00377:     "rule_id": "PERF-03",
+00378:     "item": "Loop문 내에 처리 조건",
+00379:     "finding": {
+00380:       "severity": "Critical",
+00381:       "message": "while 루프 내부 delay 부재 패턴 감지."
+00382:     }
+00383:   },
+00384:   {
+00385:     "id": "cfg-perf-03-active-delay-01",
+00386:     "order": 131,
+00387:     "enabled": true,
+00388:     "file_types": [
+00389:       "Server"
+00390:     ],
+00391:     "rule_id": "PERF-03-ACTIVE-DELAY-01",
+00392:     "item": "Loop문 내에 처리 조건",
+00393:     "detector": {
+00394:       "kind": "composite",
+00395:       "op": "while_delay_outside_active",
+00396:       "active_guard_pattern": "\\b(?:isActive|isScriptActive|active|enabled?|bActive|runFlag|useFlag)\\b"
+00397:     },
+00398:     "finding": {
+00399:       "severity": "Critical",
+00400:       "message": "while loop delay may exist only inside Active guard."
+00401:     },
+00402:     "meta": {
+00403:       "migrated_from": "manual_gap_fill",
+00404:       "migration_stage": "draft"
+00405:     }
+00406:   },
+00407:   {
+00408:     "id": "legacy-check_event_exchange_minimization",
+00409:     "order": 140,
+00410:     "enabled": true,
+00411:     "file_types": [
+00412:       "Client",
+00413:       "Server"
+00414:     ],
+00415:     "detector": {
+00416:       "kind": "composite",
+00417:       "op": "event_exchange_minimization"
+00418:     },
+00419:     "meta": {
+00420:       "migrated_from": "check_event_exchange_minimization",
+00421:       "migration_stage": "batch4b-composite"
+00422:     },
+00423:     "rule_id": "PERF-EV-01",
+00424:     "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+00425:     "finding": {
+00426:       "severity": "Warning",
+00427:       "message": "루프 내 dpSet 호출 감지: 변경 가드/배치 처리(dpSetWait, dpSetTimed) 권장."
+00428:     }
+00429:   },
+00430:   {
+00431:     "id": "legacy-check_dpset_timed_context",
+00432:     "order": 150,
+00433:     "enabled": true,
+00434:     "file_types": [
+00435:       "Client",
+00436:       "Server"
+00437:     ],
+00438:     "detector": {
+00439:       "kind": "composite",
+00440:       "op": "dpset_timed_context"
+00441:     },
+00442:     "meta": {
+00443:       "migrated_from": "check_dpset_timed_context",
+00444:       "migration_stage": "batch3-composite"
+00445:     },
+00446:     "rule_id": "PERF-05",
+00447:     "item": "Raima DB 증가 방지",
+00448:     "finding": {
+00449:       "severity": "Warning",
+00450:       "message": "dpSetTimed 대체 가능 패턴 감지."
+00451:     }
+00452:   },
+00453:   {
+00454:     "id": "legacy-check_dpget_batch_optimization",
+00455:     "order": 160,
+00456:     "enabled": true,
+00457:     "file_types": [
+00458:       "Client",
+00459:       "Server"
+00460:     ],
+00461:     "detector": {
+00462:       "kind": "composite",
+00463:       "op": "dpget_batch_optimization",
+00464:       "min_count": 2
+00465:     },
+00466:     "meta": {
+00467:       "migrated_from": "check_dpget_batch_optimization",
+00468:       "migration_stage": "batch3-composite"
+00469:     },
+00470:     "rule_id": "PERF-DPGET-BATCH-01",
+00471:     "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+00472:     "finding": {
+00473:       "severity": "Warning",
+00474:       "message": "반복 구간 dpGet 일괄/캐시 처리 권장."
+00475:     }
+00476:   },
+00477:   {
+00478:     "id": "legacy-check_dpset_batch_optimization",
+00479:     "order": 170,
+00480:     "enabled": true,
+00481:     "file_types": [
+00482:       "Client",
+00483:       "Server"
+00484:     ],
+00485:     "detector": {
+00486:       "kind": "composite",
+00487:       "op": "dpset_batch_optimization",
+00488:       "min_count": 2
+00489:     },
+00490:     "meta": {
+00491:       "migrated_from": "check_dpset_batch_optimization",
+00492:       "migration_stage": "batch3-composite"
+00493:     },
+00494:     "rule_id": "PERF-DPSET-BATCH-01",
+00495:     "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+00496:     "finding": {
+00497:       "severity": "Warning",
+00498:       "message": "반복 구간 dpSet 일괄/배치 처리 권장."
+00499:     }
+00500:   },
+00501:   {
+00502:     "id": "legacy-check_setvalue_batch_optimization",
+00503:     "order": 180,
+00504:     "enabled": true,
+00505:     "file_types": [
+00506:       "Client",
+00507:       "Server"
+00508:     ],
+00509:     "detector": {
+00510:       "kind": "composite",
+00511:       "op": "setvalue_batch_optimization",
+00512:       "min_count": 2
+00513:     },
+00514:     "meta": {
+00515:       "migrated_from": "check_setvalue_batch_optimization",
+00516:       "migration_stage": "batch3-composite"
+00517:     },
+00518:     "rule_id": "PERF-SETVALUE-BATCH-01",
+00519:     "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+00520:     "finding": {
+00521:       "severity": "Warning",
+00522:       "message": "setValue 반복 호출 감지, setMultiValue 기반 일괄 처리 권장."
+00523:     }
+00524:   },
+00525:   {
+00526:     "id": "legacy-check_setmultivalue_adoption",
+00527:     "order": 190,
+00528:     "enabled": true,
+00529:     "file_types": [
+00530:       "Client",
+00531:       "Server"
+00532:     ],
+00533:     "detector": {
+00534:       "kind": "composite",
+00535:       "op": "setmultivalue_adoption",
+00536:       "min_count": 2,
+00537:       "max_gap_lines": 6
+00538:     },
+00539:     "meta": {
+00540:       "migrated_from": "check_setmultivalue_adoption",
+00541:       "migration_stage": "batch3-composite"
+00542:     },
+00543:     "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+00544:     "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+00545:     "finding": {
+00546:       "severity": "Warning",
+00547:       "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장."
+00548:     }
+00549:   },
+00550:   {
+00551:     "id": "cfg-getmultivalue-adopt-01",
+00552:     "order": 195,
+00553:     "enabled": true,
+00554:     "file_types": [
+00555:       "Client",
+00556:       "Server"
+00557:     ],
+00558:     "detector": {
+00559:       "kind": "composite",
+00560:       "op": "getmultivalue_adoption",
+00561:       "min_count": 2,
+00562:       "max_gap_lines": 6
+00563:     },
+00564:     "meta": {
+00565:       "migrated_from": "manual_gap_fill",
+00566:       "migration_stage": "batch3.5-composite"
+00567:     },
+00568:     "rule_id": "PERF-GETMULTIVALUE-ADOPT-01",
+00569:     "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+00570:     "finding": {
+00571:       "severity": "Warning",
+00572:       "message": "다중 Get 업데이트 감지, getMultiValue 구문 적용 권장."
+00573:     }
+00574:   },
+00575:   {
+00576:     "id": "legacy-check_getvalue_batch_optimization",
+00577:     "order": 200,
+00578:     "enabled": true,
+00579:     "file_types": [
+00580:       "Client",
+00581:       "Server"
+00582:     ],
+00583:     "detector": {
+00584:       "kind": "composite",
+00585:       "op": "getvalue_batch_optimization",
+00586:       "min_count": 2
+00587:     },
+00588:     "meta": {
+00589:       "migrated_from": "check_getvalue_batch_optimization",
+00590:       "migration_stage": "batch3-composite"
+00591:     },
+00592:     "rule_id": "PERF-GETVALUE-BATCH-01",
+00593:     "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+00594:     "finding": {
+00595:       "severity": "Warning",
+00596:       "message": "getValue 반복 호출 감지, 일괄 조회/캐시 처리 권장."
+00597:     }
+00598:   },
+00599:   {
+00600:     "id": "legacy-check_try_catch_for_risky_ops",
+00601:     "order": 210,
+00602:     "enabled": true,
+00603:     "file_types": [
+00604:       "Client",
+00605:       "Server"
+00606:     ],
+00607:     "detector": {
+00608:       "kind": "composite",
+00609:       "op": "try_catch_for_risky_ops"
+00610:     },
+00611:     "meta": {
+00612:       "migrated_from": "check_try_catch_for_risky_ops",
+00613:       "migration_stage": "batch2-composite"
+00614:     },
+00615:     "rule_id": "EXC-TRY-01",
+00616:     "item": "Try, Catch 예외처리",
+00617:     "finding": {
+00618:       "severity": "Warning",
+00619:       "message": "예외 가능 구문에 try/catch 또는 오류 처리 계약 추가 권장."
+00620:     }
+00621:   },
+00622:   {
+00623:     "id": "legacy-check_division_zero_guard",
+00624:     "order": 220,
+00625:     "enabled": true,
+00626:     "file_types": [
+00627:       "Server"
+00628:     ],
+00629:     "detector": {
+00630:       "kind": "composite",
+00631:       "op": "division_zero_guard"
+00632:     },
+00633:     "meta": {
+00634:       "migrated_from": "check_division_zero_guard",
+00635:       "migration_stage": "batch2-composite"
+00636:     },
+00637:     "rule_id": "SAFE-DIV-01",
+00638:     "item": "config 항목 정합성 확인",
+00639:     "finding": {
+00640:       "severity": "Warning",
+00641:       "message": "분모 0 가능성 감지, 나눗셈 전 guard 조건 추가 권장."
+00642:     }
+00643:   },
+00644:   {
+00645:     "id": "legacy-check_manual_aggregation_pattern",
+00646:     "order": 230,
+00647:     "enabled": true,
+00648:     "file_types": [
+00649:       "Client",
+00650:       "Server"
+00651:     ],
+00652:     "detector": {
+00653:       "kind": "composite",
+00654:       "op": "manual_aggregation_pattern"
+00655:     },
+00656:     "meta": {
+00657:       "migrated_from": "check_manual_aggregation_pattern",
+00658:       "migration_stage": "batch2-composite"
+00659:     },
+00660:     "rule_id": "PERF-AGG-01",
+00661:     "item": "불필요한 코드 지양",
+00662:     "finding": {
+00663:       "severity": "Low",
+00664:       "message": "수동 집계 대신 표준 집계 유틸(dynSum/dynAvg 등) 검토 권장."
+00665:     }
+00666:   },
+00667:   {
+00668:     "id": "legacy-check_consecutive_dpset",
+00669:     "order": 240,
+00670:     "enabled": false,
+00671:     "file_types": [
+00672:       "Client",
+00673:       "Server"
+00674:     ],
+00675:     "detector": {
+00676:       "kind": "composite",
+00677:       "op": "consecutive_dpset",
+00678:       "max_gap_lines": 4
+00679:     },
+00680:     "meta": {
+00681:       "migrated_from": "check_consecutive_dpset",
+00682:       "migration_stage": "batch2-composite"
+00683:     },
+00684:     "rule_id": "PERF-DPSET-CHAIN",
+00685:     "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+00686:     "finding": {
+00687:       "severity": "Warning",
+00688:       "message": "WinCC OA 스타일상 연속 dpSet 호출 지양, 배치/동기/조건부 업데이트 권장."
+00689:     }
+00690:   },
+00691:   {
+00692:     "id": "legacy-check_memory_leaks_advanced",
+00693:     "order": 250,
+00694:     "enabled": true,
+00695:     "file_types": [
+00696:       "Client",
+00697:       "Server"
+00698:     ],
+00699:     "detector": {
+00700:       "kind": "composite",
+00701:       "op": "memory_leaks_advanced",
+00702:       "declaration_pattern": "\\bdyn_\\w+\\s+[a-zA-Z_][a-zA-Z0-9_]*",
+00703:       "cleanup_pattern": "\\bdyn(?:Clear|Remove)\\s*\\(",
+00704:       "loop_dyn_ops_pattern": "\\b(?:while|for)\\s*\\([^\\)]*\\)\\s*\\{[\\s\\S]{0,1200}\\bdyn(?:Append|Insert|MapInsert)\\s*\\("
+00705:     },
+00706:     "meta": {
+00707:       "migrated_from": "check_memory_leaks_advanced",
+00708:       "migration_stage": "batch4c-composite"
+00709:     },
+00710:     "rule_id": "MEM-01",
+00711:     "item": "메모리 누수 체크",
+00712:     "finding": {
+00713:       "severity": "Warning",
+00714:       "message": "반복 구간 dyn 사용 대비 dynClear()/dynRemove() 누락 가능성."
+00715:     }
+00716:   },
+00717:   {
+00718:     "id": "legacy-check_input_validation",
+00719:     "order": 260,
+00720:     "enabled": true,
+00721:     "file_types": [
+00722:       "Client",
+00723:       "Server"
+00724:     ],
+00725:     "detector": {
+00726:       "kind": "composite",
+00727:       "op": "input_validation"
+00728:     },
+00729:     "meta": {
+00730:       "migrated_from": "check_input_validation",
+00731:       "migration_stage": "batch2-composite"
+00732:     },
+00733:     "rule_id": "VAL-01",
+00734:     "item": "적절한 DP 처리 함수 사용",
+00735:     "finding": {
+00736:       "severity": "High",
+00737:       "message": "dpGet/dpConnect 입력값 유효성 검증(strlen/atoi 등) 누락 가능성."
+00738:     }
+00739:   },
+00740:   {
+00741:     "id": "legacy-check_coding_standards_advanced",
+00742:     "order": 270,
+00743:     "enabled": true,
+00744:     "file_types": [
+00745:       "Server"
+00746:     ],
+00747:     "detector": {
+00748:       "kind": "composite",
+00749:       "op": "coding_standards_advanced"
+00750:     },
+00751:     "meta": {
+00752:       "migrated_from": "check_coding_standards_advanced",
+00753:       "migration_stage": "batch4b-composite"
+00754:     },
+00755:     "rule_id": "STD-01",
+00756:     "item": "명명 규칙 및 코딩 스타일 준수 확인",
+00757:     "finding": {
+00758:       "severity": "Low",
+00759:       "message": "변수 선언 시 세미콜론(;) 누락 가능성."
+00760:     }
+00761:   },
+00762:   {
+00763:     "id": "legacy-check_style_name_rules",
+00764:     "order": 280,
+00765:     "enabled": true,
+00766:     "file_types": [
+00767:       "Server"
+00768:     ],
+00769:     "detector": {
+00770:       "kind": "composite",
+00771:       "op": "style_name_rules"
+00772:     },
+00773:     "meta": {
+00774:       "migrated_from": "check_style_name_rules",
+00775:       "migration_stage": "batch2-composite"
+00776:     },
+00777:     "rule_id": "STYLE-NAME-01",
+00778:     "item": "명명 규칙 및 코딩 스타일 준수 확인",
+00779:     "finding": {
+00780:       "severity": "Low",
+00781:       "message": "명명 규칙 위반 가능성 감지."
+00782:     }
+00783:   },
+00784:   {
+00785:     "id": "legacy-check_style_indent_rules",
+00786:     "order": 290,
+00787:     "enabled": true,
+00788:     "file_types": [
+00789:       "Server"
+00790:     ],
+00791:     "detector": {
+00792:       "kind": "composite",
+00793:       "op": "style_indent_mixed"
+00794:     },
+00795:     "meta": {
+00796:       "migrated_from": "check_style_indent_rules",
+00797:       "migration_stage": "batch1-composite"
+00798:     },
+00799:     "rule_id": "STYLE-INDENT-01",
+00800:     "item": "명명 규칙 및 코딩 스타일 준수 확인",
+00801:     "finding": {
+00802:       "severity": "Low",
+00803:       "message": "들여쓰기 스타일 혼합 감지(탭/스페이스 혼용)."
+00804:     }
+00805:   },
+00806:   {
+00807:     "id": "legacy-check_style_header_rules",
+00808:     "order": 300,
+00809:     "enabled": true,
+00810:     "file_types": [
+00811:       "Server"
+00812:     ],
+00813:     "detector": {
+00814:       "kind": "composite",
+00815:       "op": "style_header_rules",
+00816:       "min_comment_hits": 2
+00817:     },
+00818:     "meta": {
+00819:       "migrated_from": "check_style_header_rules",
+00820:       "migration_stage": "batch2-composite"
+00821:     },
+00822:     "rule_id": "STYLE-HEADER-01",
+00823:     "item": "명명 규칙 및 코딩 스타일 준수 확인",
+00824:     "finding": {
+00825:       "severity": "Low",
+00826:       "message": "함수 헤더 주석(이름/인자/설명) 누락 가능성."
+00827:     }
+00828:   },
+00829:   {
+00830:     "id": "legacy-check_magic_index_usage",
+00831:     "order": 310,
+00832:     "enabled": true,
+00833:     "file_types": [
+00834:       "Server"
+00835:     ],
+00836:     "detector": {
+00837:       "kind": "composite",
+00838:       "op": "magic_index_usage",
+00839:       "min_matches": 3
+00840:     },
+00841:     "meta": {
+00842:       "migrated_from": "check_magic_index_usage",
+00843:       "migration_stage": "batch1-composite"
+00844:     },
+00845:     "rule_id": "STYLE-IDX-01",
+00846:     "item": "명명 규칙 및 코딩 스타일 준수 확인",
+00847:     "finding": {
+00848:       "severity": "Low",
+00849:       "message": "인덱스 매직넘버 사용 감지, IDX_* 상수화 권장."
+00850:     }
+00851:   },
+00852:   {
+00853:     "id": "legacy-check_hardcoding_extended",
+00854:     "order": 320,
+00855:     "enabled": true,
+00856:     "file_types": [
+00857:       "Client",
+00858:       "Server"
+00859:     ],
+00860:     "detector": {
+00861:       "kind": "composite",
+00862:       "op": "hardcoding_extended",
+00863:       "dp_repeat_threshold": 2,
+00864:       "number_repeat_threshold": 3,
+00865:       "ignore_numbers": [
+00866:         "10",
+00867:         "60",
+00868:         "100"
+00869:       ],
+00870:       "dp_min_dots": 2
+00871:     },
+00872:     "meta": {
+00873:       "migrated_from": "check_hardcoding_extended",
+00874:       "migration_stage": "batch1-composite"
+00875:     },
+00876:     "rule_id": "HARD-02",
+00877:     "item": "하드코딩 지양",
+00878:     "finding": {
+00879:       "severity": "Medium",
+00880:       "message": "고정 DP 경로 문자열/매직넘버 반복 사용 감지."
+00881:     }
+00882:   },
+00883:   {
+00884:     "id": "legacy-check_float_literal_hardcoding",
+00885:     "order": 330,
+00886:     "enabled": true,
+00887:     "file_types": [
+00888:       "Client",
+00889:       "Server"
+00890:     ],
+00891:     "detector": {
+00892:       "kind": "composite",
+00893:       "op": "float_literal_hardcoding",
+00894:       "literals": [
+00895:         "0.01",
+00896:         "0.001"
+00897:       ],
+00898:       "min_hits": 2
+00899:     },
+00900:     "meta": {
+00901:       "migrated_from": "check_float_literal_hardcoding",
+00902:       "migration_stage": "batch1-composite"
+00903:     },
+00904:     "rule_id": "HARD-03",
+00905:     "item": "하드코딩 지양",
+00906:     "finding": {
+00907:       "severity": "Medium",
+00908:       "message": "임계 소수값 하드코딩 감지, 상수/설정값 치환 권장."
+00909:     }
+00910:   },
+00911:   {
+00912:     "id": "legacy-check_dead_code",
+00913:     "order": 340,
+00914:     "enabled": true,
+00915:     "file_types": [
+00916:       "Client",
+00917:       "Server"
+00918:     ],
+00919:     "detector": {
+00920:       "kind": "composite",
+00921:       "op": "dead_code",
+00922:       "detect_if_false": true,
+00923:       "detect_after_return": true,
+00924:       "return_lookahead_lines": 20,
+00925:       "return_after_message": "return 이후 도달 불가능 코드 가능성 감지."
+00926:     },
+00927:     "meta": {
+00928:       "migrated_from": "check_dead_code",
+00929:       "migration_stage": "batch1-composite"
+00930:     },
+00931:     "rule_id": "CLEAN-DEAD-01",
+00932:     "item": "불필요한 코드 지양",
+00933:     "finding": {
+00934:       "severity": "Medium",
+00935:       "message": "영구 미실행 분기(if(false)) 감지."
+00936:     }
+00937:   },
+00938:   {
+00939:     "id": "cfg-clean-dup-01",
+00940:     "order": 350,
+00941:     "enabled": true,
+00942:     "file_types": [
+00943:       "Client",
+00944:       "Server"
+00945:     ],
+00946:     "rule_id": "CLEAN-DUP-01",
+00947:     "item": "불필요한 코드 지양",
+00948:     "detector": {
+00949:       "kind": "line_repeat",
+00950:       "threshold": 3,
+00951:       "min_line_length": 8,
+00952:       "ignore_comments": true,
+00953:       "ignore_braces_only": true,
+00954:       "normalize_whitespace": true
+00955:     },
+00956:     "finding": {
+00957:       "severity": "Low",
+00958:       "message": "동일 코드 라인 반복(3회 이상) 감지."
+00959:     },
+00960:     "meta": {
+00961:       "migrated_from": "check_duplicate_blocks"
+00962:     }
+00963:   },
+00964:   {
+00965:     "id": "legacy-ui-block-initialize-delay",
+00966:     "order": 360,
+00967:     "enabled": true,
+00968:     "file_types": [
+00969:       "Client",
+00970:       "Server"
+00971:     ],
+00972:     "detector": {
+00973:       "kind": "composite",
+00974:       "op": "ui_block_initialize_delay",
+00975:       "event_equals": "Initialize",
+00976:       "contains": "delay("
+00977:     },
+00978:     "meta": {
+00979:       "migrated_from": "check_event.ui_block_special",
+00980:       "migration_stage": "batch1-composite"
+00981:     },
+00982:     "rule_id": "UI-BLOCK",
+00983:     "item": "적절한 DP 처리 함수 사용",
+00984:     "finding": {
+00985:       "severity": "Warning",
+00986:       "message": "UI 블로킹 위험: Initialize 내 delay 호출."
+00987:     }
+00988:   },
+00989:   {
+00990:     "id": "cfg-log-dbg-01",
+00991:     "order": 370,
+00992:     "enabled": true,
+00993:     "file_types": [
+00994:       "Server"
+00995:     ],
+00996:     "detector": {
+00997:       "kind": "composite",
+00998:       "op": "debug_logging_presence",
+00999:       "trigger_pattern": "\\b(?:catch|getLastError|err(?:or)?|fail(?:ed|ure)?)\\b",
+01000:       "log_pattern": "\\b(?:writeLog|DebugN|DebugTN)\\s*\\("
+01001:     },
+01002:     "meta": {
+01003:       "migrated_from": "manual_gap_fill",
+01004:       "migration_stage": "batch5-composite"
+01005:     },
+01006:     "rule_id": "LOG-DBG-01",
+01007:     "item": "디버깅용 로그 작성 확인",
+01008:     "finding": {
+01009:       "severity": "Info",
+01010:       "message": "오류/예외 처리 문맥에 디버깅 로그 작성 여부 확인 필요."
+01011:     }
+01012:   },
+01013:   {
+01014:     "id": "cfg-log-level-01",
+01015:     "order": 371,
+01016:     "enabled": true,
+01017:     "file_types": [
+01018:       "Server"
+01019:     ],
+01020:     "rule_id": "LOG-LEVEL-01",
+01021:     "item": "디버깅용 로그 작성 확인",
+01022:     "detector": {
+01023:       "kind": "composite",
+01024:       "op": "logging_level_policy",
+01025:       "trigger_pattern": "\\b(?:catch|getLastError|err(?:or)?|fail(?:ed|ure)?)\\b",
+01026:       "log_pattern": "\\b(?:writeLog|DebugN|DebugTN)\\s*\\(",
+01027:       "debug_pattern": "\\b(?:DBG1|DBG2|DebugN|DebugTN)\\b"
+01028:     },
+01029:     "finding": {
+01030:       "severity": "Info",
+01031:       "message": "Error/exception context may be missing debug-level logging."
+01032:     },
+01033:     "meta": {
+01034:       "migrated_from": "manual_gap_fill",
+01035:       "migration_stage": "draft"
+01036:     }
+01037:   },
+01038:   {
+01039:     "id": "cfg-active-01",
+01040:     "order": 380,
+01041:     "enabled": true,
+01042:     "file_types": [
+01043:       "Server"
+01044:     ],
+01045:     "detector": {
+01046:       "kind": "composite",
+01047:       "op": "script_active_condition_check",
+01048:       "mutating_pattern": "\\b(?:dpSet(?:Wait|Timed)?|setValue|setMultiValue)\\s*\\(",
+01049:       "active_guard_pattern": "\\b(?:isActive|active|enabled?|bActive|runFlag|useFlag)\\b"
+01050:     },
+01051:     "meta": {
+01052:       "migrated_from": "manual_gap_fill",
+01053:       "migration_stage": "batch5-composite"
+01054:     },
+01055:     "rule_id": "ACTIVE-01",
+01056:     "item": "스크립트 Active 동작 조건 확인",
+01057:     "finding": {
+01058:       "severity": "Warning",
+01059:       "message": "상태 변경 호출 전 Active/Enable 조건 확인 로직 부재 가능성."
+01060:     }
+01061:   },
+01062:   {
+01063:     "id": "cfg-dup-act-01",
+01064:     "order": 390,
+01065:     "enabled": true,
+01066:     "file_types": [
+01067:       "Client"
+01068:     ],
+01069:     "detector": {
+01070:       "kind": "composite",
+01071:       "op": "duplicate_action_handling",
+01072:       "call_pattern": "\\b(?P<func>dpSet|setValue)\\s*\\(\\s*\"(?P<target>[^\"]+)\"(?:\\s*,\\s*\"(?P<attr>[^\"]+)\")?",
+01073:       "min_repeat": 2,
+01074:       "max_gap_lines": 10,
+01075:       "duplicate_guard_pattern": "\\b(?:changed|delta|prev|old|already|once|flag)\\b"
+01076:     },
+01077:     "meta": {
+01078:       "migrated_from": "manual_gap_fill",
+01079:       "migration_stage": "batch5-composite"
+01080:     },
+01081:     "rule_id": "DUP-ACT-01",
+01082:     "item": "중복 동작 처리",
+01083:     "finding": {
+01084:       "severity": "Warning",
+01085:       "message": "동일 대상({target})에 대한 중복 동작 처리(가드/중복방지) 부재 가능성."
+01086:     }
+01087:   }
+01088: ]

@@ -1,0 +1,698 @@
+﻿{
+  "tool": "playwright_ui_real_smoke",
+  "started_at": "2026-03-22T04:32:15.750Z",
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "target_file_preference": "BenchmarkP1Fixture.ctl",
+    "timeout_ms": 120000,
+    "with_live_ai_compare_prepare": true,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "backend": {
+    "started_server": true,
+    "discovered_file_count": 4,
+    "triage_reset": {
+      "ok": true,
+      "deleted_count": 0,
+      "initial_count": 0,
+      "errors": []
+    },
+    "selected_target_file": "BenchmarkP1Fixture.ctl",
+    "triage_cleanup": {
+      "ok": true,
+      "deleted_count": 0,
+      "initial_count": 0,
+      "errors": []
+    }
+  },
+  "startupProbe": {
+    "root_ok": true,
+    "style_ok": true,
+    "renderer_ok": true,
+    "ok": true,
+    "status_codes": {
+      "root": 200,
+      "style": 200,
+      "renderer": 200
+    },
+    "errors": {}
+  },
+  "run": {
+    "selection": {
+      "selectedFile": "BenchmarkP1Fixture.ctl",
+      "availableCount": 4
+    },
+    "selectionAttempts": [
+      {
+        "file": "BenchmarkP1Fixture.ctl",
+        "ctrlpp_enabled": false,
+        "outcome": "rows_rendered",
+        "review_target_count": 5,
+        "result_row_count": 5
+      }
+    ],
+    "beforeClick": {
+      "buttonFound": true,
+      "buttonRect": {
+        "x": 426,
+        "y": 299,
+        "width": 148,
+        "height": 40,
+        "top": 299,
+        "right": 574,
+        "bottom": 339,
+        "left": 426
+      },
+      "interceptingNode": {
+        "tag": "BUTTON",
+        "id": "btn-analyze",
+        "className": ""
+      }
+    },
+    "beforeAnalyzeUi": {
+      "file_list_dom_count": 4,
+      "file_list_selected_count": 1,
+      "file_list_selected_files": [
+        "BenchmarkP1Fixture.ctl"
+      ],
+      "result_row_count": 0,
+      "unknown_rule_row_count": 0,
+      "review_target_count": 0,
+      "result_empty_text": "",
+      "total_issues": "0",
+      "current_review_issues": "0",
+      "critical_issues": "0",
+      "warning_issues": "0",
+      "workspace_visible": false,
+      "progress_panel_visible": false,
+      "progress_status_text": "분석 중...",
+      "progress_meta_text": "0% | 0/0 파일 | ETA 계산 중 | 경과 00:00",
+      "last_renderer_error": "",
+      "renderer_diagnostics": {
+        "boot_status": "ready",
+        "file_list_status": "ready",
+        "selected_file_count": 1,
+        "result_row_count": 0,
+        "p1_triage_count": 0,
+        "p1_triage_error": "",
+        "workspace_hidden_suppressed_count": 0,
+        "workspace_code_pane_height_px": 380,
+        "workspace_resize_active": false,
+        "active_primary_view": "dashboard",
+        "file_list_dom_count": 4,
+        "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+        "file_list_query": ""
+      }
+    },
+    "analyzeOutcome": {
+      "outcome": "rows_rendered",
+      "sawProgress": true,
+      "snapshot": {
+        "file_list_dom_count": 4,
+        "file_list_selected_count": 1,
+        "file_list_selected_files": [
+          "BenchmarkP1Fixture.ctl"
+        ],
+        "result_row_count": 5,
+        "unknown_rule_row_count": 0,
+        "review_target_count": 5,
+        "result_empty_text": "",
+        "total_issues": "5",
+        "current_review_issues": "5",
+        "critical_issues": "0",
+        "warning_issues": "4",
+        "workspace_visible": true,
+        "progress_panel_visible": false,
+        "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+        "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:06",
+        "last_renderer_error": "",
+        "renderer_diagnostics": {
+          "boot_status": "ready",
+          "file_list_status": "ready",
+          "selected_file_count": 1,
+          "result_row_count": 5,
+          "p1_triage_count": 0,
+          "p1_triage_error": "",
+          "workspace_hidden_suppressed_count": 0,
+          "workspace_code_pane_height_px": 380,
+          "workspace_resize_active": false,
+          "active_primary_view": "workspace",
+          "file_list_dom_count": 4,
+          "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+          "file_list_query": "",
+          "analyze_status": "completed",
+          "analyze_error": "",
+          "selected_input_source_count": 0,
+          "progress_panel_visible": false,
+          "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+          "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:06",
+          "analyze_job_id": "1857c2787dc549af8c7f2df5515153a8",
+          "analyze_poll_interval_ms": 500,
+          "last_analyze_progress": {
+            "total_files": 1,
+            "completed_files": 1,
+            "failed_files": 0,
+            "percent": 100,
+            "current_file": "BenchmarkP1Fixture.ctl",
+            "phase": "analyze_file_done"
+          },
+          "last_analyze_poll": {
+            "status": "completed",
+            "request_id": "715b6a82ab6b44b8a4f2a0e21402d87e"
+          },
+          "last_analyze_result_summary": {
+            "total": 5,
+            "critical": 0,
+            "warning": 4,
+            "info": 1,
+            "score": 79
+          },
+          "workspace_filtered_row_count": 5
+        }
+      }
+    },
+    "triageFlow": {
+      "attempted": true,
+      "completed": true,
+      "skipped_reason": "",
+      "baseline_row_count": 5,
+      "before": {
+        "file_list_dom_count": 4,
+        "file_list_selected_count": 1,
+        "file_list_selected_files": [
+          "BenchmarkP1Fixture.ctl"
+        ],
+        "result_row_count": 5,
+        "unknown_rule_row_count": 0,
+        "review_target_count": 5,
+        "result_empty_text": "",
+        "total_issues": "5",
+        "current_review_issues": "5",
+        "critical_issues": "0",
+        "warning_issues": "4",
+        "workspace_visible": true,
+        "progress_panel_visible": false,
+        "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+        "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:06",
+        "last_renderer_error": "",
+        "renderer_diagnostics": {
+          "boot_status": "ready",
+          "file_list_status": "ready",
+          "selected_file_count": 1,
+          "result_row_count": 5,
+          "p1_triage_count": 0,
+          "p1_triage_error": "",
+          "workspace_hidden_suppressed_count": 0,
+          "workspace_code_pane_height_px": 380,
+          "workspace_resize_active": false,
+          "active_primary_view": "workspace",
+          "file_list_dom_count": 4,
+          "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+          "file_list_query": "",
+          "analyze_status": "completed",
+          "analyze_error": "",
+          "selected_input_source_count": 0,
+          "progress_panel_visible": false,
+          "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+          "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:06",
+          "analyze_job_id": "1857c2787dc549af8c7f2df5515153a8",
+          "analyze_poll_interval_ms": 500,
+          "last_analyze_progress": {
+            "total_files": 1,
+            "completed_files": 1,
+            "failed_files": 0,
+            "percent": 100,
+            "current_file": "BenchmarkP1Fixture.ctl",
+            "phase": "analyze_file_done"
+          },
+          "last_analyze_poll": {
+            "status": "completed",
+            "request_id": "715b6a82ab6b44b8a4f2a0e21402d87e"
+          },
+          "last_analyze_result_summary": {
+            "total": 5,
+            "critical": 0,
+            "warning": 4,
+            "info": 1,
+            "score": 79
+          },
+          "workspace_filtered_row_count": 5
+        }
+      },
+      "after_suppress": {
+        "ui": {
+          "file_list_dom_count": 4,
+          "file_list_selected_count": 1,
+          "file_list_selected_files": [
+            "BenchmarkP1Fixture.ctl"
+          ],
+          "result_row_count": 4,
+          "unknown_rule_row_count": 0,
+          "review_target_count": 4,
+          "result_empty_text": "",
+          "total_issues": "5",
+          "current_review_issues": "4",
+          "critical_issues": "0",
+          "warning_issues": "4",
+          "workspace_visible": true,
+          "progress_panel_visible": false,
+          "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+          "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:06",
+          "last_renderer_error": "",
+          "renderer_diagnostics": {
+            "boot_status": "ready",
+            "file_list_status": "ready",
+            "selected_file_count": 1,
+            "result_row_count": 4,
+            "p1_triage_count": 1,
+            "p1_triage_error": "",
+            "workspace_hidden_suppressed_count": 1,
+            "workspace_code_pane_height_px": 380,
+            "workspace_resize_active": false,
+            "active_primary_view": "workspace",
+            "file_list_dom_count": 4,
+            "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+            "file_list_query": "",
+            "analyze_status": "completed",
+            "analyze_error": "",
+            "selected_input_source_count": 0,
+            "progress_panel_visible": false,
+            "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+            "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:06",
+            "analyze_job_id": "1857c2787dc549af8c7f2df5515153a8",
+            "analyze_poll_interval_ms": 500,
+            "last_analyze_progress": {
+              "total_files": 1,
+              "completed_files": 1,
+              "failed_files": 0,
+              "percent": 100,
+              "current_file": "BenchmarkP1Fixture.ctl",
+              "phase": "analyze_file_done"
+            },
+            "last_analyze_poll": {
+              "status": "completed",
+              "request_id": "715b6a82ab6b44b8a4f2a0e21402d87e"
+            },
+            "last_analyze_result_summary": {
+              "total": 5,
+              "critical": 0,
+              "warning": 4,
+              "info": 1,
+              "score": 79
+            },
+            "workspace_filtered_row_count": 4
+          }
+        },
+        "triage": {
+          "section_present": true,
+          "status_text": "표시 중",
+          "feedback_text": "",
+          "reason_value": "",
+          "note_value": "",
+          "suppress_button_present": true,
+          "unsuppress_button_present": false,
+          "active_row_id": "p1:BenchmarkP1Fixture.ctl:PERF-SETMULTIVALUE-ADOPT-01:8:P1-PERF-SETMULTIVALUE-ADOPT-01-4b8c8448a0",
+          "suppressed_row_count": 0,
+          "suppressed_row_ids": [],
+          "show_suppressed_checked": false
+        }
+      },
+      "after_show_suppressed": {
+        "ui": {
+          "file_list_dom_count": 4,
+          "file_list_selected_count": 1,
+          "file_list_selected_files": [
+            "BenchmarkP1Fixture.ctl"
+          ],
+          "result_row_count": 5,
+          "unknown_rule_row_count": 0,
+          "review_target_count": 5,
+          "result_empty_text": "",
+          "total_issues": "5",
+          "current_review_issues": "5",
+          "critical_issues": "0",
+          "warning_issues": "4",
+          "workspace_visible": true,
+          "progress_panel_visible": false,
+          "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+          "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:06",
+          "last_renderer_error": "",
+          "renderer_diagnostics": {
+            "boot_status": "ready",
+            "file_list_status": "ready",
+            "selected_file_count": 1,
+            "result_row_count": 5,
+            "p1_triage_count": 1,
+            "p1_triage_error": "",
+            "workspace_hidden_suppressed_count": 0,
+            "workspace_code_pane_height_px": 380,
+            "workspace_resize_active": false,
+            "active_primary_view": "workspace",
+            "file_list_dom_count": 4,
+            "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+            "file_list_query": "",
+            "analyze_status": "completed",
+            "analyze_error": "",
+            "selected_input_source_count": 0,
+            "progress_panel_visible": false,
+            "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+            "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:06",
+            "analyze_job_id": "1857c2787dc549af8c7f2df5515153a8",
+            "analyze_poll_interval_ms": 500,
+            "last_analyze_progress": {
+              "total_files": 1,
+              "completed_files": 1,
+              "failed_files": 0,
+              "percent": 100,
+              "current_file": "BenchmarkP1Fixture.ctl",
+              "phase": "analyze_file_done"
+            },
+            "last_analyze_poll": {
+              "status": "completed",
+              "request_id": "715b6a82ab6b44b8a4f2a0e21402d87e"
+            },
+            "last_analyze_result_summary": {
+              "total": 5,
+              "critical": 0,
+              "warning": 4,
+              "info": 1,
+              "score": 79
+            },
+            "workspace_filtered_row_count": 5
+          }
+        },
+        "triage": {
+          "section_present": true,
+          "status_text": "표시 중",
+          "feedback_text": "",
+          "reason_value": "",
+          "note_value": "",
+          "suppress_button_present": true,
+          "unsuppress_button_present": false,
+          "active_row_id": "p1:BenchmarkP1Fixture.ctl:PERF-SETMULTIVALUE-ADOPT-01:8:P1-PERF-SETMULTIVALUE-ADOPT-01-4b8c8448a0",
+          "suppressed_row_count": 1,
+          "suppressed_row_ids": [
+            "p1:BenchmarkP1Fixture.ctl:EXC-DP-01:14:P1-EXC-DP-01-9b39c7f5d6"
+          ],
+          "show_suppressed_checked": true
+        }
+      },
+      "after_unsuppress": {
+        "ui": {
+          "file_list_dom_count": 4,
+          "file_list_selected_count": 1,
+          "file_list_selected_files": [
+            "BenchmarkP1Fixture.ctl"
+          ],
+          "result_row_count": 5,
+          "unknown_rule_row_count": 0,
+          "review_target_count": 5,
+          "result_empty_text": "",
+          "total_issues": "5",
+          "current_review_issues": "5",
+          "critical_issues": "0",
+          "warning_issues": "4",
+          "workspace_visible": true,
+          "progress_panel_visible": false,
+          "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+          "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:06",
+          "last_renderer_error": "",
+          "renderer_diagnostics": {
+            "boot_status": "ready",
+            "file_list_status": "ready",
+            "selected_file_count": 1,
+            "result_row_count": 5,
+            "p1_triage_count": 0,
+            "p1_triage_error": "",
+            "workspace_hidden_suppressed_count": 0,
+            "workspace_code_pane_height_px": 380,
+            "workspace_resize_active": false,
+            "active_primary_view": "workspace",
+            "file_list_dom_count": 4,
+            "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+            "file_list_query": "",
+            "analyze_status": "completed",
+            "analyze_error": "",
+            "selected_input_source_count": 0,
+            "progress_panel_visible": false,
+            "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+            "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:06",
+            "analyze_job_id": "1857c2787dc549af8c7f2df5515153a8",
+            "analyze_poll_interval_ms": 500,
+            "last_analyze_progress": {
+              "total_files": 1,
+              "completed_files": 1,
+              "failed_files": 0,
+              "percent": 100,
+              "current_file": "BenchmarkP1Fixture.ctl",
+              "phase": "analyze_file_done"
+            },
+            "last_analyze_poll": {
+              "status": "completed",
+              "request_id": "715b6a82ab6b44b8a4f2a0e21402d87e"
+            },
+            "last_analyze_result_summary": {
+              "total": 5,
+              "critical": 0,
+              "warning": 4,
+              "info": 1,
+              "score": 79
+            },
+            "workspace_filtered_row_count": 5
+          }
+        },
+        "triage": {
+          "section_present": true,
+          "status_text": "표시 중",
+          "feedback_text": "",
+          "reason_value": "",
+          "note_value": "",
+          "suppress_button_present": true,
+          "unsuppress_button_present": false,
+          "active_row_id": "p1:BenchmarkP1Fixture.ctl:EXC-DP-01:14:P1-EXC-DP-01-9b39c7f5d6",
+          "suppressed_row_count": 0,
+          "suppressed_row_ids": [],
+          "show_suppressed_checked": true
+        }
+      },
+      "selected_row_id": "p1:BenchmarkP1Fixture.ctl:EXC-DP-01:14:P1-EXC-DP-01-9b39c7f5d6",
+      "suppressed_row_id": "p1:BenchmarkP1Fixture.ctl:EXC-DP-01:14:P1-EXC-DP-01-9b39c7f5d6"
+    },
+    "liveAiToggle": {
+      "ok": true,
+      "checked": true
+    },
+    "aiOnDemand": {
+      "attempted": true,
+      "clicked": true,
+      "completed": true,
+      "skipped_reason": "",
+      "button_id": "btn-ai-generate",
+      "button_text_before": "Generate AI Review",
+      "button_text_after": "Generate AI Review",
+      "status_text": "Live P3 review suggestion"
+    },
+    "aiComparePrepare": {
+      "attempted": true,
+      "compare_opened": true,
+      "prepare_clicked": true,
+      "patch_ready": true,
+      "unified_view_opened": true,
+      "candidate_labels": [
+        "LLM (1126)",
+        "RULE (1128)"
+      ],
+      "selected_candidate": "RULE (1128)",
+      "diff_excerpt": "--- BenchmarkP1Fixture.ctl\n+++ BenchmarkP1Fixture.ctl (autofix)\n@@ -11,6 +11,9 @@\n // [RULE-AUTOFIX:d46c8c46] Rule template suggestion for EXC-DP-01 (DP 함수 예외 처리)\n // TODO: apply deterministic fix pattern or review manually\n // [/RULE-AUTOFIX:d46c8c46]\n+  // [RULE-AUTOFIX:aa0f866d] Rule template suggestion for EXC-DP-01 (DP 함수 예외 처리)\n+  // TODO: apply deterministic fix pattern or review manually\n+  // [/RULE-AUTOFIX:aa0f866d]\n   dpSet(\"SYS.A.C1\", v1);\n   dpSet(\"SYS.A.C2\", v2);\n }",
+      "contains_obj_auto_sel": false,
+      "contains_arrow_marker": false,
+      "contains_placeholder_system_obj": false,
+      "contains_real_dp_names": false,
+      "apply_button_present": true,
+      "apply_button_disabled": true,
+      "apply_button_text": "Apply blocked",
+      "apply_blocked_reason": "No prepared source proposal is available. [proposal_missing]",
+      "skipped_reason": "",
+      "before": {
+        "modal_visible": true,
+        "meta": "File BenchmarkP1Fixture.ctl\nSource P1\nRule EXC-DP-01\nLine 14\nP3 Live\nPatch missing",
+        "summary": "P1 source compared with Live P3.\n\nTarget BenchmarkP1Fixture.ctl ??rule EXC-DP-01 ??line 14\n\nIssue DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성.\n\nThe source patch diff is not ready yet.\n\npatch missing\nPrepare patch",
+        "patch_ready": false,
+        "prepare_button_present": true,
+        "unified_enabled": false,
+        "candidate_labels": [],
+        "selected_candidate": "",
+        "diff_excerpt": "// Source patch diff is not ready yet.\n// It will appear after prepare/apply completes.",
+        "contains_obj_auto_sel": false,
+        "contains_arrow_marker": false,
+        "contains_placeholder_system_obj": false,
+        "contains_real_dp_names": false,
+        "apply_button_present": true,
+        "apply_button_disabled": true,
+        "apply_button_text": "Apply blocked",
+        "apply_blocked_reason": "No prepared source proposal is available. [proposal_missing]"
+      },
+      "after": {
+        "modal_visible": true,
+        "meta": "File BenchmarkP1Fixture.ctl\nSource P1\nRule EXC-DP-01\nLine 14\nP3 Live\nProposal RULE\nPatch ready",
+        "summary": "P1 source compared with Live P3.\n\nTarget BenchmarkP1Fixture.ctl ??rule EXC-DP-01 ??line 14\n\nIssue DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성.\n\nA source patch diff is available.",
+        "patch_ready": true,
+        "prepare_button_present": false,
+        "unified_enabled": true,
+        "candidate_labels": [
+          "LLM (1126)",
+          "RULE (1128)"
+        ],
+        "selected_candidate": "RULE (1128)",
+        "diff_excerpt": "--- BenchmarkP1Fixture.ctl\n+++ BenchmarkP1Fixture.ctl (autofix)\n@@ -11,6 +11,9 @@\n // [RULE-AUTOFIX:d46c8c46] Rule template suggestion for EXC-DP-01 (DP 함수 예외 처리)\n // TODO: apply deterministic fix pattern or review manually\n // [/RULE-AUTOFIX:d46c8c46]\n+  // [RULE-AUTOFIX:aa0f866d] Rule template suggestion for EXC-DP-01 (DP 함수 예외 처리)\n+  // TODO: apply deterministic fix pattern or review manually\n+  // [/RULE-AUTOFIX:aa0f866d]\n   dpSet(\"SYS.A.C1\", v1);\n   dpSet(\"SYS.A.C2\", v2);\n }",
+        "contains_obj_auto_sel": false,
+        "contains_arrow_marker": false,
+        "contains_placeholder_system_obj": false,
+        "contains_real_dp_names": false,
+        "apply_button_present": true,
+        "apply_button_disabled": true,
+        "apply_button_text": "Apply blocked",
+        "apply_blocked_reason": "No prepared source proposal is available. [proposal_missing]"
+      }
+    },
+    "excelOnDemand": {
+      "attempted": true,
+      "clicked": true,
+      "completed": true,
+      "skipped_reason": "",
+      "initial": {
+        "present": true,
+        "disabled": false,
+        "button_text": "Flush Excel queue",
+        "status_text": "Excel 0/1 | running 1",
+        "download_button_count": 0,
+        "download_labels": []
+      },
+      "final": {
+        "present": true,
+        "disabled": false,
+        "button_text": "Flush Excel queue",
+        "status_text": "Excel 1 files ready",
+        "download_button_count": 1,
+        "download_labels": [
+          "Download"
+        ]
+      },
+      "download_triggered": true,
+      "suggested_filename": "CodeReview_Submission_BenchmarkP1Fixture_20260322_133221_740741.xlsx",
+      "download_error": ""
+    },
+    "afterRun": {
+      "file_list_dom_count": 4,
+      "file_list_selected_count": 1,
+      "file_list_selected_files": [
+        "BenchmarkP1Fixture.ctl"
+      ],
+      "result_row_count": 1,
+      "unknown_rule_row_count": 0,
+      "review_target_count": 1,
+      "result_empty_text": "",
+      "total_issues": "5",
+      "current_review_issues": "1",
+      "critical_issues": "0",
+      "warning_issues": "4",
+      "workspace_visible": true,
+      "progress_panel_visible": false,
+      "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+      "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:06",
+      "last_renderer_error": "",
+      "renderer_diagnostics": {
+        "boot_status": "ready",
+        "file_list_status": "ready",
+        "selected_file_count": 1,
+        "result_row_count": 1,
+        "p1_triage_count": 0,
+        "p1_triage_error": "",
+        "workspace_hidden_suppressed_count": 0,
+        "workspace_code_pane_height_px": 380,
+        "workspace_resize_active": false,
+        "active_primary_view": "workspace",
+        "file_list_dom_count": 4,
+        "file_list_empty_message": "선택 가능한 파일이 없습니다.",
+        "file_list_query": "",
+        "analyze_status": "completed",
+        "analyze_error": "",
+        "selected_input_source_count": 0,
+        "progress_panel_visible": false,
+        "progress_status_text": "Completed | BenchmarkP1Fixture.ctl | File complete",
+        "progress_meta_text": "100% | 1/1 files | ETA 00:00 | Elapsed 00:06",
+        "analyze_job_id": "1857c2787dc549af8c7f2df5515153a8",
+        "analyze_poll_interval_ms": 500,
+        "last_analyze_progress": {
+          "total_files": 1,
+          "completed_files": 1,
+          "failed_files": 0,
+          "percent": 100,
+          "current_file": "BenchmarkP1Fixture.ctl",
+          "phase": "analyze_file_done"
+        },
+        "last_analyze_poll": {
+          "status": "completed",
+          "request_id": "715b6a82ab6b44b8a4f2a0e21402d87e"
+        },
+        "last_analyze_result_summary": {
+          "total": 5,
+          "critical": 0,
+          "warning": 4,
+          "info": 1,
+          "score": 79
+        },
+        "workspace_filtered_row_count": 1
+      }
+    },
+    "elapsed_ms": 12902
+  },
+  "diagnostics": {
+    "console": [],
+    "page_errors": [],
+    "dialogs": [],
+    "api": {
+      "files": {
+        "status": 200,
+        "body": "{\"files\": [{\"name\": \"BenchmarkP1Fixture.ctl\", \"type\": \"ctl\", \"selectable\": true, \"canonical_file_id\": \"BenchmarkP1Fixture.ctl\", \"file_descriptor\": {\"requested_name\": \"BenchmarkP1Fixture.ctl\", \"canonical_name\": \"BenchmarkP1Fixture.ctl\", \"canonical_file_id\": \"BenchmarkP1Fixture.ctl\", \"source_kind\": \"ctl\", \"display_name\": \"BenchmarkP1Fixture.ctl\", \"detected_encoding\": \"\", \"viewer_source\": \"\", \"source_name\": \"BenchmarkP1Fixture.ctl\", \"reviewed_name\": \"BenchmarkP1Fixture_REVIEWED.txt\"}}, {\"name\": \"GoldenTime.ctl\", \"type\": \"ctl\", \"selectable\": true, \"canonical_file_id\": \"GoldenTime.ctl\", \"file_descriptor\": {\"requested_name\": \"GoldenTime.ctl\", \"canonical_name\": \"GoldenTime.ctl\", \"canonical_file_id\": \"GoldenTime.ctl\", \"source_kind\": \"ctl\", \"display_name\": \"GoldenTime.ctl\", \"detected_encoding\": \"\", \"viewer_source\": \"\", \"source_name\": \"GoldenTime.ctl\", \"reviewed_name\": \"GoldenTime_REVIEWED.txt\"}}, {\"name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl\", \"type\": \"pnl\", \"selectable\": true, \"canonical_file_id\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt\", \"file_descriptor\": {\"requested_name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl\", \"canonical_name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt\", \"canonical_file_id\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt\", \"source_kind\": \"converted_pnl\", \"display_name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt\", \"detected_encoding\": \"\", \"viewer_source\": \"\", \"source_name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl\", \"reviewed_name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl_REVIEWED.txt\"}}, {\"name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt\", \"type\": \"txt\", \"selectable\": true, \"canonical_file_id\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt\", \"file_descriptor\": {\"requested_name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt\", \"canonical_name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt\", \"canonical_file_id\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt\", \"source_kind\": \"converted_pnl\", \"display_name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt\", \"detected_encoding\": \"\", \"viewer_source\": \"\", \"source_name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl\", \"reviewed_name\": \"POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl_REVIEWED.txt\"}}]}"
+      },
+      "analyze_start": {
+        "status": 202,
+        "body": "{\"job_id\": \"1857c2787dc549af8c7f2df5515153a8\", \"status\": \"queued\", \"progress\": {\"total_files\": 1, \"completed_files\": 0, \"failed_files\": 0, \"percent\": 0, \"current_file\": \"\", \"phase\": \"queued\"}, \"poll_interval_ms\": 500, \"request_id\": \"715b6a82ab6b44b8a4f2a0e21402d87e\"}"
+      },
+      "analyze_status_last": {
+        "status": 200,
+        "payload": {
+          "status": "completed",
+          "error": "",
+          "request_id": "715b6a82ab6b44b8a4f2a0e21402d87e",
+          "progress": {
+            "total_files": 1,
+            "completed_files": 1,
+            "failed_files": 0,
+            "percent": 100,
+            "current_file": "BenchmarkP1Fixture.ctl",
+            "phase": "analyze_file_done"
+          },
+          "result_summary": {
+            "total": 5,
+            "critical": 0,
+            "warning": 4,
+            "info": 1,
+            "score": 79
+          }
+        }
+      }
+    }
+  },
+  "ok": true,
+  "finished_at": "2026-03-22T04:32:32.333Z"
+}

@@ -1,0 +1,20 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1774154490960,
+  "entries": [
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||CLEAN-DEAD-01||return 이후 도달 불가능 코드 가능성 감지.||402",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774154490960,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 402,
+        "rule_id": "CLEAN-DEAD-01",
+        "message": "return 이후 도달 불가능 코드 가능성 감지.",
+        "issue_id": "P1-CLEAN-DEAD-01-bac9f52b89"
+      }
+    }
+  ]
+}

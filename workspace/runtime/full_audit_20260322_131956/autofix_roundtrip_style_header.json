@@ -1,0 +1,21 @@
+{
+    "copy":  {
+                 "prepare_allow_apply":  true,
+                 "applied":  true,
+                 "generator":  "rule",
+                 "reanalyze_total":  4,
+                 "reanalyze_p1_total":  4,
+                 "reanalyze_score":  80
+             },
+    "original":  {
+                     "prepare_allow_apply":  true,
+                     "applied":  true,
+                     "generator":  "rule",
+                     "reanalyze_total":  4,
+                     "reanalyze_p1_total":  4,
+                     "reanalyze_score":  80,
+                     "hash_before":  "8EF0759431A030B3002F143F91D68AB4417E5B91C4FD536835DA24CA744CED27",
+                     "hash_after_restore":  "8EF0759431A030B3002F143F91D68AB4417E5B91C4FD536835DA24CA744CED27",
+                     "restore_hash_match":  true
+                 }
+}

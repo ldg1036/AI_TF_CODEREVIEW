@@ -1,0 +1,438 @@
+{
+    "summary":  {
+                    "total":  5,
+                    "critical":  0,
+                    "warning":  4,
+                    "info":  1,
+                    "score":  79,
+                    "p1_total":  5,
+                    "p2_total":  1,
+                    "p3_total":  0,
+                    "requested_file_count":  1,
+                    "successful_file_count":  1,
+                    "failed_file_count":  0,
+                    "ctrlpp_preflight_attempted":  false,
+                    "ctrlpp_preflight_ready":  true,
+                    "ctrlpp_preflight_message":  "CtrlppCheck preflight ready: existing binary found",
+                    "ctrlpp_preflight_error_code":  "",
+                    "verification_level":  "CORE+REPORT"
+                },
+    "violations":  {
+                       "P1":  [
+                                  {
+                                      "object":  "BenchmarkP1Fixture.ctl",
+                                      "event":  "Global",
+                                      "violations":  [
+                                                         {
+                                                             "issue_id":  "P1-EXC-DP-01-9b39c7f5d6",
+                                                             "rule_id":  "EXC-DP-01",
+                                                             "rule_item":  "DP 함수 예외 처리",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Warning",
+                                                             "line":  14,
+                                                             "message":  "DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성.",
+                                                             "file":  "BenchmarkP1Fixture.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "canonical_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "reviewed_name":  "BenchmarkP1Fixture_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "dpSet(\"SYS.A.C1\", v1);",
+                                                                              "matched_lines":  [
+                                                                                                    14
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                                              "display_reason":  "P1 detector matched EXC-DP-01 near line 14."
+                                                                          }
+                                                         },
+                                                         {
+                                                             "issue_id":  "P1-PERF-SETMULTIVALUE-ADOPT-01-4b8c8448a0",
+                                                             "rule_id":  "PERF-SETMULTIVALUE-ADOPT-01",
+                                                             "rule_item":  "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Warning",
+                                                             "line":  8,
+                                                             "message":  "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+                                                             "file":  "BenchmarkP1Fixture.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "canonical_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "reviewed_name":  "BenchmarkP1Fixture_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "setValue(\"A.B.C1\", v1);",
+                                                                              "matched_lines":  [
+                                                                                                    8
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                                              "display_reason":  "P1 detector matched PERF-SETMULTIVALUE-ADOPT-01 near line 8."
+                                                                          }
+                                                         },
+                                                         {
+                                                             "issue_id":  "P1-EXC-TRY-01-e510be386b",
+                                                             "rule_id":  "EXC-TRY-01",
+                                                             "rule_item":  "Try, Catch 예외처리",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Warning",
+                                                             "line":  14,
+                                                             "message":  "예외 가능 구문에 try/catch 또는 오류 처리 계약 추가 권장.",
+                                                             "file":  "BenchmarkP1Fixture.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "canonical_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "reviewed_name":  "BenchmarkP1Fixture_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "dpSet(\"SYS.A.C1\", v1);",
+                                                                              "matched_lines":  [
+                                                                                                    14
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                                              "display_reason":  "P1 detector matched EXC-TRY-01 near line 14."
+                                                                          }
+                                                         },
+                                                         {
+                                                             "issue_id":  "P1-STYLE-HEADER-01-99259438e2",
+                                                             "rule_id":  "STYLE-HEADER-01",
+                                                             "rule_item":  "명명 규칙 및 코딩 스타일 준수 확인",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Low",
+                                                             "line":  1,
+                                                             "message":  "함수 헤더 주석(이름/인자/설명) 누락 가능성.",
+                                                             "file":  "BenchmarkP1Fixture.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "canonical_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "reviewed_name":  "BenchmarkP1Fixture_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "main()",
+                                                                              "matched_lines":  [
+                                                                                                    1
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                                              "display_reason":  "P1 detector matched STYLE-HEADER-01 near line 1."
+                                                                          }
+                                                         },
+                                                         {
+                                                             "issue_id":  "P1-ACTIVE-01-bc9ad90421",
+                                                             "rule_id":  "ACTIVE-01",
+                                                             "rule_item":  "스크립트 Active 동작 조건 확인",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Warning",
+                                                             "line":  8,
+                                                             "message":  "상태 변경 호출 전 Active/Enable 조건 확인 로직 부재 가능성.",
+                                                             "file":  "BenchmarkP1Fixture.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "canonical_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "BenchmarkP1Fixture.ctl",
+                                                                                     "reviewed_name":  "BenchmarkP1Fixture_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "setValue(\"A.B.C1\", v1);",
+                                                                              "matched_lines":  [
+                                                                                                    8
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                                              "display_reason":  "P1 detector matched ACTIVE-01 near line 8."
+                                                                          }
+                                                         }
+                                                     ]
+                                  }
+                              ],
+                       "P2":  [
+                                  {
+                                      "type":  "information",
+                                      "severity":  "information",
+                                      "rule_id":  "voidReturnValueMissingInformation",
+                                      "line":  1,
+                                      "message":  "Void function without void return type.",
+                                      "verbose":  "Void function without void return type.",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "BenchmarkP1Fixture.ctl",
+                                                              "canonical_name":  "BenchmarkP1Fixture.ctl",
+                                                              "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "BenchmarkP1Fixture.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "BenchmarkP1Fixture.ctl",
+                                                              "reviewed_name":  "BenchmarkP1Fixture_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "main()",
+                                                       "matched_lines":  [
+                                                                             1
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "BenchmarkP1Fixture.ctl",
+                                                       "display_reason":  "P2 detector matched voidReturnValueMissingInformation near line 1."
+                                                   }
+                                  }
+                              ],
+                       "P3":  [
+
+                              ]
+                   },
+    "ai_review_statuses":  [
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-EXC-TRY-01-e510be386b",
+                                   "parent_rule_id":  "EXC-TRY-01",
+                                   "parent_file":  "BenchmarkP1Fixture.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                   "parent_line":  14,
+                                   "file":  "BenchmarkP1Fixture.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                   "object":  "BenchmarkP1Fixture.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Warning",
+                                   "message":  "예외 가능 구문에 try/catch 또는 오류 처리 계약 추가 권장.",
+                                   "selected_rank":  4,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "severity_filtered",
+                                   "detail":  "",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-STYLE-HEADER-01-99259438e2",
+                                   "parent_rule_id":  "STYLE-HEADER-01",
+                                   "parent_file":  "BenchmarkP1Fixture.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                   "parent_line":  1,
+                                   "file":  "BenchmarkP1Fixture.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                   "object":  "BenchmarkP1Fixture.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Low",
+                                   "message":  "함수 헤더 주석(이름/인자/설명) 누락 가능성."
+                               },
+                               {
+                                   "status":  "generated",
+                                   "reason":  "mock_generated",
+                                   "detail":  "",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-ACTIVE-01-bc9ad90421",
+                                   "parent_rule_id":  "ACTIVE-01",
+                                   "parent_file":  "BenchmarkP1Fixture.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                   "parent_line":  8,
+                                   "file":  "BenchmarkP1Fixture.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                   "object":  "BenchmarkP1Fixture.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Warning",
+                                   "message":  "상태 변경 호출 전 Active/Enable 조건 확인 로직 부재 가능성.",
+                                   "selected_rank":  1,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "generated",
+                                   "reason":  "mock_generated",
+                                   "detail":  "",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-PERF-SETMULTIVALUE-ADOPT-01-4b8c8448a0",
+                                   "parent_rule_id":  "PERF-SETMULTIVALUE-ADOPT-01",
+                                   "parent_file":  "BenchmarkP1Fixture.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                   "parent_line":  8,
+                                   "file":  "BenchmarkP1Fixture.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                   "object":  "BenchmarkP1Fixture.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Warning",
+                                   "message":  "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+                                   "selected_rank":  2,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "generated",
+                                   "reason":  "mock_generated",
+                                   "detail":  "",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-EXC-DP-01-9b39c7f5d6",
+                                   "parent_rule_id":  "EXC-DP-01",
+                                   "parent_file":  "BenchmarkP1Fixture.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                   "parent_line":  14,
+                                   "file":  "BenchmarkP1Fixture.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+                                   "object":  "BenchmarkP1Fixture.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Warning",
+                                   "message":  "DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성.",
+                                   "selected_rank":  3,
+                                   "selected_cap":  3
+                               }
+                           ],
+    "p1_config_health":  {
+                             "mode":  "configured",
+                             "degraded":  false,
+                             "reason_codes":  [
+
+                                              ],
+                             "reason_text":  "",
+                             "total_rule_count":  43,
+                             "enabled_rule_count":  42,
+                             "review_applicability_item_count":  13,
+                             "unknown_review_rule_ids":  [
+
+                                                         ],
+                             "unknown_review_rule_id_count":  0,
+                             "unsupported_detector_ops":  [
+
+                                                          ]
+                         },
+    "report_paths":  {
+                         "html":  "combined_analysis_report.html",
+                         "excel":  [
+                                       "CodeReview_Submission_BenchmarkP1Fixture_20260322_133618_857113.xlsx"
+                                   ],
+                         "reviewed_txt":  [
+                                              "BenchmarkP1Fixture_REVIEWED.txt"
+                                          ]
+                     },
+    "output_dir":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_133618_857113",
+    "request_id":  "4a9a46b82ef643a495eb741b49565ded",
+    "errors":  [
+
+               ],
+    "report_jobs":  {
+                        "excel":  {
+                                      "pending_count":  0,
+                                      "running_count":  0,
+                                      "completed_count":  0,
+                                      "failed_count":  0,
+                                      "jobs":  [
+
+                                               ]
+                                  }
+                    },
+    "metrics":  {
+                    "request_id":  "4a9a46b82ef643a495eb741b49565ded",
+                    "file_count":  1,
+                    "timings_ms":  {
+                                       "total":  108,
+                                       "collect":  0,
+                                       "convert":  0,
+                                       "mcp_context":  0,
+                                       "analyze":  104,
+                                       "report":  83,
+                                       "report_text":  0,
+                                       "heuristic":  1,
+                                       "ctrlpp":  18,
+                                       "ai":  0,
+                                       "excel_total":  82,
+                                       "excel_copy":  0,
+                                       "excel_load":  32,
+                                       "excel_save":  45,
+                                       "server_total":  109
+                                   },
+                    "llm_calls":  0,
+                    "ctrlpp_calls":  1,
+                    "bytes_read":  418,
+                    "bytes_written":  20302,
+                    "convert_cache":  {
+                                          "hits":  0,
+                                          "misses":  0
+                                      },
+                    "excel_template_cache":  {
+                                                 "hits":  1,
+                                                 "misses":  0
+                                             },
+                    "per_file":  [
+                                     {
+                                         "file":  "BenchmarkP1Fixture.ctl",
+                                         "display_name":  "BenchmarkP1Fixture.ctl",
+                                         "timings_ms":  {
+                                                            "total":  104,
+                                                            "read":  0,
+                                                            "heuristic":  1,
+                                                            "report":  83,
+                                                            "report_text":  0,
+                                                            "excel_total":  82
+                                                        },
+                                         "p1_groups":  1,
+                                         "p2_count":  1,
+                                         "p3_count":  3,
+                                         "deferred_excel":  false,
+                                         "excel_job_id":  "",
+                                         "excel_metrics":  {
+                                                               "generated":  true,
+                                                               "template_cache_hit":  true,
+                                                               "timings_ms":  {
+                                                                                  "total":  82,
+                                                                                  "copy":  0,
+                                                                                  "load":  32,
+                                                                                  "save":  45
+                                                                              },
+                                                               "output_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_133618_857113\\CodeReview_Submission_BenchmarkP1Fixture_20260322_133618_857113.xlsx"
+                                                           }
+                                     }
+                                 ],
+                    "optional_dependencies":  {
+                                                  "openpyxl":  {
+                                                                   "available":  true,
+                                                                   "required_for":  [
+                                                                                        "excel_report",
+                                                                                        "template_coverage"
+                                                                                    ]
+                                                               }
+                                              }
+                }
+}

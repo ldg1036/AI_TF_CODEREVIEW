@@ -1,0 +1,1088 @@
+﻿[
+  {
+    "id": "cfg-perf-01",
+    "order": 10,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "rule_id": "PERF-01",
+    "item": "비동기 처리(dpConnect, dpQueryConnectSingle) 시 Callback 함수 병목 요소 최소화",
+    "detector": {
+      "kind": "composite",
+      "op": "callback_delay_usage"
+    },
+    "finding": {
+      "severity": "Critical",
+      "message": "Callback 내부 delay 사용 감지."
+    },
+    "meta": {
+      "migrated_from": "technical_patterns",
+      "allow_item_filter_fallback": true
+    }
+  },
+  {
+    "id": "cfg-perf-02",
+    "order": 20,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "rule_id": "PERF-02",
+    "item": "DP Query 최적화 구현",
+    "detector": {
+      "kind": "regex",
+      "pattern": "dpQuery.*FROM.*[\\\"'](\\*\\*|\\*\\.\\*)[\\\"']",
+      "flags": [
+        "DOTALL",
+        "MULTILINE"
+      ]
+    },
+    "finding": {
+      "severity": "Warning",
+      "message": "DP Query 전체 범위 조회 패턴 감지."
+    },
+    "meta": {
+      "migrated_from": "technical_patterns"
+    }
+  },
+  {
+    "id": "cfg-hard-01",
+    "order": 30,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "rule_id": "HARD-01",
+    "item": "하드코딩 지양",
+    "detector": {
+      "kind": "regex",
+      "pattern": "\\b(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b|https?://[^\\s\\\"']+|[\\\"']config/[^\\n\\\"']+[\\\"']",
+      "flags": [
+        "DOTALL",
+        "MULTILINE"
+      ]
+    },
+    "finding": {
+      "severity": "Medium",
+      "message": "IP/URL/설정 경로 하드코딩 감지."
+    },
+    "meta": {
+      "migrated_from": "technical_patterns"
+    }
+  },
+  {
+    "id": "cfg-db-01",
+    "order": 40,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "rule_id": "DB-01",
+    "item": "바인딩 쿼리 처리",
+    "detector": {
+      "kind": "regex",
+      "pattern": "sprintf.*(SELECT|INSERT|UPDATE|DELETE)",
+      "flags": [
+        "DOTALL",
+        "MULTILINE"
+      ]
+    },
+    "finding": {
+      "severity": "Critical",
+      "message": "문자열 SQL 조합 감지."
+    },
+    "meta": {
+      "migrated_from": "technical_patterns"
+    }
+  },
+  {
+    "id": "cfg-perf-02-dpt-in-01",
+    "order": 41,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "rule_id": "PERF-02-WHERE-DPT-IN-01",
+    "item": "DP Query 최적화 구현",
+    "detector": {
+      "kind": "regex",
+      "pattern": "dpQuery[\\s\\S]{0,1200}WHERE[\\s\\S]{0,400}_DPT\\s+IN\\s*\\(",
+      "flags": [
+        "DOTALL",
+        "MULTILINE"
+      ]
+    },
+    "finding": {
+      "severity": "Warning",
+      "message": "DP Query WHERE clause uses _DPT IN (prefer = condition)."
+    },
+    "meta": {
+      "migrated_from": "manual_gap_fill",
+      "migration_stage": "draft"
+    }
+  },
+  {
+    "id": "cfg-db-02",
+    "order": 50,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "rule_id": "DB-02",
+    "item": "쿼리 주석 처리",
+    "detector": {
+      "kind": "regex",
+      "pattern": "^(?!\\s*//)[^\\n]*\\b(SELECT|INSERT|UPDATE|DELETE)\\b",
+      "flags": [
+        "DOTALL",
+        "MULTILINE"
+      ]
+    },
+    "finding": {
+      "severity": "Info",
+      "message": "쿼리 주석 누락 가능성 감지."
+    },
+    "meta": {
+      "migrated_from": "technical_patterns"
+    }
+  },
+  {
+    "id": "legacy-check_sql_injection",
+    "order": 60,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "sql_injection",
+      "sql_keywords_pattern": "\\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN)\\b",
+      "sprintf_pattern": "sprintf.*%s"
+    },
+    "meta": {
+      "migrated_from": "check_sql_injection",
+      "migration_stage": "batch4a-composite"
+    },
+    "rule_id": "SEC-01",
+    "item": "바인딩 쿼리 처리",
+    "finding": {
+      "severity": "Critical",
+      "message": "sprintf 기반 동적 SQL 구성 패턴 감지."
+    }
+  },
+  {
+    "id": "legacy-check_complexity",
+    "order": 70,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "complexity",
+      "max_code_length": 100000,
+      "max_lines": 500,
+      "max_scan_lines": 2000,
+      "max_depth": 10,
+      "line_rule_id": "COMP-01",
+      "line_rule_item": "불필요한 코드 지양",
+      "line_severity": "Medium",
+      "line_message_prefix": "함수 길이 과다",
+      "depth_rule_id": "COMP-02",
+      "depth_rule_item": "불필요한 코드 지양",
+      "depth_severity": "Medium",
+      "depth_message_prefix": "제어문 중첩 과다"
+    },
+    "meta": {
+      "migrated_from": "check_complexity",
+      "migration_stage": "batch4c-composite"
+    },
+    "item": "불필요한 코드 지양",
+    "finding": {
+      "severity": "Medium",
+      "message": "함수 길이/제어문 중첩 복잡도 과다 패턴 감지."
+    }
+  },
+  {
+    "id": "legacy-check_unused_variables",
+    "order": 80,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "unused_variables",
+      "max_code_length": 100000,
+      "usage_threshold": 1,
+      "exception_prefixes": [
+        "param_",
+        "cfg_",
+        "g_",
+        "manager_",
+        "query_",
+        "Script",
+        "is_",
+        "thread_",
+        "dp_"
+      ],
+      "exception_vars": [
+        "return_value",
+        "i",
+        "j",
+        "k",
+        "idx",
+        "cnt",
+        "count",
+        "len",
+        "size",
+        "ret",
+        "result",
+        "success",
+        "ok",
+        "error",
+        "err"
+      ],
+      "message_prefix": "미사용 변수 감지"
+    },
+    "meta": {
+      "migrated_from": "check_unused_variables",
+      "migration_stage": "batch4c-composite"
+    },
+    "rule_id": "UNUSED-01",
+    "item": "불필요한 코드 지양",
+    "finding": {
+      "severity": "Low",
+      "message": "미사용 변수 감지."
+    }
+  },
+  {
+    "id": "legacy-check_db_query_error",
+    "order": 90,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "db_query_error",
+      "query_call_pattern": "\\b(dpQuery|dbGet)\\b"
+    },
+    "meta": {
+      "migrated_from": "check_db_query_error",
+      "migration_stage": "batch4a-composite"
+    },
+    "rule_id": "DB-ERR-01",
+    "item": "DB Query Error",
+    "finding": {
+      "severity": "Warning",
+      "message": "DB Query 실패 로그 기능(writeLog/DebugTN) 누락 가능성."
+    }
+  },
+  {
+    "id": "legacy-check_dp_function_exception",
+    "order": 100,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "dp_function_exception",
+      "dp_call_pattern": "\\b(dpSet|dpGet|dpQuery|dpConnect)\\s*\\([^;]+\\)\\s*;"
+    },
+    "meta": {
+      "migrated_from": "check_dp_function_exception",
+      "migration_stage": "batch4a-composite"
+    },
+    "rule_id": "EXC-DP-01",
+    "item": "DP 함수 예외 처리",
+    "finding": {
+      "severity": "Warning",
+      "message": "DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성."
+    }
+  },
+  {
+    "id": "legacy-check_config_format_consistency",
+    "order": 110,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "config_format_consistency",
+      "delimiter_mismatch_threshold": 2
+    },
+    "meta": {
+      "migrated_from": "check_config_format_consistency",
+      "migration_stage": "batch2-composite"
+    },
+    "rule_id": "CFG-01",
+    "item": "config 항목 정합성 확인",
+    "finding": {
+      "severity": "Warning",
+      "message": "config 파싱 형식 불일치 가능성, delimiter/필드수 검증 권장."
+    }
+  },
+  {
+    "id": "legacy-check_config_error_contract",
+    "order": 120,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "config_error_contract"
+    },
+    "meta": {
+      "migrated_from": "check_config_error_contract",
+      "migration_stage": "batch2-composite"
+    },
+    "rule_id": "CFG-ERR-01",
+    "item": "config 항목 정합성 확인",
+    "finding": {
+      "severity": "Warning",
+      "message": "Error 케이스에서 함수 실패 반환/중단 처리 권장."
+    }
+  },
+  {
+    "id": "legacy-check_while_delay_policy",
+    "order": 130,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "while_delay_policy"
+    },
+    "meta": {
+      "migrated_from": "check_while_delay_policy",
+      "migration_stage": "batch2-composite"
+    },
+    "rule_id": "PERF-03",
+    "item": "Loop문 내에 처리 조건",
+    "finding": {
+      "severity": "Critical",
+      "message": "while 루프 내부 delay 부재 패턴 감지."
+    }
+  },
+  {
+    "id": "cfg-perf-03-active-delay-01",
+    "order": 131,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "rule_id": "PERF-03-ACTIVE-DELAY-01",
+    "item": "Loop문 내에 처리 조건",
+    "detector": {
+      "kind": "composite",
+      "op": "while_delay_outside_active",
+      "active_guard_pattern": "\\b(?:isActive|isScriptActive|active|enabled?|bActive|runFlag|useFlag)\\b"
+    },
+    "finding": {
+      "severity": "Critical",
+      "message": "while loop delay may exist only inside Active guard."
+    },
+    "meta": {
+      "migrated_from": "manual_gap_fill",
+      "migration_stage": "draft"
+    }
+  },
+  {
+    "id": "legacy-check_event_exchange_minimization",
+    "order": 140,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "event_exchange_minimization"
+    },
+    "meta": {
+      "migrated_from": "check_event_exchange_minimization",
+      "migration_stage": "batch4b-composite"
+    },
+    "rule_id": "PERF-EV-01",
+    "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+    "finding": {
+      "severity": "Warning",
+      "message": "루프 내 dpSet 호출 감지: 변경 가드/배치 처리(dpSetWait, dpSetTimed) 권장."
+    }
+  },
+  {
+    "id": "legacy-check_dpset_timed_context",
+    "order": 150,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "dpset_timed_context"
+    },
+    "meta": {
+      "migrated_from": "check_dpset_timed_context",
+      "migration_stage": "batch3-composite"
+    },
+    "rule_id": "PERF-05",
+    "item": "Raima DB 증가 방지",
+    "finding": {
+      "severity": "Warning",
+      "message": "dpSetTimed 대체 가능 패턴 감지."
+    }
+  },
+  {
+    "id": "legacy-check_dpget_batch_optimization",
+    "order": 160,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "dpget_batch_optimization",
+      "min_count": 2
+    },
+    "meta": {
+      "migrated_from": "check_dpget_batch_optimization",
+      "migration_stage": "batch3-composite"
+    },
+    "rule_id": "PERF-DPGET-BATCH-01",
+    "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+    "finding": {
+      "severity": "Warning",
+      "message": "반복 구간 dpGet 일괄/캐시 처리 권장."
+    }
+  },
+  {
+    "id": "legacy-check_dpset_batch_optimization",
+    "order": 170,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "dpset_batch_optimization",
+      "min_count": 2
+    },
+    "meta": {
+      "migrated_from": "check_dpset_batch_optimization",
+      "migration_stage": "batch3-composite"
+    },
+    "rule_id": "PERF-DPSET-BATCH-01",
+    "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+    "finding": {
+      "severity": "Warning",
+      "message": "반복 구간 dpSet 일괄/배치 처리 권장."
+    }
+  },
+  {
+    "id": "legacy-check_setvalue_batch_optimization",
+    "order": 180,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "setvalue_batch_optimization",
+      "min_count": 2
+    },
+    "meta": {
+      "migrated_from": "check_setvalue_batch_optimization",
+      "migration_stage": "batch3-composite"
+    },
+    "rule_id": "PERF-SETVALUE-BATCH-01",
+    "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+    "finding": {
+      "severity": "Warning",
+      "message": "setValue 반복 호출 감지, setMultiValue 기반 일괄 처리 권장."
+    }
+  },
+  {
+    "id": "legacy-check_setmultivalue_adoption",
+    "order": 190,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "setmultivalue_adoption",
+      "min_count": 2,
+      "max_gap_lines": 6
+    },
+    "meta": {
+      "migrated_from": "check_setmultivalue_adoption",
+      "migration_stage": "batch3-composite"
+    },
+    "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+    "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+    "finding": {
+      "severity": "Warning",
+      "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장."
+    }
+  },
+  {
+    "id": "cfg-getmultivalue-adopt-01",
+    "order": 195,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "getmultivalue_adoption",
+      "min_count": 2,
+      "max_gap_lines": 6
+    },
+    "meta": {
+      "migrated_from": "manual_gap_fill",
+      "migration_stage": "batch3.5-composite"
+    },
+    "rule_id": "PERF-GETMULTIVALUE-ADOPT-01",
+    "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+    "finding": {
+      "severity": "Warning",
+      "message": "다중 Get 업데이트 감지, getMultiValue 구문 적용 권장."
+    }
+  },
+  {
+    "id": "legacy-check_getvalue_batch_optimization",
+    "order": 200,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "getvalue_batch_optimization",
+      "min_count": 2
+    },
+    "meta": {
+      "migrated_from": "check_getvalue_batch_optimization",
+      "migration_stage": "batch3-composite"
+    },
+    "rule_id": "PERF-GETVALUE-BATCH-01",
+    "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+    "finding": {
+      "severity": "Warning",
+      "message": "getValue 반복 호출 감지, 일괄 조회/캐시 처리 권장."
+    }
+  },
+  {
+    "id": "legacy-check_try_catch_for_risky_ops",
+    "order": 210,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "try_catch_for_risky_ops"
+    },
+    "meta": {
+      "migrated_from": "check_try_catch_for_risky_ops",
+      "migration_stage": "batch2-composite"
+    },
+    "rule_id": "EXC-TRY-01",
+    "item": "Try, Catch 예외처리",
+    "finding": {
+      "severity": "Warning",
+      "message": "예외 가능 구문에 try/catch 또는 오류 처리 계약 추가 권장."
+    }
+  },
+  {
+    "id": "legacy-check_division_zero_guard",
+    "order": 220,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "division_zero_guard"
+    },
+    "meta": {
+      "migrated_from": "check_division_zero_guard",
+      "migration_stage": "batch2-composite"
+    },
+    "rule_id": "SAFE-DIV-01",
+    "item": "config 항목 정합성 확인",
+    "finding": {
+      "severity": "Warning",
+      "message": "분모 0 가능성 감지, 나눗셈 전 guard 조건 추가 권장."
+    }
+  },
+  {
+    "id": "legacy-check_manual_aggregation_pattern",
+    "order": 230,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "manual_aggregation_pattern"
+    },
+    "meta": {
+      "migrated_from": "check_manual_aggregation_pattern",
+      "migration_stage": "batch2-composite"
+    },
+    "rule_id": "PERF-AGG-01",
+    "item": "불필요한 코드 지양",
+    "finding": {
+      "severity": "Low",
+      "message": "수동 집계 대신 표준 집계 유틸(dynSum/dynAvg 등) 검토 권장."
+    }
+  },
+  {
+    "id": "legacy-check_consecutive_dpset",
+    "order": 240,
+    "enabled": false,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "consecutive_dpset",
+      "max_gap_lines": 4
+    },
+    "meta": {
+      "migrated_from": "check_consecutive_dpset",
+      "migration_stage": "batch2-composite"
+    },
+    "rule_id": "PERF-DPSET-CHAIN",
+    "item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+    "finding": {
+      "severity": "Warning",
+      "message": "WinCC OA 스타일상 연속 dpSet 호출 지양, 배치/동기/조건부 업데이트 권장."
+    }
+  },
+  {
+    "id": "legacy-check_memory_leaks_advanced",
+    "order": 250,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "memory_leaks_advanced",
+      "declaration_pattern": "\\bdyn_\\w+\\s+[a-zA-Z_][a-zA-Z0-9_]*",
+      "cleanup_pattern": "\\bdyn(?:Clear|Remove)\\s*\\(",
+      "loop_dyn_ops_pattern": "\\b(?:while|for)\\s*\\([^\\)]*\\)\\s*\\{[\\s\\S]{0,1200}\\bdyn(?:Append|Insert|MapInsert)\\s*\\("
+    },
+    "meta": {
+      "migrated_from": "check_memory_leaks_advanced",
+      "migration_stage": "batch4c-composite"
+    },
+    "rule_id": "MEM-01",
+    "item": "메모리 누수 체크",
+    "finding": {
+      "severity": "Warning",
+      "message": "반복 구간 dyn 사용 대비 dynClear()/dynRemove() 누락 가능성."
+    }
+  },
+  {
+    "id": "legacy-check_input_validation",
+    "order": 260,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "input_validation"
+    },
+    "meta": {
+      "migrated_from": "check_input_validation",
+      "migration_stage": "batch2-composite"
+    },
+    "rule_id": "VAL-01",
+    "item": "적절한 DP 처리 함수 사용",
+    "finding": {
+      "severity": "High",
+      "message": "dpGet/dpConnect 입력값 유효성 검증(strlen/atoi 등) 누락 가능성."
+    }
+  },
+  {
+    "id": "legacy-check_coding_standards_advanced",
+    "order": 270,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "coding_standards_advanced"
+    },
+    "meta": {
+      "migrated_from": "check_coding_standards_advanced",
+      "migration_stage": "batch4b-composite"
+    },
+    "rule_id": "STD-01",
+    "item": "명명 규칙 및 코딩 스타일 준수 확인",
+    "finding": {
+      "severity": "Low",
+      "message": "변수 선언 시 세미콜론(;) 누락 가능성."
+    }
+  },
+  {
+    "id": "legacy-check_style_name_rules",
+    "order": 280,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "style_name_rules"
+    },
+    "meta": {
+      "migrated_from": "check_style_name_rules",
+      "migration_stage": "batch2-composite"
+    },
+    "rule_id": "STYLE-NAME-01",
+    "item": "명명 규칙 및 코딩 스타일 준수 확인",
+    "finding": {
+      "severity": "Low",
+      "message": "명명 규칙 위반 가능성 감지."
+    }
+  },
+  {
+    "id": "legacy-check_style_indent_rules",
+    "order": 290,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "style_indent_mixed"
+    },
+    "meta": {
+      "migrated_from": "check_style_indent_rules",
+      "migration_stage": "batch1-composite"
+    },
+    "rule_id": "STYLE-INDENT-01",
+    "item": "명명 규칙 및 코딩 스타일 준수 확인",
+    "finding": {
+      "severity": "Low",
+      "message": "들여쓰기 스타일 혼합 감지(탭/스페이스 혼용)."
+    }
+  },
+  {
+    "id": "legacy-check_style_header_rules",
+    "order": 300,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "style_header_rules",
+      "min_comment_hits": 2
+    },
+    "meta": {
+      "migrated_from": "check_style_header_rules",
+      "migration_stage": "batch2-composite"
+    },
+    "rule_id": "STYLE-HEADER-01",
+    "item": "명명 규칙 및 코딩 스타일 준수 확인",
+    "finding": {
+      "severity": "Low",
+      "message": "함수 헤더 주석(이름/인자/설명) 누락 가능성."
+    }
+  },
+  {
+    "id": "legacy-check_magic_index_usage",
+    "order": 310,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "magic_index_usage",
+      "min_matches": 3
+    },
+    "meta": {
+      "migrated_from": "check_magic_index_usage",
+      "migration_stage": "batch1-composite"
+    },
+    "rule_id": "STYLE-IDX-01",
+    "item": "명명 규칙 및 코딩 스타일 준수 확인",
+    "finding": {
+      "severity": "Low",
+      "message": "인덱스 매직넘버 사용 감지, IDX_* 상수화 권장."
+    }
+  },
+  {
+    "id": "legacy-check_hardcoding_extended",
+    "order": 320,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "hardcoding_extended",
+      "dp_repeat_threshold": 2,
+      "number_repeat_threshold": 3,
+      "ignore_numbers": [
+        "10",
+        "60",
+        "100"
+      ],
+      "dp_min_dots": 2
+    },
+    "meta": {
+      "migrated_from": "check_hardcoding_extended",
+      "migration_stage": "batch1-composite"
+    },
+    "rule_id": "HARD-02",
+    "item": "하드코딩 지양",
+    "finding": {
+      "severity": "Medium",
+      "message": "고정 DP 경로 문자열/매직넘버 반복 사용 감지."
+    }
+  },
+  {
+    "id": "legacy-check_float_literal_hardcoding",
+    "order": 330,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "float_literal_hardcoding",
+      "literals": [
+        "0.01",
+        "0.001"
+      ],
+      "min_hits": 2
+    },
+    "meta": {
+      "migrated_from": "check_float_literal_hardcoding",
+      "migration_stage": "batch1-composite"
+    },
+    "rule_id": "HARD-03",
+    "item": "하드코딩 지양",
+    "finding": {
+      "severity": "Medium",
+      "message": "임계 소수값 하드코딩 감지, 상수/설정값 치환 권장."
+    }
+  },
+  {
+    "id": "legacy-check_dead_code",
+    "order": 340,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "dead_code",
+      "detect_if_false": true,
+      "detect_after_return": true,
+      "return_lookahead_lines": 20,
+      "return_after_message": "return 이후 도달 불가능 코드 가능성 감지."
+    },
+    "meta": {
+      "migrated_from": "check_dead_code",
+      "migration_stage": "batch1-composite"
+    },
+    "rule_id": "CLEAN-DEAD-01",
+    "item": "불필요한 코드 지양",
+    "finding": {
+      "severity": "Medium",
+      "message": "영구 미실행 분기(if(false)) 감지."
+    }
+  },
+  {
+    "id": "cfg-clean-dup-01",
+    "order": 350,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "rule_id": "CLEAN-DUP-01",
+    "item": "불필요한 코드 지양",
+    "detector": {
+      "kind": "line_repeat",
+      "threshold": 3,
+      "min_line_length": 8,
+      "ignore_comments": true,
+      "ignore_braces_only": true,
+      "normalize_whitespace": true
+    },
+    "finding": {
+      "severity": "Low",
+      "message": "동일 코드 라인 반복(3회 이상) 감지."
+    },
+    "meta": {
+      "migrated_from": "check_duplicate_blocks"
+    }
+  },
+  {
+    "id": "legacy-ui-block-initialize-delay",
+    "order": 360,
+    "enabled": true,
+    "file_types": [
+      "Client",
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "ui_block_initialize_delay",
+      "event_equals": "Initialize",
+      "contains": "delay("
+    },
+    "meta": {
+      "migrated_from": "check_event.ui_block_special",
+      "migration_stage": "batch1-composite"
+    },
+    "rule_id": "UI-BLOCK",
+    "item": "적절한 DP 처리 함수 사용",
+    "finding": {
+      "severity": "Warning",
+      "message": "UI 블로킹 위험: Initialize 내 delay 호출."
+    }
+  },
+  {
+    "id": "cfg-log-dbg-01",
+    "order": 370,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "debug_logging_presence",
+      "trigger_pattern": "\\b(?:catch|getLastError|err(?:or)?|fail(?:ed|ure)?)\\b",
+      "log_pattern": "\\b(?:writeLog|DebugN|DebugTN)\\s*\\("
+    },
+    "meta": {
+      "migrated_from": "manual_gap_fill",
+      "migration_stage": "batch5-composite"
+    },
+    "rule_id": "LOG-DBG-01",
+    "item": "디버깅용 로그 작성 확인",
+    "finding": {
+      "severity": "Info",
+      "message": "오류/예외 처리 문맥에 디버깅 로그 작성 여부 확인 필요."
+    }
+  },
+  {
+    "id": "cfg-log-level-01",
+    "order": 371,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "rule_id": "LOG-LEVEL-01",
+    "item": "디버깅용 로그 작성 확인",
+    "detector": {
+      "kind": "composite",
+      "op": "logging_level_policy",
+      "trigger_pattern": "\\b(?:catch|getLastError|err(?:or)?|fail(?:ed|ure)?)\\b",
+      "log_pattern": "\\b(?:writeLog|DebugN|DebugTN)\\s*\\(",
+      "debug_pattern": "\\b(?:DBG1|DBG2|DebugN|DebugTN)\\b"
+    },
+    "finding": {
+      "severity": "Info",
+      "message": "Error/exception context may be missing debug-level logging."
+    },
+    "meta": {
+      "migrated_from": "manual_gap_fill",
+      "migration_stage": "draft"
+    }
+  },
+  {
+    "id": "cfg-active-01",
+    "order": 380,
+    "enabled": true,
+    "file_types": [
+      "Server"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "script_active_condition_check",
+      "mutating_pattern": "\\b(?:dpSet(?:Wait|Timed)?|setValue|setMultiValue)\\s*\\(",
+      "active_guard_pattern": "\\b(?:isActive|active|enabled?|bActive|runFlag|useFlag)\\b"
+    },
+    "meta": {
+      "migrated_from": "manual_gap_fill",
+      "migration_stage": "batch5-composite"
+    },
+    "rule_id": "ACTIVE-01",
+    "item": "스크립트 Active 동작 조건 확인",
+    "finding": {
+      "severity": "Warning",
+      "message": "상태 변경 호출 전 Active/Enable 조건 확인 로직 부재 가능성."
+    }
+  },
+  {
+    "id": "cfg-dup-act-01",
+    "order": 390,
+    "enabled": true,
+    "file_types": [
+      "Client"
+    ],
+    "detector": {
+      "kind": "composite",
+      "op": "duplicate_action_handling",
+      "call_pattern": "\\b(?P<func>dpSet|setValue)\\s*\\(\\s*\"(?P<target>[^\"]+)\"(?:\\s*,\\s*\"(?P<attr>[^\"]+)\")?",
+      "min_repeat": 2,
+      "max_gap_lines": 10,
+      "duplicate_guard_pattern": "\\b(?:changed|delta|prev|old|already|once|flag)\\b"
+    },
+    "meta": {
+      "migrated_from": "manual_gap_fill",
+      "migration_stage": "batch5-composite"
+    },
+    "rule_id": "DUP-ACT-01",
+    "item": "중복 동작 처리",
+    "finding": {
+      "severity": "Warning",
+      "message": "동일 대상({target})에 대한 중복 동작 처리(가드/중복방지) 부재 가능성."
+    }
+  }
+]

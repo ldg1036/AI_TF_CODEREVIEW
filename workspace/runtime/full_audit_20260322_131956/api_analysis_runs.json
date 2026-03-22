@@ -1,0 +1,56 @@
+[
+    {
+        "case":  "benchmark_p1",
+        "total":  5,
+        "p1_total":  5,
+        "p2_total":  0,
+        "p3_total":  0,
+        "score":  79,
+        "output_dir":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_133618_698609"
+    },
+    {
+        "case":  "benchmark_p1_p2",
+        "total":  5,
+        "p1_total":  5,
+        "p2_total":  1,
+        "p3_total":  0,
+        "score":  79,
+        "output_dir":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_133618_857113"
+    },
+    {
+        "case":  "goldentime_p1",
+        "total":  4,
+        "p1_total":  4,
+        "p2_total":  0,
+        "p3_total":  0,
+        "score":  84,
+        "output_dir":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_133618_971448"
+    },
+    {
+        "case":  "goldentime_p1_p2",
+        "total":  4,
+        "p1_total":  4,
+        "p2_total":  43,
+        "p3_total":  0,
+        "score":  84,
+        "output_dir":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_133619_091053"
+    },
+    {
+        "case":  "txt_p1",
+        "total":  38,
+        "p1_total":  38,
+        "p2_total":  0,
+        "p3_total":  0,
+        "score":  0,
+        "output_dir":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_133619_327073"
+    },
+    {
+        "case":  "pnl_p1",
+        "total":  38,
+        "p1_total":  38,
+        "p2_total":  0,
+        "p3_total":  0,
+        "score":  0,
+        "output_dir":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_133619_511252"
+    }
+]

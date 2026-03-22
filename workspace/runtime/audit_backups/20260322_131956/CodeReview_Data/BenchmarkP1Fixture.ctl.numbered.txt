@@ -1,0 +1,16 @@
+﻿00001: main()
+00002: {
+00003:   int v1 = 1;
+00004:   int v2 = 2;
+00005:   int v3 = 3;
+00006: 
+00007:   // P1 fixture: repeated setValue updates in one block
+00008:   setValue("A.B.C1", v1);
+00009:   setValue("A.B.C2", v2);
+00010:   setValue("A.B.C3", v3);
+00011: // [RULE-AUTOFIX:d46c8c46] Rule template suggestion for EXC-DP-01 (DP 함수 예외 처리)
+00012: // TODO: apply deterministic fix pattern or review manually
+00013: // [/RULE-AUTOFIX:d46c8c46]
+00014:   dpSet("SYS.A.C1", v1);
+00015:   dpSet("SYS.A.C2", v2);
+00016: }

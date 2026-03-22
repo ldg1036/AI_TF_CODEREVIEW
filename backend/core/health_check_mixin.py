@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import hashlib
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -58,13 +59,15 @@ class HealthCheckMixin:
         p1_rule_defs = list(getattr(checker, "p1_rule_defs", []) or [])
         parsed_rules = list(getattr(checker, "rules_data", []) or [])
         dependencies = self._build_dependency_health_payload().get("dependencies", {})
-        return build_rules_health_payload(
+        payload = build_rules_health_payload(
             p1_rule_defs,
             parsed_rules,
             dependencies if isinstance(dependencies, dict) else {},
             p1_config_health=dict(getattr(checker, "p1_config_health", {}) or {}),
             generated_at_ms=self._epoch_ms(),
         )
+        payload["rules_revision"] = self._compute_rules_revision()
+        return payload
 
     def _build_rules_list_payload(self) -> Dict[str, Any]:
         p1_rule_defs = self._load_rule_rows()
@@ -94,11 +97,49 @@ class HealthCheckMixin:
             "available": True,
             "generated_at_ms": self._epoch_ms(),
             "config_dir": self._get_rules_config_dir(),
+            "rules_revision": self._compute_rules_revision(),
             "rules": rows,
         }
 
     def _rules_defs_path(self) -> str:
         return os.path.join(self._get_rules_config_dir(), "p1_rule_defs.json")
+
+    def _review_applicability_path(self) -> str:
+        return os.path.join(self._get_rules_config_dir(), "review_applicability.json")
+
+    def _compute_rules_revision(self) -> str:
+        digest = hashlib.sha256()
+        for path in (self._rules_defs_path(), self._review_applicability_path()):
+            if os.path.exists(path):
+                with open(path, "rb") as handle:
+                    digest.update(handle.read())
+            digest.update(b"\n--rules-boundary--\n")
+        return digest.hexdigest()
+
+    @staticmethod
+    def _rules_backup_id_from_reload(reload_meta: Dict[str, Any]) -> str:
+        backup = reload_meta.get("backup", {}) if isinstance(reload_meta, dict) else {}
+        if not isinstance(backup, dict):
+            return ""
+        return str(backup.get("source_file", "") or backup.get("backup_id", "") or "")
+
+    def _with_rules_revision_meta(
+        self,
+        payload: Dict[str, Any],
+        *,
+        revision_before: str,
+        revision_after: str,
+        mutation_applied: bool,
+        backup_id: str = "",
+    ) -> Dict[str, Any]:
+        enriched = dict(payload or {})
+        enriched["rules_revision"] = str(revision_after or "")
+        enriched["revision_before"] = str(revision_before or "")
+        enriched["revision_after"] = str(revision_after or "")
+        enriched["mutation_applied"] = bool(mutation_applied)
+        if backup_id:
+            enriched["backup_id"] = str(backup_id)
+        return enriched
 
     def _load_rule_rows(self) -> List[Dict[str, Any]]:
         defs_path = self._rules_defs_path()
@@ -271,6 +312,7 @@ class HealthCheckMixin:
     def _update_rules_enabled_state(self, updates: List[Dict[str, Any]]) -> Dict[str, Any]:
         if not isinstance(updates, list) or not updates:
             raise ValueError("updates must be a non-empty list")
+        revision_before = self._compute_rules_revision()
 
         normalized_updates: Dict[str, bool] = {}
         for update in updates:
@@ -300,14 +342,16 @@ class HealthCheckMixin:
                 applied += 1
 
         reload_meta = self._write_rule_rows(payload, backup_reason="rules_update")
-        return {
+        revision_after = self._compute_rules_revision()
+        return self._with_rules_revision_meta({
             "updated_count": applied,
             "rules": self._build_rules_list_payload()["rules"],
             "reload": reload_meta,
             "backup": reload_meta.get("backup", {}),
-        }
+        }, revision_before=revision_before, revision_after=revision_after, mutation_applied=True, backup_id=self._rules_backup_id_from_reload(reload_meta))
 
     def _replace_rule(self, rule_payload: Dict[str, Any]) -> Dict[str, Any]:
+        revision_before = self._compute_rules_revision()
         rows = self._load_rule_rows()
         current_id = str(rule_payload.get("id", "") or "").strip()
         existing_ids = {str((row or {}).get("id", "") or "") for row in rows if isinstance(row, dict)}
@@ -316,48 +360,54 @@ class HealthCheckMixin:
         normalized = self._normalize_rule_row(rule_payload, existing_ids=existing_ids, current_id=current_id)
         new_rows = [normalized if str((row or {}).get("id", "") or "") == current_id else row for row in rows]
         reload_meta = self._write_rule_rows(new_rows, backup_reason="rules_replace")
-        return {
+        revision_after = self._compute_rules_revision()
+        return self._with_rules_revision_meta({
             "rule": normalized,
             "rules": self._build_rules_list_payload()["rules"],
             "reload": reload_meta,
             "backup": reload_meta.get("backup", {}),
-        }
+        }, revision_before=revision_before, revision_after=revision_after, mutation_applied=True, backup_id=self._rules_backup_id_from_reload(reload_meta))
 
     def _create_rule(self, rule_payload: Dict[str, Any]) -> Dict[str, Any]:
+        revision_before = self._compute_rules_revision()
         rows = self._load_rule_rows()
         existing_ids = {str((row or {}).get("id", "") or "") for row in rows if isinstance(row, dict)}
         normalized = self._normalize_rule_row(rule_payload, existing_ids=existing_ids)
         rows.append(normalized)
         rows.sort(key=lambda item: (int((item or {}).get("order", 0) or 0), str((item or {}).get("id", "") or "")))
         reload_meta = self._write_rule_rows(rows, backup_reason="rules_create")
-        return {
+        revision_after = self._compute_rules_revision()
+        return self._with_rules_revision_meta({
             "rule": normalized,
             "rules": self._build_rules_list_payload()["rules"],
             "reload": reload_meta,
             "backup": reload_meta.get("backup", {}),
-        }
+        }, revision_before=revision_before, revision_after=revision_after, mutation_applied=True, backup_id=self._rules_backup_id_from_reload(reload_meta))
 
     def _delete_rule(self, rule_id: str) -> Dict[str, Any]:
         normalized_rule_id = str(rule_id or "").strip()
         if not normalized_rule_id:
             raise ValueError("rule id must be a non-empty string")
+        revision_before = self._compute_rules_revision()
         rows = self._load_rule_rows()
         kept_rows = [row for row in rows if str((row or {}).get("id", "") or "") != normalized_rule_id]
         if len(kept_rows) == len(rows):
             raise ValueError(f"Unknown rule id(s): ['{normalized_rule_id}']")
         reload_meta = self._write_rule_rows(kept_rows, backup_reason="rules_delete")
-        return {
+        revision_after = self._compute_rules_revision()
+        return self._with_rules_revision_meta({
             "deleted_id": normalized_rule_id,
             "rules": self._build_rules_list_payload()["rules"],
             "reload": reload_meta,
             "backup": reload_meta.get("backup", {}),
-        }
+        }, revision_before=revision_before, revision_after=revision_after, mutation_applied=True, backup_id=self._rules_backup_id_from_reload(reload_meta))
 
     def _export_rules_payload(self) -> Dict[str, Any]:
         return {
             "available": True,
             "generated_at_ms": self._epoch_ms(),
             "config_dir": self._get_rules_config_dir(),
+            "rules_revision": self._compute_rules_revision(),
             "rules": self._load_rule_rows(),
         }
 
@@ -432,6 +482,7 @@ class HealthCheckMixin:
         normalized_mode = str(mode or "replace").strip().lower()
         if normalized_mode not in {"replace", "merge"}:
             raise ValueError("mode must be one of: replace, merge")
+        revision_before = self._compute_rules_revision()
         existing_rows = self._load_rule_rows()
         normalized_rows: List[Dict[str, Any]] = []
         duplicates: List[str] = []
@@ -455,12 +506,18 @@ class HealthCheckMixin:
                 continue
             seen_new_ids.add(normalized["id"])
             normalized_rows.append(normalized)
-        return self._build_rule_import_preview(
+        preview = self._build_rule_import_preview(
             existing_rows=existing_rows,
             normalized_rows=normalized_rows,
             mode=normalized_mode,
             duplicates=duplicates,
             errors=errors,
+        )
+        return self._with_rules_revision_meta(
+            preview,
+            revision_before=revision_before,
+            revision_after=revision_before,
+            mutation_applied=False,
         )
 
     def _import_rules_payload(self, rules: List[Dict[str, Any]], mode: str = "replace") -> Dict[str, Any]:
@@ -470,6 +527,7 @@ class HealthCheckMixin:
         if normalized_mode not in {"replace", "merge"}:
             raise ValueError("mode must be one of: replace, merge")
 
+        revision_before = self._compute_rules_revision()
         existing_rows = self._load_rule_rows()
         existing_ids = {str((row or {}).get("id", "") or "") for row in existing_rows if isinstance(row, dict)}
         normalized_rows: List[Dict[str, Any]] = []
@@ -490,15 +548,17 @@ class HealthCheckMixin:
             final_rows = sorted(merged_map.values(), key=lambda item: (int((item or {}).get("order", 0) or 0), str((item or {}).get("id", "") or "")))
 
         reload_meta = self._write_rule_rows(final_rows, backup_reason="rules_import")
-        return {
+        revision_after = self._compute_rules_revision()
+        return self._with_rules_revision_meta({
             "imported_count": len(normalized_rows),
             "mode": normalized_mode,
             "rules": self._build_rules_list_payload()["rules"],
             "reload": reload_meta,
             "backup": reload_meta.get("backup", {}),
-        }
+        }, revision_before=revision_before, revision_after=revision_after, mutation_applied=True, backup_id=self._rules_backup_id_from_reload(reload_meta))
 
     def _rollback_latest_rules_payload(self) -> Dict[str, Any]:
+        revision_before = self._compute_rules_revision()
         backup_root = self._rule_backup_root()
         if not backup_root.exists() or not backup_root.is_dir():
             raise FileNotFoundError("rule backup directory not found")
@@ -518,6 +578,7 @@ class HealthCheckMixin:
         if not isinstance(rows, list):
             raise RuntimeError(f"invalid rule backup payload: {latest.name}")
         reload_meta = self._write_rule_rows([row for row in rows if isinstance(row, dict)], backup_reason="rules_rollback")
+        revision_after = self._compute_rules_revision()
         return {
             "restored_count": len([row for row in rows if isinstance(row, dict)]),
             "backup_source": {
@@ -529,6 +590,11 @@ class HealthCheckMixin:
             "rules": self._build_rules_list_payload()["rules"],
             "reload": reload_meta,
             "backup": reload_meta.get("backup", {}),
+            "rules_revision": revision_after,
+            "revision_before": revision_before,
+            "revision_after": revision_after,
+            "mutation_applied": True,
+            "backup_id": self._rules_backup_id_from_reload(reload_meta),
         }
 
     def _playwright_dependency_status(self) -> Dict[str, Any]:

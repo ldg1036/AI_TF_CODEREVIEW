@@ -56,6 +56,7 @@ class AutofixPrepareRequestBody(TypedDict, total=False):
 
 class AutofixApplyRequestBody(TypedDict, total=False):
     proposal_id: str
+    prepared_proposal_id: str
     session_id: Optional[str]
     output_dir: Optional[str]
     file: str

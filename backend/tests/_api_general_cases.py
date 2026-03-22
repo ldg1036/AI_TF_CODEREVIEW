@@ -355,6 +355,7 @@ class ApiGeneralCasesMixin:
 
         status, payload = self._request("GET", "/api/rules/list")
         self.assertEqual(status, 200)
+        self.assertTrue(bool(str(payload.get("rules_revision", ""))))
         rows = payload.get("rules", [])
         self.assertEqual(len(rows), 2)
         self.assertEqual(rows[0].get("id"), "cfg-test-01")
@@ -437,6 +438,7 @@ class ApiGeneralCasesMixin:
 
         status, payload = self._request("GET", "/api/rules/export")
         self.assertEqual(status, 200)
+        self.assertTrue(bool(str(payload.get("rules_revision", ""))))
         self.assertEqual(len(payload.get("rules", [])), 1)
         self.assertEqual(str((payload.get("rules", [])[0] or {}).get("rule_id", "")), "TEST-01")
 
@@ -504,6 +506,9 @@ class ApiGeneralCasesMixin:
         status, payload = self._request("POST", "/api/rules/create", {"rule": rule})
         self.assertEqual(status, 200)
         self.assertEqual(str((payload.get("rule", {}) or {}).get("id", "")), "cfg-created-01")
+        self.assertTrue(bool(payload.get("mutation_applied", False)))
+        self.assertNotEqual(str(payload.get("revision_before", "")), str(payload.get("revision_after", "")))
+        self.assertEqual(str(payload.get("rules_revision", "")), str(payload.get("revision_after", "")))
         exported_status, exported = self._request("GET", "/api/rules/export")
         self.assertEqual(exported_status, 200)
         self.assertEqual(len(exported.get("rules", [])), 1)
@@ -608,6 +613,8 @@ class ApiGeneralCasesMixin:
         )
         self.assertEqual(status, 200)
         self.assertEqual(int(payload.get("imported_count", 0)), 2)
+        self.assertTrue(bool(payload.get("mutation_applied", False)))
+        self.assertNotEqual(str(payload.get("revision_before", "")), str(payload.get("revision_after", "")))
         exported_status, exported = self._request("GET", "/api/rules/export")
         self.assertEqual(exported_status, 200)
         rows = exported.get("rules", [])
@@ -662,6 +669,8 @@ class ApiGeneralCasesMixin:
         )
         self.assertEqual(status, 200)
         self.assertTrue(bool(payload.get("dry_run", False)))
+        self.assertFalse(bool(payload.get("mutation_applied", True)))
+        self.assertEqual(str(payload.get("revision_before", "")), str(payload.get("revision_after", "")))
         self.assertEqual(int(payload.get("created", 0)), 1)
         self.assertEqual(int(payload.get("updated", 0)), 1)
         self.assertEqual(int(payload.get("effective_rule_count", 0)), 2)
@@ -738,6 +747,8 @@ class ApiGeneralCasesMixin:
             rollback_status, rollback_payload = self._request("POST", "/api/rules/rollback/latest", {})
             self.assertEqual(rollback_status, 200)
             self.assertEqual(int(rollback_payload.get("restored_count", 0)), 1)
+            self.assertTrue(bool(rollback_payload.get("mutation_applied", False)))
+            self.assertNotEqual(str(rollback_payload.get("revision_before", "")), str(rollback_payload.get("revision_after", "")))
             with open(os.path.join(config_dir, "p1_rule_defs.json"), "r", encoding="utf-8") as handle:
                 restored = json.load(handle)
             self.assertEqual(str(restored[0].get("rule_id", "")), "TEST-01")

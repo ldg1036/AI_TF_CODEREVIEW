@@ -1,0 +1,20 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1774157896349,
+  "entries": [
+    {
+      "triage_key": "benchmarkp1fixture.ctl||EXC-DP-01||DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성.||14",
+      "status": "suppressed",
+      "reason": "already reviewed in smoke",
+      "note": "triage smoke round trip",
+      "updated_at_ms": 1774157896348,
+      "match": {
+        "file": "BenchmarkP1Fixture.ctl",
+        "line": 14,
+        "rule_id": "EXC-DP-01",
+        "message": "DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성.",
+        "issue_id": "P1-EXC-DP-01-9b39c7f5d6"
+      }
+    }
+  ]
+}

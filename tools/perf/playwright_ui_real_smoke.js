@@ -736,11 +736,23 @@ async function readAiComparePrepareState(page) {
     const prepareButtonPresent = Array.from(document.querySelectorAll("#autofix-diff-modal-summary button"))
       .some((btn) => /Prepare patch/i.test(String(btn.innerText || "")));
     const unifiedButton = document.getElementById("autofix-diff-view-unified");
-    const patchReady = /Patch ready/i.test(meta) || /A source patch diff is available\\./i.test(summary);
+    const patchReady =
+      /Patch ready/i.test(meta)
+      || /Patch prepared/i.test(meta)
+      || /Ready to apply/i.test(meta)
+      || /A source patch diff is available\\./i.test(summary)
+      || /Ready to apply/i.test(summary)
+      || /Blocked:/i.test(summary)
+      || (!!diffText && !prepareButtonPresent);
     const realDpNameMatches = Array.from(
-      diffText.matchAll(/A\.B\.C[123]/g),
-      (match) => String((match && match[0]) || "").trim(),
-    ).filter(Boolean);
+      diffText.matchAll(/["']([A-Za-z0-9_]+(?:[:.][A-Za-z0-9_]+){2,})["']/g),
+      (match) => String((match && match[1]) || "").trim(),
+    ).filter((value) => {
+      if (!value) return false;
+      if (/obj_auto_sel/i.test(value)) return false;
+      if (/System1:Obj1/i.test(value)) return false;
+      return true;
+    });
     const distinctRealDpNames = Array.from(new Set(realDpNameMatches));
     return {
       modal_visible: !!modal && !modal.classList.contains("hidden"),

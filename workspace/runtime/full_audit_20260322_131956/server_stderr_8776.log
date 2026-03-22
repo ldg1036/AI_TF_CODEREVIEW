@@ -1,0 +1,384 @@
+2026-03-22 13:32:59 [INFO] __main__: Server started: http://127.0.0.1:8776
+127.0.0.1 - - [22/Mar/2026 13:33:02] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:25] "GET /api/files HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:25] "GET /api/rules/health HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:25] "GET /api/rules/list HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:25] "GET /api/operations/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:27] "GET /api/ai/models HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/autofix-ai.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/bootstrap-event-bindings.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/bootstrap-global-shortcuts.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/bootstrap-load-sequence.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/code-viewer.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/detail-panel.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/excel-jobs.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/dashboard-panels.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/renderer-ui-chrome.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/rules-manage.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/workspace-view.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/app-shell.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/p1-triage.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/workspace-chrome-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/app-state.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/utils.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/primary-view-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/workspace-interaction-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/reviewed-linking.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/autofix-ai/quality-gates.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/autofix-ai/ui-state.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/autofix-ai/prepare-panel.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/autofix-ai/compare-modal.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/dashboard-state-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/workspace-search-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/workspace/row-index.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/workspace/file-pane.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/workspace/recommendation-filters.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/workspace/pane-layout.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/rules-manage-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/workspace/recommendations.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /renderer/workspace-resize-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /api/triage/p1 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /api/verification/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /favicon.ico HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /api/operations/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /api/rules/health HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:33:41] "GET /api/files HTTP/1.1" 200 -
+2026-03-22 13:36:18 [INFO] __main__: Analyze request start id=dfa2e791224741948e74d77d2a772d3f selected=1 allow_raw_txt=False
+2026-03-22 13:36:18 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:36:18 [INFO] main: Analyzing: BenchmarkP1Fixture.ctl
+2026-03-22 13:36:18 [INFO] main: Completed analysis for: BenchmarkP1Fixture.ctl
+2026-03-22 13:36:18 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:36:18 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_133618_698609
+127.0.0.1 - - [22/Mar/2026 13:36:18] "POST /api/analyze HTTP/1.1" 200 -
+2026-03-22 13:36:18 [INFO] __main__: Analyze request done id=dfa2e791224741948e74d77d2a772d3f status=200
+2026-03-22 13:36:18 [INFO] __main__: Analyze request start id=4a9a46b82ef643a495eb741b49565ded selected=1 allow_raw_txt=False
+2026-03-22 13:36:18 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:36:18 [INFO] main: Analyzing: BenchmarkP1Fixture.ctl
+2026-03-22 13:36:18 [INFO] main: Completed analysis for: BenchmarkP1Fixture.ctl
+2026-03-22 13:36:18 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:36:18 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_133618_857113
+127.0.0.1 - - [22/Mar/2026 13:36:18] "POST /api/analyze HTTP/1.1" 200 -
+2026-03-22 13:36:18 [INFO] __main__: Analyze request done id=4a9a46b82ef643a495eb741b49565ded status=200
+2026-03-22 13:36:18 [INFO] __main__: Analyze request start id=f8d0722c93c64187963d4ea84cc8416c selected=1 allow_raw_txt=False
+2026-03-22 13:36:18 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:36:18 [INFO] main: Analyzing: GoldenTime.ctl
+2026-03-22 13:36:19 [INFO] main: Completed analysis for: GoldenTime.ctl
+2026-03-22 13:36:19 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:36:19 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_133618_971448
+127.0.0.1 - - [22/Mar/2026 13:36:19] "POST /api/analyze HTTP/1.1" 200 -
+2026-03-22 13:36:19 [INFO] __main__: Analyze request done id=f8d0722c93c64187963d4ea84cc8416c status=200
+2026-03-22 13:36:19 [INFO] __main__: Analyze request start id=13cebba606684b4e9db0ced61f3b5f5f selected=1 allow_raw_txt=False
+2026-03-22 13:36:19 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:36:19 [INFO] main: Analyzing: GoldenTime.ctl
+2026-03-22 13:36:19 [INFO] main: Completed analysis for: GoldenTime.ctl
+2026-03-22 13:36:19 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:36:19 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_133619_091053
+127.0.0.1 - - [22/Mar/2026 13:36:19] "POST /api/analyze HTTP/1.1" 200 -
+2026-03-22 13:36:19 [INFO] __main__: Analyze request done id=13cebba606684b4e9db0ced61f3b5f5f status=200
+2026-03-22 13:36:19 [INFO] __main__: Analyze request start id=fd26260afa814f8d8bcea29bb383a9fa selected=1 allow_raw_txt=False
+2026-03-22 13:36:19 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:36:19 [INFO] main: Analyzing: POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt
+2026-03-22 13:36:19 [INFO] main: Completed analysis for: POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt
+2026-03-22 13:36:19 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:36:19 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_133619_327073
+127.0.0.1 - - [22/Mar/2026 13:36:19] "POST /api/analyze HTTP/1.1" 200 -
+2026-03-22 13:36:19 [INFO] __main__: Analyze request done id=fd26260afa814f8d8bcea29bb383a9fa status=200
+2026-03-22 13:36:19 [INFO] __main__: Analyze request start id=a238feae165c4efb8f38dcffac107be4 selected=1 allow_raw_txt=False
+2026-03-22 13:36:19 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:36:19 [INFO] core.file_collector_mixin: Converted: POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl -> POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt
+2026-03-22 13:36:19 [INFO] main: Analyzing: POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt
+2026-03-22 13:36:19 [INFO] main: Completed analysis for: POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt
+2026-03-22 13:36:19 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:36:19 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_133619_511252
+127.0.0.1 - - [22/Mar/2026 13:36:19] "POST /api/analyze HTTP/1.1" 200 -
+2026-03-22 13:36:19 [INFO] __main__: Analyze request done id=a238feae165c4efb8f38dcffac107be4 status=200
+2026-03-22 13:37:03 [INFO] core.analyze_job_mixin: Analyze async request start id=433e0734a6224d1281da49f14c3814fa selected=1 allow_raw_txt=False
+127.0.0.1 - - [22/Mar/2026 13:37:03] "POST /api/analyze/start HTTP/1.1" 202 -
+2026-03-22 13:37:03 [INFO] __main__: Analyze async request accepted id=433e0734a6224d1281da49f14c3814fa status=202
+2026-03-22 13:37:03 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:37:03 [INFO] main: Analyzing: BenchmarkP1Fixture.ctl
+2026-03-22 13:37:03 [INFO] main: Completed analysis for: BenchmarkP1Fixture.ctl
+2026-03-22 13:37:03 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:37:03 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_133703_618324
+127.0.0.1 - - [22/Mar/2026 13:37:03] "GET /api/analyze/status?job_id=7d8e023d4d7349368798e6662a9debf2 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:03] "GET /api/file-content?name=BenchmarkP1Fixture.ctl&prefer_source=true&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_133703_618324 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:03] "GET /api/file-content?name=BenchmarkP1Fixture.ctl&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_133703_618324 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:03] "GET /api/verification/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:03] "GET /api/operations/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:03] "GET /api/rules/health HTTP/1.1" 200 -
+2026-03-22 13:37:19 [INFO] core.analyze_job_mixin: Analyze async request start id=64b9b8e071444332ae6b8bc3a22e7791 selected=1 allow_raw_txt=False
+127.0.0.1 - - [22/Mar/2026 13:37:19] "POST /api/analyze/start HTTP/1.1" 202 -
+2026-03-22 13:37:19 [INFO] __main__: Analyze async request accepted id=64b9b8e071444332ae6b8bc3a22e7791 status=202
+2026-03-22 13:37:19 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:37:19 [INFO] main: Analyzing: BenchmarkP1Fixture.ctl
+127.0.0.1 - - [22/Mar/2026 13:37:19] "GET /api/analyze/status?job_id=161ba40dc38a46c89f19195b90b4a0a6 HTTP/1.1" 200 -
+2026-03-22 13:37:19 [INFO] main: Completed analysis for: BenchmarkP1Fixture.ctl
+2026-03-22 13:37:19 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:37:19 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_133719_245111
+127.0.0.1 - - [22/Mar/2026 13:37:19] "GET /api/analyze/status?job_id=161ba40dc38a46c89f19195b90b4a0a6 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:19] "GET /api/file-content?name=BenchmarkP1Fixture.ctl&prefer_source=true&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_133719_245111 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:19] "GET /api/file-content?name=BenchmarkP1Fixture.ctl&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_133719_245111 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:19] "GET /api/verification/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:19] "GET /api/operations/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:19] "GET /api/rules/health HTTP/1.1" 200 -
+2026-03-22 13:37:50 [INFO] core.analyze_job_mixin: Analyze async request start id=44147ae5f13f4264a1ce4400a7e866a9 selected=1 allow_raw_txt=False
+127.0.0.1 - - [22/Mar/2026 13:37:50] "POST /api/analyze/start HTTP/1.1" 202 -
+2026-03-22 13:37:50 [INFO] __main__: Analyze async request accepted id=44147ae5f13f4264a1ce4400a7e866a9 status=202
+2026-03-22 13:37:50 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:37:50 [INFO] main: Analyzing: GoldenTime.ctl
+127.0.0.1 - - [22/Mar/2026 13:37:50] "GET /api/analyze/status?job_id=ee045466b0514489a16c7ef6e92cf57b HTTP/1.1" 200 -
+2026-03-22 13:37:50 [INFO] main: Completed analysis for: GoldenTime.ctl
+2026-03-22 13:37:50 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:37:50 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_133750_020921
+127.0.0.1 - - [22/Mar/2026 13:37:50] "GET /api/analyze/status?job_id=ee045466b0514489a16c7ef6e92cf57b HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:50] "GET /api/file-content?name=GoldenTime.ctl&prefer_source=true&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_133750_020921 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:50] "GET /api/file-content?name=GoldenTime.ctl&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_133750_020921 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:50] "GET /api/verification/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:50] "GET /api/operations/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:37:50] "GET /api/rules/health HTTP/1.1" 200 -
+2026-03-22 13:38:09 [INFO] core.analyze_job_mixin: Analyze async request start id=8a1bd337bbaf40fd9152afbc7c3e45dd selected=1 allow_raw_txt=False
+127.0.0.1 - - [22/Mar/2026 13:38:09] "POST /api/analyze/start HTTP/1.1" 202 -
+2026-03-22 13:38:09 [INFO] __main__: Analyze async request accepted id=8a1bd337bbaf40fd9152afbc7c3e45dd status=202
+2026-03-22 13:38:09 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:38:09 [INFO] main: Analyzing: POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt
+127.0.0.1 - - [22/Mar/2026 13:38:09] "GET /api/analyze/status?job_id=05734eff48b44d3f82ab1234cd272a48 HTTP/1.1" 200 -
+2026-03-22 13:38:09 [INFO] main: Completed analysis for: POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt
+2026-03-22 13:38:09 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:38:09 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_133809_087970
+127.0.0.1 - - [22/Mar/2026 13:38:09] "GET /api/analyze/status?job_id=05734eff48b44d3f82ab1234cd272a48 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:09] "GET /api/file-content?name=POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt&prefer_source=true&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_133809_087970 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:09] "GET /api/file-content?name=POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_133809_087970 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:09] "GET /api/verification/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:09] "GET /api/operations/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:09] "GET /api/rules/health HTTP/1.1" 200 -
+2026-03-22 13:38:31 [INFO] core.analyze_job_mixin: Analyze async request start id=f8921f1cffbe4300ac086de64b52e8b1 selected=1 allow_raw_txt=False
+127.0.0.1 - - [22/Mar/2026 13:38:31] "POST /api/analyze/start HTTP/1.1" 202 -
+2026-03-22 13:38:31 [INFO] __main__: Analyze async request accepted id=f8921f1cffbe4300ac086de64b52e8b1 status=202
+2026-03-22 13:38:31 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:38:31 [INFO] main: Analyzing: POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt
+127.0.0.1 - - [22/Mar/2026 13:38:31] "GET /api/analyze/status?job_id=98e43d0fd2e0407ca195e4308bd0935a HTTP/1.1" 200 -
+2026-03-22 13:38:32 [INFO] main: Completed analysis for: POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt
+2026-03-22 13:38:32 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:38:32 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_133831_887548
+127.0.0.1 - - [22/Mar/2026 13:38:32] "GET /api/analyze/status?job_id=98e43d0fd2e0407ca195e4308bd0935a HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:32] "GET /api/file-content?name=POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt&prefer_source=true&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_133831_887548 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:32] "GET /api/file-content?name=POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_133831_887548 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:32] "GET /api/verification/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:32] "GET /api/operations/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:32] "GET /api/rules/health HTTP/1.1" 200 -
+2026-03-22 13:38:55 [INFO] core.analyze_job_mixin: Analyze async request start id=10e7ac3bb3f04dbaba41e41fe2d762bc selected=1 allow_raw_txt=False
+127.0.0.1 - - [22/Mar/2026 13:38:55] "POST /api/analyze/start HTTP/1.1" 202 -
+2026-03-22 13:38:55 [INFO] __main__: Analyze async request accepted id=10e7ac3bb3f04dbaba41e41fe2d762bc status=202
+2026-03-22 13:38:55 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:38:55 [INFO] main: Analyzing: POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt
+127.0.0.1 - - [22/Mar/2026 13:38:55] "GET /api/analyze/status?job_id=a37d74d4500c4b08b77141d7bcc3186a HTTP/1.1" 200 -
+2026-03-22 13:38:55 [INFO] main: Completed analysis for: POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt
+2026-03-22 13:38:55 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:38:55 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_133855_457216
+127.0.0.1 - - [22/Mar/2026 13:38:56] "GET /api/analyze/status?job_id=a37d74d4500c4b08b77141d7bcc3186a HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:56] "GET /api/file-content?name=POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl&prefer_source=true&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_133855_457216 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:56] "GET /api/file-content?name=POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_133855_457216 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:56] "GET /api/verification/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:56] "GET /api/operations/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:38:56] "GET /api/rules/health HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /api/files HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /api/triage/p1 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/autofix-ai.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/bootstrap-event-bindings.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/bootstrap-global-shortcuts.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/bootstrap-load-sequence.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/code-viewer.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/detail-panel.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/dashboard-panels.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/excel-jobs.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/renderer-ui-chrome.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/rules-manage.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/workspace-view.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/app-shell.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/primary-view-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/p1-triage.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/workspace-interaction-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/workspace-chrome-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/app-state.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/utils.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/reviewed-linking.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/autofix-ai/quality-gates.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/autofix-ai/prepare-panel.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/autofix-ai/compare-modal.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/autofix-ai/ui-state.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/dashboard-state-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/rules-manage-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/workspace-search-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/workspace/row-index.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/workspace/pane-layout.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/workspace/file-pane.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/workspace/recommendation-filters.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/workspace/recommendations.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /renderer/workspace-resize-helpers.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /api/triage/p1 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /api/verification/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /api/operations/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /api/rules/health HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:20] "GET /api/files HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:22] "GET /api/ai/models HTTP/1.1" 200 -
+2026-03-22 13:40:22 [INFO] core.analyze_job_mixin: Analyze async request start id=1a5e9576c5244a4985577d21a1f5ee14 selected=1 allow_raw_txt=False
+127.0.0.1 - - [22/Mar/2026 13:40:22] "POST /api/analyze/start HTTP/1.1" 202 -
+2026-03-22 13:40:22 [INFO] __main__: Analyze async request accepted id=1a5e9576c5244a4985577d21a1f5ee14 status=202
+2026-03-22 13:40:22 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:40:22 [INFO] main: Analyzing: BenchmarkP1Fixture.ctl
+127.0.0.1 - - [22/Mar/2026 13:40:22] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:23] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:23] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:24] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:24] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:25] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:25] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:26] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:26] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:27] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:27] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:28] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:28] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:29] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:29] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+2026-03-22 13:40:30 [INFO] main: Completed analysis for: BenchmarkP1Fixture.ctl
+2026-03-22 13:40:30 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:40:30 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_134022_721704
+127.0.0.1 - - [22/Mar/2026 13:40:30] "GET /api/analyze/status?job_id=83387f17e47a470bb26b192fdb6e0307 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:30] "GET /api/file-content?name=BenchmarkP1Fixture.ctl&prefer_source=true&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_134022_721704 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:30] "GET /api/file-content?name=BenchmarkP1Fixture.ctl&output_dir=D%3A%5CAI_TF_CODEREVIEW-main%5CCodeReview_Report%5C20260322_134022_721704 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:30] "GET /api/verification/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:30] "GET /api/operations/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:30] "GET /api/rules/health HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:30] "POST /api/triage/p1/upsert HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:40:30] "POST /api/triage/p1/delete HTTP/1.1" 200 -
+2026-03-22 13:40:31 [INFO] core.ai_review_http_mixin: AI generate request start id=3deca2e336744cf098f080def3e72d02 issue_id=P1-PERF-SETMULTIVALUE-ADOPT-01-4b8c8448a0 rule_id=PERF-SETMULTIVALUE-ADOPT-01
+127.0.0.1 - - [22/Mar/2026 13:40:36] "POST /api/ai-review/generate HTTP/1.1" 200 -
+2026-03-22 13:40:36 [INFO] core.ai_review_http_mixin: AI generate request done id=3deca2e336744cf098f080def3e72d02 status=200 available=True
+2026-03-22 13:40:37 [INFO] core.autofix_http_mixin: Autofix prepare start id=04545df1a5364be39d67e90c34bb247d file=D:\AI_TF_CODEREVIEW-main\CodeReview_Data\BenchmarkP1Fixture.ctl object=BenchmarkP1Fixture.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:40:37] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:40:37 [INFO] core.autofix_http_mixin: Autofix prepare done id=04545df1a5364be39d67e90c34bb247d status=200 proposal_id=604606e4d2c54f579733b544f92e7578
+127.0.0.1 - - [22/Mar/2026 13:40:37] "GET /api/triage/p1 HTTP/1.1" 200 -
+2026-03-22 13:41:02 [INFO] __main__: Analyze request start id=eb1736608f6c42cead2de2836e031d89 selected=0 allow_raw_txt=False
+2026-03-22 13:41:02 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:41:02 [INFO] main: Analyzing: BenchmarkP1Fixture_copy.ctl
+2026-03-22 13:41:02 [INFO] main: Completed analysis for: BenchmarkP1Fixture_copy.ctl
+2026-03-22 13:41:02 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:41:02 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_134102_059491
+127.0.0.1 - - [22/Mar/2026 13:41:02] "POST /api/analyze HTTP/1.1" 200 -
+2026-03-22 13:41:02 [INFO] __main__: Analyze request done id=eb1736608f6c42cead2de2836e031d89 status=200
+2026-03-22 13:41:02 [INFO] core.autofix_http_mixin: Autofix prepare start id=b3d2969632394050ac195c458948abf8 file=BenchmarkP1Fixture_copy.ctl object=BenchmarkP1Fixture_copy.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:41:02] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:41:02 [INFO] core.autofix_http_mixin: Autofix prepare done id=b3d2969632394050ac195c458948abf8 status=200 proposal_id=e7beba7b1806460bbb420f8380802235
+2026-03-22 13:41:02 [INFO] core.autofix_http_mixin: Autofix prepare start id=307613ba7171433e9618021d942daf63 file=BenchmarkP1Fixture_copy.ctl object=BenchmarkP1Fixture_copy.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:41:02] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:41:02 [INFO] core.autofix_http_mixin: Autofix prepare done id=307613ba7171433e9618021d942daf63 status=200 proposal_id=03a3c359b9c544039f795777755b1c01
+2026-03-22 13:41:02 [INFO] core.autofix_http_mixin: Autofix prepare start id=c6e286b0b3e443e8ab1dd9210682bec5 file=BenchmarkP1Fixture_copy.ctl object=BenchmarkP1Fixture_copy.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:41:02] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:41:02 [INFO] core.autofix_http_mixin: Autofix prepare done id=c6e286b0b3e443e8ab1dd9210682bec5 status=200 proposal_id=08f4ff8fb11e4874bb23047136cec9c8
+2026-03-22 13:41:02 [INFO] core.autofix_http_mixin: Autofix prepare start id=d070e5f57d6043149106acdda249829a file=BenchmarkP1Fixture_copy.ctl object=BenchmarkP1Fixture_copy.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:41:02] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:41:02 [INFO] core.autofix_http_mixin: Autofix prepare done id=d070e5f57d6043149106acdda249829a status=200 proposal_id=0c7971cdfb9444419fed0b25f839aa6a
+2026-03-22 13:41:02 [INFO] core.autofix_http_mixin: Autofix prepare start id=03a669e7e2a34e0291239b541563481f file=BenchmarkP1Fixture_copy.ctl object=BenchmarkP1Fixture_copy.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:41:02] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:41:02 [INFO] core.autofix_http_mixin: Autofix prepare done id=03a669e7e2a34e0291239b541563481f status=200 proposal_id=4b6125fc447d4230935a305e3d3873be
+2026-03-22 13:41:18 [INFO] core.autofix_http_mixin: Autofix apply start id=1709eeed4798484c9f8acb20c77454ea proposal_id=e7beba7b1806460bbb420f8380802235
+127.0.0.1 - - [22/Mar/2026 13:41:18] "POST /api/autofix/apply HTTP/1.1" 409 -
+2026-03-22 13:41:18 [WARNING] core.api_dispatch_mixin: Autofix apply done id=1709eeed4798484c9f8acb20c77454ea status=409 error_code=SEMANTIC_GUARD_BLOCKED error=Autofix semantic guard blocked high-risk token delta
+127.0.0.1 - - [22/Mar/2026 13:41:30] "POST /api/triage/p1/upsert HTTP/1.1" 200 -
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix prepare start id=ec99132a06dd442880f326bdde2deab8 file=BenchmarkP1Fixture_copy.ctl object=BenchmarkP1Fixture_copy.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:41:45] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix prepare done id=ec99132a06dd442880f326bdde2deab8 status=200 proposal_id=4db6e79bbe60498c94449ace315639ae
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix apply start id=16f87dd724ed4647955c5e4e793b113c proposal_id=4db6e79bbe60498c94449ace315639ae
+127.0.0.1 - - [22/Mar/2026 13:41:45] "POST /api/autofix/apply HTTP/1.1" 409 -
+2026-03-22 13:41:45 [WARNING] core.api_dispatch_mixin: Autofix apply done id=16f87dd724ed4647955c5e4e793b113c status=409 error_code=SEMANTIC_GUARD_BLOCKED error=Autofix semantic guard blocked high-risk token delta
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix prepare start id=acf17cc63b6040f490b9f8681dc9264b file=BenchmarkP1Fixture_copy.ctl object=BenchmarkP1Fixture_copy.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:41:45] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix prepare done id=acf17cc63b6040f490b9f8681dc9264b status=200 proposal_id=8219c7a415ac46cd962a75e8dc362822
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix apply start id=8c1ce313c93d41828ca9c06e39b20d9d proposal_id=8219c7a415ac46cd962a75e8dc362822
+127.0.0.1 - - [22/Mar/2026 13:41:45] "POST /api/autofix/apply HTTP/1.1" 409 -
+2026-03-22 13:41:45 [WARNING] core.api_dispatch_mixin: Autofix apply done id=8c1ce313c93d41828ca9c06e39b20d9d status=409 error_code=SEMANTIC_GUARD_BLOCKED error=Autofix semantic guard blocked high-risk token delta
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix prepare start id=916e6fa6e0de4133bef2de8089e335d2 file=BenchmarkP1Fixture_copy.ctl object=BenchmarkP1Fixture_copy.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:41:45] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix prepare done id=916e6fa6e0de4133bef2de8089e335d2 status=200 proposal_id=118b0a5a4b0b44a98c570ec70124c4d1
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix apply start id=a0c7e19a0d1b4c43aa612cb24c0d5533 proposal_id=118b0a5a4b0b44a98c570ec70124c4d1
+127.0.0.1 - - [22/Mar/2026 13:41:45] "POST /api/autofix/apply HTTP/1.1" 409 -
+2026-03-22 13:41:45 [WARNING] core.api_dispatch_mixin: Autofix apply done id=a0c7e19a0d1b4c43aa612cb24c0d5533 status=409 error_code=SEMANTIC_GUARD_BLOCKED error=Autofix semantic guard blocked high-risk token delta
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix prepare start id=8f289e0015934e5aa13235608e350487 file=BenchmarkP1Fixture_copy.ctl object=BenchmarkP1Fixture_copy.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:41:45] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix prepare done id=8f289e0015934e5aa13235608e350487 status=200 proposal_id=344dc40c508f4e479f5c46624ef0a9b9
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix apply start id=7e7d760ed20446db8406c7c21e38a88c proposal_id=344dc40c508f4e479f5c46624ef0a9b9
+127.0.0.1 - - [22/Mar/2026 13:41:45] "POST /api/autofix/apply HTTP/1.1" 200 -
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix apply done id=7e7d760ed20446db8406c7c21e38a88c status=200 file=BenchmarkP1Fixture_copy.ctl
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix prepare start id=b4ffc34af3fa4243a188013a620945a8 file=BenchmarkP1Fixture_copy.ctl object=BenchmarkP1Fixture_copy.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:41:45] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix prepare done id=b4ffc34af3fa4243a188013a620945a8 status=200 proposal_id=21563037421544a8bc3b58dcd1e1625e
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix apply start id=b7038bda78ea426bbeee1f27c20f43d6 proposal_id=21563037421544a8bc3b58dcd1e1625e
+127.0.0.1 - - [22/Mar/2026 13:41:45] "POST /api/autofix/apply HTTP/1.1" 200 -
+2026-03-22 13:41:45 [INFO] core.autofix_http_mixin: Autofix apply done id=b7038bda78ea426bbeee1f27c20f43d6 status=200 file=BenchmarkP1Fixture_copy.ctl
+2026-03-22 13:42:01 [INFO] core.ai_review_http_mixin: AI generate request start id=7ad0e213a6d54027bca3099c08506f28 issue_id=P1-CLEAN-DEAD-01-bac9f52b89 rule_id=CLEAN-DEAD-01
+127.0.0.1 - - [22/Mar/2026 13:42:01] "POST /api/ai-review/generate HTTP/1.1" 200 -
+2026-03-22 13:42:01 [INFO] core.ai_review_http_mixin: AI generate request done id=7ad0e213a6d54027bca3099c08506f28 status=200 available=True
+2026-03-22 13:42:24 [INFO] __main__: Analyze request start id=63fc63aaf199413b802dd56915298ac4 selected=0 allow_raw_txt=False
+2026-03-22 13:42:24 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:42:24 [INFO] main: Analyzing: BenchmarkP1Fixture_copy.ctl
+2026-03-22 13:42:24 [INFO] main: Completed analysis for: BenchmarkP1Fixture_copy.ctl
+2026-03-22 13:42:24 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:42:24 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_134224_620556
+127.0.0.1 - - [22/Mar/2026 13:42:24] "POST /api/analyze HTTP/1.1" 200 -
+2026-03-22 13:42:24 [INFO] __main__: Analyze request done id=63fc63aaf199413b802dd56915298ac4 status=200
+2026-03-22 13:42:24 [INFO] core.autofix_http_mixin: Autofix prepare start id=90614d09f8854aba9c2ac222edb96708 file=BenchmarkP1Fixture_copy.ctl object=BenchmarkP1Fixture_copy.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:42:24] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:42:24 [INFO] core.autofix_http_mixin: Autofix prepare done id=90614d09f8854aba9c2ac222edb96708 status=200 proposal_id=63dad593cd974806906c388e8ce5c17a
+2026-03-22 13:42:24 [INFO] core.autofix_http_mixin: Autofix apply start id=9a490f77d6d241bb9613a7f29a10de03 proposal_id=63dad593cd974806906c388e8ce5c17a
+127.0.0.1 - - [22/Mar/2026 13:42:24] "POST /api/autofix/apply HTTP/1.1" 200 -
+2026-03-22 13:42:24 [INFO] core.autofix_http_mixin: Autofix apply done id=9a490f77d6d241bb9613a7f29a10de03 status=200 file=BenchmarkP1Fixture_copy.ctl
+2026-03-22 13:42:24 [INFO] __main__: Analyze request start id=62819227984d4de087466dbbc15472a4 selected=0 allow_raw_txt=False
+2026-03-22 13:42:24 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:42:24 [INFO] main: Analyzing: BenchmarkP1Fixture_copy.ctl
+2026-03-22 13:42:24 [INFO] main: Completed analysis for: BenchmarkP1Fixture_copy.ctl
+2026-03-22 13:42:24 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:42:24 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_134224_746875
+127.0.0.1 - - [22/Mar/2026 13:42:24] "POST /api/analyze HTTP/1.1" 200 -
+2026-03-22 13:42:24 [INFO] __main__: Analyze request done id=62819227984d4de087466dbbc15472a4 status=200
+2026-03-22 13:42:24 [INFO] core.autofix_http_mixin: Autofix prepare start id=64842864b4bf40bca9629691f538e35b file=BenchmarkP1Fixture.ctl object=BenchmarkP1Fixture.ctl event=Global
+127.0.0.1 - - [22/Mar/2026 13:42:24] "POST /api/autofix/prepare HTTP/1.1" 200 -
+2026-03-22 13:42:24 [INFO] core.autofix_http_mixin: Autofix prepare done id=64842864b4bf40bca9629691f538e35b status=200 proposal_id=53c5214bf07a46feb4a5fa3196fef922
+2026-03-22 13:42:24 [INFO] core.autofix_http_mixin: Autofix apply start id=e70c68798cd54d4f837d77488c70726b proposal_id=53c5214bf07a46feb4a5fa3196fef922
+127.0.0.1 - - [22/Mar/2026 13:42:24] "POST /api/autofix/apply HTTP/1.1" 200 -
+2026-03-22 13:42:24 [INFO] core.autofix_http_mixin: Autofix apply done id=e70c68798cd54d4f837d77488c70726b status=200 file=BenchmarkP1Fixture.ctl
+2026-03-22 13:42:24 [INFO] __main__: Analyze request start id=799d039a2f5b416c9252aa578d433fdc selected=1 allow_raw_txt=False
+2026-03-22 13:42:24 [INFO] core.analysis_pipeline: Starting Directory Analysis: D:\AI_TF_CODEREVIEW-main\CodeReview_Data
+2026-03-22 13:42:24 [INFO] main: Analyzing: BenchmarkP1Fixture.ctl
+2026-03-22 13:42:24 [INFO] main: Completed analysis for: BenchmarkP1Fixture.ctl
+2026-03-22 13:42:24 [INFO] core.analysis_pipeline: Generating combined HTML report for 1 files...
+2026-03-22 13:42:24 [INFO] core.analysis_pipeline: Analysis Completed. Results saved in: D:\AI_TF_CODEREVIEW-main\CodeReview_Report\20260322_134224_853077
+127.0.0.1 - - [22/Mar/2026 13:42:24] "POST /api/analyze HTTP/1.1" 200 -
+2026-03-22 13:42:24 [INFO] __main__: Analyze request done id=799d039a2f5b416c9252aa578d433fdc status=200
+127.0.0.1 - - [22/Mar/2026 13:42:58] "GET /api/rules/list HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "GET /api/rules/health HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "GET /api/rules/export HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "POST /api/rules/create HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "GET /api/rules/list HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "GET /api/rules/export HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "GET /api/rules/health HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "POST /api/rules/update HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "GET /api/rules/list HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "POST /api/rules/delete HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "GET /api/rules/export HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "POST /api/rules/import HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "POST /api/rules/import HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "GET /api/rules/export HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "POST /api/rules/rollback/latest HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "GET /api/rules/export HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "GET /api/rules/list HTTP/1.1" 200 -
+127.0.0.1 - - [22/Mar/2026 13:42:58] "GET /api/rules/health HTTP/1.1" 200 -

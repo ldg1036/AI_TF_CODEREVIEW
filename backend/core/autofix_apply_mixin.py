@@ -39,6 +39,12 @@ class AutoFixApplyMixin:
             return "ANCHOR_MISMATCH"
         if "semantic guard blocked" in msg:
             return "SEMANTIC_GUARD_BLOCKED"
+        if "source changed since prepare" in msg or "prepared patch expired or source changed" in msg:
+            return "SOURCE_CHANGED_SINCE_PREPARE"
+        if "prepared proposal missing" in msg:
+            return "PREPARED_PROPOSAL_MISSING"
+        if "cache expired" in msg or "prepared patch expired or cache expired" in msg:
+            return "CACHE_EXPIRED"
         if "autofix apply blocked" in msg:
             return "APPLY_BLOCKED"
         if "syntax precheck failed" in msg:
@@ -100,6 +106,9 @@ class AutoFixApplyMixin:
         estimated_issue_delta: Optional[Dict[str, Any]] = None,
         identifier_reuse_ok: Optional[bool] = None,
         placeholder_free: bool = True,
+        blocked_reason_text: str = "",
+        prepared_proposal_id: str = "",
+        proposal_ready: bool = False,
     ) -> AutoFixQualityMetrics:
         return {
             "proposal_id": str(proposal_id or ""),
@@ -147,6 +156,9 @@ class AutoFixApplyMixin:
                 identifier_reuse_confirmed if identifier_reuse_ok is None else identifier_reuse_ok
             ),
             "placeholder_free": bool(placeholder_free),
+            "blocked_reason_text": str(blocked_reason_text or ""),
+            "prepared_proposal_id": str(prepared_proposal_id or proposal_id or ""),
+            "proposal_ready": bool(proposal_ready),
         }
 
     def _autofix_apply_error(
@@ -292,6 +304,7 @@ class AutoFixApplyMixin:
     def apply_autofix_proposal(
         self,
         proposal_id: str,
+        prepared_proposal_id: str = "",
         session_id: Optional[str] = None,
         output_dir: Optional[str] = None,
         file_name: str = "",
@@ -309,10 +322,19 @@ class AutoFixApplyMixin:
             raise ValueError("apply_mode must be 'source_ctl'")
         target_output_dir = output_dir or session_id or self._last_output_dir
         if not target_output_dir:
-            raise RuntimeError("No analysis session found. Run analysis first.")
+            raise self._autofix_apply_error(
+                "Prepared patch expired or cache expired. Run analysis and prepare again.",
+                error_code="CACHE_EXPIRED",
+            )
         session = self._get_review_session(target_output_dir)
         if not session:
-            raise RuntimeError("Analysis session cache not found. Run analysis again.")
+            raise self._autofix_apply_error(
+                "Prepared patch expired or cache expired. Run analysis and prepare again.",
+                error_code="CACHE_EXPIRED",
+            )
+        requested_proposal_id = str(prepared_proposal_id or proposal_id or "").strip()
+        if not requested_proposal_id:
+            raise ValueError("proposal_id or prepared_proposal_id must be a non-empty string")
 
         block_on_regression = self.autofix_block_on_regression_default if block_on_regression is None else bool(block_on_regression)
         check_ctrlpp_regression = (
@@ -323,18 +345,52 @@ class AutoFixApplyMixin:
         normalized_file = os.path.basename(str(file_name or ""))
 
         with session["lock"]:
-            proposal = self._resolve_autofix_proposal(session, proposal_id=str(proposal_id or ""), file_name=normalized_file)
+            try:
+                proposal = self._resolve_autofix_proposal(
+                    session,
+                    proposal_id=requested_proposal_id,
+                    file_name=normalized_file,
+                )
+            except Exception as exc:
+                raise self._autofix_apply_error(
+                    f"Prepared proposal missing: {exc}",
+                    error_code="PREPARED_PROPOSAL_MISSING",
+                ) from exc
             normalized_file = os.path.basename(str(proposal.get("file", normalized_file)))
         is_ctl_target = normalized_file.lower().endswith(".ctl")
 
         file_lock = self._get_session_file_lock(session, normalized_file)
         with file_lock:
             with session["lock"]:
-                proposal = self._resolve_autofix_proposal(session, proposal_id=str(proposal_id or ""), file_name=normalized_file)
+                try:
+                    proposal = self._resolve_autofix_proposal(
+                        session,
+                        proposal_id=requested_proposal_id,
+                        file_name=normalized_file,
+                    )
+                except Exception as exc:
+                    raise self._autofix_apply_error(
+                        f"Prepared proposal missing: {exc}",
+                        error_code="PREPARED_PROPOSAL_MISSING",
+                    ) from exc
                 session_files = session.get("files", {})
                 cached = session_files.get(normalized_file)
                 if not isinstance(cached, dict):
-                    raise RuntimeError("Cached file session not found for autofix apply")
+                    raise self._autofix_apply_error(
+                        "Prepared patch expired or cache expired. Run analysis and prepare again.",
+                        error_code="CACHE_EXPIRED",
+                    )
+                stored_prepared_id = str(
+                    ((proposal.get("quality_preview", {}) or {}).get("prepared_proposal_id", "") if isinstance(proposal.get("quality_preview", {}), dict) else "")
+                    or proposal.get("prepared_proposal_id", "")
+                    or proposal.get("proposal_id", "")
+                    or ""
+                ).strip()
+                if stored_prepared_id and stored_prepared_id != requested_proposal_id:
+                    raise self._autofix_apply_error(
+                        "Prepared proposal missing or mismatched for the selected candidate.",
+                        error_code="PREPARED_PROPOSAL_MISSING",
+                    )
 
             source_path = str(cached.get("source_path", "") or os.path.join(self.data_dir, normalized_file))
             if not os.path.isfile(source_path):
@@ -345,9 +401,11 @@ class AutoFixApplyMixin:
             current_lines = current_content.splitlines()
             current_hash = self._sha256_text(current_content)
             proposal_base_hash = str(proposal.get("base_hash", ""))
-            hash_match = current_hash == proposal_base_hash
+            source_hash_matches_prepare = current_hash == proposal_base_hash
+            expected_hash_matches_current = True
             if expected_base_hash:
-                hash_match = hash_match and (current_hash == str(expected_base_hash))
+                expected_hash_matches_current = current_hash == str(expected_base_hash)
+            hash_match = source_hash_matches_prepare and expected_hash_matches_current
             normalized_observe_mode = str(benchmark_observe_mode or "strict_hash").strip().lower()
             if normalized_observe_mode not in ("strict_hash", "benchmark_relaxed"):
                 normalized_observe_mode = "strict_hash"
@@ -429,6 +487,16 @@ class AutoFixApplyMixin:
 
             hash_gate_bypassed = False
             if not hash_match and not benchmark_observe_enabled:
+                if not source_hash_matches_prepare:
+                    error_code = "SOURCE_CHANGED_SINCE_PREPARE"
+                    rejected_reason = "source changed since prepare"
+                    blocked_reason_text = "Prepared patch expired or source changed."
+                    error_message = "Prepared patch expired or source changed. Re-run analysis and prepare a new diff."
+                else:
+                    error_code = "BASE_HASH_MISMATCH"
+                    rejected_reason = "base hash mismatch"
+                    blocked_reason_text = "Expected base hash does not match the current source."
+                    error_message = "Base hash mismatch. Re-run analysis and prepare a new diff."
                 quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
                     proposal_id=str(proposal.get("proposal_id", "")),
                     generator_type=str(proposal.get("generator_type", "unknown")),
@@ -436,14 +504,22 @@ class AutoFixApplyMixin:
                     hash_match=False,
                     syntax_check_passed=True,
                     applied=False,
-                    rejected_reason="base hash mismatch",
+                    rejected_reason=rejected_reason,
                     validation_errors=[],
+                    blocked_reason_text=blocked_reason_text,
+                    prepared_proposal_id=stored_prepared_id or requested_proposal_id,
+                    proposal_ready=True,
                 ))
-                self._mark_autofix_proposal_failure(session, proposal, error_code="BASE_HASH_MISMATCH", quality_metrics=quality_metrics)
+                self._mark_autofix_proposal_failure(
+                    session,
+                    proposal,
+                    error_code=error_code,
+                    quality_metrics=quality_metrics,
+                )
                 _record_instruction_observability()
                 raise self._autofix_apply_error(
-                    "Autofix base hash mismatch. Re-run analysis and prepare a new diff.",
-                    error_code="BASE_HASH_MISMATCH",
+                    error_message,
+                    error_code=error_code,
                     quality_metrics=quality_metrics,
                 )
             if not hash_match and benchmark_observe_enabled:
@@ -452,6 +528,12 @@ class AutoFixApplyMixin:
             can_apply, blocked_reason = self._proposal_apply_gate({**proposal, "instruction_preview": instruction_preview})
             if not can_apply:
                 quality = proposal.get("quality_preview", {}) if isinstance(proposal.get("quality_preview", {}), dict) else {}
+                blocked_reason_text = str(
+                    quality.get("blocked_reason_text", "")
+                    or quality.get("blocked_reason_detail", "")
+                    or blocked_reason
+                    or "apply_blocked"
+                )
                 quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
                     proposal_id=str(proposal.get("proposal_id", "")),
                     generator_type=str(proposal.get("generator_type", "unknown")),
@@ -471,6 +553,9 @@ class AutoFixApplyMixin:
                     estimated_issue_delta=dict(quality.get("estimated_issue_delta", {}) or {}),
                     identifier_reuse_ok=bool(quality.get("identifier_reuse_ok", quality.get("identifier_reuse_confirmed", True))),
                     placeholder_free=bool(quality.get("placeholder_free", True)),
+                    blocked_reason_text=blocked_reason_text,
+                    prepared_proposal_id=stored_prepared_id or requested_proposal_id,
+                    proposal_ready=bool(quality.get("proposal_ready", True)),
                 ))
                 self._mark_autofix_proposal_failure(
                     session,
@@ -480,7 +565,7 @@ class AutoFixApplyMixin:
                 )
                 _record_instruction_observability()
                 raise self._autofix_apply_error(
-                    f"Autofix apply blocked: {blocked_reason}",
+                    f"Autofix apply blocked: {blocked_reason_text}",
                     error_code="APPLY_BLOCKED",
                     quality_metrics=quality_metrics,
                 )
@@ -947,7 +1032,9 @@ class AutoFixApplyMixin:
                 )
 
             generator_type = str(proposal.get("generator_type", "unknown") or "unknown").lower()
-            if generator_type == "rule":
+            prepared_quality = proposal.get("quality_preview", {}) if isinstance(proposal.get("quality_preview", {}), dict) else {}
+            prepared_allow_apply = prepared_quality.get("allow_apply", None)
+            if generator_type == "rule" and not isinstance(prepared_allow_apply, bool):
                 with session["lock"]:
                     stats = self._autofix_session_stats(session)
                     stats["semantic_guard_checked_count"] = (
@@ -1006,6 +1093,10 @@ class AutoFixApplyMixin:
                         error_code="SEMANTIC_GUARD_BLOCKED",
                         quality_metrics=quality_metrics,
                     )
+            elif generator_type == "rule":
+                validation["semantic_check_passed"] = bool(prepared_quality.get("semantic_check_passed", True))
+                validation["semantic_blocked_reason"] = str(prepared_quality.get("semantic_blocked_reason", "") or "")
+                validation["semantic_violation_count"] = self._safe_int(prepared_quality.get("semantic_violation_count", 0), 0)
 
             pre_internal = self.checker.analyze_raw_code(source_path, current_content, file_type="Server")
             post_internal = self.checker.analyze_raw_code(source_path, candidate_content, file_type="Server")
@@ -1155,6 +1246,9 @@ class AutoFixApplyMixin:
                 token_fallback_attempted=token_fallback_attempted,
                 token_fallback_confidence=token_fallback_confidence,
                 token_fallback_candidates=token_fallback_candidates,
+                allow_apply=True,
+                prepared_proposal_id=stored_prepared_id or requested_proposal_id,
+                proposal_ready=True,
             ))
 
             with session["lock"]:
@@ -1229,6 +1323,7 @@ class AutoFixApplyMixin:
                 "applied": True,
                 "file": normalized_file,
                 "proposal_id": proposal.get("proposal_id", ""),
+                "prepared_proposal_id": stored_prepared_id or requested_proposal_id,
                 "output_dir": target_output_dir,
                 "backup_path": backup_path,
                 "audit_log_path": audit_log_path,

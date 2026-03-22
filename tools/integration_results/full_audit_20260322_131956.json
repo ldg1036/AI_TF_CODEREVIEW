@@ -1,0 +1,380 @@
+{
+  "audit_id": "full_audit_20260322_131956",
+  "audit_date": "2026-03-22",
+  "status": "completed",
+  "baseline": {
+    "release_gate": {
+      "path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\release_gate_20260322_132720_792829.json",
+      "passed": 15,
+      "failed": 0
+    },
+    "refactor_compare": {
+      "path": "D:\\AI_TF_CODEREVIEW-main\\tools\\integration_results\\refactor_renderer_workspace_compare_20260322_125951.json",
+      "no_missing_features": true
+    },
+    "benchmark_smoke": {
+      "path": "D:\\AI_TF_CODEREVIEW-main\\tools\\integration_results\\ui_real_smoke_20260322042141.json",
+      "rows": 5
+    },
+    "ai_smoke": {
+      "path": "D:\\AI_TF_CODEREVIEW-main\\tools\\integration_results\\ui_real_smoke_20260322035244.json",
+      "ok": true
+    },
+    "p1_matrix": {
+      "path": "D:\\AI_TF_CODEREVIEW-main\\docs\\perf_baselines\\p1_rule_matrix_20260322_132045.json",
+      "enabled": 42,
+      "supported": 42,
+      "positive_rate_pct": 100.0,
+      "negative_rate_pct": 100.0
+    }
+  },
+  "environment": {
+    "server": {
+      "host": "127.0.0.1",
+      "port": 8776,
+      "stdout_log": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260322_131956\\server_stdout_8776.log",
+      "stderr_log": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260322_131956\\server_stderr_8776.log"
+    },
+    "ai": {
+      "provider": "ollama",
+      "models_api_ok": true,
+      "default_model": "qwen2.5-coder:3b"
+    },
+    "ctrlpp": {
+      "ready": true,
+      "artifact": "D:\\AI_TF_CODEREVIEW-main\\tools\\integration_results\\ctrlpp_integration_20260322_042030.json"
+    },
+    "playwright": {
+      "available": true
+    }
+  },
+  "pristine_backup": {
+    "manifest": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\audit_backups\\20260322_131956\\hash_manifest.json",
+    "restore_hash_match": true
+  },
+  "baseline_checks": {
+    "config_alignment": {
+      "ok": true,
+      "unknown_rule_ids": 0
+    },
+    "template_coverage": {
+      "ok": true,
+      "client_covered": 15,
+      "client_total": 15,
+      "server_covered": 20,
+      "server_total": 20,
+      "artifact": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\template_coverage_20260322_132041.json"
+    },
+    "p1_matrix": {
+      "ok": true,
+      "enabled": 42,
+      "supported": 42,
+      "positive_rate_pct": 100.0,
+      "negative_rate_pct": 100.0
+    },
+    "backend_tests": {
+      "ok": true,
+      "suite": "backend.tests.test_api_and_reports",
+      "result": "182 passed, 1 skipped"
+    },
+    "context_server_tests": {
+      "ok": true,
+      "suite": "backend.tests.test_winccoa_context_server",
+      "result": "6 passed"
+    },
+    "frontend_tests": {
+      "ok": true,
+      "result": "67 passed"
+    },
+    "release_gate": {
+      "ok": true,
+      "passed": 15,
+      "failed": 0
+    }
+  },
+  "manual_vs_automatic": [
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "manual_finding": "Repeated setValue calls should be batched.",
+      "expected_rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": true,
+      "autofix_candidate": true,
+      "classification": "matched",
+      "notes": "Representative P1 finding matched in UI, API, Excel, and prior CLI baseline."
+    },
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "manual_finding": "Mutating call without active/enable guard.",
+      "expected_rule_id": "ACTIVE-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": true,
+      "autofix_candidate": true,
+      "classification": "matched",
+      "notes": "Matched at the same source block as the repeated setValue sequence."
+    },
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "manual_finding": "dpSet call lacks try/catch style exception contract.",
+      "expected_rule_id": "EXC-TRY-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "Detected correctly; AI priority cap skipped this issue in sampled live runs."
+    },
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "manual_finding": "dpSet call lacks explicit DP error handling.",
+      "expected_rule_id": "EXC-DP-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": true,
+      "autofix_candidate": true,
+      "classification": "matched",
+      "notes": "Detail panel evidence matched the exact dpSet line."
+    },
+    {
+      "file": "GoldenTime.ctl",
+      "manual_finding": "Hardcoded path or environment-specific string.",
+      "expected_rule_id": "HARD-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "Representative hardcoding finding remained stable across UI, API, and prior CLI baseline."
+    },
+    {
+      "file": "GoldenTime.ctl",
+      "manual_finding": "Magic index usage should be constantized.",
+      "expected_rule_id": "STYLE-IDX-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "Displayed correctly in workspace and report outputs."
+    },
+    {
+      "file": "GoldenTime.ctl",
+      "manual_finding": "Loop/event exchange should be optimized.",
+      "expected_rule_id": "PERF-EV-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "Representative performance finding aligned with manual review."
+    },
+    {
+      "file": "GoldenTime.ctl",
+      "manual_finding": "Repeated float literal should be externalized.",
+      "expected_rule_id": "HARD-03",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "UI and API matched the expected rule and severity."
+    },
+    {
+      "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "manual_finding": "Canonical boundary parity and count consistency.",
+      "expected_rule_id": "boundary/display correctness",
+      "cli_p1_only": true,
+      "cli_p1_p2": false,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "UI, API, Excel, and summary all showed 38 findings with UNKNOWN rows = 0."
+    },
+    {
+      "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "manual_finding": "Alias should resolve to converted canonical txt findings only.",
+      "expected_rule_id": "boundary/display correctness",
+      "cli_p1_only": true,
+      "cli_p1_p2": false,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "Workspace alias selection resolved to the same canonical 38-row finding set as the txt file."
+    }
+  ],
+  "ui_and_runtime": {
+    "dashboard_settings": {
+      "rules_health_ok": true,
+      "p1_enabled": 42,
+      "unknown_review_rule_id_count": 0,
+      "degraded": false
+    },
+    "benchmark_ui_p1_only": {
+      "rows": 5,
+      "expected_core_rules_present": true
+    },
+    "benchmark_ui_p1_p2": {
+      "rows": 6,
+      "p2_additive_visible": true
+    },
+    "goldentime_ui_p1_only": {
+      "rows": 4,
+      "expected_core_rules_present": true
+    },
+    "txt_ui": {
+      "rows": 38,
+      "unknown_rows": 0
+    },
+    "pnl_ui": {
+      "rows": 38,
+      "unknown_rows": 0,
+      "canonical_mode": "converted_only"
+    }
+  },
+  "live_ai": {
+    "models_api_ok": true,
+    "compare_prepare_smoke": {
+      "path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260322_131956\\ui_real_smoke_live_ai_8776.json",
+      "compare_opened": true,
+      "prepare_clicked": true,
+      "patch_ready": true,
+      "unified_view_opened": true,
+      "selected_candidate": "RULE (1128)",
+      "contains_obj_auto_sel": false,
+      "contains_arrow_marker": false,
+      "contains_placeholder_system_obj": false,
+      "contains_real_dp_names": true
+    },
+    "assessment": "green_but_apply_conservative"
+  },
+  "excel": {
+    "benchmark": {
+      "download_available": true,
+      "count_matches_summary": true
+    },
+    "goldentime": {
+      "count_matches_summary": true
+    },
+    "txt": {
+      "count_matches_summary": true
+    },
+    "pnl": {
+      "count_matches_summary": true
+    }
+  },
+  "triage": {
+    "benchmark_round_trip_ok": true,
+    "suppressed_hide_show_unsuppress_ok": true
+  },
+  "rules_write_roundtrip": {
+    "artifact": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260322_131956\\rules_roundtrip.json",
+    "create_mutated_health_counts": true,
+    "update_disabled_toggle_ok": true,
+    "delete_removed_ok": true,
+    "import_dry_run_ok": true,
+    "rollback_restored_hashes": true,
+    "notes": [
+      "Health after create moved from p1_total 43 / enabled 42 to p1_total 44 / enabled 43.",
+      "Rollback restored p1_total 43 / enabled 42 and original config hashes.",
+      "The audit helper's create_rule_present and import_merge_present flags remained false, but live health counters prove the write path mutated and restored the config."
+    ]
+  },
+  "autofix": {
+    "copy_roundtrip": {
+      "artifact_prepare": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260322_131956\\benchmark_copy_prepare_attempts.json",
+      "artifact_apply": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260322_131956\\benchmark_copy_apply_attempts.json",
+      "prepare_allow_apply_seen": true,
+      "apply_success_seen": true,
+      "semantic_guard_409_seen": true
+    },
+    "original_roundtrip": {
+      "artifact": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260322_131956\\autofix_roundtrip_style_header.json",
+      "applied": true,
+      "restore_hash_match": true,
+      "hash_before": "8EF0759431A030B3002F143F91D68AB4417E5B91C4FD536835DA24CA744CED27",
+      "hash_after_restore": "8EF0759431A030B3002F143F91D68AB4417E5B91C4FD536835DA24CA744CED27"
+    }
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "title": "Representative P1 rule detection matches manual review on Benchmark and GoldenTime.",
+      "classification": "matched",
+      "severity": "info",
+      "details": "Required manual rules were all present: Benchmark matched PERF-SETMULTIVALUE-ADOPT-01, ACTIVE-01, EXC-TRY-01, EXC-DP-01; GoldenTime matched HARD-01, STYLE-IDX-01, PERF-EV-01, HARD-03."
+    },
+    {
+      "id": "F2",
+      "title": "txt/pnl canonical boundary handling is now consistent.",
+      "classification": "matched",
+      "severity": "info",
+      "details": "Both txt and pnl alias paths resolved to the same 38-row canonical finding set, with UNKNOWN rows = 0 and matching UI/API/Excel/summary counts."
+    },
+    {
+      "id": "F3",
+      "title": "Autofix prepare/apply contract is still inconsistent for some proposals.",
+      "classification": "구현은 있으나 미연결",
+      "severity": "warning",
+      "details": "Copy-file prepare attempts reported allow_apply=true for several issues, but apply later returned HTTP 409 semantic-guard blocks for EXC-DP-01, PERF-SETMULTIVALUE-ADOPT-01, and EXC-TRY-01. The product safely blocks risky changes, but the prepare contract still overstates apply readiness."
+    },
+    {
+      "id": "F4",
+      "title": "Live AI compare/prepare is usable, but compare-modal apply remains conservatively blocked.",
+      "classification": "AI 실호출 실패",
+      "severity": "warning",
+      "details": "Live AI generate, compare, and prepare completed successfully and produced a placeholder-free diff, but the compare modal kept apply disabled with proposal_missing. This is safe behavior, but the UI contract is still not fully self-explanatory."
+    },
+    {
+      "id": "F5",
+      "title": "Rules write/rollback round-trip restores correctly.",
+      "classification": "matched",
+      "severity": "info",
+      "details": "Create, update, delete, import dry-run, and rollback altered rule health as expected and restored the original config hashes at the end of the audit."
+    }
+  ],
+  "current_broken_rules": [],
+  "current_unimplemented_or_misbehaving_areas": [
+    "Autofix prepare can still advertise allow_apply=true for proposals later rejected by semantic guard during apply.",
+    "Live compare modal can show a prepared diff while the apply button stays blocked with proposal_missing, which is safe but confusing."
+  ],
+  "top_10_improvements": [
+    "Make /api/autofix/prepare run the same semantic guard path used by apply so allow_apply cannot be optimistic.",
+    "Expose candidate-specific blocked reasons in the compare modal instead of a generic proposal_missing message.",
+    "Return prepared proposal ids directly from compare/prepare so the UI can explain why a candidate is or is not applyable.",
+    "Add a dedicated regression test for the prepare=true but apply=409 mismatch.",
+    "Add a stable rules-write revision id or echo payload so live create/import verification does not rely on heuristic presence scans.",
+    "Expose generated Excel row counts in API payloads to make UI/report parity checks easier to audit.",
+    "Add a release-gate assertion for Benchmark and GoldenTime representative manual-rule sets.",
+    "Surface detected encoding and canonical source in more visible UI locations for txt/pnl files.",
+    "Persist triage and compare modal telemetry in a structured audit artifact to simplify future full audits.",
+    "Keep rotating audit artifacts automatically so future full audits do not have to sift through stale session output."
+  ],
+  "environment_blocks": [],
+  "final_verdict": {
+    "rule_engine_accuracy": "pass",
+    "product_completeness": "mostly_pass",
+    "summary": "The current product passes representative WinCC OA rule-detection checks and maintains UI/API/Excel parity, with the main remaining gap in autofix prepare/apply contract clarity rather than rule detection itself."
+  }
+}

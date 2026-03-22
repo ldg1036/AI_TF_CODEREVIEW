@@ -83,6 +83,7 @@ class AutofixHttpMixin:
         typed_body = cast(AutofixApplyRequestBody, body)
 
         proposal_id = typed_body.get("proposal_id", "")
+        prepared_proposal_id = typed_body.get("prepared_proposal_id", "")
         session_id = typed_body.get("session_id") or typed_body.get("output_dir") or None
         file_name = typed_body.get("file", "")
         expected_base_hash = typed_body.get("expected_base_hash", "")
@@ -95,8 +96,12 @@ class AutofixHttpMixin:
         tune_max_drift_header = self.headers.get("X-Autofix-Benchmark-Tuning-Max-Line-Drift", None)
         force_structured_header = self.headers.get("X-Autofix-Benchmark-Force-Structured-Instruction", None)
 
-        if not isinstance(proposal_id, str) or not proposal_id.strip():
-            raise ValueError("proposal_id must be a non-empty string")
+        if prepared_proposal_id is not None and not isinstance(prepared_proposal_id, str):
+            raise ValueError("prepared_proposal_id must be a string when provided")
+        if not isinstance(proposal_id, str):
+            raise ValueError("proposal_id must be a string when provided")
+        if not str(prepared_proposal_id or proposal_id or "").strip():
+            raise ValueError("proposal_id or prepared_proposal_id must be a non-empty string")
         if session_id is not None and not isinstance(session_id, str):
             raise ValueError("session_id/output_dir must be a string when provided")
         if file_name is not None and not isinstance(file_name, str):
@@ -146,9 +151,10 @@ class AutofixHttpMixin:
             else:
                 raise ValueError("X-Autofix-Benchmark-Force-Structured-Instruction must be a boolean-like value")
 
-        logger.info("Autofix apply start id=%s proposal_id=%s", request_id, proposal_id)
+        logger.info("Autofix apply start id=%s proposal_id=%s", request_id, prepared_proposal_id or proposal_id)
         result = self.app.apply_autofix_proposal(
             proposal_id=proposal_id,
+            prepared_proposal_id=prepared_proposal_id or proposal_id,
             session_id=session_id,
             file_name=file_name or "",
             expected_base_hash=expected_base_hash or "",

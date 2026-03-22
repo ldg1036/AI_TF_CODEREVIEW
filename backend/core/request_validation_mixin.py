@@ -93,6 +93,12 @@ class RequestValidationMixin:
                 error_code = "ANCHOR_MISMATCH"
             elif "semantic guard blocked" in msg.lower():
                 error_code = "SEMANTIC_GUARD_BLOCKED"
+            elif "source changed since prepare" in msg.lower() or "prepared patch expired or source changed" in msg.lower():
+                error_code = "SOURCE_CHANGED_SINCE_PREPARE"
+            elif "prepared proposal missing" in msg.lower():
+                error_code = "PREPARED_PROPOSAL_MISSING"
+            elif "cache expired" in msg.lower() or "prepared patch expired or cache expired" in msg.lower():
+                error_code = "CACHE_EXPIRED"
             elif "supported only for .ctl" in msg.lower():
                 error_code = "UNSUPPORTED_FILE_TYPE"
             elif "syntax precheck failed" in msg.lower():

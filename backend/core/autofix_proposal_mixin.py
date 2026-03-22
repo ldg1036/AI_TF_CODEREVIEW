@@ -172,6 +172,7 @@ class AutoFixProposalMixin:
             "estimated_issue_delta": dict(preview.get("estimated_issue_delta", {}) or {}),
             "identifier_reuse_ok": bool(preview.get("identifier_reuse_ok", preview.get("identifier_reuse_confirmed", True))),
             "placeholder_free": bool(preview.get("placeholder_free", True)),
+            "blocked_reason_text": str(preview.get("blocked_reason_text", "") or ""),
         }
         quality_preview_payload = self._new_autofix_quality_metrics(
             proposal_id=proposal_id,
@@ -192,6 +193,9 @@ class AutoFixProposalMixin:
             estimated_issue_delta=dict(preview.get("estimated_issue_delta", {}) or {}),
             identifier_reuse_ok=bool(preview.get("identifier_reuse_ok", preview.get("identifier_reuse_confirmed", True))),
             placeholder_free=bool(preview.get("placeholder_free", True)),
+            blocked_reason_text=str(preview.get("blocked_reason_text", "") or ""),
+            prepared_proposal_id=proposal_id,
+            proposal_ready=True,
         )
         proposal = {
             "proposal_id": proposal_id,
@@ -307,6 +311,7 @@ class AutoFixProposalMixin:
         can_apply, blocked_reason = self._proposal_apply_gate({**proposal, "instruction_preview": instruction_preview})
         return {
             "proposal_id": proposal.get("proposal_id", ""),
+            "prepared_proposal_id": proposal.get("proposal_id", ""),
             "session_id": proposal.get("session_id", ""),
             "output_dir": proposal.get("output_dir", ""),
             "file": proposal.get("file", ""),
@@ -326,6 +331,16 @@ class AutoFixProposalMixin:
             "selection_reason": proposal.get("selection_reason", ""),
             "can_apply": bool(can_apply),
             "blocked_reason": str(blocked_reason or ""),
+            "blocked_reason_text": str(
+                ((proposal.get("quality_preview", {}) or {}).get("blocked_reason_text", "") if isinstance(proposal.get("quality_preview", {}), dict) else "")
+                or blocked_reason
+                or ""
+            ),
+            "proposal_ready": bool(
+                (((proposal.get("quality_preview", {}) or {}).get("proposal_ready", False)) if isinstance(proposal.get("quality_preview", {}), dict) else False)
+                or proposal.get("proposal_id")
+            ),
+            "prepared": bool(proposal.get("proposal_id", "")),
             "llm_meta": proposal.get("llm_meta", {}),
             "created_at": proposal.get("created_at"),
         }

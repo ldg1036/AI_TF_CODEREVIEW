@@ -1,0 +1,112 @@
+{
+  "manual_only_items": [
+    "쿼리 주석 처리",
+    "DB Query Error"
+  ],
+  "manual_condition_keywords": [],
+  "items": {
+    "Event, Ctrl Manager 이벤트 교환 횟수 최소화": {
+      "required_rule_ids": [
+        "PERF-EV-01",
+        "PERF-DPSET-CHAIN",
+        "PERF-DPSET-BATCH-01",
+        "PERF-DPGET-BATCH-01",
+        "PERF-SETVALUE-BATCH-01",
+        "PERF-SETMULTIVALUE-ADOPT-01",
+        "PERF-GETVALUE-BATCH-01"
+      ]
+    },
+    "config 항목 정합성 확인": {
+      "required_rule_ids": [
+        "CFG-01",
+        "CFG-ERR-01",
+        "SAFE-DIV-01"
+      ]
+    },
+    "명명 규칙 및 코딩 스타일 준수 확인": {
+      "required_rule_ids": [
+        "STYLE-NAME-01",
+        "STYLE-INDENT-01",
+        "STYLE-HEADER-01",
+        "STD-01",
+        "STYLE-IDX-01"
+      ]
+    },
+    "불필요한 코드 지양": {
+      "required_rule_ids": [
+        "UNUSED-01",
+        "CLEAN-DEAD-01",
+        "CLEAN-DUP-01",
+        "COMP-01",
+        "COMP-02",
+        "PERF-AGG-01"
+      ]
+    },
+    "하드코딩 지양": {
+      "automation_mode": "auto_violation_only",
+      "required_rule_ids": [
+        "HARD-01",
+        "HARD-02",
+        "HARD-03"
+      ]
+    },
+    "DP Query 최적화 구현": {
+      "required_rule_ids": [
+        "PERF-02",
+        "PERF-02-WHERE-DPT-IN-01",
+        "DB-01",
+        "DB-02",
+        "DB-ERR-01",
+        "SEC-01"
+      ]
+    },
+    "Raima DB 증가 방지": {
+      "required_rule_ids": [
+        "PERF-05"
+      ]
+    },
+    "메모리 누수 체크": {
+      "automation_mode": "auto_violation_only",
+      "required_rule_ids": [
+        "MEM-01"
+      ]
+    },
+    "바인딩 쿼리 처리": {
+      "required_rule_ids": [
+        "SEC-01",
+        "DB-01"
+      ]
+    },
+    "쿼리 검증": {
+      "required_rule_ids": [
+        "DB-01",
+        "DB-02",
+        "DB-ERR-01",
+        "SEC-01"
+      ]
+    },
+    "Loop문 내에 처리 조건": {
+      "automation_mode": "auto_full",
+      "applicability_probe": {
+        "pattern": "\\bwhile\\s*\\("
+      },
+      "required_rule_ids": [
+        "PERF-03",
+        "PERF-03-ACTIVE-DELAY-01"
+      ]
+    },
+    "디버깅용 로그 작성 확인": {
+      "automation_mode": "auto_violation_only",
+      "required_rule_ids": [
+        "LOG-DBG-01",
+        "LOG-LEVEL-01"
+      ]
+    },
+    "쿼리 주석 처리": {
+      "automation_mode": "manual",
+      "required_rule_ids": [
+        "DB-02"
+      ]
+    }
+  }
+}

@@ -1,0 +1,1629 @@
+﻿00001: ???????????????????????????????????????????????????????????????????????????
+00002: ?// [(Panel)] [0] - [STD_valve_open]
+00003: ???????????????????????????????????????????????????????????????????????????
+00004: main()
+00005: {
+00006: 
+00007:   windowStyle(myModuleName(),myPanelName(),0,0);  // popup ini 理쒖냼????젣
+00008:   POP_DIFF_COL_MODE = true;
+00009: 
+00010: 
+00011:   dyn_errClass err;
+00012:   string a;
+00013: 
+00014:   MAPP(dyn_dp);
+00015: 
+00016:   string dp_press_set1 = MAP_EDITABLE_VALUE[OBJ_PRESS_SET1];
+00017: 
+00018:   string dp_press_set1_max = MAP_EDITABLE_VALUE[OBJ_PRESS_SET1_MAX];
+00019:   string dp_press_set1_min = MAP_EDITABLE_VALUE[OBJ_PRESS_SET1_MIN];
+00020: 
+00021: //   string dp_auto_sel1 = MAP_CHECK[OBJ_AUTO_SEL1];
+00022: //   string dp_auto_sel2 = MAP_CHECK[OBJ_AUTO_SEL2];
+00023: //   string dp_auto_sel3 = MAP_CHECK[OBJ_AUTO_SEL3];
+00024: //   string dp_auto_sel4 = MAP_CHECK[OBJ_AUTO_SEL4];
+00025: //   string dp_auto_sel5 = MAP_CHECK[OBJ_AUTO_SEL5];
+00026: 
+00027: //   dyn_string dpL_hang1_cx = MAP_VALUE_BOOL[OBJ_HANG1_CX];
+00028: //   dyn_string dpL_hang2_cx = MAP_VALUE_BOOL[OBJ_HANG2_CX];
+00029: //   dyn_string dpL_hang3_cx = MAP_VALUE_BOOL[OBJ_HANG3_CX];
+00030: //   dyn_string dpL_hang4_cx = MAP_VALUE_BOOL[OBJ_HANG4_CX];
+00031: //   dyn_string dpL_hang5_cx = MAP_VALUE_BOOL[OBJ_HANG5_CX];
+00032: 
+00033:   string dp_hz_set1 = MAP_EDITABLE_VALUE[OBJ_HZ_SET1];
+00034: 
+00035:   string dp_fan_vib_hilm = MAP_EDITABLE_VALUE[OBJ_FAN_VIB_HILM];
+00036: 
+00037:   string dp_ad_open_tm_set = MAP_EDITABLE_VALUE[OBJ_AD_OPEN_TM_SET];
+00038:   string dp_ad_open_tmlm = MAP_READONLY_VALUE[OBJ_AD_OPEN_TMLM];
+00039: 
+00040:   string dp_ad_open_lm = MAP_EDITABLE_VALUE[OBJ_AD_OPEN_LM];
+00041: 
+00042: //   string dp_obj_fan_check_dly_tm_set = MAP_READONLY_VALUE[OBJ_FAN_CHECK_DLY_TM_SET];
+00043: //   string dp_obj_fan_check_dly_tm = MAP_READONLY_VALUE[OBJ_FAN_CHECK_DLY_TM];
+00044: 
+00045:   string dp_fan_vib_invalidity = MAP_CHECK[OBJ_FAN_VIB_INVALIDITY];
+00046: 
+00047: ///////////////////////////////////////////////////////////////////
+00048: 
+00049:   dpConnect("CB_value_textfield",dp_press_set1);
+00050: 
+00051:   dpConnect("CB_value_textfield",dp_press_set1_max);
+00052:   dpConnect("CB_value_textfield",dp_press_set1_min);
+00053: 
+00054:   dpConnect("CB_check_box",$SetDP + ".cmd.AUTOSEL.SEL1",$SetDP + ".cmd.AUTOSEL.SEL2",$SetDP + ".cmd.AUTOSEL.SEL3",$SetDP + ".cmd.AUTOSEL.SEL4",$SetDP + ".cmd.AUTOSEL.SEL5");
+00055: //   dpConnect("CB_check_box",$SetDP + ".cmd.AUTOSEL.SEL2");
+00056: //   dpConnect("CB_check_box",$SetDP + ".cmd.AUTOSEL.SEL3");
+00057: //   dpConnect("CB_check_box",$SetDP + ".cmd.AUTOSEL.SEL4");
+00058: //   dpConnect("CB_check_box",$SetDP + ".cmd.AUTOSEL.SEL5");
+00059: 
+00060: //   dpConnect("CB_value_ractangle_sp",dpL_hang1_cx);
+00061: //   dpConnect("CB_value_ractangle_sp",dpL_hang2_cx);
+00062: //   dpConnect("CB_value_ractangle_sp",dpL_hang3_cx);
+00063: //   dpConnect("CB_value_ractangle_sp",dpL_hang4_cx);
+00064: //   dpConnect("CB_value_ractangle_sp",dpL_hang5_cx);
+00065: 
+00066:   dpConnect("CB_value_textfield",dp_hz_set1);
+00067: 
+00068:   dpConnect("CB_value_textfield",dp_fan_vib_hilm);
+00069: 
+00070:   dpConnect("CB_value_textfield",dp_ad_open_tm_set);
+00071:   dpConnect("CB_value_textfield",dp_ad_open_tmlm);
+00072:   dpConnect("CB_value_textfield",dp_ad_open_lm);
+00073: 
+00074: //   dpConnect("CB_value_textfield",dp_obj_fan_check_dly_tm_set);
+00075: //   dpConnect("CB_value_textfield",dp_obj_fan_check_dly_tm);
+00076: 
+00077:   dpConnect("CB_value_check_box",dp_fan_vib_invalidity);
+00078: 
+00079: 
+00080: ///////////////////////////////////////////////////////////////////
+00081: 
+00082:   err = getLastError();
+00083:   if (dynlen(err) > 0)
+00084:     DebugN("Erro:",err);
+00085: 
+00086: 
+00087:   PARAMETER_WINDOW_INITIAL(myModuleName(),myPanelName(),DYN_ALL_MAP_EDITABLE_KEYS,
+00088:                           DYN_ALL_MAP_EDITABLE_VALUES,mappingKeys(MAP_ALERT_PRIO),
+00089:                           DYN_ALL_INIT_INVISIBLE);
+00090: 
+00091: 
+00092: 
+00093: }
+00094: 
+00095: 
+00096: 
+00097: 
+00098: ???????????????????????????????????????????????????????????????????????????
+00099: ?// [(Panel)] [0] - [Initialize]
+00100: ???????????????????????????????????????????????????????????????????????????
+00101: main()
+00102: {
+00103:   POP_DIFF_COL_MODE = false;
+00104: }
+00105: 
+00106: ???????????????????????????????????????????????????????????????????????????
+00107: ?// [(Panel)] [0] - [main()
+00108: {
+00109:   POP_DIFF_COL_MODE = false;
+00110: }]
+00111: ???????????????????????????????????????????????????????????????????????????
+00112: bool endOfMapp = false;
+00113: dyn_string dyn_dp = makeDynString($SetDP);
+00114: dyn_bool dp_value;
+00115: 
+00116: ////////////////////////////////////////////////////////////////////
+00117: 
+00118: string OBJ_PRESS_SET1 = "obj_press_set1";
+00119: 
+00120: string OBJ_PRESS_SET1_MAX = "obj_press_set1_max";
+00121: string OBJ_PRESS_SET1_MIN = "obj_press_set1_min";
+00122: 
+00123: 
+00124: string OBJ_HZ_SET1 = "obj_hz_set1";
+00125: 
+00126: string OBJ_FAN_VIB_HILM = "obj_fan_vib_hilm";
+00127: 
+00128: string OBJ_AD_OPEN_TM_SET = "obj_ad_open_tm_set";
+00129: string OBJ_AD_OPEN_TMLM = "obj_ad_open_tmlm";
+00130: 
+00131: 
+00132: string OBJ_AD_OPEN_LM = "obj_ad_open_lm";
+00133: 
+00134: string OBJ_FAN_VIB_INVALIDITY = "obj_fan_vib_invalidity";
+00135: 
+00136: 
+00137: //?꾩슂???섑빐 ?몄쭛媛?ν븳 text 媛앹껜??value瑜???ν븳??
+00138: 
+00139: dyn_string DYN_ALL_MAP_EDITABLE_VALUES; // DP ELEMENT 媛?EX: TI_001A.PVSOURCE -  EDIT 媛???띿꽦 - 諛곗뿴???
+00140: dyn_string DYN_ALL_MAP_EDITABLE_KEYS;  // DPE Object Name - 諛곗뿴???
+00141: dyn_string DYN_ALL_MAP_EDITABLE_DESC;  // MSG BOX DESCRIPTION - TEXT OBJ - 諛곗뿴???
+00142: dyn_string DYN_ALL_INIT_INVISIBLE;  // COMBO BOX INVISIBLE - 諛곗뿴???
+00143: 
+00144: mapping MAP_SHAPE_TYPE;  // ?붾㈃  object type 紐낃린 (ex : text, combo box, radio box .... ?깅벑)
+00145: mapping MAP_EDITABLE_ALM;  // ALARM VALUE DPE 吏??
+00146: mapping MAP_EDITABLE_VALUE;  // TEXT OBJ  DPE 吏??
+00147: mapping MAP_ALERT_BOOL;  // BIT TYPE ALARM DPE 吏??
+00148: mapping MAP_READONLY_VALUE;  // READ ONLY DPE 吏??
+00149: mapping MAP_ALERT_PRIO;  // CASCADE OBJ - ALARM PRIO DPE 吏??
+00150: mapping MAP_ALERT_COMBO_PRIO;  // COMBO BOX OBJ - ALARM PRIO DPE 吏??
+00151: mapping MAP_EDITABLE_DESC;  // DPE Object Name 吏??
+00152: mapping MAP_RADIO; // ?낅젰 / ?쇱꽌援щ텇 DPE 吏??
+00153: mapping MAP_CHECK; // CHECK BOX OBJECT DPE 吏??
+00154: mapping MAP_DEPEND_VALUE;  //?섏〈?깆씠 ?덈뒗 寃쎌슦 : ?섎룞 紐⑤뱶 ?쇰븣 ?섎룞媛??꾨뱶媛 ON?섎뒗 寃쎌슦
+00155: mapping MAP_VALUE_BOOL;        // BIT TYPE VALUE DPE 吏??
+00156: 
+00157: void MAPP(dyn_string dyn_dp)
+00158: {
+00159:   //MAPP ?⑥닔?먯꽌 initial?먯꽌 ?뺤쓽??dp瑜?mapping?쒕떎.
+00160:   //dp媛 n媛쒖씠硫?dp1,dp2,.....,dpn
+00161:   //dp媛 1媛쒖씠硫?dp ?쇰줈 ?뺤쓽?쒕떎.
+00162:   //?뚮씪誘명꽣 ?μ쓽 ?쒖꽌?濡??꾩껜 諛곗뿴????ν븳?? ?쒖꽌 二쇱쓽!!
+00163:   // mapping? 臾댁옉?꾩닚?쒖씠???낅젰?쒕?濡??ㅼ뼱媛嫄곕굹 議고쉶?섏? ?딆쓬.
+00164: 
+00165:   string dp,caption;
+00166:   dp = dyn_dp[1];
+00167: 
+00168:   //shape type map  - SWICH CASE 臾??ъ슜 / ?곸슜踰꾪듉
+00169:   MAP_SHAPE_TYPE["TEXT_FIELD"] = 1;
+00170:   MAP_SHAPE_TYPE["COMBO_BOX"] = 2;
+00171:   MAP_SHAPE_TYPE["RADIO_BOX"] = 3;
+00172:   MAP_SHAPE_TYPE["CASCADE_BOX"] = 4;
+00173:   MAP_SHAPE_TYPE["CHECK_BOX"] = 5;
+00174: 
+00175:   MAP_READONLY_VALUE[OBJ_AD_OPEN_TMLM] = dp + ".value.AD_OPEN_TMLM";
+00176: //   MAP_READONLY_VALUE[OBJ_FAN_CHECK_DLY_TM_SET] = dp + ".cmd.FAN_CHECK_DLY_TM_SET";
+00177: //   MAP_READONLY_VALUE[OBJ_FAN_CHECK_DLY_TM] = dp + ".value.FAN_CHECK_DLY_TM";
+00178: 
+00179:   MAP_EDITABLE_VALUE[OBJ_PRESS_SET1] = dp + ".cmd.PRESS_SP";
+00180:   MAP_EDITABLE_DESC[OBJ_PRESS_SET1] = "?ㅼ젙?뺣젰";
+00181:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_PRESS_SET1);
+00182: 
+00183:   MAP_EDITABLE_VALUE[OBJ_PRESS_SET1_MAX] = dp + ".cmd.PRESS_MAX";
+00184:   MAP_EDITABLE_DESC[OBJ_PRESS_SET1_MAX] = "?ㅼ젙?뺣젰 Max";
+00185:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_PRESS_SET1_MAX);
+00186: 
+00187:   MAP_EDITABLE_VALUE[OBJ_PRESS_SET1_MIN] = dp + ".cmd.PRESS_MIN";
+00188:   MAP_EDITABLE_DESC[OBJ_PRESS_SET1_MIN] = "?ㅼ젙?뺣젰 Min";
+00189:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_PRESS_SET1_MIN);
+00190: 
+00191:   MAP_EDITABLE_VALUE[OBJ_HZ_SET1] = dp + ".cmd.HZ_SP";
+00192:   MAP_EDITABLE_DESC[OBJ_HZ_SET1] = "?ㅼ젙Hz";
+00193:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_HZ_SET1);
+00194: 
+00195:   MAP_EDITABLE_VALUE[OBJ_FAN_VIB_HILM] = dp + ".cmd.FAN_VIB_HILM";
+00196:   MAP_EDITABLE_DESC[OBJ_FAN_VIB_HILM] = "Fan vibration high limit";
+00197:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_FAN_VIB_HILM);
+00198: 
+00199:   MAP_EDITABLE_VALUE[OBJ_AD_OPEN_TM_SET] = dp + ".cmd.AD_OPEN_SETTM";
+00200:   MAP_EDITABLE_DESC[OBJ_AD_OPEN_TM_SET] = "Auto Damper Open Time Set";
+00201:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AD_OPEN_TM_SET);
+00202: 
+00203:   MAP_EDITABLE_VALUE[OBJ_AD_OPEN_LM] = dp + ".cmd.AD_OPEN_LM";
+00204:   MAP_EDITABLE_DESC[OBJ_AD_OPEN_LM] = "Auto Damper Open Limit";
+00205:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AD_OPEN_LM);
+00206: 
+00207:     /* check box */
+00208: //   MAP_CHECK[OBJ_AUTO_SEL1] = dp + ".cmd.AUTOSEL.SEL1";
+00209: //   MAP_EDITABLE_DESC[OBJ_AUTO_SEL1] = "1?멸린 PRESS AUTO BACKUP";
+00210: //   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AUTO_SEL1);
+00211: //
+00212: //   MAP_CHECK[OBJ_AUTO_SEL2] = dp + ".cmd.AUTOSEL.SEL2";
+00213: //   MAP_EDITABLE_DESC[OBJ_AUTO_SEL2] = "2?멸린 PRESS AUTO BACKUP";
+00214: //   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AUTO_SEL2);
+00215: //
+00216: //   MAP_CHECK[OBJ_AUTO_SEL3] = dp + ".cmd.AUTOSEL.SEL3";
+00217: //   MAP_EDITABLE_DESC[OBJ_AUTO_SEL3] = "3?멸린 PRESS AUTO BACKUP";
+00218: //   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AUTO_SEL3);
+00219: //
+00220: //   MAP_CHECK[OBJ_AUTO_SEL4] = dp + ".cmd.AUTOSEL.SEL4";
+00221: //   MAP_EDITABLE_DESC[OBJ_AUTO_SEL4] = "4?멸린 PRESS AUTO BACKUP";
+00222: //   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AUTO_SEL4);
+00223: //
+00224: //   MAP_CHECK[OBJ_AUTO_SEL5] = dp + ".cmd.AUTOSEL.SEL5";
+00225: //   MAP_EDITABLE_DESC[OBJ_AUTO_SEL5] = "5?멸린 PRESS AUTO BACKUP";
+00226: //   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_AUTO_SEL5);
+00227: 
+00228: 
+00229:   MAP_CHECK[OBJ_FAN_VIB_INVALIDITY] = dp + ".cmd.FAN_VIB_INVALIDITY";
+00230:   MAP_EDITABLE_DESC[OBJ_FAN_VIB_INVALIDITY] = "FAN Invalidity";
+00231:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_FAN_VIB_INVALIDITY);
+00232: 
+00233: 
+00234:    /* 諛곗뿴??key媛믪쓣 湲곗??쇰줈 dyn value/desc 諛곗뿴 ?묒꽦 */
+00235:   string map_value;
+00236:   string map_key;
+00237:   bool bool_haskey;
+00238:   for(int i=1;i<=dynlen(DYN_ALL_MAP_EDITABLE_KEYS);i++)
+00239:   {
+00240:     map_key = DYN_ALL_MAP_EDITABLE_KEYS[i];
+00241: 
+00242: 
+00243:     //?뚮엺 Prio?ㅼ젙
+00244:     bool_haskey = mappingHasKey(MAP_ALERT_COMBO_PRIO,map_key);
+00245:     if(bool_haskey)
+00246:     {
+00247:       map_value = MAP_ALERT_COMBO_PRIO[map_key];
+00248:       dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+00249:       dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+00250:       continue;
+00251:     }
+00252: 
+00253:     //湲고? ?ㅼ젙媛?
+00254:     bool_haskey = mappingHasKey(MAP_EDITABLE_VALUE,map_key);
+00255:     if(bool_haskey)
+00256:     {
+00257:       map_value = MAP_EDITABLE_VALUE[map_key];
+00258:       dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+00259:       dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+00260:       continue;
+00261:     }
+00262: 
+00263:     // cascade ?뚮엺 prio
+00264:     bool_haskey = mappingHasKey(MAP_ALERT_PRIO,map_key);
+00265:     if(bool_haskey)
+00266:     {
+00267:       map_value = MAP_ALERT_PRIO[map_key];
+00268:       dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+00269:       dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+00270:       continue;
+00271:     }
+00272: 
+00273:     // check box
+00274:     bool_haskey = mappingHasKey(MAP_CHECK,map_key);
+00275:     if(bool_haskey)
+00276:     {
+00277:       map_value = MAP_CHECK[map_key];
+00278:       dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+00279:       dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+00280:       continue;
+00281:     }
+00282: 
+00283:     // radio button
+00284:     bool_haskey = mappingHasKey(MAP_RADIO,map_key);
+00285:     if(bool_haskey)
+00286:     {
+00287:       map_value = MAP_RADIO[map_key];
+00288:       dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+00289:       dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+00290:       continue;
+00291:     }
+00292:   }
+00293:   endOfMapp = true;//Mapping ?꾨즺 泥댄겕
+00294: }
+00295: 
+00296: 
+00297: Func_MODE_INI()
+00298: {
+00299:   setValue("obj_auto_sel1","enabled",false);
+00300:   setValue("obj_auto_sel2","enabled",false);
+00301:   setValue("obj_auto_sel3","enabled",false);
+00302:   setValue("obj_auto_sel4","enabled",false);
+00303:   setValue("obj_auto_sel5","enabled",false);
+00304: 
+00305:   setValue("obj_auto_sel1","state",0,dp_value[1]);
+00306:   setValue("obj_auto_sel2","state",0,dp_value[2]);
+00307:   setValue("obj_auto_sel3","state",0,dp_value[3]);
+00308:   setValue("obj_auto_sel4","state",0,dp_value[4]);
+00309:   setValue("obj_auto_sel5","state",0,dp_value[5]);
+00310: 
+00311: //   setValue("BOX_B1","backCol","black");
+00312: //   setValue("BOX_B2","backCol","black");
+00313: }
+00314: 
+00315: CB_check_box(string dp1, bool mode1, string dp2, bool mode2, string dp3, bool mode3, string dp4, bool mode4, string dp5, bool mode5)
+00316: {
+00317:   if(mode1 == 1)
+00318:   {
+00319:       dp_value[1] = 1;
+00320:       dp_value[2] = 0;
+00321:       dp_value[3] = 0;
+00322:       dp_value[4] = 0;
+00323:       dp_value[5] = 0;
+00324:   }
+00325:   else if(mode2 == 1)
+00326:   {
+00327:       dp_value[1] = 0;
+00328:       dp_value[2] = 1;
+00329:       dp_value[3] = 0;
+00330:       dp_value[4] = 0;
+00331:       dp_value[5] = 0;
+00332:   }
+00333:   else if(mode3 == 1)
+00334:   {
+00335:       dp_value[1] = 0;
+00336:       dp_value[2] = 0;
+00337:       dp_value[3] = 1;
+00338:       dp_value[4] = 0;
+00339:       dp_value[5] = 0;
+00340:   }
+00341:   else if(mode4 == 1)
+00342:   {
+00343:       dp_value[1] = 0;
+00344:       dp_value[2] = 0;
+00345:       dp_value[3] = 0;
+00346:       dp_value[4] = 1;
+00347:       dp_value[5] = 0;
+00348:   }
+00349:   else if(mode5 == 1)
+00350:   {
+00351:       dp_value[1] = 0;
+00352:       dp_value[2] = 0;
+00353:       dp_value[3] = 0;
+00354:       dp_value[4] = 0;
+00355:       dp_value[5] = 1;
+00356:   }
+00357:   else
+00358:   {
+00359:       dp_value[1] = 0;
+00360:       dp_value[2] = 0;
+00361:       dp_value[3] = 0;
+00362:       dp_value[4] = 0;
+00363:       dp_value[5] = 0;
+00364:   }
+00365:   setValue("obj_auto_sel1","state",0,dp_value[1]);
+00366:   setValue("obj_auto_sel2","state",0,dp_value[2]);
+00367:   setValue("obj_auto_sel3","state",0,dp_value[3]);
+00368:   setValue("obj_auto_sel4","state",0,dp_value[4]);
+00369:   setValue("obj_auto_sel5","state",0,dp_value[5]);
+00370: }
+00371: 
+00372: ???????????????????????????????????????????????????????????????????????????
+00373: ?// [RECTANGLE3] [397] - [main]
+00374: ???????????????????????????????????????????????????????????????????????????
+00375: main(bool enter)
+00376: {
+00377:   if(enter)
+00378:     edit_button.fill("[pattern,[fit,png,BrownUI/screen/pop_btn_focus.png]]");
+00379:   else
+00380:     edit_button.fill("[pattern,[fit,png,BrownUI/screen/pop_btn_normal.png]]");
+00381: }
+00382: 
+00383: ???????????????????????????????????????????????????????????????????????????
+00384: ?// [layoutAlignment] [3] - [main]
+00385: ???????????????????????????????????????????????????????????????????????????
+00386: main()
+00387: {
+00388:   bool bIsEdit;
+00389:   getValue("edit_button_press","visible",bIsEdit);
+00390:   if(!bIsEdit)
+00391:   {
+00392:     int EndInit = 2;     //?댁긽醫낅즺???鍮꾪빐 珥덇린媛믪쓣 error濡??좎뼵
+00393:     if(endOfMapp)     //MAPP ?⑥닔媛 ?앸궃 寃쎌슦 ?뺥빀??check
+00394:     {
+00395:       EndInit = checkEndOfInitial(DYN_ALL_MAP_EDITABLE_VALUES,
+00396:       MAP_EDITABLE_VALUE, MAP_EDITABLE_ALM, MAP_ALERT_COMBO_PRIO,
+00397:       MAP_RADIO, MAP_CHECK, MAP_READONLY_VALUE);
+00398:         if(EndInit == 1)     //Initail???앸굹吏 ?딆쑝硫?Popup李???return
+00399:       {
+00400:         ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+00401:         makeDynString("$text:"+"媛믪쓣 ?쎈뒗 以묒엯?덈떎. ?좎떆???ㅼ떆 ?쒕룄?섏꽭??"));
+00402:         return;
+00403:       }else if(EndInit == 2)     //Server? ?듭떊?⑥젅. Popup李???return
+00404:       {
+00405:         ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+00406:         makeDynString("$text:"+"?쒕쾭? ?곌껐???⑥젅???곹깭?낅땲??\\n怨꾩냽 ?곌껐?섏? ?딆쑝硫?Client瑜??ㅼ떆 ?쒖옉??二쇱꽭??"));
+00407:         return;
+00408:       }
+00409:     }else{      //MAPP ?⑥닔媛 ?앸굹吏 ?딆? 寃쎌슦 Popup李???return
+00410:       ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+00411:       makeDynString("$text:"+"媛믪쓣 ?쎈뒗 以묒엯?덈떎. ?좎떆???ㅼ떆 ?쒕룄?섏꽭??"));
+00412:       return;
+00413:     }
+00414:  }
+00415: 
+00416: 
+00417: 
+00418:   if (user_permission < 5)
+00419:   {
+00420: 
+00421:     if(mod_text.text=="?섏젙")
+00422:     {
+00423: //       getValue("edit_button_press","visible",bIsEdit);
+00424:       setValue("edit_button_press","visible",!bIsEdit);
+00425:       MODIFY_ACTION_BTN(myModuleName(),myPanelName(),
+00426:                     MAP_DEPEND_VALUE,DYN_ALL_MAP_EDITABLE_KEYS,
+00427:                     DYN_ALL_MAP_EDITABLE_VALUES,mappingKeys(MAP_ALERT_PRIO),
+00428:                     DYN_ALL_INIT_INVISIBLE,!bIsEdit);
+00429: 
+00430: 
+00431:       exception_modify();
+00432:      dpSet($SetDP + ".cmd.CANCEL_BIT",false);
+00433:      dpSet($SetDP + ".cmd.ALMRESET_BIT",false);
+00434:      dpSet($SetDP + ".cmd.HOLD_BIT",false);
+00435:     }
+00436:   }
+00437:   else if (user_permission == 5)
+00438:   {
+00439:     ChildPanelOnCentral("general/popup/login/POP_LOGIN.pnl","",makeDynString());
+00440:   }
+00441: }
+00442: 
+00443: void exception_modify()
+00444: {
+00445: 
+00446:   bool bool_enabled;
+00447: 
+00448: //     check box enabled ?곹깭 true濡?蹂寃?
+00449:     getValue("obj_auto_sel1","enabled",bool_enabled);
+00450:     setValue("obj_auto_sel1","enabled",!bool_enabled);
+00451:     getValue("obj_auto_sel2","enabled",bool_enabled);
+00452:     setValue("obj_auto_sel2","enabled",!bool_enabled);
+00453:     getValue("obj_auto_sel3","enabled",bool_enabled);
+00454:     setValue("obj_auto_sel3","enabled",!bool_enabled);
+00455:     getValue("obj_auto_sel4","enabled",bool_enabled);
+00456:     setValue("obj_auto_sel4","enabled",!bool_enabled);
+00457:     getValue("obj_auto_sel5","enabled",bool_enabled);
+00458:     setValue("obj_auto_sel5","enabled",!bool_enabled);
+00459: 
+00460:     if (!bool_enabled)
+00461:     {
+00462:       setValue("obj_auto_sel1","foreCol","White");
+00463:       setValue("obj_auto_sel2","foreCol","White");
+00464:       setValue("obj_auto_sel3","foreCol","White");
+00465:       setValue("obj_auto_sel4","foreCol","White");
+00466:       setValue("obj_auto_sel5","foreCol","White");
+00467:     }
+00468:     else
+00469:     {
+00470:       Func_MODE_INI();
+00471:     }
+00472:  }
+00473: 
+00474: 
+00475: ???????????????????????????????????????????????????????????????????????????
+00476: ?// [layoutAlignment] [3] - [main]
+00477: ???????????????????????????????????????????????????????????????????????????
+00478: main()
+00479: {
+00480:   dyn_float dreturnf;
+00481:   dyn_string dreturns;
+00482:   string euhi,eulo,err_msg,all_err_msg;
+00483:   float dp_hh,dp_hi,dp_lo,dp_ll,alm_value,alm_chg_value;
+00484:   dyn_float dyn_dp_alm_value,dyn_cur_alm_value,dyn_chg_alm_value;
+00485:   dyn_string dyn_sort_cur_alm_value,dyn_obj,dyn_error_msg;
+00486:   int error_idx;
+00487:   mapping map_sort_alm_value;
+00488:   bool bitstart, bithold, bitalmreset, bitcancel;
+00489:   bool abstart, errsel, selstat, dpstat;
+00490:   string obj_name;
+00491: 
+00492: 
+00493: /////////////////////////////hz set
+00494: 
+00495:   float hz_val1;
+00496: 
+00497:   getValue(OBJ_HZ_SET1,"text",hz_val1);
+00498: 
+00499:   if(0 > hz_val1 || hz_val1 > 60)
+00500:   {
+00501:     err_msg = "?쒖빟議곌굔?꾨컲: Set Hz 踰붿쐞 (0~60). \\n";
+00502:     dynAppend(dyn_error_msg,err_msg);
+00503:   }
+00504: 
+00505: /////////////////////////////vibration set
+00506: 
+00507:   float vib_hilm_val1;
+00508: 
+00509:   getValue(OBJ_FAN_VIB_HILM,"text",vib_hilm_val1);
+00510: 
+00511:   if(-99999 > vib_hilm_val1 || vib_hilm_val1 > 99999)
+00512:   {
+00513:     err_msg = "?쒖빟議곌굔?꾨컲: Vibration Limit 踰붿쐞 (-99999~99999). \\n";
+00514:     dynAppend(dyn_error_msg,err_msg);
+00515:   }
+00516: 
+00517: /////////////////////////////Damper open time set
+00518: 
+00519:   float opentimeset_val1;
+00520: 
+00521:   getValue(OBJ_AD_OPEN_TM_SET,"text",opentimeset_val1);
+00522: 
+00523:   if(0 > opentimeset_val1 || opentimeset_val1 > 99999)
+00524:   {
+00525:     err_msg = "?쒖빟議곌굔?꾨컲: Damper Open Time 踰붿쐞 (0~99999). \\n";
+00526:     dynAppend(dyn_error_msg,err_msg);
+00527:   }
+00528: 
+00529: /////////////////////////////Damper open Limit
+00530: 
+00531:   float open_val1;
+00532: 
+00533:   getValue(OBJ_AD_OPEN_LM,"text",open_val1);
+00534: 
+00535:   if(0 > open_val1 || open_val1 > 100)
+00536:   {
+00537:     err_msg = "?쒖빟議곌굔?꾨컲: Damper Open Limet 踰붿쐞 (0~100). \\n";
+00538:     dynAppend(dyn_error_msg,err_msg);
+00539:   }
+00540: 
+00541: /////////////////////////////MIN & MAX
+00542: 
+00543:   float pressset_val1, get_max_val1, get_min_val1;
+00544: 
+00545:   getValue(OBJ_PRESS_SET1,"text",pressset_val1);
+00546: 
+00547:   getValue(OBJ_PRESS_SET1_MAX,"text",get_max_val1);
+00548:   getValue(OBJ_PRESS_SET1_MIN,"text",get_min_val1);
+00549: 
+00550:   if(get_max_val1<get_min_val1)
+00551:   {
+00552:     err_msg = "?쒖빟議곌굔?꾨컲: Min 媛믪씠 Max 媛믩낫???쎈땲?? \\n";
+00553:     dynAppend(dyn_error_msg,err_msg);
+00554:   }
+00555: 
+00556:    if(pressset_val1 > get_max_val1)
+00557:   {
+00558:     err_msg = "?쒖빟議곌굔?꾨컲: ?ㅼ젙?뺣젰 媛믪씠 Max 媛믩낫???쎈땲?? \\n";
+00559:     dynAppend(dyn_error_msg,err_msg);
+00560:   }
+00561: 
+00562:    if(pressset_val1 < get_min_val1)
+00563:   {
+00564:     err_msg = "?쒖빟議곌굔?꾨컲: ?ㅼ젙?뺣젰 媛믪씠 Min 媛믩낫???묒뒿?덈떎. \\n";
+00565:     dynAppend(dyn_error_msg,err_msg);
+00566:   }
+00567: 
+00568:   if(get_max_val1==get_min_val1)
+00569:   {
+00570:     err_msg = "?쒖빟議곌굔?꾨컲: Min 媛믨낵 Max 媛믪씠 媛숈뒿?덈떎. \\n";
+00571:     dynAppend(dyn_error_msg,err_msg);
+00572:   }
+00573: 
+00574: 
+00575:   if(-99999 > get_max_val1 || get_max_val1 > 99999)
+00576:   {
+00577:     err_msg = "?쒖빟議곌굔?꾨컲: Max 媛?踰붿쐞 (-99999~99999). \\n";
+00578:     dynAppend(dyn_error_msg,err_msg);
+00579:   }
+00580: 
+00581: 
+00582:   if(-99999 > get_min_val1 || get_min_val1 > 99999)
+00583:   {
+00584:     err_msg = "?쒖빟議곌굔?꾨컲: Min 媛?踰붿쐞 (-99999~99999). \\n";
+00585:     dynAppend(dyn_error_msg,err_msg);
+00586:   }
+00587: 
+00588: 
+00589:   if(-99999 > pressset_val1 || pressset_val1 > 99999)
+00590:   {
+00591:     err_msg = "?쒖빟議곌굔?꾨컲: ?ㅼ젙?뺣젰 踰붿쐞 (-99999~99999). \\n";
+00592:     dynAppend(dyn_error_msg,err_msg);
+00593:   }
+00594: 
+00595: //////////////////////////////////////////////////////////////////////////////////////
+00596: 
+00597:     dpGet($SetDP + ".cmd.START_BIT",bitstart);
+00598:     dpGet($SetDP + ".cmd.HOLD_BIT",bithold);
+00599:     dpGet($SetDP + ".cmd.ALMRESET_BIT",bitalmreset);
+00600:     dpGet($SetDP + ".cmd.CANCEL_BIT",bitcancel);
+00601:     dpGet($SetDP + ".cmd.AB_START",abstart);
+00602: 
+00603:     if(bitstart != abstart)
+00604:     {
+00605:       string textmsg;
+00606: 
+00607:       if(abstart)
+00608:         textmsg = "AutoBackup Logic???뺤??섏떆寃좎뒿?덇퉴?";
+00609:       else
+00610:         textmsg = "AutoBackup Logic???쒖옉?섏떆寃좎뒿?덇퉴?";
+00611: 
+00612:       ChildPanelOnCentralModalReturn("general/popup/message/POP_MESSAGE_A.pnl","Control",
+00613:                                makeDynString("$text:"+textmsg),dreturnf,dreturns);
+00614: 
+00615:       if(dreturns=="TRUE")
+00616:       {
+00617:         if(abstart)
+00618:           dpSet($SetDP + ".cmd.AB_START",false);
+00619:         else
+00620:           dpSet($SetDP + ".cmd.AB_START",true);
+00621:       }
+00622: 
+00623:        dpSet($SetDP + ".cmd.START_BIT",0);
+00624:     }
+00625: 
+00626:     if(bithold)
+00627:     {
+00628:       ChildPanelOnCentralModalReturn("general/popup/message/POP_MESSAGE_A.pnl","Control",
+00629:                                makeDynString("$text:"+"AutoBackup ?곹깭媛 ?좎??⑸땲?? \\nAutoBackup Hold瑜?reset ?섏떆寃좎뒿?덇퉴?"),dreturnf,dreturns);
+00630: 
+00631:       if(dreturns=="TRUE")
+00632:         dpSet($SetDP + ".cmd.HOLD_RESET",1);
+00633: 
+00634:       dpSet($SetDP + ".cmd.HOLD_BIT",0);
+00635:     }
+00636: 
+00637:     if(bitalmreset)
+00638:     {
+00639:       ChildPanelOnCentralModalReturn("general/popup/message/POP_MESSAGE_A.pnl","Control",
+00640:                                makeDynString("$text:"+"AutoBackup Alarm??reset ?섏떆寃좎뒿?덇퉴?"),dreturnf,dreturns);
+00641: 
+00642:       if(dreturns=="TRUE")
+00643:         dpSet($SetDP + ".cmd.AL_RESET",1);
+00644: 
+00645:       dpSet($SetDP + ".cmd.ALMRESET_BIT",0);
+00646:     }
+00647: 
+00648:     if(bitcancel)
+00649:     {
+00650:       ChildPanelOnCentralModalReturn("general/popup/message/POP_MESSAGE_A.pnl","Control",
+00651:                                makeDynString("$text:"+"AutoBackup Logic??痍⑥냼?섍쿋?듬땲源?"),dreturnf,dreturns);
+00652: 
+00653:       if(dreturns=="TRUE")
+00654:         dpSet($SetDP + ".cmd.CANCEL",1);
+00655: 
+00656:       dpSet($SetDP + ".cmd.CANCEL_BIT",0);
+00657:     }
+00658: 
+00659: 
+00660: //////////////////////////////////////
+00661: 
+00662: 
+00663: 
+00664:     // ?뺤긽?곹깭 蹂寃쎄컪 ?곸슜
+00665:     if(dynlen(dyn_error_msg) == 0)
+00666:     {
+00667:       APPLY_ACTION_BTN(POPUP_MSG_FILENAME,DYN_ALL_MAP_EDITABLE_DESC,
+00668:                      DYN_ALL_MAP_EDITABLE_KEYS,DYN_ALL_MAP_EDITABLE_VALUES,
+00669:                      mappingKeys(MAP_ALERT_PRIO),DYN_ALL_INIT_INVISIBLE);
+00670: 
+00671:       exception_apply();
+00672:     }
+00673: 
+00674: 
+00675: ////////////////////////////////////////////////
+00676: //      ?쒖빟議곌굔 ?꾨컲??寃쎌슦
+00677:     else
+00678:     {
+00679:       for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+00680:       {
+00681:         all_err_msg += dyn_error_msg[i];
+00682:       }
+00683: 
+00684:         ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+00685:                makeDynString("$text:"+all_err_msg));
+00686:         PARAMETER_WINDOW_INITIAL(myModuleName(),myPanelName(),
+00687:                                  DYN_ALL_MAP_EDITABLE_KEYS,DYN_ALL_MAP_EDITABLE_VALUES,
+00688:                                  mappingKeys(MAP_ALERT_PRIO),DYN_ALL_INIT_INVISIBLE);
+00689:     }
+00690: }
+00691: 
+00692: void exception_apply()
+00693: {
+00694:   dyn_bool cur_value;
+00695:   dyn_int cur_intvalue, result;
+00696:   dyn_float dreturnf;
+00697:   dyn_string dreturns,mode_string;
+00698:   int auto_val,man_val,result_tot;
+00699: 
+00700:   getValue("obj_auto_sel1","state",0,cur_value[1]);
+00701:   getValue("obj_auto_sel2","state",0,cur_value[2]);
+00702:   getValue("obj_auto_sel3","state",0,cur_value[3]);
+00703:   getValue("obj_auto_sel4","state",0,cur_value[4]);
+00704:   getValue("obj_auto_sel5","state",0,cur_value[5]);
+00705: 
+00706:   for( int i=1;i<=5;i++)
+00707:   {
+00708:     if(dp_value[i] !=  cur_value[i])
+00709:     {
+00710:       result[i] = 1;
+00711:     }
+00712:     else
+00713:     {
+00714:       result[i] = 0;
+00715:     }
+00716:   }
+00717: 
+00718:     result_tot = result[1] + result[2] + result[3] + result[4] + result[5];
+00719: 
+00720:     if(result_tot==1)
+00721:     {
+00722:       for( int i=1;i<=5;i++)
+00723:       {
+00724:       if(dp_value[i]==0 && cur_value[i]==1)
+00725:       {
+00726:         ChildPanelOnCentralModalReturn(POPUP_MSG_FILENAME,"Chang Value",
+00727:         makeDynString("$tagname:"+ $SetDP ,"$node_desc:"+ i +"?멸린 PRESS AUTO BACKUP","$dp_value:"+ dp_value[i],
+00728:                        "$modified_value:"+ cur_value[i]),dreturnf,dreturns);
+00729: 
+00730:          if(dreturns == "TRUE")
+00731:          {
+00732:             dpSet($SetDP  + ".cmd.AUTOSEL.SEL"+i,TRUE);
+00733: 
+00734:             USERTRAIL_APP($SetDP,"SELECT"+i,dp_value[i],TRUE);
+00735:          }
+00736:         }
+00737:          else  if(dp_value[i]==1 && cur_value[i]==0)
+00738:         {
+00739:            ChildPanelOnCentralModalReturn(POPUP_MSG_FILENAME,"Chang Value",
+00740:         makeDynString("$tagname:"+ $SetDP ,"$node_desc:"+ i +"?멸린 PRESS AUTO BACKUP","$dp_value:"+ dp_value[i],
+00741:                        "$modified_value:"+ cur_value[i]),dreturnf,dreturns);
+00742: 
+00743:          if(dreturns == "TRUE")
+00744:          {
+00745:             dpSet($SetDP  + ".cmd.AUTOSEL.SEL"+i,false);
+00746: 
+00747:             USERTRAIL_APP($SetDP,"SELECT"+i,dp_value[i],false);
+00748:          }
+00749:          }
+00750:       }
+00751:     }
+00752:      else if(result_tot==2)
+00753:      {
+00754:        for( int i=1;i<=5;i++)
+00755:        {
+00756:          if(dp_value[i]==0 && cur_value[i]==1)
+00757:         {
+00758:         ChildPanelOnCentralModalReturn(POPUP_MSG_FILENAME,"Chang Value",
+00759:         makeDynString("$tagname:"+ $SetDP ,"$node_desc:"+ i +"?멸린 PRESS AUTO BACKUP","$dp_value:"+ dp_value[i],
+00760:                        "$modified_value:"+ cur_value[i]),dreturnf,dreturns);
+00761: 
+00762:          if(dreturns == "TRUE")
+00763:          {
+00764:             dpSet($SetDP  + ".cmd.AUTOSEL.SEL1",cur_value[1]);
+00765:             dpSet($SetDP  + ".cmd.AUTOSEL.SEL2",cur_value[2]);
+00766:             dpSet($SetDP  + ".cmd.AUTOSEL.SEL3",cur_value[3]);
+00767:             dpSet($SetDP  + ".cmd.AUTOSEL.SEL4",cur_value[4]);
+00768:             dpSet($SetDP  + ".cmd.AUTOSEL.SEL5",cur_value[5]);
+00769: 
+00770:             USERTRAIL_APP($SetDP,"SELECT"+i,dp_value[i],TRUE);
+00771:          }
+00772:         }
+00773:        }
+00774:      }
+00775:     Func_MODE_INI();
+00776: 
+00777: }
+00778: 
+00779: 
+00780: ???????????????????????????????????????????????????????????????????????????
+00781: ?// [layoutAlignment] [3] - [main]
+00782: ???????????????????????????????????????????????????????????????????????????
+00783: main()
+00784: {
+00785:   PanelOffReturn(makeDynFloat(0),makeDynString("FALSE"));  
+00786: }
+00787: 
+00788: ???????????????????????????????????????????????????????????????????????????
+00789: ?// [layoutAlignment] [3] - [main]
+00790: ???????????????????????????????????????????????????????????????????????????
+00791: main()
+00792: {
+00793:   this.select(0,strlen(this.text()));
+00794: }
+00795: 
+00796: ???????????????????????????????????????????????????????????????????????????
+00797: ?// [layoutAlignment] [3] - [main()
+00798: {
+00799:   this.select(0,strlen(this.text()));
+00800: }]
+00801: ???????????????????????????????????????????????????????????????????????????
+00802: main()
+00803: {
+00804:     string all_err_msg;
+00805:     bool chk_err = 0;
+00806:     float newText;
+00807:     
+00808:     getValue("","text",newText);
+00809:   
+00810:     if (EDITMODE)
+00811:     {    
+00812:       if (newText < -99999)
+00813:       {
+00814:         all_err_msg = "?ㅼ젙 媛믪씠 ?묒뒿?덈떎.  (理쒖냼 媛?: -99999)";
+00815:         chk_err = 1;
+00816:       }
+00817:       else if (newText > 99999)
+00818:       {
+00819:         all_err_msg = "?ㅼ젙 媛믪씠 ?쎈땲??  (理쒕? 媛?: 99999)";
+00820:         chk_err = 1;
+00821:       }
+00822:       if(chk_err)
+00823:       {
+00824:         ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+00825:                                  makeDynString("$text:"+all_err_msg));
+00826:         this.text(newText);
+00827:       }
+00828:     }
+00829: }
+00830: 
+00831: ???????????????????????????????????????????????????????????????????????????
+00832: ?// [layoutAlignment] [3] - [main]
+00833: ???????????????????????????????????????????????????????????????????????????
+00834: main()
+00835: {
+00836: //    dyn_string dps = makeDynString($ConDP,$ConDP2,$MainDP,$MainDP2,$SelDP,$TargetDP1,$TargetDP1CX,$TargetDP2,$TargetDP2CX);
+00837:    dyn_string dps = makeDynString("","","","","","","","","");
+00838: 
+00839:     for(int i=1; i<= dynlen(dyn_dp);i++){
+00840:       dps[i] = dyn_dp[i];
+00841:     }
+00842: 
+00843:     ChildPanelOnCentral("general/popup/screen/POP_SCR_CTL_CONREC.pnl",
+00844:                        "CONTROL OPERATION HISTORY",
+00845:                        makeDynString("$DP:"  + dps[1],
+00846:                                      "$DP2:" + dps[2],
+00847:                                      "$DP3:" + dps[3],
+00848:                                      "$DP4:" + dps[4],
+00849:                                      "$DP5:" + dps[5],
+00850:                                      "$DP6:" + dps[6],
+00851:                                      "$DP7:" + dps[7],
+00852:                                      "$DP8:" + dps[8],
+00853:                                      "$DP9:" + dps[9]));
+00854: 
+00855: }
+00856: 
+00857: ???????????????????????????????????????????????????????????????????????????
+00858: ?// [layoutAlignment] [3] - [main]
+00859: ???????????????????????????????????????????????????????????????????????????
+00860: // SimpleCtrlScriptStart {invalid}
+00861: main()
+00862: {
+00863:   EP_setBackColor();
+00864: }
+00865: 
+00866: EP_setBackColor()
+00867: {
+00868: dyn_errClass err;
+00869: 
+00870:   if( !dpExists(  $SetDP + ".alert.SET_AL_1"))
+00871:   {
+00872:     setValue("", "color", "_dpdoesnotexist");
+00873:     return;
+00874:   }
+00875:     
+00876:   dpConnect("EP_setBackColorCB", 
+00877:              $SetDP + ".alert.SET_AL_1");
+00878:   err = getLastError();
+00879:   if (dynlen(err) > 0)
+00880:     setValue("", "color", "_dpdoesnotexist");
+00881: 
+00882: }
+00883: 
+00884: EP_setBackColorCB(string dp1, bool ALMVALUE)
+00885: {
+00886:   if (ALMVALUE)
+00887:     setValue("", "backCol", "red");
+00888:   else
+00889:     setValue("", "backCol", "COR_SYM_STATUS_OFF");
+00890: }
+00891: 
+00892: ???????????????????????????????????????????????????????????????????????????
+00893: ?// [layoutAlignment] [3] - [main]
+00894: ???????????????????????????????????????????????????????????????????????????
+00895: // SimpleCtrlScriptStart {invalid}
+00896: main()
+00897: {
+00898:   EP_setBackColor();
+00899: }
+00900: 
+00901: EP_setBackColor()
+00902: {
+00903: dyn_errClass err;
+00904: 
+00905:   if( !dpExists(  $SetDP + ".alert.SET_AL_2"))
+00906:   {
+00907:     setValue("", "color", "_dpdoesnotexist");
+00908:     return;
+00909:   }
+00910:     
+00911:   dpConnect("EP_setBackColorCB", 
+00912:              $SetDP + ".alert.SET_AL_2");
+00913:   err = getLastError();
+00914:   if (dynlen(err) > 0)
+00915:     setValue("", "color", "_dpdoesnotexist");
+00916: 
+00917: }
+00918: 
+00919: EP_setBackColorCB(string dp1, bool ALMVALUE)
+00920: {
+00921:   if (ALMVALUE)
+00922:     setValue("", "backCol", "red");
+00923:   else
+00924:     setValue("", "backCol", "COR_SYM_STATUS_OFF");
+00925: }
+00926: 
+00927: ???????????????????????????????????????????????????????????????????????????
+00928: ?// [layoutAlignment] [3] - [main]
+00929: ???????????????????????????????????????????????????????????????????????????
+00930: // SimpleCtrlScriptStart {invalid}
+00931: main()
+00932: {
+00933:   EP_setBackColor();
+00934: }
+00935: 
+00936: EP_setBackColor()
+00937: {
+00938: dyn_errClass err;
+00939: 
+00940:   if( !dpExists(  $SetDP + ".alert.SET_AL_3"))
+00941:   {
+00942:     setValue("", "color", "_dpdoesnotexist");
+00943:     return;
+00944:   }
+00945:     
+00946:   dpConnect("EP_setBackColorCB", 
+00947:              $SetDP + ".alert.SET_AL_3");
+00948:   err = getLastError();
+00949:   if (dynlen(err) > 0)
+00950:     setValue("", "color", "_dpdoesnotexist");
+00951: 
+00952: }
+00953: 
+00954: EP_setBackColorCB(string dp1, bool ALMVALUE)
+00955: {
+00956:   if (ALMVALUE)
+00957:     setValue("", "backCol", "red");
+00958:   else
+00959:     setValue("", "backCol", "COR_SYM_STATUS_OFF");
+00960: }
+00961: 
+00962: ???????????????????????????????????????????????????????????????????????????
+00963: ?// [layoutAlignment] [3] - [main]
+00964: ???????????????????????????????????????????????????????????????????????????
+00965: main()
+00966: {
+00967:   string err_msg,all_err_msg;
+00968:   bool ST1,LOOP1,TOT1;
+00969:   float PV1;
+00970:   dyn_string dyn_error_msg;
+00971: 
+00972:   dpGet("C1_HVAC:T1_HGB_C2701A_ZV.PVLAST",ST1);
+00973:   dpGet("C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR",LOOP1);
+00974:   dpGet("C1_HVAC:T1_HGB_C2701A_MVD_I.PVLAST",PV1);
+00975:   dpGet("C1_HVAC:T1_HGB_C2701A_MVD_TOT.PVLAST",TOT1);
+00976: 
+00977:   if(ST1 == 1 || LOOP1 == 1 || PV1 > 1 || TOT1== 1 )
+00978:   {
+00979:     err_msg = "1?멸린 Ready 議곌굔???섏뼱???⑸땲?? \\n";
+00980:     dynAppend(dyn_error_msg,err_msg);
+00981:     setValue("obj_auto_sel1","state",0,false);
+00982:   }
+00983:   else
+00984:   {
+00985:     setValue("obj_auto_sel2","state",0,false);
+00986:     setValue("obj_auto_sel3","state",0,false);
+00987:     setValue("obj_auto_sel4","state",0,false);
+00988:     setValue("obj_auto_sel5","state",0,false);
+00989:   }
+00990:   if(dynlen(dyn_error_msg) > 0)
+00991:   {
+00992:     for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+00993:         {
+00994:           all_err_msg += dyn_error_msg[i];
+00995:         }
+00996: 
+00997:     ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+00998:                              makeDynString("$text:"+all_err_msg));
+00999:   }
+01000: }
+01001: 
+01002: ???????????????????????????????????????????????????????????????????????????
+01003: ?// [layoutAlignment] [3] - [main]
+01004: ???????????????????????????????????????????????????????????????????????????
+01005: main()
+01006: {
+01007:   string err_msg,all_err_msg;
+01008:   bool ST1,LOOP1,TOT1;
+01009:   float PV1;
+01010:   dyn_string dyn_error_msg;
+01011: 
+01012:   dpGet("C1_HVAC:T1_HGB_C2701B_ZV.PVLAST",ST1);
+01013:   dpGet("C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR",LOOP1);
+01014:   dpGet("C1_HVAC:T1_HGB_C2701B_MVD_I.PVLAST",PV1);
+01015:   dpGet("C1_HVAC:T1_HGB_C2701B_MVD_TOT.PVLAST",TOT1);
+01016: 
+01017:   if(ST1 == 1 || LOOP1 == 1 || PV1 > 1 || TOT1== 1 )
+01018:   {
+01019:     err_msg = "2?멸린 Ready 議곌굔???섏뼱???⑸땲?? \\n";
+01020:     dynAppend(dyn_error_msg,err_msg);
+01021:     setValue("obj_auto_sel2","state",0,false);
+01022:   }
+01023:   else
+01024:   {
+01025:     setValue("obj_auto_sel1","state",0,false);
+01026:     setValue("obj_auto_sel3","state",0,false);
+01027:     setValue("obj_auto_sel4","state",0,false);
+01028:     setValue("obj_auto_sel5","state",0,false);
+01029:   }
+01030:   if(dynlen(dyn_error_msg) > 0)
+01031:   {
+01032:     for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+01033:         {
+01034:           all_err_msg += dyn_error_msg[i];
+01035:         }
+01036: 
+01037:     ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+01038:                              makeDynString("$text:"+all_err_msg));
+01039:   }
+01040: }
+01041: 
+01042: 
+01043: ???????????????????????????????????????????????????????????????????????????
+01044: ?// [layoutAlignment] [3] - [main]
+01045: ???????????????????????????????????????????????????????????????????????????
+01046: main()
+01047: {
+01048:   string err_msg,all_err_msg;
+01049:   bool ST1,LOOP1,TOT1;
+01050:   float PV1;
+01051:   dyn_string dyn_error_msg;
+01052: 
+01053:   dpGet("C1_HVAC:T1_HGB_C2701C_ZV.PVLAST",ST1);
+01054:   dpGet("C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR",LOOP1);
+01055:   dpGet("C1_HVAC:T1_HGB_C2701C_MVD_I.PVLAST",PV1);
+01056:   dpGet("C1_HVAC:T1_HGB_C2701C_MVD_TOT.PVLAST",TOT1);
+01057: 
+01058:   if(ST1 == 1 || LOOP1 == 1 || PV1 > 1 || TOT1== 1 )
+01059:   {
+01060:     err_msg = "3?멸린 Ready 議곌굔???섏뼱???⑸땲?? \\n";
+01061:     dynAppend(dyn_error_msg,err_msg);
+01062:     setValue("obj_auto_sel3","state",0,false);
+01063:   }
+01064:   else
+01065:   {
+01066:     setValue("obj_auto_sel1","state",0,false);
+01067:     setValue("obj_auto_sel2","state",0,false);
+01068:     setValue("obj_auto_sel4","state",0,false);
+01069:     setValue("obj_auto_sel5","state",0,false);
+01070:   }
+01071:   if(dynlen(dyn_error_msg) > 0)
+01072:   {
+01073:     for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+01074:         {
+01075:           all_err_msg += dyn_error_msg[i];
+01076:         }
+01077: 
+01078:     ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+01079:                              makeDynString("$text:"+all_err_msg));
+01080:   }
+01081: }
+01082: 
+01083: 
+01084: ???????????????????????????????????????????????????????????????????????????
+01085: ?// [layoutAlignment] [3] - [main]
+01086: ???????????????????????????????????????????????????????????????????????????
+01087: main()
+01088: {
+01089:   dpConnect("CB_check_autoAB",$SetDP + ".cmd.AUTOSEL.SEL1");
+01090:   dpConnect("CB_check_autoAB",$SetDP + ".cmd.AUTOSEL.SEL2");
+01091:   dpConnect("CB_check_autoAB",$SetDP + ".cmd.AUTOSEL.SEL3");
+01092:   dpConnect("CB_check_autoAB",$SetDP + ".cmd.AUTOSEL.SEL4");
+01093:   dpConnect("CB_check_autoAB",$SetDP + ".cmd.AUTOSEL.SEL5");
+01094: 
+01095: }
+01096: CB_check_autoAB(string dp, bool value)
+01097: {
+01098: 
+01099:   bool value1,value2,value3,value4,value5;
+01100:   dyn_int tot_val;
+01101: 
+01102:   dpGet($SetDP + ".cmd.AUTOSEL.SEL1",value1);
+01103:   dpGet($SetDP + ".cmd.AUTOSEL.SEL2",value2);
+01104:   dpGet($SetDP + ".cmd.AUTOSEL.SEL3",value3);
+01105:   dpGet($SetDP + ".cmd.AUTOSEL.SEL4",value4);
+01106:   dpGet($SetDP + ".cmd.AUTOSEL.SEL5",value5);
+01107: 
+01108:   tot_val=makeDynInt(value1,value2,value3,value4,value5);
+01109: 
+01110: //   tot_vol = value1+value2+value3+value4+value5;
+01111: //
+01112: //   DebugTN("11111111",tot_val);
+01113: 
+01114: 
+01115:     if(dynSum(tot_val) != 0)
+01116:     {
+01117:       setValue("obj_sel_errorBX","visible",false);
+01118:       setValue("obj_sel_errorTX","visible",false);
+01119:       setValue("obj_sel_errorPB","visible",false);
+01120:     }
+01121:     else
+01122:     {
+01123:       setValue("obj_sel_errorBX","visible",true);
+01124:       setValue("obj_sel_errorTX","visible",true);
+01125:       setValue("obj_sel_errorPB","visible",true);
+01126:     }
+01127: 
+01128: }
+01129: 
+01130: 
+01131: 
+01132: 
+01133: ???????????????????????????????????????????????????????????????????????????
+01134: ?// [layoutAlignment] [3] - [main]
+01135: ???????????????????????????????????????????????????????????????????????????
+01136: main()
+01137: {
+01138:   EP_setBackColor();
+01139: }
+01140: 
+01141: EP_setBackColor()
+01142: {
+01143: dyn_errClass err;
+01144: 
+01145:   if( !dpExists($SetDP + ".cmd.CANCEL_BIT"))
+01146:   {
+01147:     setValue("", "color", "_dpdoesnotexist");
+01148:     return;
+01149:   }
+01150: 
+01151:   dpSet($SetDP + ".cmd.CANCEL_BIT",false);
+01152: 
+01153:   dpConnect("EP_setBackColorCB", 
+01154:             $SetDP + ".cmd.CANCEL_BIT");
+01155:   err = getLastError();
+01156:   if (dynlen(err) > 0)
+01157:     setValue("", "color", "_dpdoesnotexist");
+01158: 
+01159: }
+01160: 
+01161: EP_setBackColorCB(string dp1, bool value1)
+01162: {
+01163:   if (!value1)
+01164:     setValue("", "backCol", "{255,207,48}");
+01165:   else
+01166:     setValue("", "backCol", "<{0,255,0},4,{0,127,0},4>");
+01167: }
+01168: 
+01169: 
+01170: 
+01171: ???????????????????????????????????????????????????????????????????????????
+01172: ?// [layoutAlignment] [3] - [main]
+01173: ???????????????????????????????????????????????????????????????????????????
+01174: main()
+01175: {
+01176:   EP_setBackColor();
+01177: }
+01178: 
+01179: EP_setBackColor()
+01180: {
+01181: dyn_errClass err;
+01182: 
+01183:   if(!dpExists($SetDP + ".alert.AB_TOTAL_ALARM_1") ||
+01184:      !dpExists($SetDP + ".alert.AB_TOTAL_ALARM_2") ||
+01185:      !dpExists($SetDP + ".alert.AB_TOTAL_ALARM_3") ||
+01186:      !dpExists($SetDP + ".alert.AB_TOTAL_ALARM_4") ||
+01187:      !dpExists($SetDP + ".alert.AB_TOTAL_ALARM_5") ||
+01188:      !dpExists($SetDP + ".cmd.ALMRESET_BIT"))
+01189:   {
+01190:     setValue("", "color", "_dpdoesnotexist");
+01191:     return;
+01192:   }
+01193: 
+01194:   dpSet($SetDP + ".cmd.ALMRESET_BIT",false);
+01195: 
+01196:   dpConnect("EP_setBackColorCB",
+01197:             $SetDP + ".alert.AB_TOTAL_ALARM_1",
+01198:             $SetDP + ".alert.AB_TOTAL_ALARM_2",
+01199:             $SetDP + ".alert.AB_TOTAL_ALARM_3",
+01200:             $SetDP + ".alert.AB_TOTAL_ALARM_4",
+01201:             $SetDP + ".alert.AB_TOTAL_ALARM_5",
+01202:             $SetDP + ".cmd.ALMRESET_BIT");
+01203: 
+01204:   err = getLastError();
+01205:   if (dynlen(err) > 0)
+01206:     setValue("", "color", "_dpdoesnotexist");
+01207: 
+01208: }
+01209: 
+01210: EP_setBackColorCB(string dp1, bool alarm1, string dp2, bool alarm2, string dp3, bool alarm3, string dp4, bool alarm4, string dp5, bool alarm5, string dp6, bool alarmbit)
+01211: {
+01212:   int total = 0;
+01213: 
+01214:   if(alarm1)
+01215:     total += 1;
+01216: 
+01217:   if(alarm2)
+01218:     total += 1;
+01219: 
+01220:   if(alarm3)
+01221:     total += 1;
+01222: 
+01223:   if(alarm4)
+01224:     total += 1;
+01225: 
+01226:   if(alarm5)
+01227:     total += 1;
+01228: 
+01229:   if (total == 0 && !alarmbit)
+01230:     setValue("", "backCol", "{255,207,48}");
+01231:   else if (alarmbit)
+01232:     setValue("", "backCol", "<{0,255,0},4,{0,127,0},4>");
+01233:   else
+01234:     setValue("", "backCol", "COR_ALM_EMER_UNACK");
+01235: }
+01236: 
+01237: 
+01238: 
+01239: 
+01240: 
+01241: 
+01242: 
+01243: 
+01244: 
+01245: ???????????????????????????????????????????????????????????????????????????
+01246: ?// [layoutAlignment] [3] - [main]
+01247: ???????????????????????????????????????????????????????????????????????????
+01248: main()
+01249: {
+01250:   EP_setBackColor();
+01251: }
+01252: 
+01253: EP_setBackColor()
+01254: {
+01255: dyn_errClass err;
+01256: 
+01257:   if( !dpExists($SetDP + ".alert.PROCESS_HOLD:_online.._value") ||
+01258:       !dpExists($SetDP + ".cmd.HOLD_BIT"))
+01259:   {
+01260:     setValue("", "color", "_dpdoesnotexist");
+01261:     return;
+01262:   }
+01263: 
+01264:   dpSet($SetDP + ".cmd.HOLD_BIT",false);
+01265: 
+01266:   dpConnect("EP_setBackColorCB", 
+01267:             $SetDP + ".alert.PROCESS_HOLD:_online.._value",
+01268:             $SetDP + ".cmd.HOLD_BIT");
+01269:   err = getLastError();
+01270:   if (dynlen(err) > 0)
+01271:     setValue("", "color", "_dpdoesnotexist");
+01272: 
+01273: }
+01274: 
+01275: EP_setBackColorCB(string dpSource, bool boNewValue, string dp, bool holdbit)
+01276: {
+01277:   if (!boNewValue && !holdbit)
+01278:     setValue("", "backCol", "{255,207,48}");
+01279:   else if(holdbit)
+01280:     setValue("", "backCol", "<{0,255,0},4,{0,127,0},4>");
+01281:   else
+01282:     setValue("", "backCol", "COR_ALM_BLOCK_SAFE");
+01283: }
+01284: 
+01285: 
+01286: 
+01287: 
+01288: ???????????????????????????????????????????????????????????????????????????
+01289: ?// [layoutAlignment] [3] - [main]
+01290: ???????????????????????????????????????????????????????????????????????????
+01291: // SimpleCtrlScriptStart {invalid}
+01292: main()
+01293: {
+01294:   EP_setBackColor();
+01295: }
+01296: 
+01297: EP_setBackColor()
+01298: {
+01299: dyn_errClass err;
+01300: 
+01301:   if( !dpExists(  $SetDP + ".alert.SET_AL_4"))
+01302:   {
+01303:     setValue("", "color", "_dpdoesnotexist");
+01304:     return;
+01305:   }
+01306: 
+01307:   dpConnect("EP_setBackColorCB",
+01308:              $SetDP + ".alert.SET_AL_4");
+01309:   err = getLastError();
+01310:   if (dynlen(err) > 0)
+01311:     setValue("", "color", "_dpdoesnotexist");
+01312: 
+01313: }
+01314: 
+01315: EP_setBackColorCB(string dp1, bool ALMVALUE)
+01316: {
+01317:   if (ALMVALUE)
+01318:     setValue("", "backCol", "red");
+01319:   else
+01320:     setValue("", "backCol", "COR_SYM_STATUS_OFF");
+01321: }
+01322: 
+01323: ???????????????????????????????????????????????????????????????????????????
+01324: ?// [layoutAlignment] [3] - [main]
+01325: ???????????????????????????????????????????????????????????????????????????
+01326: // SimpleCtrlScriptStart {invalid}
+01327: main()
+01328: {
+01329:   EP_setBackColor();
+01330: }
+01331: 
+01332: EP_setBackColor()
+01333: {
+01334: dyn_errClass err;
+01335: 
+01336:   if( !dpExists(  $SetDP + ".alert.SET_AL_5"))
+01337:   {
+01338:     setValue("", "color", "_dpdoesnotexist");
+01339:     return;
+01340:   }
+01341: 
+01342:   dpConnect("EP_setBackColorCB",
+01343:              $SetDP + ".alert.SET_AL_5");
+01344:   err = getLastError();
+01345:   if (dynlen(err) > 0)
+01346:     setValue("", "color", "_dpdoesnotexist");
+01347: 
+01348: }
+01349: 
+01350: EP_setBackColorCB(string dp1, bool ALMVALUE)
+01351: {
+01352:   if (ALMVALUE)
+01353:     setValue("", "backCol", "red");
+01354:   else
+01355:     setValue("", "backCol", "COR_SYM_STATUS_OFF");
+01356: }
+01357: 
+01358: ???????????????????????????????????????????????????????????????????????????
+01359: ?// [layoutAlignment] [3] - [main]
+01360: ???????????????????????????????????????????????????????????????????????????
+01361: main()
+01362: {
+01363:   string err_msg,all_err_msg;
+01364:   bool ST1,LOOP1,TOT1;
+01365:   float PV1;
+01366:   dyn_string dyn_error_msg;
+01367: 
+01368:   dpGet("C1_HVAC:T1_HGB_C2701D_ZV.PVLAST",ST1);
+01369:   dpGet("C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR",LOOP1);
+01370:   dpGet("C1_HVAC:T1_HGB_C2701D_MVD_I.PVLAST",PV1);
+01371:   dpGet("C1_HVAC:T1_HGB_C2701D_MVD_TOT.PVLAST",TOT1);
+01372: 
+01373:   if(ST1 == 1 || LOOP1 == 1 || PV1 > 1 || TOT1== 1 )
+01374:   {
+01375:     err_msg = "4?멸린 Ready 議곌굔???섏뼱???⑸땲?? \\n";
+01376:     dynAppend(dyn_error_msg,err_msg);
+01377:     setValue("obj_auto_sel4","state",0,false);
+01378:   }
+01379:   else
+01380:   {
+01381:     setValue("obj_auto_sel1","state",0,false);
+01382:     setValue("obj_auto_sel2","state",0,false);
+01383:     setValue("obj_auto_sel3","state",0,false);
+01384:     setValue("obj_auto_sel5","state",0,false);
+01385:   }
+01386:   if(dynlen(dyn_error_msg) > 0)
+01387:   {
+01388:     for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+01389:         {
+01390:           all_err_msg += dyn_error_msg[i];
+01391:         }
+01392: 
+01393:     ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+01394:                              makeDynString("$text:"+all_err_msg));
+01395:   }
+01396: }
+01397: 
+01398: 
+01399: ???????????????????????????????????????????????????????????????????????????
+01400: ?// [layoutAlignment] [3] - [main]
+01401: ???????????????????????????????????????????????????????????????????????????
+01402: main()
+01403: {
+01404:   string err_msg,all_err_msg;
+01405:   bool ST1,LOOP1,TOT1;
+01406:   float PV1;
+01407:   dyn_string dyn_error_msg;
+01408: 
+01409:   dpGet("C1_HVAC:T1_HGB_C2701E_ZV.PVLAST",ST1);
+01410:   dpGet("C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR",LOOP1);
+01411:   dpGet("C1_HVAC:T1_HGB_C2701E_MVD_I.PVLAST",PV1);
+01412:   dpGet("C1_HVAC:T1_HGB_C2701E_MVD_TOT.PVLAST",TOT1);
+01413: 
+01414:   if(ST1 == 1 || LOOP1 == 1 || PV1 > 1 || TOT1== 1 )
+01415:   {
+01416:     err_msg = "5?멸린 Ready 議곌굔???섏뼱???⑸땲?? \\n";
+01417:     dynAppend(dyn_error_msg,err_msg);
+01418:     setValue("obj_auto_sel5","state",0,false);
+01419:   }
+01420:   else
+01421:   {
+01422:     setValue("obj_auto_sel1","state",0,false);
+01423:     setValue("obj_auto_sel2","state",0,false);
+01424:     setValue("obj_auto_sel3","state",0,false);
+01425:     setValue("obj_auto_sel4","state",0,false);
+01426:   }
+01427:   if(dynlen(dyn_error_msg) > 0)
+01428:   {
+01429:     for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+01430:         {
+01431:           all_err_msg += dyn_error_msg[i];
+01432:         }
+01433: 
+01434:     ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+01435:                              makeDynString("$text:"+all_err_msg));
+01436:   }
+01437: }
+01438: 
+01439: 
+01440: ???????????????????????????????????????????????????????????????????????????
+01441: ?// [RECTANGLE5] [398] - [main]
+01442: ???????????????????????????????????????????????????????????????????????????
+01443: main(bool enter)
+01444: {
+01445:   if(enter)
+01446:     app_button.fill("[pattern,[fit,png,BrownUI/screen/pop_btn_focus.png]]");
+01447:   else
+01448:     app_button.fill("[pattern,[fit,png,BrownUI/screen/pop_btn_normal.png]]");
+01449: }
+01450: 
+01451: ???????????????????????????????????????????????????????????????????????????
+01452: ?// [RECTANGLE7] [399] - [main]
+01453: ???????????????????????????????????????????????????????????????????????????
+01454: main(bool enter)
+01455: {
+01456:   if(enter)
+01457:     close_btn.fill("[pattern,[fit,png,BrownUI/screen/pop_btn_focus.png]]");
+01458:   else
+01459:     close_btn.fill("[pattern,[fit,png,BrownUI/screen/pop_btn_normal.png]]");
+01460: }
+01461: 
+01462: ???????????????????????????????????????????????????????????????????????????
+01463: ?// [RECTANGLE7534] [401] - [main]
+01464: ???????????????????????????????????????????????????????????????????????????
+01465: main(bool enter)
+01466: {
+01467:   
+01468:   if(enter)
+01469:     viewbtn.fill("[pattern,[fit,png,BrownUI/btn/btn_normal_.png]]");
+01470:   else
+01471:     viewbtn.fill("[pattern,[fit,png,BrownUI/btn/btn_normal.png]]");
+01472:     
+01473: }
+01474: 
+01475: ???????????????????????????????????????????????????????????????????????????
+01476: ?// [hoverfclr] [4] - [Script]
+01477: ???????????????????????????????????????????????????????????????????????????
+01478: N {0,0,0,0}
+01479: 
+01480: ???????????????????????????????????????????????????????????????????????????
+01481: ?// [hoverfclr] [4] - [main]
+01482: ???????????????????????????????????????????????????????????????????????????
+01483: // main()
+01484: // {
+01485: //   string all_err_msg;
+01486: //   dyn_float dreturnf;
+01487: //   dyn_string dreturns;
+01488: //   bool chkbit;
+01489: // 
+01490: //   if (EDITMODE)
+01491: //   {
+01492: //       dpSet($SetDP + ".cmd.AUTOSEL.SEL1",false);
+01493: //       dpSet($SetDP + ".cmd.AUTOSEL.SEL2",false);
+01494: //       dpSet($SetDP + ".cmd.AUTOSEL.SEL3",false);
+01495: //       dpSet($SetDP + ".cmd.AUTOSEL.SEL4",false);
+01496: //       dpSet($SetDP + ".cmd.AUTOSEL.SEL5",false);
+01497: //   }
+01498: //   else
+01499: //   {
+01500: //     all_err_msg = "?섏젙踰꾪듉??click ?섏떗?쒖삤";
+01501: //     
+01502: //     ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+01503: //                              makeDynString("$text:"+all_err_msg));
+01504: //   }
+01505: // 
+01506: // }
+01507: // 
+01508: 
+01509: 
+01510: 
+01511: ???????????????????????????????????????????????????????????????????????????
+01512: ?// [hoverfclr] [4] - [main]
+01513: ???????????????????????????????????????????????????????????????????????????
+01514: main()
+01515: {
+01516:   string all_err_msg;
+01517:   dyn_float dreturnf;
+01518:   dyn_string dreturns;
+01519:   bool proc_hold;
+01520:   bool chkbit;
+01521: 
+01522:   dpGet($SetDP + ".cmd.HOLD_BIT",chkbit);
+01523:   dpGet($SetDP + ".alert.PROCESS_HOLD",proc_hold);
+01524: 
+01525:   if (EDITMODE && proc_hold)
+01526:   {
+01527:     if(chkbit)
+01528:     {
+01529:       dpSet($SetDP + ".cmd.HOLD_BIT",false);
+01530:       USERTRAIL_APP($SetDP,"HOLD_BIT",chkbit,false);
+01531:     }
+01532:     else
+01533:     {
+01534:       dpSet($SetDP + ".cmd.HOLD_BIT",true);
+01535:       USERTRAIL_APP($SetDP,"HOLD_BIT",chkbit,true);
+01536:     }
+01537:   }
+01538:   else if (!proc_hold)
+01539:   {
+01540:     all_err_msg = "Process holding ?곹깭媛 ?꾨떃?덈떎";
+01541: 
+01542:     ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+01543:                              makeDynString("$text:"+all_err_msg));
+01544:   }
+01545:   else
+01546:   {
+01547:     all_err_msg = "?섏젙踰꾪듉??click ?섏떗?쒖삤";
+01548: 
+01549:     ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+01550:                              makeDynString("$text:"+all_err_msg));
+01551:   }
+01552: 
+01553: }
+01554: 
+01555: 
+01556: 
+01557: ???????????????????????????????????????????????????????????????????????????
+01558: ?// [hoverfclr] [4] - [main]
+01559: ???????????????????????????????????????????????????????????????????????????
+01560: main()
+01561: {
+01562:   string all_err_msg;
+01563:   dyn_float dreturnf;
+01564:   dyn_string dreturns;
+01565:   bool chkbit;
+01566: 
+01567:   dpGet($SetDP + ".cmd.CANCEL_BIT",chkbit);
+01568: 
+01569:   if (EDITMODE)
+01570:   {
+01571:     if(chkbit)
+01572:     {
+01573:       dpSet($SetDP + ".cmd.CANCEL_BIT",false);
+01574:       USERTRAIL_APP($SetDP,"CANCEL_BIT",chkbit,false);
+01575:     }
+01576:     else
+01577:     {
+01578:       dpSet($SetDP + ".cmd.CANCEL_BIT",true);
+01579:       USERTRAIL_APP($SetDP,"CANCEL_BIT",chkbit,true);
+01580:     }
+01581:   }
+01582:   else
+01583:   {
+01584:     all_err_msg = "?섏젙踰꾪듉??click ?섏떗?쒖삤";
+01585: 
+01586:     ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+01587:                              makeDynString("$text:"+all_err_msg));
+01588:   }
+01589: 
+01590: }
+01591: 
+01592: 
+01593: 
+01594: ???????????????????????????????????????????????????????????????????????????
+01595: ?// [hoverfclr] [4] - [main]
+01596: ???????????????????????????????????????????????????????????????????????????
+01597: main()
+01598: {
+01599:   string all_err_msg;
+01600:   dyn_float dreturnf;
+01601:   dyn_string dreturns;
+01602:   bool chkbit;
+01603: 
+01604:   dpGet($SetDP + ".cmd.ALMRESET_BIT",chkbit);
+01605: 
+01606:   if (EDITMODE)
+01607:   {
+01608:     if(chkbit)
+01609:     {
+01610:       dpSet($SetDP + ".cmd.ALMRESET_BIT",false);
+01611:       USERTRAIL_APP($SetDP,"ALMRESET_BIT",chkbit,false);
+01612:     }
+01613:     else
+01614:     {
+01615:       dpSet($SetDP + ".cmd.ALMRESET_BIT",true);
+01616:       USERTRAIL_APP($SetDP,"ALMRESET_BIT",chkbit,true);
+01617:     }
+01618:   }
+01619:   else
+01620:   {
+01621:     all_err_msg = "?섏젙踰꾪듉??click ?섏떗?쒖삤";
+01622: 
+01623:     ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+01624:                              makeDynString("$text:"+all_err_msg));
+01625:   }
+01626: 
+01627: }
+01628: 
+01629: 

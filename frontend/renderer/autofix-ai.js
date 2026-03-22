@@ -244,6 +244,7 @@ export function createAutofixAiController({ dom, state, helpers }) {
         const active = proposals.find((item) => String((item && item.proposal_id) || "") === activeId) || proposals[0] || {};
         const activePreview = (active && typeof active.instruction_preview === "object") ? active.instruction_preview : {};
         const activeScore = (active && typeof active.compare_score === "object") ? active.compare_score : {};
+        const activeGate = getAutofixApplyGate(active);
         const generatorType = String((active && active.generator_type) || "unknown").toUpperCase();
         const validText = activePreview.valid ? "pass" : "check";
         const totalScore = Number.parseInt(activeScore.total || 0, 10) || 0;
@@ -254,6 +255,13 @@ export function createAutofixAiController({ dom, state, helpers }) {
             `Validation ${validText}`,
             `Score ${totalScore}`,
         ];
+        if (!activeGate.prepared) {
+            parts.push("Patch not prepared");
+        } else if (activeGate.canApply) {
+            parts.push("Ready to apply");
+        } else {
+            parts.push(`Blocked ${activeGate.blockedReasonDetail || activeGate.blockedReason}`);
+        }
         if (selectionPolicy) parts.push(`Policy ${selectionPolicy}`);
         if (selectedReason) parts.push(selectedReason);
         dom.aiCompareMeta.textContent = parts.join(" | ");
@@ -292,6 +300,7 @@ export function createAutofixAiController({ dom, state, helpers }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 proposal_id: String((proposal && proposal.proposal_id) || ""),
+                prepared_proposal_id: String((proposal && proposal.prepared_proposal_id) || (proposal && proposal.proposal_id) || ""),
                 session_id: (state.analysisData && state.analysisData.output_dir) || undefined,
                 file: fileName || String((proposal && proposal.file) || ""),
                 expected_base_hash: String((proposal && proposal.base_hash) || ""),
@@ -668,7 +677,8 @@ export function createAutofixAiController({ dom, state, helpers }) {
             actionWrap.appendChild(aiBtn);
         }
 
-        if (!String((proposal && proposal.unified_diff) || "").trim()) {
+        const proposalGate = getAutofixApplyGate(proposal);
+        if (!proposalGate.prepared) {
             const patchBtn = document.createElement("button");
             patchBtn.type = "button";
             patchBtn.className = "diff-modal-inline-button";
@@ -677,9 +687,33 @@ export function createAutofixAiController({ dom, state, helpers }) {
                 patchBtn.disabled = true;
                 patchBtn.textContent = "Preparing...";
                 try {
+                    const previousBundle = activeDiffModalBundle;
                     const prepared = await prepareAutofixProposal(violation, eventName, aiMatch);
+                    const preservedActiveId = String(
+                        (previousBundle && (previousBundle.active_proposal_id || previousBundle.selected_proposal_id)) || "",
+                    );
+                    if (
+                        prepared
+                        && Array.isArray(prepared.proposals)
+                        && preservedActiveId
+                        && prepared.proposals.some((item) => String((item && item.proposal_id) || "") === preservedActiveId)
+                    ) {
+                        prepared.active_proposal_id = preservedActiveId;
+                        prepared.selected_proposal_id = preservedActiveId;
+                    }
                     activeDiffModalBundle = prepared || activeDiffModalBundle;
-        const refreshedMatch = findLinkedAiMatch(violation, eventName) || aiMatch;
+                    if (activeDiffModalBundle && activeDiffModalKey) {
+                        state.autofixProposalCache.set(activeDiffModalKey, activeDiffModalBundle);
+                    }
+                    const activeProposalId = String(
+                        (activeDiffModalBundle && (activeDiffModalBundle.active_proposal_id || activeDiffModalBundle.selected_proposal_id)) || "",
+                    );
+                    if (activeProposalId && typeof activeDiffModalSelectHandler === "function") {
+                        activeDiffModalSelectHandler(activeProposalId, activeDiffModalBundle);
+                    }
+                    activeDiffModalContext.prepareFailed = false;
+                    activeDiffModalContext.errorMessage = "";
+                    const refreshedMatch = findLinkedAiMatch(violation, eventName) || aiMatch;
                     await refreshOpenDiffModal(violation, refreshedMatch, eventName, activeDiffModalBundle);
                 } catch (err) {
                     const msg = String((err && err.message) || err || "patch prepare failed");
@@ -689,6 +723,16 @@ export function createAutofixAiController({ dom, state, helpers }) {
                 }
             };
             actionWrap.appendChild(patchBtn);
+        } else {
+            const stateChip = document.createElement("span");
+            stateChip.className = "diff-modal-inline-state";
+            if (proposalGate.canApply) {
+                stateChip.textContent = "Ready to apply";
+            } else {
+                stateChip.textContent = `Blocked: ${proposalGate.blockedReasonDetail || proposalGate.blockedReason}`;
+                stateChip.title = proposalGate.blockedReasonText || proposalGate.blockedReasonDetail || proposalGate.blockedReason;
+            }
+            actionWrap.appendChild(stateChip);
         }
 
         if (actionWrap.childElementCount > 0) {

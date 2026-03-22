@@ -1,0 +1,350 @@
+﻿00001: //-----------------------------------------------------------
+00002: // v1.0 (2026.01.28)
+00003: // v1.01 (2026.02.02)
+00004: // 肄붾뱶由щ럭 1李?諛섏쁺, dpSet ?쇨큵泥섎━
+00005: //-----------------------------------------------------------
+00006: 
+00007: // #uses "lib_Common.ctl"
+00008: #uses "library_standard.ctl"
+00009: #uses "hosts.ctl"
+00010: // #uses "CtrlPv2Admin"
+00011: 
+00012: //---------------------------------------------
+00013: // configuration path & filename
+00014: //---------------------------------------------
+00015: string script_path;
+00016: string config_filename = "config/config.GoldenTime";
+00017: 
+00018: //---------------------------------------------
+00019: // general option
+00020: //---------------------------------------------
+00021: const string g_script_release_version = "v1.0";
+00022: const string g_script_release_date = "2026.01.28";
+00023: 
+00024: // [Global Variables]
+00025: string g_script_name = "GoldenTime";
+00026: string manager_dpname = "";
+00027: string ScriptActive_Condition = "ACTIVE";
+00028: 
+00029: const string PVLAST = ".PVLAST";
+00030: 
+00031: // [Optimized Global Variables]
+00032: mapping g_parsedConfig;
+00033: mapping g_bufferMap;
+00034: int g_lastExecutedHour = -1;
+00035: mapping g_lastValidUsageMap;
+00036: 
+00037: //*******************************************************************************
+00038: // name         : main()
+00039: // argument     :
+00040: // return value : void
+00041: // date         : 2026-01-28
+00042: // script by    :
+00043: // brief        : GoldenTime main
+00044: //*******************************************************************************
+00045: void main()
+00046: {
+00047:   int thread_ID;
+00048: 
+00049:   try
+00050:   {
+00051:     writeLog(g_script_name, "===== Script initialize start =====", LV_INFO);
+00052: 
+00053:     init_lib_Commmon();
+00054: 
+00055:     writeLog(g_script_name, "0. Script info. Ver=" + g_script_release_version + ", Date=" + g_script_release_date, LV_INFO);
+00056: 
+00057:     manager_dpname = init_program_info(g_script_name, g_script_release_version, g_script_release_date);
+00058: 
+00059: 
+00060:     //---------------------------------------------
+00061:     //1. Load config file
+00062:     //---------------------------------------------
+00063:     if (load_config() == false)
+00064:     {
+00065:       update_user_alarm(manager_dpname, "1. Config Load Failed.");
+00066:       exit();
+00067:     }
+00068:     else
+00069:     {
+00070:       writeLog(g_script_name, "1. Config Load & Parsing OK.", LV_INFO);
+00071:     }
+00072: 
+00073:     //---------------------------------------------
+00074:     //2. Apply script active conditions
+00075:     //---------------------------------------------
+00076:     writeLog(g_script_name, "2. Apply Script Active Condition", LV_INFO);
+00077: 
+00078:     if (dpExists(manager_dpname + ".Action.ActiveCondition"))
+00079:     {
+00080:       dpConnect("CB_ChangeActiveCondition", manager_dpname + ".Action.ActiveCondition");
+00081:     }
+00082:     else
+00083:     {
+00084:       init_script_active();
+00085:     }
+00086: 
+00087:     init_user_alarm(manager_dpname);
+00088: 
+00089:     delay(1);
+00090: 
+00091:     //---------------------------------------------
+00092:     //3. Start Calculation Thread
+00093:     //---------------------------------------------
+00094:     thread_ID = startThread("Calculation");
+00095: 
+00096:     if(thread_ID >= 0)
+00097:       writeLog(g_script_name, "3. Thread Start OK. ID=" + thread_ID, LV_INFO);
+00098:     else
+00099:     {
+00100:       writeLog(g_script_name, "3. Thread Start Failed.", LV_WARN);
+00101:       update_user_alarm(manager_dpname, "3. Thread Start Failed.");
+00102:       exit();
+00103:     }
+00104: 
+00105:     writeLog(g_script_name, "---- Complete : GoldenTime Script --------", LV_INFO);
+00106:   }
+00107:   catch
+00108:   {
+00109:     update_user_alarm(manager_dpname, "Exception of main(). Error=" + getLastException());
+00110:   }
+00111: }
+00112: 
+00113: //*******************************************************************************
+00114: // name         : load_config
+00115: // argument     :
+00116: // return value : bool
+00117: // date         : 2026-01-28
+00118: // developed by :
+00119: // brief        : Script config information Load
+00120: //*******************************************************************************
+00121: bool load_config()
+00122: {
+00123:   try
+00124:   {
+00125:       script_path = getPath(SCRIPTS_REL_PATH);
+00126:       if(substr(script_path, strlen(script_path)-1) != "/") script_path += "/";
+00127: 
+00128:       string config_file = script_path + config_filename;
+00129:       dyn_string raw_config_list;
+00130: 
+00131:       // [general]
+00132:       if(paCfgReadValue(config_file,"general","g_script_name", g_script_name)!=0)
+00133:         writeLog(g_script_name,"Failed to load : [general]g_script_name.", LV_WARN);
+00134: 
+00135:       if(paCfgReadValue(config_file,"general","Active_Condition", ScriptActive_Condition)!=0)
+00136:         writeLog(g_script_name,"Failed to load : [general] Active_Condition", LV_WARN);
+00137: 
+00138:       // [group_settings]
+00139:       if(paCfgReadValueList(config_file,"group_settings","GROUP_INFO", raw_config_list)!=0)
+00140:       {
+00141:         writeLog(g_script_name,"Failed to load : [group_settings] GROUP_INFO empty", LV_WARN);
+00142:         return false;
+00143:       }
+00144: 
+00145:       // [Parsing Logic]
+00146:       for(int i=1; i<=dynlen(raw_config_list); i++)
+00147:       {
+00148:           dyn_string parts = strsplit(raw_config_list[i], "|");
+00149: 
+00150:           if(dynlen(parts) < 6)
+00151:           {
+00152:               writeLog(g_script_name, "Config Parse Error at line " + i + ": " + raw_config_list[i], LV_WARN);
+00153:               continue;
+00154:           }
+00155: 
+00156:           string groupName = parts[1];
+00157: 
+00158:           dyn_anytype parsedData;
+00159:           parsedData[1] = parts[2]; // NLevel DP
+00160:           parsedData[2] = parts[3]; // Usage DP
+00161:           parsedData[3] = parts[4]; // GT DP
+00162:           parsedData[4] = (float)parts[5]; // Margin
+00163:           parsedData[5] = strsplit(parts[6], ","); // Tank List
+00164: 
+00165:           g_parsedConfig[groupName] = parsedData;
+00166: 
+00167:           string logMsg = "[Config Loaded] Group: " + groupName +
+00168:                           " / Tanks: " + dynlen(parsedData[5]) +
+00169:                           " / Margin: " + parsedData[4];
+00170:           writeLog(g_script_name, logMsg, LV_INFO);
+00171:       }
+00172: 
+00173:       return true;
+00174:   }
+00175:   catch
+00176:   {
+00177:       writeLog(g_script_name, "Exception in load_config: " + getLastException(), LV_ERR);
+00178:       return false;
+00179:   }
+00180: }
+00181: 
+00182: //*******************************************************************************
+00183: // name         : Calculation
+00184: // argument     :
+00185: // return value : void
+00186: // date         : 2026-01-28
+00187: // developed by :
+00188: // brief        : Hourly execution loop checking active state
+00189: //*******************************************************************************
+00190: void Calculation()
+00191: {
+00192:   writeLog(g_script_name, "Calculation Thread Start.", LV_INFO);
+00193:   time t;
+00194: 
+00195:   while(true)
+00196:   {
+00197:     try
+00198:     {
+00199:       t = getCurrentTime();
+00200: 
+00201:       if(isScriptActive == true)
+00202:       {
+00203:          if (minute(t) == 0 && hour(t) != g_lastExecutedHour)
+00204:          {
+00205:             GoldenTimeCalculation();
+00206:             g_lastExecutedHour = hour(t);
+00207:          }
+00208:       }
+00209:     }
+00210:     catch
+00211:     {
+00212:        update_user_alarm(manager_dpname, "Exception in Thread: " + getLastException());
+00213:        delay(10);
+00214:     }
+00215:     finally
+00216:     {
+00217:       delay(10);
+00218:     }
+00219:   }
+00220: }
+00221: 
+00222: //*******************************************************************************
+00223: // name         : GoldenTimeCalculation
+00224: // argument     :
+00225: // return value : void
+00226: // date         : 2026-01-28
+00227: // developed by :
+00228: // brief        : Execute Golden Time logic for all groups
+00229: //*******************************************************************************
+00230: void GoldenTimeCalculation()
+00231: {
+00232:   writeLog(g_script_name, "Start Golden Time Calculation...", LV_INFO);
+00233: 
+00234:   try
+00235:   {
+00236:     for(int i = 1; i <= mappinglen(g_parsedConfig); i++)
+00237:     {
+00238:       string groupName = mappingGetKey(g_parsedConfig, i);
+00239:       dyn_anytype data = g_parsedConfig[groupName];
+00240: 
+00241:       string nLevelDP  = data[1];
+00242:       string usageDP   = data[2];
+00243:       string gtDP      = data[3];
+00244:       float  margin    = data[4];
+00245:       dyn_string tanks = data[5];
+00246: 
+00247:       float sum = 0.0;
+00248:       int validCount = 0;
+00249: 
+00250:       for(int k=1; k<=dynlen(tanks); k++)
+00251:       {
+00252:         float val;
+00253:         if(dpGet(tanks[k] + PVLAST, val) == 0)
+00254:         {
+00255:            sum += val;
+00256:            validCount++;
+00257:         }
+00258:       }
+00259: 
+00260:       if(validCount > 0)
+00261:       {
+00262:         float currentAvg = sum / (float)validCount;
+00263:         processAndSave(groupName, currentAvg, nLevelDP, usageDP, gtDP, margin);
+00264:       }
+00265:       else
+00266:       {
+00267:         writeLog(g_script_name, "[" + groupName + "] No valid tank values read.", LV_WARN);
+00268:       }
+00269:     }
+00270:   }
+00271:   catch
+00272:   {
+00273:     writeLog(g_script_name,"Exception of GoldenTimeCalculation() \n" + getLastException(), LV_ERR);
+00274:   }
+00275: }
+00276: 
+00277: //*******************************************************************************
+00278: // name         : processAndSave
+00279: // argument     : 洹몃９紐? 理쒓렐 ?됯퇏 Level, N-Level DP, ?ъ슜??DP, GoldenTime DP, 留덉쭊??// return value : void
+00280: // date         : 2026-02-02
+00281: // developed by :
+00282: // brief        : Calculate usage, Golden Time, and save results
+00283: //*******************************************************************************
+00284: void processAndSave(string group, float currentAvg, string nLvlDP, string useDP, string gtDP, float margin)
+00285: {
+00286:     try
+00287:     {
+00288:         if(!mappingHasKey(g_bufferMap, group)) g_bufferMap[group] = makeDynFloat();
+00289:         dyn_float buffer = g_bufferMap[group];
+00290: 
+00291:         dynAppend(buffer, currentAvg);
+00292: 
+00293:         if(dynlen(buffer) >= 2)
+00294:         {
+00295:             float pastAvg = buffer[1];
+00296:             float calculatedUsage = pastAvg - currentAvg;
+00297:             float finalUsageToApply = 0.001;
+00298: 
+00299:             if (calculatedUsage > 0)
+00300:             {
+00301:                 finalUsageToApply = calculatedUsage;
+00302:                 g_lastValidUsageMap[group] = calculatedUsage;
+00303:             }
+00304:             else
+00305:             {
+00306:                 if (mappingHasKey(g_lastValidUsageMap, group))
+00307:                 {
+00308:                     finalUsageToApply = g_lastValidUsageMap[group];
+00309:                     writeLog(g_script_name, "[" + group + "] Filling/Hold. Using Last Valid: " + finalUsageToApply, LV_INFO);
+00310:                 }
+00311:                 else
+00312:                 {
+00313:                     finalUsageToApply = 0.001;
+00314:                     writeLog(g_script_name, "[" + group + "] Filling/Hold. No History. Using Default.", LV_WARN);
+00315:                 }
+00316:             }
+00317: 
+00318:             float remaining = currentAvg - margin;
+00319:             float goldenTime = remaining / finalUsageToApply;
+00320: 
+00321:             // dpSet ?쇨큵 泥섎━ (Code Review v.1)
+00322:             if(dpSet(nLvlDP + PVLAST, currentAvg,
+00323:                      useDP  + PVLAST, finalUsageToApply,
+00324:                      gtDP   + PVLAST, goldenTime) != 0)
+00325:             {
+00326:                  writeLog(g_script_name, "Batch dpSet Failed for Group: " + group, LV_WARN);
+00327:             }
+00328:             else
+00329:             {
+00330:                  writeLog(g_script_name, "[" + group + "] GT: " + goldenTime + " (Usage: " + finalUsageToApply + ")", LV_INFO);
+00331:             }
+00332: 
+00333:             dynRemove(buffer, 1);
+00334:         }
+00335:         else
+00336:         {
+00337:             if(dpSet(nLvlDP + PVLAST, currentAvg) != 0)
+00338:             {
+00339:                 writeLog(g_script_name, "dpSet Failed (Init N-Level): " + nLvlDP, LV_WARN);
+00340:             }
+00341:             writeLog(g_script_name, "[" + group + "] Buffering Data... (Count: " + dynlen(buffer) + ")", LV_INFO);
+00342:         }
+00343: 
+00344:         g_bufferMap[group] = buffer;
+00345:     }
+00346:     catch
+00347:     {
+00348:         writeLog(g_script_name, "Exception in processAndSave (Group: " + group + "): " + getLastException(), LV_ERR);
+00349:     }
+00350: }

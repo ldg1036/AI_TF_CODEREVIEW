@@ -1,0 +1,52 @@
+[
+    {
+        "issue_id":  "P1-EXC-DP-01-9b39c7f5d6",
+        "rule_id":  "EXC-DP-01",
+        "allow_apply":  true,
+        "generator_type":  "rule",
+        "proposal_id":  "e7beba7b1806460bbb420f8380802235",
+        "blocked_reason":  "",
+        "base_hash":  "8ef0759431a030b3002f143f91d68ab4417e5b91c4fd536835da24ca744ced27",
+        "output_file":  "BenchmarkP1Fixture_copy.ctl"
+    },
+    {
+        "issue_id":  "P1-PERF-SETMULTIVALUE-ADOPT-01-4b8c8448a0",
+        "rule_id":  "PERF-SETMULTIVALUE-ADOPT-01",
+        "allow_apply":  true,
+        "generator_type":  "rule",
+        "proposal_id":  "03a3c359b9c544039f795777755b1c01",
+        "blocked_reason":  "",
+        "base_hash":  "8ef0759431a030b3002f143f91d68ab4417e5b91c4fd536835da24ca744ced27",
+        "output_file":  "BenchmarkP1Fixture_copy.ctl"
+    },
+    {
+        "issue_id":  "P1-EXC-TRY-01-e510be386b",
+        "rule_id":  "EXC-TRY-01",
+        "allow_apply":  true,
+        "generator_type":  "rule",
+        "proposal_id":  "08f4ff8fb11e4874bb23047136cec9c8",
+        "blocked_reason":  "",
+        "base_hash":  "8ef0759431a030b3002f143f91d68ab4417e5b91c4fd536835da24ca744ced27",
+        "output_file":  "BenchmarkP1Fixture_copy.ctl"
+    },
+    {
+        "issue_id":  "P1-STYLE-HEADER-01-99259438e2",
+        "rule_id":  "STYLE-HEADER-01",
+        "allow_apply":  true,
+        "generator_type":  "rule",
+        "proposal_id":  "0c7971cdfb9444419fed0b25f839aa6a",
+        "blocked_reason":  "",
+        "base_hash":  "8ef0759431a030b3002f143f91d68ab4417e5b91c4fd536835da24ca744ced27",
+        "output_file":  "BenchmarkP1Fixture_copy.ctl"
+    },
+    {
+        "issue_id":  "P1-ACTIVE-01-bc9ad90421",
+        "rule_id":  "ACTIVE-01",
+        "allow_apply":  true,
+        "generator_type":  "rule",
+        "proposal_id":  "4b6125fc447d4230935a305e3d3873be",
+        "blocked_reason":  "",
+        "base_hash":  "8ef0759431a030b3002f143f91d68ab4417e5b91c4fd536835da24ca744ced27",
+        "output_file":  "BenchmarkP1Fixture_copy.ctl"
+    }
+]

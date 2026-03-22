@@ -115,15 +115,39 @@ describe("autofix ai controller", () => {
         const controller = createController();
         const gate = controller.getAutofixApplyGate({
             proposal_id: "llm-blocked",
+            prepared_proposal_id: "llm-blocked",
+            proposal_ready: true,
             can_apply: false,
             blocked_reason: "target_issue_not_reduced",
+            blocked_reason_text: "Preview reanalysis did not reduce the target issue.",
             quality_preview: {
                 allow_apply: false,
                 blocked_reason_codes: ["target_issue_not_reduced"],
             },
         });
         expect(gate.canApply).toBe(false);
+        expect(gate.prepared).toBe(true);
+        expect(gate.preparedProposalId).toBe("llm-blocked");
         expect(gate.blockedReason).toBe("target_issue_not_reduced");
-        expect(gate.blockedReasonDetail).toBe(describeAutofixBlockedReason("target_issue_not_reduced"));
+        expect(gate.blockedReasonText).toBe("Preview reanalysis did not reduce the target issue.");
+        expect(gate.blockedReasonDetail).toBe("Preview reanalysis did not reduce the target issue.");
+    });
+
+    test("getAutofixApplyGate exposes drift reasons from backend codes", () => {
+        const controller = createController();
+        const gate = controller.getAutofixApplyGate({
+            proposal_id: "llm-expired",
+            prepared_proposal_id: "llm-expired",
+            proposal_ready: true,
+            can_apply: false,
+            blocked_reason: "source_changed_since_prepare",
+            quality_preview: {
+                allow_apply: false,
+                blocked_reason_codes: ["source_changed_since_prepare"],
+            },
+        });
+        expect(gate.canApply).toBe(false);
+        expect(gate.blockedReason).toBe("source_changed_since_prepare");
+        expect(gate.blockedReasonDetail).toBe(describeAutofixBlockedReason("source_changed_since_prepare"));
     });
 });

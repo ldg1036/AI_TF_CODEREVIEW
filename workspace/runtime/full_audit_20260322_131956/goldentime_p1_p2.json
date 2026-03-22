@@ -1,0 +1,2377 @@
+{
+    "summary":  {
+                    "total":  4,
+                    "critical":  0,
+                    "warning":  3,
+                    "info":  1,
+                    "score":  84,
+                    "p1_total":  4,
+                    "p2_total":  43,
+                    "p3_total":  0,
+                    "requested_file_count":  1,
+                    "successful_file_count":  1,
+                    "failed_file_count":  0,
+                    "ctrlpp_preflight_attempted":  false,
+                    "ctrlpp_preflight_ready":  true,
+                    "ctrlpp_preflight_message":  "CtrlppCheck preflight ready: existing binary found",
+                    "ctrlpp_preflight_error_code":  "",
+                    "verification_level":  "CORE+REPORT"
+                },
+    "violations":  {
+                       "P1":  [
+                                  {
+                                      "object":  "GoldenTime.ctl",
+                                      "event":  "Global",
+                                      "violations":  [
+                                                         {
+                                                             "issue_id":  "P1-HARD-01-9ad37b192b",
+                                                             "rule_id":  "HARD-01",
+                                                             "rule_item":  "하드코딩 지양",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Medium",
+                                                             "line":  16,
+                                                             "message":  "IP/URL/설정 경로 하드코딩 감지.",
+                                                             "file":  "GoldenTime.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "GoldenTime.ctl",
+                                                                                     "canonical_name":  "GoldenTime.ctl",
+                                                                                     "canonical_file_id":  "GoldenTime.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "GoldenTime.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "GoldenTime.ctl",
+                                                                                     "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "GoldenTime.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "string config_filename = \"config/config.GoldenTime\";",
+                                                                              "matched_lines":  [
+                                                                                                    16
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                                              "display_reason":  "P1 detector matched HARD-01 near line 16."
+                                                                          }
+                                                         },
+                                                         {
+                                                             "issue_id":  "P1-PERF-EV-01-d6c54aeed2",
+                                                             "rule_id":  "PERF-EV-01",
+                                                             "rule_item":  "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Warning",
+                                                             "line":  195,
+                                                             "message":  "루프 내 호출 함수(GoldenTimeCalculation)에서 dpSet 수행 감지: 변경 가드/배치 처리(dpSetWait, dpSetTimed) 권장.",
+                                                             "file":  "GoldenTime.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "GoldenTime.ctl",
+                                                                                     "canonical_name":  "GoldenTime.ctl",
+                                                                                     "canonical_file_id":  "GoldenTime.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "GoldenTime.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "GoldenTime.ctl",
+                                                                                     "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "GoldenTime.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "while(true)",
+                                                                              "matched_lines":  [
+                                                                                                    195
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                                              "display_reason":  "P1 detector matched PERF-EV-01 near line 195."
+                                                                          }
+                                                         },
+                                                         {
+                                                             "issue_id":  "P1-STYLE-IDX-01-ed7ebbec5b",
+                                                             "rule_id":  "STYLE-IDX-01",
+                                                             "rule_item":  "명명 규칙 및 코딩 스타일 준수 확인",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Low",
+                                                             "line":  159,
+                                                             "message":  "인덱스 매직넘버 사용 감지, IDX_* 상수화 권장.",
+                                                             "file":  "GoldenTime.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "GoldenTime.ctl",
+                                                                                     "canonical_name":  "GoldenTime.ctl",
+                                                                                     "canonical_file_id":  "GoldenTime.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "GoldenTime.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "GoldenTime.ctl",
+                                                                                     "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "GoldenTime.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "parsedData[1] = parts[2]; // NLevel DP",
+                                                                              "matched_lines":  [
+                                                                                                    159
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                                              "display_reason":  "P1 detector matched STYLE-IDX-01 near line 159."
+                                                                          }
+                                                         },
+                                                         {
+                                                             "issue_id":  "P1-HARD-03-ccf4cc28a3",
+                                                             "rule_id":  "HARD-03",
+                                                             "rule_item":  "하드코딩 지양",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Medium",
+                                                             "line":  298,
+                                                             "message":  "임계 소수값 하드코딩 감지, 상수/설정값 치환 권장.",
+                                                             "file":  "GoldenTime.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "GoldenTime.ctl",
+                                                                                     "canonical_name":  "GoldenTime.ctl",
+                                                                                     "canonical_file_id":  "GoldenTime.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "GoldenTime.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "GoldenTime.ctl",
+                                                                                     "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "GoldenTime.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "float finalUsageToApply = 0.001;",
+                                                                              "matched_lines":  [
+                                                                                                    298
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                                              "display_reason":  "P1 detector matched HARD-03 near line 298."
+                                                                          }
+                                                         }
+                                                     ]
+                                  }
+                              ],
+                       "P2":  [
+                                  {
+                                      "type":  "performance",
+                                      "severity":  "performance",
+                                      "rule_id":  "badPerformanceInLoops",
+                                      "line":  213,
+                                      "message":  "Non-performing usage of a function in a loop: delay",
+                                      "verbose":  "Non-performing usage of a function in a loop: delay",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "delay(10);",
+                                                       "matched_lines":  [
+                                                                             213
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched badPerformanceInLoops near line 213."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "performance",
+                                      "severity":  "performance",
+                                      "rule_id":  "badPerformanceInLoops",
+                                      "line":  217,
+                                      "message":  "Non-performing usage of a function in a loop: delay",
+                                      "verbose":  "Non-performing usage of a function in a loop: delay",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "delay(10);",
+                                                       "matched_lines":  [
+                                                                             217
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched badPerformanceInLoops near line 217."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "performance",
+                                      "severity":  "performance",
+                                      "rule_id":  "badPerformanceInLoops",
+                                      "line":  253,
+                                      "message":  "Non-performing usage of a function in a loop: dpGet",
+                                      "verbose":  "Non-performing usage of a function in a loop: dpGet",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "if(dpGet(tanks[k] + PVLAST, val) == 0)",
+                                                       "matched_lines":  [
+                                                                             253
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched badPerformanceInLoops near line 253."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "style",
+                                      "severity":  "style",
+                                      "rule_id":  "variableScope",
+                                      "line":  47,
+                                      "message":  "Scope of the variable can be reduced: \u0027thread_ID\u0027",
+                                      "verbose":  "The scope of the variable \u0027thread_ID\u0027 can be reduced. Warning: Be careful when fixing this message, especially when there are inner loops. Here is an example where cppcheck will write that the scope for \u0027i\u0027 can be reduced:\\012void f(int x)\\012{\\012    int i = 0;\\012    if (x) {\\012        // it\u0027s safe to move \u0027int i = 0;\u0027 here\\012        for (int n = 0; n \u003c 10; ++n) {\\012            // it is possible but not safe to move \u0027int i = 0;\u0027 here\\012            do_something(\u0026i);\\012        }\\012    }\\012}\\012When you see this message it is always safe to reduce the variable scope 1 level.",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "int thread_ID;",
+                                                       "matched_lines":  [
+                                                                             47
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched variableScope near line 47."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  51,
+                                      "message":  "Undefined variable: LV_INFO",
+                                      "verbose":  "The variable LV_INFO is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"===== Script initialize start =====\", LV_INFO);",
+                                                       "matched_lines":  [
+                                                                             51
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 51."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  55,
+                                      "message":  "Undefined variable: LV_INFO",
+                                      "verbose":  "The variable LV_INFO is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"0. Script info. Ver=\" + g_script_release_version + \", Date=\" + g_script_release_date, LV_INFO);",
+                                                       "matched_lines":  [
+                                                                             55
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 55."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  70,
+                                      "message":  "Undefined variable: LV_INFO",
+                                      "verbose":  "The variable LV_INFO is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"1. Config Load \u0026 Parsing OK.\", LV_INFO);",
+                                                       "matched_lines":  [
+                                                                             70
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 70."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  76,
+                                      "message":  "Undefined variable: LV_INFO",
+                                      "verbose":  "The variable LV_INFO is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"2. Apply Script Active Condition\", LV_INFO);",
+                                                       "matched_lines":  [
+                                                                             76
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 76."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  97,
+                                      "message":  "Undefined variable: LV_INFO",
+                                      "verbose":  "The variable LV_INFO is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"3. Thread Start OK. ID=\" + thread_ID, LV_INFO);",
+                                                       "matched_lines":  [
+                                                                             97
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 97."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  100,
+                                      "message":  "Undefined variable: LV_WARN",
+                                      "verbose":  "The variable LV_WARN is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"3. Thread Start Failed.\", LV_WARN);",
+                                                       "matched_lines":  [
+                                                                             100
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 100."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  105,
+                                      "message":  "Undefined variable: LV_INFO",
+                                      "verbose":  "The variable LV_INFO is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"---- Complete : GoldenTime Script --------\", LV_INFO);",
+                                                       "matched_lines":  [
+                                                                             105
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 105."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  133,
+                                      "message":  "Undefined variable: LV_WARN",
+                                      "verbose":  "The variable LV_WARN is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name,\"Failed to load : [general]g_script_name.\", LV_WARN);",
+                                                       "matched_lines":  [
+                                                                             133
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 133."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  136,
+                                      "message":  "Undefined variable: LV_WARN",
+                                      "verbose":  "The variable LV_WARN is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name,\"Failed to load : [general] Active_Condition\", LV_WARN);",
+                                                       "matched_lines":  [
+                                                                             136
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 136."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  141,
+                                      "message":  "Undefined variable: LV_WARN",
+                                      "verbose":  "The variable LV_WARN is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name,\"Failed to load : [group_settings] GROUP_INFO empty\", LV_WARN);",
+                                                       "matched_lines":  [
+                                                                             141
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 141."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  152,
+                                      "message":  "Undefined variable: LV_WARN",
+                                      "verbose":  "The variable LV_WARN is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"Config Parse Error at line \" + i + \": \" + raw_config_list[i], LV_WARN);",
+                                                       "matched_lines":  [
+                                                                             152
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 152."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  170,
+                                      "message":  "Undefined variable: LV_INFO",
+                                      "verbose":  "The variable LV_INFO is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, logMsg, LV_INFO);",
+                                                       "matched_lines":  [
+                                                                             170
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 170."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  177,
+                                      "message":  "Undefined variable: LV_ERR",
+                                      "verbose":  "The variable LV_ERR is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"Exception in load_config: \" + getLastException(), LV_ERR);",
+                                                       "matched_lines":  [
+                                                                             177
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 177."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  192,
+                                      "message":  "Undefined variable: LV_INFO",
+                                      "verbose":  "The variable LV_INFO is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"Calculation Thread Start.\", LV_INFO);",
+                                                       "matched_lines":  [
+                                                                             192
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 192."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  201,
+                                      "message":  "Undefined variable: isScriptActive",
+                                      "verbose":  "The variable isScriptActive is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "if(isScriptActive == true)",
+                                                       "matched_lines":  [
+                                                                             201
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 201."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  232,
+                                      "message":  "Undefined variable: LV_INFO",
+                                      "verbose":  "The variable LV_INFO is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"Start Golden Time Calculation...\", LV_INFO);",
+                                                       "matched_lines":  [
+                                                                             232
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 232."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  267,
+                                      "message":  "Undefined variable: LV_WARN",
+                                      "verbose":  "The variable LV_WARN is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"[\" + groupName + \"] No valid tank values read.\", LV_WARN);",
+                                                       "matched_lines":  [
+                                                                             267
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 267."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  273,
+                                      "message":  "Undefined variable: LV_ERR",
+                                      "verbose":  "The variable LV_ERR is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name,\"Exception of GoldenTimeCalculation() \\n\" + getLastException(), LV_ERR);",
+                                                       "matched_lines":  [
+                                                                             273
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 273."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  310,
+                                      "message":  "Undefined variable: LV_INFO",
+                                      "verbose":  "The variable LV_INFO is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"[\" + group + \"] Filling/Hold. Using Last Valid: \" + finalUsageToApply, LV_INFO);",
+                                                       "matched_lines":  [
+                                                                             310
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 310."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  315,
+                                      "message":  "Undefined variable: LV_WARN",
+                                      "verbose":  "The variable LV_WARN is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"[\" + group + \"] Filling/Hold. No History. Using Default.\", LV_WARN);",
+                                                       "matched_lines":  [
+                                                                             315
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 315."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  327,
+                                      "message":  "Undefined variable: LV_WARN",
+                                      "verbose":  "The variable LV_WARN is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"Batch dpSet Failed for Group: \" + group, LV_WARN);",
+                                                       "matched_lines":  [
+                                                                             327
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 327."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  331,
+                                      "message":  "Undefined variable: LV_INFO",
+                                      "verbose":  "The variable LV_INFO is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"[\" + group + \"] GT: \" + goldenTime + \" (Usage: \" + finalUsageToApply + \")\", LV_INFO);",
+                                                       "matched_lines":  [
+                                                                             331
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 331."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  340,
+                                      "message":  "Undefined variable: LV_WARN",
+                                      "verbose":  "The variable LV_WARN is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"dpSet Failed (Init N-Level): \" + nLvlDP, LV_WARN);",
+                                                       "matched_lines":  [
+                                                                             340
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 340."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  342,
+                                      "message":  "Undefined variable: LV_INFO",
+                                      "verbose":  "The variable LV_INFO is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"[\" + group + \"] Buffering Data... (Count: \" + dynlen(buffer) + \")\", LV_INFO);",
+                                                       "matched_lines":  [
+                                                                             342
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 342."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "warning",
+                                      "severity":  "warning",
+                                      "rule_id":  "undefinedVariable",
+                                      "line":  349,
+                                      "message":  "Undefined variable: LV_ERR",
+                                      "verbose":  "The variable LV_ERR is not defined. Maybe it\u0027s added by addGlobal() or #uses is missing",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "writeLog(g_script_name, \"Exception in processAndSave (Group: \" + group + \"): \" + getLastException(), LV_ERR);",
+                                                       "matched_lines":  [
+                                                                             349
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched undefinedVariable near line 349."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "information",
+                                      "severity":  "information",
+                                      "rule_id":  "uninitvar",
+                                      "line":  159,
+                                      "message":  "Uninitialized variable: parsedData",
+                                      "verbose":  "Uninitialized variable: parsedData",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "parsedData[1] = parts[2]; // NLevel DP",
+                                                       "matched_lines":  [
+                                                                             159
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched uninitvar near line 159."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "information",
+                                      "severity":  "information",
+                                      "rule_id":  "uninitvar",
+                                      "line":  160,
+                                      "message":  "Uninitialized variable: parsedData",
+                                      "verbose":  "Uninitialized variable: parsedData",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "parsedData[2] = parts[3]; // Usage DP",
+                                                       "matched_lines":  [
+                                                                             160
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched uninitvar near line 160."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "information",
+                                      "severity":  "information",
+                                      "rule_id":  "uninitvar",
+                                      "line":  161,
+                                      "message":  "Uninitialized variable: parsedData",
+                                      "verbose":  "Uninitialized variable: parsedData",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "parsedData[3] = parts[4]; // GT DP",
+                                                       "matched_lines":  [
+                                                                             161
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched uninitvar near line 161."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "information",
+                                      "severity":  "information",
+                                      "rule_id":  "uninitvar",
+                                      "line":  162,
+                                      "message":  "Uninitialized variable: parsedData",
+                                      "verbose":  "Uninitialized variable: parsedData",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "parsedData[4] = (float)parts[5]; // Margin",
+                                                       "matched_lines":  [
+                                                                             162
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched uninitvar near line 162."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "information",
+                                      "severity":  "information",
+                                      "rule_id":  "uninitvar",
+                                      "line":  163,
+                                      "message":  "Uninitialized variable: parsedData",
+                                      "verbose":  "Uninitialized variable: parsedData",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "parsedData[5] = strsplit(parts[6], \",\"); // Tank List",
+                                                       "matched_lines":  [
+                                                                             163
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched uninitvar near line 163."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "information",
+                                      "severity":  "information",
+                                      "rule_id":  "uninitvar",
+                                      "line":  165,
+                                      "message":  "Uninitialized variable: parsedData",
+                                      "verbose":  "Uninitialized variable: parsedData",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "g_parsedConfig[groupName] = parsedData;",
+                                                       "matched_lines":  [
+                                                                             165
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched uninitvar near line 165."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "information",
+                                      "severity":  "information",
+                                      "rule_id":  "uninitvar",
+                                      "line":  168,
+                                      "message":  "Uninitialized variable: parsedData",
+                                      "verbose":  "Uninitialized variable: parsedData",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "\" / Tanks: \" + dynlen(parsedData[5]) +",
+                                                       "matched_lines":  [
+                                                                             168
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched uninitvar near line 168."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "information",
+                                      "severity":  "information",
+                                      "rule_id":  "uninitvar",
+                                      "line":  169,
+                                      "message":  "Uninitialized variable: parsedData",
+                                      "verbose":  "Uninitialized variable: parsedData",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "\" / Margin: \" + parsedData[4];",
+                                                       "matched_lines":  [
+                                                                             169
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched uninitvar near line 169."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "information",
+                                      "severity":  "information",
+                                      "rule_id":  "uninitvar",
+                                      "line":  253,
+                                      "message":  "Uninitialized variable: val",
+                                      "verbose":  "Uninitialized variable: val",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "if(dpGet(tanks[k] + PVLAST, val) == 0)",
+                                                       "matched_lines":  [
+                                                                             253
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched uninitvar near line 253."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "information",
+                                      "severity":  "information",
+                                      "rule_id":  "uninitvar",
+                                      "line":  255,
+                                      "message":  "Uninitialized variable: val",
+                                      "verbose":  "Uninitialized variable: val",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "sum += val;",
+                                                       "matched_lines":  [
+                                                                             255
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched uninitvar near line 255."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "error",
+                                      "severity":  "error",
+                                      "rule_id":  "badFunc_safety_exit",
+                                      "line":  66,
+                                      "message":  "It is potentially a safety issue to use the function exit()",
+                                      "verbose":  "It is potentially a safety issue to use the function exit()",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "exit();",
+                                                       "matched_lines":  [
+                                                                             66
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched badFunc_safety_exit near line 66."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "error",
+                                      "severity":  "error",
+                                      "rule_id":  "badFunc_safety_exit",
+                                      "line":  102,
+                                      "message":  "It is potentially a safety issue to use the function exit()",
+                                      "verbose":  "It is potentially a safety issue to use the function exit()",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "exit();",
+                                                       "matched_lines":  [
+                                                                             102
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched badFunc_safety_exit near line 102."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "performance",
+                                      "severity":  "performance",
+                                      "rule_id":  "badFunc_performance_delay",
+                                      "line":  135,
+                                      "message":  "It is really neccessary to use the function delay()",
+                                      "verbose":  "It is really neccessary to use the function delay()",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "if(paCfgReadValue(config_file,\"general\",\"Active_Condition\", ScriptActive_Condition)!=0)",
+                                                       "matched_lines":  [
+                                                                             135
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched badFunc_performance_delay near line 135."
+                                                   }
+                                  },
+                                  {
+                                      "type":  "information",
+                                      "severity":  "information",
+                                      "rule_id":  "missingInclude",
+                                      "line":  0,
+                                      "message":  "Cppcheck cannot find all the include files (use --check-config for details)",
+                                      "verbose":  "Cppcheck cannot find all the include files. Cppcheck can check the code without the include files found. But the results will probably be more accurate if all the include files are found. Please check your project\u0027s include directories and add all of them as include directories for Cppcheck. To see what files Cppcheck cannot find use --check-config.",
+                                      "file":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "source":  "CtrlppCheck",
+                                      "priority_origin":  "P2",
+                                      "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                      "file_descriptor":  {
+                                                              "requested_name":  "GoldenTime.ctl",
+                                                              "canonical_name":  "GoldenTime.ctl",
+                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                              "source_kind":  "ctl",
+                                                              "display_name":  "GoldenTime.ctl",
+                                                              "detected_encoding":  "utf-8-sig",
+                                                              "viewer_source":  "source",
+                                                              "source_name":  "GoldenTime.ctl",
+                                                              "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                          },
+                                      "canonical_file_id":  "GoldenTime.ctl",
+                                      "evidence":  {
+                                                       "matched_text":  "Cppcheck cannot find all the include files (use --check-config for details)",
+                                                       "matched_lines":  [
+
+                                                                         ],
+                                                       "detector_kind":  "ctrlppcheck",
+                                                       "canonical_file_id":  "GoldenTime.ctl",
+                                                       "display_reason":  "P2 detector matched missingInclude."
+                                                   }
+                                  }
+                              ],
+                       "P3":  [
+
+                              ]
+                   },
+    "ai_review_statuses":  [
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "severity_filtered",
+                                   "detail":  "",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-STYLE-IDX-01-ed7ebbec5b",
+                                   "parent_rule_id":  "STYLE-IDX-01",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  159,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Low",
+                                   "message":  "인덱스 매직넘버 사용 감지, IDX_* 상수화 권장."
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-HARD-03-ccf4cc28a3",
+                                   "parent_rule_id":  "HARD-03",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  298,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Medium",
+                                   "message":  "임계 소수값 하드코딩 감지, 상수/설정값 치환 권장.",
+                                   "selected_rank":  26,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:badPerformanceInLoops:213",
+                                   "parent_rule_id":  "badPerformanceInLoops",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  213,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "performance",
+                                   "message":  "Non-performing usage of a function in a loop: delay",
+                                   "selected_rank":  18,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:badPerformanceInLoops:217",
+                                   "parent_rule_id":  "badPerformanceInLoops",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  217,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "performance",
+                                   "message":  "Non-performing usage of a function in a loop: delay",
+                                   "selected_rank":  19,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:badPerformanceInLoops:253",
+                                   "parent_rule_id":  "badPerformanceInLoops",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  253,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "performance",
+                                   "message":  "Non-performing usage of a function in a loop: dpGet",
+                                   "selected_rank":  21,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:variableScope:47",
+                                   "parent_rule_id":  "variableScope",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  47,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "style",
+                                   "message":  "Scope of the variable can be reduced: \u0027thread_ID\u0027",
+                                   "selected_rank":  4,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:51",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  51,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_INFO",
+                                   "selected_rank":  5,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:55",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  55,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_INFO",
+                                   "selected_rank":  6,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:70",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  70,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_INFO",
+                                   "selected_rank":  7,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:76",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  76,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_INFO",
+                                   "selected_rank":  8,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:97",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  97,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_INFO",
+                                   "selected_rank":  9,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:100",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  100,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_WARN",
+                                   "selected_rank":  10,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:105",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  105,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_INFO",
+                                   "selected_rank":  11,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:133",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  133,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_WARN",
+                                   "selected_rank":  12,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:136",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  136,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_WARN",
+                                   "selected_rank":  14,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:141",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  141,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_WARN",
+                                   "selected_rank":  15,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:170",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  170,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_INFO",
+                                   "selected_rank":  16,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:177",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  177,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_ERR",
+                                   "selected_rank":  17,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:232",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  232,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_INFO",
+                                   "selected_rank":  20,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:267",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  267,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_WARN",
+                                   "selected_rank":  24,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:273",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  273,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_ERR",
+                                   "selected_rank":  25,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:310",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  310,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_INFO",
+                                   "selected_rank":  27,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:315",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  315,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_WARN",
+                                   "selected_rank":  28,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:327",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  327,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_WARN",
+                                   "selected_rank":  29,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:331",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  331,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_INFO",
+                                   "selected_rank":  30,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:340",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  340,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_WARN",
+                                   "selected_rank":  31,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:342",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  342,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_INFO",
+                                   "selected_rank":  32,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:undefinedVariable:349",
+                                   "parent_rule_id":  "undefinedVariable",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  349,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "warning",
+                                   "message":  "Undefined variable: LV_ERR",
+                                   "selected_rank":  33,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:uninitvar:253",
+                                   "parent_rule_id":  "uninitvar",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  253,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "information",
+                                   "message":  "Uninitialized variable: val",
+                                   "selected_rank":  22,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:uninitvar:255",
+                                   "parent_rule_id":  "uninitvar",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  255,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "information",
+                                   "message":  "Uninitialized variable: val",
+                                   "selected_rank":  23,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "severity_filtered",
+                                   "detail":  "",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:badFunc_safety_exit:66",
+                                   "parent_rule_id":  "badFunc_safety_exit",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  66,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "error",
+                                   "message":  "It is potentially a safety issue to use the function exit()"
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "severity_filtered",
+                                   "detail":  "",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:badFunc_safety_exit:102",
+                                   "parent_rule_id":  "badFunc_safety_exit",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  102,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "error",
+                                   "message":  "It is potentially a safety issue to use the function exit()"
+                               },
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "priority_limited",
+                                   "detail":  "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:badFunc_performance_delay:135",
+                                   "parent_rule_id":  "badFunc_performance_delay",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  135,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "performance",
+                                   "message":  "It is really neccessary to use the function delay()",
+                                   "selected_rank":  13,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "generated",
+                                   "reason":  "mock_generated",
+                                   "detail":  "",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-PERF-EV-01-d6c54aeed2",
+                                   "parent_rule_id":  "PERF-EV-01",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  195,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Warning",
+                                   "message":  "루프 내 호출 함수(GoldenTimeCalculation)에서 dpSet 수행 감지: 변경 가드/배치 처리(dpSetWait, dpSetTimed) 권장.",
+                                   "selected_rank":  1,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "generated",
+                                   "reason":  "mock_generated",
+                                   "detail":  "",
+                                   "parent_source":  "P2",
+                                   "parent_issue_id":  "P2::GoldenTime.ctl:missingInclude:0",
+                                   "parent_rule_id":  "missingInclude",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  0,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "information",
+                                   "message":  "Cppcheck cannot find all the include files (use --check-config for details)",
+                                   "selected_rank":  2,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "generated",
+                                   "reason":  "mock_generated",
+                                   "detail":  "",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-HARD-01-9ad37b192b",
+                                   "parent_rule_id":  "HARD-01",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  16,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Medium",
+                                   "message":  "IP/URL/설정 경로 하드코딩 감지.",
+                                   "selected_rank":  3,
+                                   "selected_cap":  3
+                               }
+                           ],
+    "p1_config_health":  {
+                             "mode":  "configured",
+                             "degraded":  false,
+                             "reason_codes":  [
+
+                                              ],
+                             "reason_text":  "",
+                             "total_rule_count":  43,
+                             "enabled_rule_count":  42,
+                             "review_applicability_item_count":  13,
+                             "unknown_review_rule_ids":  [
+
+                                                         ],
+                             "unknown_review_rule_id_count":  0,
+                             "unsupported_detector_ops":  [
+
+                                                          ]
+                         },
+    "report_paths":  {
+                         "html":  "combined_analysis_report.html",
+                         "excel":  [
+                                       "CodeReview_Submission_GoldenTime_20260322_133619_091053.xlsx"
+                                   ],
+                         "reviewed_txt":  [
+                                              "GoldenTime_REVIEWED.txt"
+                                          ]
+                     },
+    "output_dir":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_133619_091053",
+    "request_id":  "13cebba606684b4e9db0ced61f3b5f5f",
+    "errors":  [
+
+               ],
+    "report_jobs":  {
+                        "excel":  {
+                                      "pending_count":  0,
+                                      "running_count":  0,
+                                      "completed_count":  0,
+                                      "failed_count":  0,
+                                      "jobs":  [
+
+                                               ]
+                                  }
+                    },
+    "metrics":  {
+                    "request_id":  "13cebba606684b4e9db0ced61f3b5f5f",
+                    "file_count":  1,
+                    "timings_ms":  {
+                                       "total":  223,
+                                       "collect":  0,
+                                       "convert":  0,
+                                       "mcp_context":  0,
+                                       "analyze":  217,
+                                       "report":  103,
+                                       "report_text":  1,
+                                       "heuristic":  23,
+                                       "ctrlpp":  85,
+                                       "ai":  0,
+                                       "excel_total":  102,
+                                       "excel_copy":  0,
+                                       "excel_load":  37,
+                                       "excel_save":  49,
+                                       "server_total":  224
+                                   },
+                    "llm_calls":  0,
+                    "ctrlpp_calls":  1,
+                    "bytes_read":  10741,
+                    "bytes_written":  32173,
+                    "convert_cache":  {
+                                          "hits":  0,
+                                          "misses":  0
+                                      },
+                    "excel_template_cache":  {
+                                                 "hits":  1,
+                                                 "misses":  0
+                                             },
+                    "per_file":  [
+                                     {
+                                         "file":  "GoldenTime.ctl",
+                                         "display_name":  "GoldenTime.ctl",
+                                         "timings_ms":  {
+                                                            "total":  217,
+                                                            "read":  0,
+                                                            "heuristic":  23,
+                                                            "report":  103,
+                                                            "report_text":  1,
+                                                            "excel_total":  102
+                                                        },
+                                         "p1_groups":  1,
+                                         "p2_count":  43,
+                                         "p3_count":  3,
+                                         "deferred_excel":  false,
+                                         "excel_job_id":  "",
+                                         "excel_metrics":  {
+                                                               "generated":  true,
+                                                               "template_cache_hit":  true,
+                                                               "timings_ms":  {
+                                                                                  "total":  102,
+                                                                                  "copy":  0,
+                                                                                  "load":  37,
+                                                                                  "save":  49
+                                                                              },
+                                                               "output_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_133619_091053\\CodeReview_Submission_GoldenTime_20260322_133619_091053.xlsx"
+                                                           }
+                                     }
+                                 ],
+                    "optional_dependencies":  {
+                                                  "openpyxl":  {
+                                                                   "available":  true,
+                                                                   "required_for":  [
+                                                                                        "excel_report",
+                                                                                        "template_coverage"
+                                                                                    ]
+                                                               }
+                                              }
+                }
+}

@@ -1,0 +1,355 @@
+{
+    "summary":  {
+                    "total":  4,
+                    "critical":  0,
+                    "warning":  3,
+                    "info":  1,
+                    "score":  84,
+                    "p1_total":  4,
+                    "p2_total":  0,
+                    "p3_total":  0,
+                    "requested_file_count":  1,
+                    "successful_file_count":  1,
+                    "failed_file_count":  0,
+                    "ctrlpp_preflight_attempted":  false,
+                    "ctrlpp_preflight_ready":  false,
+                    "ctrlpp_preflight_message":  "",
+                    "ctrlpp_preflight_error_code":  "",
+                    "verification_level":  "CORE+REPORT"
+                },
+    "violations":  {
+                       "P1":  [
+                                  {
+                                      "object":  "GoldenTime.ctl",
+                                      "event":  "Global",
+                                      "violations":  [
+                                                         {
+                                                             "issue_id":  "P1-HARD-01-9ad37b192b",
+                                                             "rule_id":  "HARD-01",
+                                                             "rule_item":  "하드코딩 지양",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Medium",
+                                                             "line":  16,
+                                                             "message":  "IP/URL/설정 경로 하드코딩 감지.",
+                                                             "file":  "GoldenTime.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "GoldenTime.ctl",
+                                                                                     "canonical_name":  "GoldenTime.ctl",
+                                                                                     "canonical_file_id":  "GoldenTime.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "GoldenTime.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "GoldenTime.ctl",
+                                                                                     "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "GoldenTime.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "string config_filename = \"config/config.GoldenTime\";",
+                                                                              "matched_lines":  [
+                                                                                                    16
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                                              "display_reason":  "P1 detector matched HARD-01 near line 16."
+                                                                          }
+                                                         },
+                                                         {
+                                                             "issue_id":  "P1-PERF-EV-01-d6c54aeed2",
+                                                             "rule_id":  "PERF-EV-01",
+                                                             "rule_item":  "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Warning",
+                                                             "line":  195,
+                                                             "message":  "루프 내 호출 함수(GoldenTimeCalculation)에서 dpSet 수행 감지: 변경 가드/배치 처리(dpSetWait, dpSetTimed) 권장.",
+                                                             "file":  "GoldenTime.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "GoldenTime.ctl",
+                                                                                     "canonical_name":  "GoldenTime.ctl",
+                                                                                     "canonical_file_id":  "GoldenTime.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "GoldenTime.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "GoldenTime.ctl",
+                                                                                     "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "GoldenTime.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "while(true)",
+                                                                              "matched_lines":  [
+                                                                                                    195
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                                              "display_reason":  "P1 detector matched PERF-EV-01 near line 195."
+                                                                          }
+                                                         },
+                                                         {
+                                                             "issue_id":  "P1-STYLE-IDX-01-ed7ebbec5b",
+                                                             "rule_id":  "STYLE-IDX-01",
+                                                             "rule_item":  "명명 규칙 및 코딩 스타일 준수 확인",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Low",
+                                                             "line":  159,
+                                                             "message":  "인덱스 매직넘버 사용 감지, IDX_* 상수화 권장.",
+                                                             "file":  "GoldenTime.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "GoldenTime.ctl",
+                                                                                     "canonical_name":  "GoldenTime.ctl",
+                                                                                     "canonical_file_id":  "GoldenTime.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "GoldenTime.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "GoldenTime.ctl",
+                                                                                     "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "GoldenTime.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "parsedData[1] = parts[2]; // NLevel DP",
+                                                                              "matched_lines":  [
+                                                                                                    159
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                                              "display_reason":  "P1 detector matched STYLE-IDX-01 near line 159."
+                                                                          }
+                                                         },
+                                                         {
+                                                             "issue_id":  "P1-HARD-03-ccf4cc28a3",
+                                                             "rule_id":  "HARD-03",
+                                                             "rule_item":  "하드코딩 지양",
+                                                             "priority_origin":  "P1",
+                                                             "severity":  "Medium",
+                                                             "line":  298,
+                                                             "message":  "임계 소수값 하드코딩 감지, 상수/설정값 치환 권장.",
+                                                             "file":  "GoldenTime.ctl",
+                                                             "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                                             "file_descriptor":  {
+                                                                                     "requested_name":  "GoldenTime.ctl",
+                                                                                     "canonical_name":  "GoldenTime.ctl",
+                                                                                     "canonical_file_id":  "GoldenTime.ctl",
+                                                                                     "source_kind":  "ctl",
+                                                                                     "display_name":  "GoldenTime.ctl",
+                                                                                     "detected_encoding":  "utf-8-sig",
+                                                                                     "viewer_source":  "source",
+                                                                                     "source_name":  "GoldenTime.ctl",
+                                                                                     "reviewed_name":  "GoldenTime_REVIEWED.txt"
+                                                                                 },
+                                                             "canonical_file_id":  "GoldenTime.ctl",
+                                                             "evidence":  {
+                                                                              "matched_text":  "float finalUsageToApply = 0.001;",
+                                                                              "matched_lines":  [
+                                                                                                    298
+                                                                                                ],
+                                                                              "detector_kind":  "heuristic",
+                                                                              "canonical_file_id":  "GoldenTime.ctl",
+                                                                              "display_reason":  "P1 detector matched HARD-03 near line 298."
+                                                                          }
+                                                         }
+                                                     ]
+                                  }
+                              ],
+                       "P2":  [
+
+                              ],
+                       "P3":  [
+
+                              ]
+                   },
+    "ai_review_statuses":  [
+                               {
+                                   "status":  "skipped",
+                                   "reason":  "severity_filtered",
+                                   "detail":  "",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-STYLE-IDX-01-ed7ebbec5b",
+                                   "parent_rule_id":  "STYLE-IDX-01",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  159,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Low",
+                                   "message":  "인덱스 매직넘버 사용 감지, IDX_* 상수화 권장."
+                               },
+                               {
+                                   "status":  "generated",
+                                   "reason":  "mock_generated",
+                                   "detail":  "",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-HARD-01-9ad37b192b",
+                                   "parent_rule_id":  "HARD-01",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  16,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Medium",
+                                   "message":  "IP/URL/설정 경로 하드코딩 감지.",
+                                   "selected_rank":  1,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "generated",
+                                   "reason":  "mock_generated",
+                                   "detail":  "",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-PERF-EV-01-d6c54aeed2",
+                                   "parent_rule_id":  "PERF-EV-01",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  195,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Warning",
+                                   "message":  "루프 내 호출 함수(GoldenTimeCalculation)에서 dpSet 수행 감지: 변경 가드/배치 처리(dpSetWait, dpSetTimed) 권장.",
+                                   "selected_rank":  2,
+                                   "selected_cap":  3
+                               },
+                               {
+                                   "status":  "generated",
+                                   "reason":  "mock_generated",
+                                   "detail":  "",
+                                   "parent_source":  "P1",
+                                   "parent_issue_id":  "P1-HARD-03-ccf4cc28a3",
+                                   "parent_rule_id":  "HARD-03",
+                                   "parent_file":  "GoldenTime.ctl",
+                                   "parent_file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "parent_line":  298,
+                                   "file":  "GoldenTime.ctl",
+                                   "file_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\GoldenTime.ctl",
+                                   "object":  "GoldenTime.ctl",
+                                   "event":  "Global",
+                                   "severity":  "Medium",
+                                   "message":  "임계 소수값 하드코딩 감지, 상수/설정값 치환 권장.",
+                                   "selected_rank":  3,
+                                   "selected_cap":  3
+                               }
+                           ],
+    "p1_config_health":  {
+                             "mode":  "configured",
+                             "degraded":  false,
+                             "reason_codes":  [
+
+                                              ],
+                             "reason_text":  "",
+                             "total_rule_count":  43,
+                             "enabled_rule_count":  42,
+                             "review_applicability_item_count":  13,
+                             "unknown_review_rule_ids":  [
+
+                                                         ],
+                             "unknown_review_rule_id_count":  0,
+                             "unsupported_detector_ops":  [
+
+                                                          ]
+                         },
+    "report_paths":  {
+                         "html":  "combined_analysis_report.html",
+                         "excel":  [
+                                       "CodeReview_Submission_GoldenTime_20260322_133618_971448.xlsx"
+                                   ],
+                         "reviewed_txt":  [
+                                              "GoldenTime_REVIEWED.txt"
+                                          ]
+                     },
+    "output_dir":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_133618_971448",
+    "request_id":  "f8d0722c93c64187963d4ea84cc8416c",
+    "errors":  [
+
+               ],
+    "report_jobs":  {
+                        "excel":  {
+                                      "pending_count":  0,
+                                      "running_count":  0,
+                                      "completed_count":  0,
+                                      "failed_count":  0,
+                                      "jobs":  [
+
+                                               ]
+                                  }
+                    },
+    "metrics":  {
+                    "request_id":  "f8d0722c93c64187963d4ea84cc8416c",
+                    "file_count":  1,
+                    "timings_ms":  {
+                                       "total":  115,
+                                       "collect":  0,
+                                       "convert":  0,
+                                       "mcp_context":  0,
+                                       "analyze":  111,
+                                       "report":  81,
+                                       "report_text":  0,
+                                       "heuristic":  28,
+                                       "ctrlpp":  0,
+                                       "ai":  0,
+                                       "excel_total":  80,
+                                       "excel_copy":  0,
+                                       "excel_load":  30,
+                                       "excel_save":  46,
+                                       "server_total":  115
+                                   },
+                    "llm_calls":  0,
+                    "ctrlpp_calls":  0,
+                    "bytes_read":  10741,
+                    "bytes_written":  30582,
+                    "convert_cache":  {
+                                          "hits":  0,
+                                          "misses":  0
+                                      },
+                    "excel_template_cache":  {
+                                                 "hits":  1,
+                                                 "misses":  0
+                                             },
+                    "per_file":  [
+                                     {
+                                         "file":  "GoldenTime.ctl",
+                                         "display_name":  "GoldenTime.ctl",
+                                         "timings_ms":  {
+                                                            "total":  110,
+                                                            "read":  0,
+                                                            "heuristic":  28,
+                                                            "report":  81,
+                                                            "report_text":  0,
+                                                            "excel_total":  80
+                                                        },
+                                         "p1_groups":  1,
+                                         "p2_count":  0,
+                                         "p3_count":  3,
+                                         "deferred_excel":  false,
+                                         "excel_job_id":  "",
+                                         "excel_metrics":  {
+                                                               "generated":  true,
+                                                               "template_cache_hit":  true,
+                                                               "timings_ms":  {
+                                                                                  "total":  80,
+                                                                                  "copy":  0,
+                                                                                  "load":  30,
+                                                                                  "save":  46
+                                                                              },
+                                                               "output_path":  "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_133618_971448\\CodeReview_Submission_GoldenTime_20260322_133618_971448.xlsx"
+                                                           }
+                                     }
+                                 ],
+                    "optional_dependencies":  {
+                                                  "openpyxl":  {
+                                                                   "available":  true,
+                                                                   "required_for":  [
+                                                                                        "excel_report",
+                                                                                        "template_coverage"
+                                                                                    ]
+                                                               }
+                                              }
+                }
+}
