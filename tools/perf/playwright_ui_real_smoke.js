@@ -331,6 +331,7 @@ async function readSmokeUiState(page) {
   return page.evaluate(() => {
     const textOf = (id) => String((document.getElementById(id)?.textContent) || "").trim();
     const resultRows = Array.from(document.querySelectorAll("#result-body tr.result-item-row"));
+    const unknownRuleRowCount = resultRows.filter((row) => /\bUNKNOWN\b/i.test(String(row.innerText || ""))).length;
     const selectedFiles = Array.from(document.querySelectorAll("#file-list input[data-file]:checked"))
       .map((node) => String(node.getAttribute("data-file") || ""));
     const diagnostics = (window.__rendererDiagnostics && typeof window.__rendererDiagnostics === "object")
@@ -345,6 +346,7 @@ async function readSmokeUiState(page) {
       file_list_selected_count: selectedFiles.length,
       file_list_selected_files: selectedFiles,
       result_row_count: resultRows.length,
+      unknown_rule_row_count: unknownRuleRowCount,
       review_target_count: reviewTargetCount,
       result_empty_text: String(document.querySelector("#result-body .result-empty-state")?.textContent || "").trim(),
       total_issues: textOf("total-issues"),
@@ -724,6 +726,7 @@ async function readAiComparePrepareState(page) {
     const meta = String((document.getElementById("autofix-diff-modal-meta")?.innerText) || "").trim();
     const summary = String((document.getElementById("autofix-diff-modal-summary")?.innerText) || "").trim();
     const diffText = String((document.getElementById("autofix-diff-modal-text")?.innerText) || "").trim();
+    const applyButton = document.getElementById("btn-ai-source-apply");
     const candidateButtons = Array.from(document.querySelectorAll("#autofix-diff-modal-candidates button")).map((btn) => ({
       label: String(btn.innerText || "").trim(),
       active: btn.classList.contains("diff-modal-candidate-active"),
@@ -757,6 +760,10 @@ async function readAiComparePrepareState(page) {
       contains_arrow_marker: /=>/.test(diffText),
       contains_placeholder_system_obj: /System1:Obj1/i.test(diffText),
       contains_real_dp_names: distinctRealDpNames.length >= 2,
+      apply_button_present: !!applyButton,
+      apply_button_disabled: !!applyButton && !!applyButton.disabled,
+      apply_button_text: String((applyButton && applyButton.innerText) || "").trim(),
+      apply_blocked_reason: String((applyButton && applyButton.title) || "").replace(/^Blocked:\s*/i, "").trim(),
     };
   });
 }
@@ -775,6 +782,10 @@ async function runAiComparePrepareSmoke(page, { timeoutMs }) {
     contains_arrow_marker: false,
     contains_placeholder_system_obj: false,
     contains_real_dp_names: false,
+    apply_button_present: false,
+    apply_button_disabled: false,
+    apply_button_text: "",
+    apply_blocked_reason: "",
     skipped_reason: "",
     before: null,
     after: null,
@@ -875,7 +886,32 @@ async function runAiComparePrepareSmoke(page, { timeoutMs }) {
   result.contains_arrow_marker = !!(result.after && result.after.contains_arrow_marker);
   result.contains_placeholder_system_obj = !!(result.after && result.after.contains_placeholder_system_obj);
   result.contains_real_dp_names = !!(result.after && result.after.contains_real_dp_names);
+  result.apply_button_present = !!(result.after && result.after.apply_button_present);
+  result.apply_button_disabled = !!(result.after && result.after.apply_button_disabled);
+  result.apply_button_text = String((result.after && result.after.apply_button_text) || "");
+  result.apply_blocked_reason = String((result.after && result.after.apply_blocked_reason) || "");
   return result;
+}
+
+async function closeAiCompareModal(page, { timeoutMs }) {
+  const visible = await page.evaluate(() => {
+    const modal = document.getElementById("autofix-diff-modal");
+    return !!modal && !modal.classList.contains("hidden");
+  });
+  if (!visible) return;
+  const closeButton = page.locator("#autofix-diff-modal-close");
+  if (await closeButton.count()) {
+    await closeButton.click({ timeout: Math.min(timeoutMs, 15000) });
+  } else {
+    await page.keyboard.press("Escape");
+  }
+  await page.waitForFunction(
+    () => {
+      const modal = document.getElementById("autofix-diff-modal");
+      return !modal || modal.classList.contains("hidden");
+    },
+    { timeout: Math.min(timeoutMs, 15000) },
+  );
 }
 
 async function selectSmokeTarget(page, preferredFile) {
@@ -887,8 +923,13 @@ async function selectSmokeTarget(page, preferredFile) {
     if (!target) {
       return { selectedFile: "", availableCount: 0 };
     }
-    all.forEach((node) => { node.checked = false; });
-    target.checked = true;
+    all.forEach((node) => {
+      const nextChecked = node === target;
+      if (node.checked === nextChecked) return;
+      node.checked = nextChecked;
+      node.dispatchEvent(new Event("change", { bubbles: true }));
+      node.dispatchEvent(new Event("input", { bubbles: true }));
+    });
     return {
       selectedFile: target.getAttribute("data-file") || "",
       availableCount: all.length,
@@ -1178,6 +1219,7 @@ async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates
   if (withLiveAiComparePrepare) {
     if (aiOnDemand.clicked && aiOnDemand.completed) {
       aiComparePrepare = await runAiComparePrepareSmoke(page, { timeoutMs });
+      await closeAiCompareModal(page, { timeoutMs });
     } else {
       aiComparePrepare = {
         ...aiComparePrepare,
@@ -1369,6 +1411,15 @@ async function main() {
     const aiAttempted = !!(report.run.aiOnDemand && report.run.aiOnDemand.attempted);
     const aiFlowHealthy = !aiAttempted || !!(report.run.aiOnDemand.clicked && report.run.aiOnDemand.completed);
     const aiComparePrepare = report.run.aiComparePrepare || {};
+    const aiComparePrepareUnsafe =
+      !!aiComparePrepare.contains_obj_auto_sel
+      || !!aiComparePrepare.contains_arrow_marker
+      || !!aiComparePrepare.contains_placeholder_system_obj
+      || !aiComparePrepare.contains_real_dp_names;
+    const aiComparePrepareConservativelyBlocked =
+      !!aiComparePrepare.apply_button_present
+      && !!aiComparePrepare.apply_button_disabled
+      && !!aiComparePrepare.apply_blocked_reason;
     const aiComparePrepareHealthy =
       !opts.withLiveAiComparePrepare
       || (
@@ -1376,10 +1427,10 @@ async function main() {
         && (!!aiComparePrepare.prepare_clicked || !!(aiComparePrepare.before && aiComparePrepare.before.patch_ready))
         && !!aiComparePrepare.patch_ready
         && !!aiComparePrepare.unified_view_opened
-        && !aiComparePrepare.contains_obj_auto_sel
-        && !aiComparePrepare.contains_arrow_marker
-        && !aiComparePrepare.contains_placeholder_system_obj
-        && !!aiComparePrepare.contains_real_dp_names
+        && (
+          (!aiComparePrepareUnsafe)
+          || aiComparePrepareConservativelyBlocked
+        )
       );
     const excelAttempted = !!(report.run.excelOnDemand && report.run.excelOnDemand.attempted);
     const excelSkipped = !!(report.run.excelOnDemand && report.run.excelOnDemand.skipped_reason);

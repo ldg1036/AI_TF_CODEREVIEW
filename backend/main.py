@@ -173,6 +173,7 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
         file_started = self._perf_now()
         active_reporter = reporter or self.reporter
         filename = os.path.basename(target)
+        display_name = self._normalized_name_for_source(filename)
         file_type = self.infer_file_type(filename)
         logger.info("Analyzing: %s", filename)
 
@@ -187,8 +188,15 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
         emit_progress("read_source")
 
         read_started = self._perf_now()
-        with open(target, "r", encoding="utf-8", errors="ignore") as handle:
-            code_content = handle.read()
+        code_content, detected_encoding = self.input_normalizer.read_text_file(target)
+        file_descriptor = self._build_file_descriptor(
+            filename,
+            resolved_name=filename,
+            detected_encoding=detected_encoding,
+            viewer_source="source" if file_type == "Server" else self._default_viewer_source(filename),
+            display_name=display_name,
+        )
+        canonical_file_id = str(file_descriptor.get("canonical_file_id", "") or display_name or filename)
         read_ms = self._elapsed_ms(read_started)
         self._metrics_inc(metrics, "bytes_read", len(code_content.encode("utf-8", errors="ignore")))
 
@@ -201,8 +209,10 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
         for group in internal_violations or []:
             for violation in (group.get("violations") or []):
                 if isinstance(violation, dict):
-                    violation.setdefault("file", filename)
+                    violation.setdefault("file", display_name)
                     violation.setdefault("file_path", os.path.normpath(str(target)))
+                    violation.setdefault("file_descriptor", dict(file_descriptor))
+                    violation.setdefault("canonical_file_id", canonical_file_id)
 
         global_violations = []
         use_ctrlpp = False
@@ -215,14 +225,16 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
                 global_violations = self.ctrl_tool.run_check(target, code_content, enabled=use_ctrlpp)
             for violation in global_violations or []:
                 if isinstance(violation, dict):
-                    violation.setdefault("file", filename)
+                    violation.setdefault("file", display_name)
                     violation.setdefault("file_path", os.path.normpath(str(target)))
+                    violation.setdefault("file_descriptor", dict(file_descriptor))
+                    violation.setdefault("canonical_file_id", canonical_file_id)
             self._metrics_add_timing(metrics, "ctrlpp", self._elapsed_ms(ctrl_started))
             if use_ctrlpp:
                 self._metrics_inc(metrics, "ctrlpp_calls", 1)
 
         file_report = {
-            "file": filename,
+            "file": display_name,
             "source_code": code_content,
             "internal_violations": internal_violations,
             "global_violations": global_violations,
@@ -297,7 +309,7 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
                         pool.submit(
                             self._run_live_ai_review_for_context,
                             code_content,
-                            filename,
+                            display_name,
                             context_item,
                             ai_with_context=bool(ai_with_context),
                             context_payload=context_payload,
@@ -327,7 +339,7 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
                     file_report["ai_reviews"].append(
                         {
                             "file": str(context_item.get("file", filename) or filename),
-                            "object": str(context_item.get("object", filename) or filename),
+                            "object": str(context_item.get("object", display_name) or display_name),
                             "event": str(context_item.get("event", "Global") or "Global"),
                             "review": review,
                             "source": "mock",
@@ -335,14 +347,14 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
                             "parent_source": str(context_item.get("parent_source", "P1") or "P1"),
                             "parent_issue_id": str(context_item.get("parent_issue_id", "") or ""),
                             "parent_rule_id": str(context_item.get("parent_rule_id", "") or ""),
-                            "parent_file": str(context_item.get("parent_file", filename) or filename),
+                            "parent_file": str(context_item.get("parent_file", display_name) or display_name),
                             "parent_line": self._safe_int(context_item.get("parent_line", 0), 0),
                         }
                     )
                     file_report["ai_review_statuses"].append(
                         self._new_ai_review_status_entry(
                             context_item,
-                            filename=filename,
+                            filename=display_name,
                             status="generated",
                             reason="mock_generated",
                         )
@@ -352,14 +364,19 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
         reviewed_name = f"{artifact_stem}_REVIEWED.txt"
         session_key = active_reporter.output_dir
         cache_entry = {
-            "file": filename,
-            "display_name": filename,
+            "file": display_name,
+            "display_name": display_name,
             "artifact_stem": artifact_stem,
             "file_type": file_type,
             "reviewed_name": reviewed_name,
             "source_path": os.path.normpath(str(target)),
+            "canonical_path": os.path.normpath(str(target)),
+            "viewer_source_path": os.path.normpath(str(target)),
             "source_hash": self._sha256_text(code_content),
             "original_content": code_content,
+            "file_descriptor": dict(file_descriptor),
+            "canonical_file_id": canonical_file_id,
+            "detected_encoding": detected_encoding,
             "report_data": json.loads(json.dumps(file_report, ensure_ascii=False)),
             "updated_at": self._iso_now(),
         }
@@ -396,6 +413,7 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
             metrics,
             {
                 "file": filename,
+                "display_name": display_name,
                 "timings_ms": {
                     "total": total_ms,
                     "read": read_ms,

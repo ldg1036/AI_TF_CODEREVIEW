@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from core.ctrl_wrapper import CtrlppWrapper
 from core.heuristic_checker import HeuristicChecker
+from core.input_normalization import InputNormalizer
 from core.llm_reviewer import LLMReviewer
 from core.mcp_context import MCPContextClient
 from core.pnl_parser import PnlParser
@@ -26,6 +27,7 @@ class AppRuntimeMixin:
 
         self.pnl_parser = PnlParser()
         self.xml_parser = XmlParser()
+        self.input_normalizer = InputNormalizer()
         self.checker = HeuristicChecker()
         self.ctrl_tool = CtrlppWrapper()
         self.reporter = Reporter()

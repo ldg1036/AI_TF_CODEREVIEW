@@ -1,5 +1,6 @@
 import {
     basenamePath,
+    canonicalFileId,
     fileIdentityKey,
     inferRuleIdFromReviewedBlock,
     messageSearchToken,
@@ -8,7 +9,7 @@ import {
     p1RulePrefixGroup,
     positiveLineOrZero,
     sameFileIdentity,
-    violationDisplayFile,
+    violationCanonicalFileId,
     violationResolvedFile,
 } from "./utils.js";
 
@@ -49,31 +50,18 @@ function buildFlattenedP1Items(p1Groups) {
             violation.priority_origin = violation.priority_origin || "P1";
             const flatKey = String(
                 violation.issue_id
-                || `${violationDisplayFile(violation, group.object)}:${positiveLineOrZero(violation.line)}:${String(violation.rule_id || "")}:${index}`,
+                || `${violationCanonicalFileId(violation, group.object)}:${positiveLineOrZero(violation.line)}:${String(violation.rule_id || "")}:${index}`,
             );
             flattened.push({
                 flatKey,
                 violation,
                 eventName: String(group.event || "Global"),
                 rowObject: group.object,
-                fileKey: violationResolvedFile(violation, group.object),
+                fileKey: violationCanonicalFileId(violation, group.object),
             });
         });
     });
     return flattened;
-}
-
-function buildRuleSeverityById(flattenedP1, pickHigherSeverity) {
-    const result = new Map();
-    flattenedP1.forEach((item) => {
-        const ruleId = normalizeP1RuleId(item && item.violation && item.violation.rule_id);
-        if (!ruleId || ruleId === "UNKNOWN") return;
-        const current = String(item && item.violation && item.violation.severity || "").trim();
-        if (!current) return;
-        const previous = String(result.get(ruleId) || "").trim();
-        result.set(ruleId, previous ? pickHigherSeverity(previous, current) : current);
-    });
-    return result;
 }
 
 function buildReviewedIndexes(flattenedP1) {
@@ -86,10 +74,10 @@ function buildReviewedIndexes(flattenedP1) {
             byIssueId.get(issueId).push(item);
         }
         const secondaryKey = [
-            fileIdentityKey(item.fileKey),
+            item.fileKey,
             positiveLineOrZero(item.violation.line),
             normalizeP1RuleId(item.violation.rule_id),
-            String(item.violation.message || "").trim(),
+            normalizeReviewedMessageKey(item.violation.message),
         ].join("||");
         if (!bySecondary.has(secondaryKey)) bySecondary.set(secondaryKey, []);
         bySecondary.get(secondaryKey).push(item);
@@ -97,23 +85,13 @@ function buildReviewedIndexes(flattenedP1) {
     return { byIssueId, bySecondary };
 }
 
-function resolveReviewedSeverity(ruleSeverityById, blockSeverity, effectiveRuleId) {
-    const byRule = String(ruleSeverityById.get(normalizeP1RuleId(effectiveRuleId)) || "").trim();
-    if (byRule) return byRule;
-    const byBlock = String(blockSeverity || "").trim();
-    return byBlock || "Info";
-}
-
 function isGroupedRuleConflict(effectiveRuleId, itemRule) {
-    const isDpGetVsGetMultiConflict = (
+    return (
         (effectiveRuleId === "PERF-DPGET-BATCH-01" && itemRule === "PERF-GETMULTIVALUE-ADOPT-01")
         || (effectiveRuleId === "PERF-GETMULTIVALUE-ADOPT-01" && itemRule === "PERF-DPGET-BATCH-01")
-    );
-    const isDpSetVsSetMultiConflict = (
-        (effectiveRuleId === "PERF-DPSET-BATCH-01" && itemRule === "PERF-SETMULTIVALUE-ADOPT-01")
+        || (effectiveRuleId === "PERF-DPSET-BATCH-01" && itemRule === "PERF-SETMULTIVALUE-ADOPT-01")
         || (effectiveRuleId === "PERF-SETMULTIVALUE-ADOPT-01" && itemRule === "PERF-DPSET-BATCH-01")
     );
-    return isDpGetVsGetMultiConflict || isDpSetVsSetMultiConflict;
 }
 
 function sortMatchedItemsByCanonicalFit(items, effectiveRuleId, lineNo, blockMessage) {
@@ -146,19 +124,14 @@ function sortMatchedItemsByCanonicalFit(items, effectiveRuleId, lineNo, blockMes
     });
 }
 
-function buildReviewedCandidateFileKeys(reviewedFile, metaFile) {
-    const rawCandidates = [metaFile, reviewedFile];
-    const reviewedBase = basenamePath(reviewedFile);
-    if (reviewedBase) {
-        rawCandidates.push(reviewedBase);
-        if (/_reviewed\.txt$/i.test(reviewedBase)) {
-            rawCandidates.push(reviewedBase.replace(/_reviewed\.txt$/i, ".ctl"));
-        }
-        if (/\.txt$/i.test(reviewedBase) && !/\.ctl$/i.test(reviewedBase)) {
-            rawCandidates.push(reviewedBase.replace(/\.txt$/i, ".ctl"));
-        }
-    }
-    return Array.from(new Set(rawCandidates.map((value) => fileIdentityKey(value)).filter(Boolean)));
+function buildReviewedCandidateFileKeys(reviewedFile, metaFile, blockCanonicalFileId = "") {
+    return Array.from(
+        new Set(
+            [blockCanonicalFileId, metaFile, reviewedFile, basenamePath(metaFile), basenamePath(reviewedFile)]
+                .map((value) => canonicalFileId(value))
+                .filter(Boolean),
+        ),
+    );
 }
 
 function matchesCandidateFileKeys(itemFileKey, candidateFileKeys) {
@@ -168,14 +141,13 @@ function matchesCandidateFileKeys(itemFileKey, candidateFileKeys) {
 
 export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pickHigherSeverity }) {
     const flattenedP1 = buildFlattenedP1Items(p1Groups);
-    const ruleSeverityById = buildRuleSeverityById(flattenedP1, pickHigherSeverity);
     const { byIssueId, bySecondary } = buildReviewedIndexes(flattenedP1);
     const mappingDiagnostics = {
         violation_total: flattenedP1.length,
         violation_unknown_rule_count: 0,
         violation_cfg_rule_count: 0,
         violation_cfg_alias_mapped_count: 0,
-        violation_cfg_alias_unmapped_ids: new Set(),
+        violation_cfg_alias_unmapped_ids: [],
         reviewed_block_total: 0,
         reviewed_unknown_rule_count: 0,
         reviewed_unknown_with_no_line_count: 0,
@@ -195,20 +167,21 @@ export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pic
         if (!rawRuleId || normalizedRuleId === "UNKNOWN") mappingDiagnostics.violation_unknown_rule_count += 1;
         if (/^cfg-/i.test(rawRuleId)) {
             mappingDiagnostics.violation_cfg_rule_count += 1;
-            if (normalizedRuleId !== rawRuleId.toUpperCase()) mappingDiagnostics.violation_cfg_alias_mapped_count += 1;
-            else mappingDiagnostics.violation_cfg_alias_unmapped_ids.add(rawRuleId);
+            if (normalizedRuleId !== rawRuleId.toUpperCase()) {
+                mappingDiagnostics.violation_cfg_alias_mapped_count += 1;
+            } else {
+                mappingDiagnostics.violation_cfg_alias_unmapped_ids.push(rawRuleId);
+            }
         }
     });
+    mappingDiagnostics.violation_cfg_alias_unmapped_ids = Array.from(new Set(mappingDiagnostics.violation_cfg_alias_unmapped_ids)).sort();
 
     const rowPlans = [];
     const usedFlatKeys = new Set();
     let syncedCount = 0;
     let reviewOnlyCount = 0;
-    const reviewOnlyGrouped = new Map();
 
-    const cacheEntries = reviewedTodoCacheByFile instanceof Map
-        ? reviewedTodoCacheByFile.entries()
-        : [];
+    const cacheEntries = reviewedTodoCacheByFile instanceof Map ? reviewedTodoCacheByFile.entries() : [];
     for (const [reviewedFile, blocks] of cacheEntries) {
         const fileBlocks = Array.isArray(blocks) ? blocks : [];
         mappingDiagnostics.reviewed_block_total += fileBlocks.length;
@@ -227,10 +200,16 @@ export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pic
                 mappingDiagnostics.reviewed_unknown_rule_count += 1;
                 if (lineNo <= 0) mappingDiagnostics.reviewed_unknown_with_no_line_count += 1;
             }
+
             const effectiveRuleId = normalizedRuleId !== "UNKNOWN" ? normalizedRuleId : inferredRuleId;
             const blockMessage = String(block.message || "").trim();
-            const candidateFileKeys = buildReviewedCandidateFileKeys(reviewedFile, meta.file || reviewedFile);
-            const secondaryKeys = candidateFileKeys.map((fileKey) => [fileKey, lineNo, effectiveRuleId, blockMessage].join("||"));
+            const candidateFileKeys = buildReviewedCandidateFileKeys(reviewedFile, meta.file || reviewedFile, block.canonical_file_id || meta.canonical_file_id);
+            const secondaryKeys = candidateFileKeys.map((fileKey) => [
+                fileKey,
+                lineNo,
+                effectiveRuleId,
+                normalizeReviewedMessageKey(blockMessage),
+            ].join("||"));
 
             let matched = [];
             let matchedReason = "";
@@ -246,17 +225,6 @@ export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pic
                         matchedReason = "secondary_exact";
                         break;
                     }
-                }
-                if (!matched.length) {
-                    matched = flattenedP1.filter((item) => {
-                        if (usedFlatKeys.has(item.flatKey)) return false;
-                        if (!matchesCandidateFileKeys(item.fileKey, candidateFileKeys)) return false;
-                        if (lineNo > 0 && positiveLineOrZero(item.violation.line) !== lineNo) return false;
-                        if (effectiveRuleId !== "UNKNOWN" && normalizeP1RuleId(item.violation.rule_id) !== effectiveRuleId) return false;
-                        if (blockMessage && String(item.violation.message || "").trim() !== blockMessage) return false;
-                        return true;
-                    });
-                    if (matched.length) matchedReason = "secondary_fuzzy_file";
                 }
             }
             if (!matched.length && effectiveRuleId !== "UNKNOWN" && candidateFileKeys.length) {
@@ -296,127 +264,61 @@ export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pic
             }
 
             if (matched.length) {
-                matched = sortMatchedItemsByCanonicalFit(matched, effectiveRuleId, lineNo, blockMessage);
-                matched.forEach((item) => usedFlatKeys.add(item.flatKey));
-                const top = matched[0];
-                const backendRuleId = String((top && top.violation && top.violation.rule_id) || "").trim();
-                const backendSeverity = String((top && top.violation && top.violation.severity) || "").trim();
-                const representative = {
-                    ...top.violation,
-                    file: top.violation.file || reviewedFile,
-                    file_path: top.violation.file_path || top.violation.file || reviewedFile,
-                    object: top.violation.object || top.rowObject || reviewedFile,
-                    message: top.violation.message || blockMessage,
-                    line: positiveLineOrZero(top.violation.line) || lineNo || positiveLineOrZero(block.todo_line),
-                    rule_id: backendRuleId || effectiveRuleId || ruleId,
-                    issue_id: top.violation.issue_id || issueId,
-                    severity: backendSeverity || block.severity || "Info",
-                    _reviewed_todo_line: positiveLineOrZero(block.todo_line),
-                    _reviewed_block_indexes: [idx + 1],
-                    _reviewed_original_message: blockMessage || "",
-                };
-                if (
-                    normalizeReviewedMessageKey(blockMessage)
-                    && normalizeReviewedMessageKey(top.violation.message || "")
-                    && normalizeReviewedMessageKey(blockMessage) !== normalizeReviewedMessageKey(top.violation.message || "")
-                ) {
-                    mappingDiagnostics.synced_message_mismatch_count += 1;
-                    if (mappingDiagnostics.synced_rule_message_conflict_samples.length < 10) {
-                        mappingDiagnostics.synced_rule_message_conflict_samples.push({
-                            file: basenamePath(top.violation.file || reviewedFile),
-                            line: positiveLineOrZero(top.violation.line),
-                            rule_id: normalizeP1RuleId(top.violation.rule_id),
-                            violation_message: String(top.violation.message || ""),
-                            reviewed_message: String(blockMessage || ""),
-                        });
+                const sortedMatched = sortMatchedItemsByCanonicalFit(matched, effectiveRuleId, lineNo, blockMessage);
+                sortedMatched.forEach((item) => usedFlatKeys.add(item.flatKey));
+                sortedMatched.forEach((item) => {
+                    const violation = item && item.violation && typeof item.violation === "object" ? item.violation : {};
+                    if (
+                        normalizeReviewedMessageKey(blockMessage)
+                        && normalizeReviewedMessageKey(violation.message || "")
+                        && normalizeReviewedMessageKey(blockMessage) !== normalizeReviewedMessageKey(violation.message || "")
+                    ) {
+                        mappingDiagnostics.synced_message_mismatch_count += 1;
+                        if (mappingDiagnostics.synced_rule_message_conflict_samples.length < 10) {
+                            mappingDiagnostics.synced_rule_message_conflict_samples.push({
+                                file: basenamePath(violation.file || reviewedFile),
+                                line: positiveLineOrZero(violation.line),
+                                rule_id: normalizeP1RuleId(violation.rule_id),
+                                violation_message: String(violation.message || ""),
+                                reviewed_message: String(blockMessage || ""),
+                            });
+                        }
                     }
-                }
-                rowPlans.push({
-                    baseViolation: representative,
-                    eventName: top.eventName || "Global",
-                    syncState: "synced",
-                    originLabel: "mixed",
-                    matchedItems: matched,
-                    overrideMessage: "",
-                    syncReason: matchedReason,
+                    rowPlans.push({
+                        baseViolation: {
+                            ...violation,
+                            file: violation.file || reviewedFile,
+                            file_path: violation.file_path || violation.file || reviewedFile,
+                            object: violation.object || item.rowObject || reviewedFile,
+                            message: violation.message || blockMessage,
+                            line: positiveLineOrZero(violation.line) || lineNo || positiveLineOrZero(block.todo_line),
+                            rule_id: String(violation.rule_id || effectiveRuleId || ruleId || "").trim(),
+                            issue_id: String(violation.issue_id || issueId || "").trim(),
+                            severity: String(violation.severity || block.severity || "Info").trim() || "Info",
+                            _reviewed_todo_line: positiveLineOrZero(block.todo_line),
+                            _reviewed_block_indexes: [idx + 1],
+                            _reviewed_original_message: blockMessage || "",
+                            _matched_group_size: sortedMatched.length,
+                            _reviewed_sync_canonical_file_id: item.fileKey,
+                        },
+                        eventName: item.eventName || "Global",
+                        syncState: "synced",
+                        originLabel: "mixed",
+                        matchedItems: [item],
+                        overrideMessage: "",
+                        syncReason: matchedReason,
+                    });
+                    syncedCount += 1;
                 });
-                syncedCount += 1;
                 return;
             }
 
-            const localState = issueId ? "review-only" : "partial";
-            const displayMessage = blockMessage || "REVIEWED TODO 항목";
-            const reviewFile = basenamePath(meta.file || reviewedFile);
-            const reviewKey = [fileIdentityKey(reviewFile), normalizeReviewedMessageKey(displayMessage)].join("||");
-            if (!reviewOnlyGrouped.has(reviewKey)) {
-                reviewOnlyGrouped.set(reviewKey, {
-                    file: reviewFile,
-                    message: displayMessage,
-                    severity: resolveReviewedSeverity(ruleSeverityById, block.severity, effectiveRuleId),
-                    lines: [],
-                    todoLines: [],
-                    issueIds: [],
-                    ruleIds: [],
-                    states: new Set(),
-                    blockIndexes: [],
-                });
-            }
-            const grouped = reviewOnlyGrouped.get(reviewKey);
-            grouped.severity = pickHigherSeverity(
-                grouped.severity || "Info",
-                resolveReviewedSeverity(ruleSeverityById, block.severity, effectiveRuleId),
-            );
-            if (lineNo > 0) grouped.lines.push(lineNo);
-            if (positiveLineOrZero(block.todo_line) > 0) grouped.todoLines.push(positiveLineOrZero(block.todo_line));
-            grouped.issueIds.push(issueId || `REVIEW-ONLY-${reviewedFile}-${idx + 1}`);
-            grouped.ruleIds.push(effectiveRuleId || "UNKNOWN");
-            grouped.states.add(localState);
-            grouped.blockIndexes.push(idx + 1);
             reviewOnlyCount += 1;
-            if ((effectiveRuleId || "UNKNOWN") === "UNKNOWN") mappingDiagnostics.reviewed_unknown_after_infer_count += 1;
+            if ((effectiveRuleId || "UNKNOWN") === "UNKNOWN") {
+                mappingDiagnostics.reviewed_unknown_after_infer_count += 1;
+            }
         });
     }
-
-    reviewOnlyGrouped.forEach((grouped) => {
-        const uniqueLines = Array.from(new Set((grouped.lines || []).map((line) => positiveLineOrZero(line)).filter((line) => line > 0))).sort((a, b) => a - b);
-        const uniqueTodoLines = Array.from(new Set((grouped.todoLines || []).map((line) => positiveLineOrZero(line)).filter((line) => line > 0))).sort((a, b) => a - b);
-        const uniqueIssues = Array.from(new Set((grouped.issueIds || []).map((id) => String(id || "").trim()).filter(Boolean)));
-        const uniqueRules = Array.from(new Set((grouped.ruleIds || []).map((id) => String(id || "").trim()).filter(Boolean)));
-        const uniqueBlocks = Array.from(new Set((grouped.blockIndexes || []).map((n) => Number.parseInt(n, 10)).filter((n) => Number.isFinite(n) && n > 0))).sort((a, b) => a - b);
-        mappingDiagnostics.review_only_grouped_row_count += 1;
-        mappingDiagnostics.review_only_grouped_collapsed_count += Math.max(0, uniqueIssues.length - 1);
-        const synthetic = {
-            priority_origin: "P1",
-            issue_id: uniqueIssues[0] || `REVIEW-ONLY-${grouped.file || "UNKNOWN"}-1`,
-            rule_id: uniqueRules[0] || "UNKNOWN",
-            severity: grouped.severity || "Info",
-            message: grouped.message || "REVIEWED TODO 항목",
-            file: grouped.file || "",
-            object: grouped.file || "Global",
-            line: uniqueLines[0] || 0,
-            _grouping_mode: "review_only_message",
-            _group_rule_ids: uniqueRules,
-            _group_messages: [grouped.message || "REVIEWED TODO 항목"],
-            _group_issue_ids: uniqueIssues,
-            _duplicate_count: Math.max(1, uniqueIssues.length),
-            _duplicate_lines: uniqueLines,
-            _primary_line: uniqueLines[0] || 0,
-            _reviewed_todo_line: uniqueTodoLines[0] || 0,
-            _reviewed_todo_lines: uniqueTodoLines,
-            _reviewed_original_message: grouped.message || "REVIEWED TODO 항목",
-            _reviewed_block_indexes: uniqueBlocks,
-        };
-        const localState = grouped.states.has("partial") ? "partial" : "review-only";
-        rowPlans.push({
-            baseViolation: synthetic,
-            eventName: "Global",
-            syncState: localState,
-            originLabel: "reviewed",
-            matchedItems: [],
-            overrideMessage: grouped.message || "REVIEWED TODO 항목",
-            syncReason: "review_only",
-        });
-    });
 
     const leftoverItems = flattenedP1.filter((item) => !usedFlatKeys.has(item.flatKey));
     leftoverItems.forEach((item) => {
@@ -429,6 +331,7 @@ export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pic
                 line: positiveLineOrZero(item.violation.line),
                 rule_id: String(item.violation.rule_id || "").trim(),
                 severity: String(item.violation.severity || "Info"),
+                _reviewed_sync_canonical_file_id: item.fileKey,
             },
             eventName: item.eventName || "Global",
             syncState: "violation-only",
@@ -444,10 +347,7 @@ export function buildReviewedP1SyncPlan({ p1Groups, reviewedTodoCacheByFile, pic
         leftoverCount: leftoverItems.length,
         syncedCount,
         reviewOnlyCount,
-        mappingDiagnostics: {
-            ...mappingDiagnostics,
-            violation_cfg_alias_unmapped_ids: Array.from(mappingDiagnostics.violation_cfg_alias_unmapped_ids).sort(),
-        },
+        mappingDiagnostics,
     };
 }
 
@@ -459,8 +359,8 @@ function aiStatusMatchesViolation(statusItem, violation, eventName) {
     const parentSource = String(statusItem.parent_source || "").trim().toUpperCase();
     const violationSource = String((violation && violation.priority_origin) || "").trim().toUpperCase();
     if (parentSource && violationSource && parentSource !== violationSource) return false;
-    const parentFile = violationResolvedFile(statusItem);
-    const violationFile = violationResolvedFile(violation);
+    const parentFile = violationCanonicalFileId(statusItem, violationResolvedFile(statusItem));
+    const violationFile = violationCanonicalFileId(violation, violationResolvedFile(violation));
     if (parentFile && violationFile && !sameFileIdentity(parentFile, violationFile)) return false;
     const parentRule = String(statusItem.parent_rule_id || "").trim();
     const violationRule = String((violation && violation.rule_id) || "").trim();
@@ -493,7 +393,7 @@ function findAiLinkedItemForViolation(items, violation, eventName) {
     if (exact) return exact;
     if (!isReviewOnlyLikeViolation(violation)) return null;
 
-    const selectedFile = violationResolvedFile(violation);
+    const selectedFile = violationCanonicalFileId(violation, violationResolvedFile(violation));
     const selectedSource = String((violation && violation.priority_origin) || "").trim().toUpperCase();
     const selectedRule = String((violation && violation.rule_id) || "").trim();
     const selectedEvent = String(eventName || "Global");
@@ -502,7 +402,7 @@ function findAiLinkedItemForViolation(items, violation, eventName) {
 
     const candidates = collection.filter((item) => {
         if (!item || typeof item !== "object") return false;
-        const parentFile = violationResolvedFile(item);
+        const parentFile = violationCanonicalFileId(item, violationResolvedFile(item));
         if (selectedFile && parentFile && !sameFileIdentity(selectedFile, parentFile)) return false;
         const parentSource = String(item.parent_source || "").trim().toUpperCase();
         if (selectedSource && parentSource && selectedSource !== parentSource) return false;
@@ -615,14 +515,14 @@ function collectNearbyP3Candidates({ analysisData, violation, eventName }) {
     const source = String((violation && violation.priority_origin) || "").trim().toUpperCase();
     const selectedRule = String((violation && violation.rule_id) || "").trim();
     const selectedLine = positiveLineOrZero((violation && violation.line) || 0);
-    const selectedFile = violationResolvedFile(violation);
+    const selectedFile = violationCanonicalFileId(violation, violationResolvedFile(violation));
     const selectedEvent = String(eventName || "Global");
     const candidates = Array.isArray(analysisData && analysisData.violations && analysisData.violations.P3)
         ? analysisData.violations.P3
         : [];
     return candidates.filter((item) => {
         if (!item || typeof item !== "object") return false;
-        const parentFile = violationResolvedFile(item);
+        const parentFile = violationCanonicalFileId(item, violationResolvedFile(item));
         if (selectedFile && parentFile && !sameFileIdentity(selectedFile, parentFile)) return false;
         const parentSource = String(item.parent_source || "").trim().toUpperCase();
         if (source && parentSource && source !== parentSource) return false;

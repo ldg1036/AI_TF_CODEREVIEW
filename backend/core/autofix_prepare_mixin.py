@@ -27,6 +27,24 @@ class AutoFixPrepareMixin:
                 errors.append(error_code)
         return errors
 
+    @staticmethod
+    def _ai_review_identifier_reuse_confirmed(source_content: str, code_block: str) -> bool:
+        source_tokens = {
+            str(token or "").lower()
+            for token in re.findall(r"[A-Za-z_][A-Za-z0-9_:.]{2,}", str(source_content or ""))
+        }
+        candidate_tokens = [
+            str(token or "").lower()
+            for token in re.findall(r"[A-Za-z_][A-Za-z0-9_:.]{2,}", str(code_block or ""))
+        ]
+        significant = [
+            token for token in candidate_tokens
+            if token and (("." in token) or (":" in token) or ("_" in token) or len(token) >= 6)
+        ]
+        if not significant:
+            return False
+        return any(token in source_tokens for token in significant)
+
     def _find_matching_ai_review(self, report_data: Dict, object_name: str, event_name: str, review_text: str, issue_id: str = ""):
         target_obj = str(object_name or "")
         target_event = str(event_name or "Global")
@@ -108,6 +126,7 @@ class AutoFixPrepareMixin:
         if not str(code_block).strip():
             raise ValueError("AI review does not contain a code block for autofix")
         quality_errors = self._ai_review_code_block_quality_errors(source_content, code_block)
+        identifier_reuse_confirmed = self._ai_review_identifier_reuse_confirmed(source_content, code_block)
 
         reference_line = source_lines[insert_at - 1] if 0 <= (insert_at - 1) < len(source_lines) else ""
         indent = self._line_indent(reference_line)
@@ -154,6 +173,8 @@ class AutoFixPrepareMixin:
                 "heuristic_regression_count": 0,
                 "ctrlpp_regression_count": 0,
                 "errors": list(quality_errors),
+                "blocking_errors": list(quality_errors),
+                "identifier_reuse_confirmed": bool(identifier_reuse_confirmed),
             },
             llm_meta=llm_meta,
             extra_private_fields={
@@ -286,6 +307,8 @@ class AutoFixPrepareMixin:
                 "heuristic_regression_count": 0,
                 "ctrlpp_regression_count": 0,
                 "errors": [],
+                "blocking_errors": [],
+                "identifier_reuse_confirmed": True,
             },
             extra_private_fields={
                 "_object": str(object_name or ""),

@@ -164,6 +164,8 @@ class AutoFixProposalMixin:
             "heuristic_regression_count": self._safe_int(preview.get("heuristic_regression_count", 0), 0),
             "ctrlpp_regression_count": self._safe_int(preview.get("ctrlpp_regression_count", 0), 0),
             "errors": list(preview.get("errors", []) or []),
+            "blocking_errors": list(preview.get("blocking_errors", preview.get("errors", [])) or []),
+            "identifier_reuse_confirmed": bool(preview.get("identifier_reuse_confirmed", True)),
         }
         quality_preview_payload = self._new_autofix_quality_metrics(
             proposal_id=proposal_id,
@@ -176,6 +178,8 @@ class AutoFixProposalMixin:
             applied=False,
             rejected_reason="",
             validation_errors=list(preview.get("errors", []) or []),
+            blocking_errors=list(preview.get("blocking_errors", []) or []),
+            identifier_reuse_confirmed=bool(preview.get("identifier_reuse_confirmed", True)),
         )
         proposal = {
             "proposal_id": proposal_id,
@@ -241,9 +245,42 @@ class AutoFixProposalMixin:
             new_text += "\n"
         return new_text, stats
 
+    def _proposal_apply_gate(self, proposal: Dict) -> Tuple[bool, str]:
+        if not isinstance(proposal, dict):
+            return False, "proposal_missing"
+        preview = proposal.get("instruction_preview", {}) if isinstance(proposal.get("instruction_preview", {}), dict) else {}
+        if not preview:
+            preview = self._instruction_preview_for_proposal(proposal, str(proposal.get("file", "") or ""))
+        quality = proposal.get("quality_preview", {}) if isinstance(proposal.get("quality_preview", {}), dict) else {}
+        validation_errors = [
+            str(item or "").strip()
+            for item in (quality.get("validation_errors", []) or [])
+            if str(item or "").strip()
+        ]
+        blocking_errors = [
+            str(item or "").strip()
+            for item in (quality.get("blocking_errors", []) or [])
+            if str(item or "").strip()
+        ]
+        if not bool(preview.get("valid", False)):
+            return False, "instruction_validation_failed"
+        if not bool(quality.get("syntax_check_passed", True)):
+            return False, "syntax_check_failed"
+        if blocking_errors:
+            return False, blocking_errors[0]
+        if validation_errors:
+            return False, validation_errors[0]
+        if not bool(quality.get("identifier_reuse_confirmed", True)):
+            return False, "identifier_reuse_not_confirmed"
+        return True, ""
+
     def _proposal_public_view(self, proposal: Dict) -> Dict:
         if not isinstance(proposal, dict):
             return {}
+        instruction_preview = proposal.get("instruction_preview", {}) if isinstance(proposal.get("instruction_preview", {}), dict) else {}
+        if not instruction_preview:
+            instruction_preview = self._instruction_preview_for_proposal(proposal, str(proposal.get("file", "") or ""))
+        can_apply, blocked_reason = self._proposal_apply_gate({**proposal, "instruction_preview": instruction_preview})
         return {
             "proposal_id": proposal.get("proposal_id", ""),
             "session_id": proposal.get("session_id", ""),
@@ -260,9 +297,11 @@ class AutoFixProposalMixin:
             "quality_preview": proposal.get("quality_preview", {}),
             "generator_type": proposal.get("generator_type", "llm"),
             "generator_reason": proposal.get("generator_reason", ""),
-            "instruction_preview": proposal.get("instruction_preview", {}),
+            "instruction_preview": instruction_preview,
             "compare_score": proposal.get("compare_score", {}),
             "selection_reason": proposal.get("selection_reason", ""),
+            "can_apply": bool(can_apply),
+            "blocked_reason": str(blocked_reason or ""),
             "llm_meta": proposal.get("llm_meta", {}),
             "created_at": proposal.get("created_at"),
         }

@@ -1,0 +1,20 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1774109557755,
+  "entries": [
+    {
+      "triage_key": "goldentime.ctl||HARD-01||IP/URL/설정 경로 하드코딩 감지.||16",
+      "status": "suppressed",
+      "reason": "already reviewed in smoke",
+      "note": "triage smoke round trip",
+      "updated_at_ms": 1774109557755,
+      "match": {
+        "file": "GoldenTime.ctl",
+        "line": 16,
+        "rule_id": "HARD-01",
+        "message": "IP/URL/설정 경로 하드코딩 감지.",
+        "issue_id": "P1-HARD-01-9ad37b192b"
+      }
+    }
+  ]
+}

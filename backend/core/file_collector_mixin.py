@@ -8,6 +8,8 @@ import uuid
 import logging
 from typing import Any, Dict, List, Optional
 
+from core.input_normalization import InputNormalizer
+
 logger = logging.getLogger(__name__)
 
 
@@ -36,11 +38,15 @@ class FileCollectorMixin:
 
         for ext in ("*.ctl", "*.pnl", "*.xml"):
             for path in glob.glob(os.path.join(self.data_dir, ext)):
+                name = os.path.basename(path)
+                descriptor = self._build_file_descriptor(name, resolved_name=name)
                 files.append(
                     {
-                        "name": os.path.basename(path),
+                        "name": name,
                         "type": os.path.splitext(path)[1].lstrip("."),
                         "selectable": True,
+                        "canonical_file_id": descriptor.get("canonical_file_id", ""),
+                        "file_descriptor": descriptor,
                     }
                 )
 
@@ -50,11 +56,14 @@ class FileCollectorMixin:
                 continue
             if self._is_raw_txt(name) and not allow_raw_txt:
                 continue
+            descriptor = self._build_file_descriptor(name, resolved_name=name)
             files.append(
                 {
                     "name": name,
                     "type": "txt",
                     "selectable": True,
+                    "canonical_file_id": descriptor.get("canonical_file_id", ""),
+                    "file_descriptor": descriptor,
                 }
             )
 
@@ -110,52 +119,94 @@ class FileCollectorMixin:
     # Filename helpers
     # ------------------------------------------------------------------
 
+    @property
+    def _normalizer(self):
+        return getattr(self, "input_normalizer", None) or InputNormalizer
+
     @staticmethod
     def _normalize_local_path(path_value: str) -> str:
         return os.path.normpath(os.path.abspath(str(path_value or "").strip()))
 
-    @staticmethod
-    def _is_normalized_txt(name):
-        return name.endswith("_pnl.txt") or name.endswith("_xml.txt")
+    def _build_file_descriptor(
+        self,
+        requested_name: str,
+        *,
+        resolved_name: str = "",
+        detected_encoding: str = "",
+        viewer_source: str = "",
+        display_name: str = "",
+    ) -> Dict[str, Any]:
+        return self._normalizer.build_descriptor(
+            requested_name,
+            resolved_name=resolved_name,
+            detected_encoding=detected_encoding,
+            viewer_source=viewer_source,
+            display_name=display_name,
+        )
 
-    @staticmethod
-    def _is_reviewed_txt(name):
-        return name.endswith("_REVIEWED.txt")
+    def _read_text_file(self, path: str):
+        return self._normalizer.read_text_file(path)
+
+    @classmethod
+    def _is_normalized_txt(cls, name):
+        return InputNormalizer.is_normalized_txt(name)
+
+    @classmethod
+    def _is_reviewed_txt(cls, name):
+        return InputNormalizer.is_reviewed_txt(name)
 
     @classmethod
     def _is_raw_txt(cls, name):
-        return name.endswith(".txt") and not cls._is_normalized_txt(name) and not cls._is_reviewed_txt(name)
+        return InputNormalizer.is_raw_txt(name)
 
     @classmethod
     def _normalized_name_for_source(cls, name: str) -> str:
-        if not isinstance(name, str):
-            return ""
-        lower = name.lower()
-        if lower.endswith(".pnl"):
-            return name[:-4] + "_pnl.txt"
-        if lower.endswith(".xml"):
-            return name[:-4] + "_xml.txt"
-        return name
+        return InputNormalizer.canonical_name_for(name)
 
     @classmethod
     def _reviewed_name_for_source(cls, name: str) -> str:
-        normalized = cls._normalized_name_for_source(name)
-        if normalized.lower().endswith(".txt"):
-            return normalized[:-4] + "_REVIEWED.txt"
-        if normalized.lower().endswith(".ctl"):
-            return normalized[:-4] + "_REVIEWED.txt"
-        return ""
+        return InputNormalizer.reviewed_name_for(name)
 
     @classmethod
     def _candidate_cached_filenames(cls, name: str):
-        base = os.path.basename(str(name or ""))
-        if not base:
-            return []
-        candidates = [base]
-        normalized = cls._normalized_name_for_source(base)
-        if normalized and normalized not in candidates:
-            candidates.append(normalized)
-        return candidates
+        return InputNormalizer.candidate_names_for(name)
+
+    def _viewer_payload(
+        self,
+        *,
+        path: str,
+        requested_name: str,
+        resolved_name: str,
+        viewer_source: str,
+        display_name: str,
+        resolved_path: str = "",
+    ) -> Dict[str, Any]:
+        content, detected_encoding = self._read_text_file(path)
+        descriptor = self._build_file_descriptor(
+            requested_name,
+            resolved_name=resolved_name,
+            detected_encoding=detected_encoding,
+            viewer_source=viewer_source,
+            display_name=display_name,
+        )
+        return {
+            "file": display_name,
+            "resolved_name": resolved_name,
+            "resolved_path": resolved_path or path,
+            "source": viewer_source,
+            "viewer_source": viewer_source,
+            "content": content,
+            "detected_encoding": detected_encoding,
+            "canonical_file_id": descriptor.get("canonical_file_id", ""),
+            "file_descriptor": descriptor,
+        }
+
+    def _default_viewer_source(self, resolved_name: str) -> str:
+        descriptor = self._build_file_descriptor(resolved_name, resolved_name=resolved_name)
+        source_kind = str(descriptor.get("source_kind", "") or "")
+        if source_kind in ("converted_pnl", "converted_xml"):
+            return "normalized"
+        return "source"
 
     # ------------------------------------------------------------------
     # Folder scanning
@@ -227,8 +278,7 @@ class FileCollectorMixin:
                         self._metrics_inc_nested(metrics, "convert_cache", "hits", 1)
                         return target_path
 
-                with open(source, "r", encoding="utf-8", errors="ignore") as f:
-                    content = f.read()
+                content, _detected_encoding = self._read_text_file(source)
                 self._metrics_inc(metrics, "bytes_read", len(content.encode("utf-8", errors="ignore")))
                 txt_content = converter_fn(content)
                 temp_path = f"{target_path}.tmp.{threading.get_ident()}.{uuid.uuid4().hex[:8]}"
@@ -300,64 +350,132 @@ class FileCollectorMixin:
         requested = str(name or "").strip()
         basename = os.path.basename(requested)
 
-        def _read_text(path: str, resolved_name: str, source_kind: str, display_name: str, resolved_path: str = ""):
-            with open(path, "r", encoding="utf-8", errors="ignore") as f:
-                return {
-                    "file": display_name,
-                    "resolved_name": resolved_name,
-                    "resolved_path": resolved_path or path,
-                    "source": source_kind,
-                    "content": f.read(),
-                }
-
         target_output_dir = os.path.normpath(str(output_dir or self._last_output_dir or ""))
         if target_output_dir:
             session = self._get_review_session(target_output_dir)
             if session:
                 try:
                     _session_output_dir, _session, resolved_cache_key, cached = self._resolve_review_session_and_file(requested, output_dir=target_output_dir)
-                    display_name = str(cached.get("display_name", "") or cached.get("file", "") or basename or requested)
+                    cached_descriptor = cached.get("file_descriptor", {}) if isinstance(cached.get("file_descriptor", {}), dict) else {}
+                    display_name = str(
+                        cached_descriptor.get("display_name", "")
+                        or cached.get("display_name", "")
+                        or cached.get("file", "")
+                        or basename
+                        or requested
+                    )
                     source_path = str(cached.get("source_path", "") or "")
-                    resolved_viewer_path = source_path
-                    if not resolved_viewer_path:
-                        candidate_cache_key = str(resolved_cache_key or "")
-                        if candidate_cache_key and os.path.isabs(candidate_cache_key):
-                            resolved_viewer_path = candidate_cache_key
-                    reviewed_name = str(cached.get("reviewed_name", "") or self._reviewed_name_for_source(display_name))
+                    canonical_path = str(cached.get("canonical_path", "") or source_path or "")
+                    viewer_source_path = str(cached.get("viewer_source_path", "") or canonical_path or source_path)
+                    resolved_display_name = str(cached_descriptor.get("canonical_name", "") or display_name or basename or requested)
+                    reviewed_name = str(
+                        cached.get("reviewed_name", "")
+                        or cached_descriptor.get("reviewed_name", "")
+                        or self._reviewed_name_for_source(resolved_display_name)
+                    )
                     if reviewed_name and os.path.isdir(target_output_dir):
                         reviewed_path = os.path.join(target_output_dir, reviewed_name)
                         if os.path.isfile(reviewed_path) and not prefer_source:
-                            return _read_text(reviewed_path, reviewed_name, "reviewed", display_name, resolved_viewer_path or reviewed_path)
-                    if prefer_source and source_path and os.path.isfile(source_path):
-                        return _read_text(source_path, display_name, "source", display_name, resolved_viewer_path or source_path)
+                            return self._viewer_payload(
+                                path=reviewed_path,
+                                requested_name=requested,
+                                resolved_name=reviewed_name,
+                                viewer_source="reviewed",
+                                display_name=display_name,
+                                resolved_path=viewer_source_path or reviewed_path,
+                            )
+                    if viewer_source_path and os.path.isfile(viewer_source_path):
+                        resolved_name = os.path.basename(viewer_source_path)
+                        return self._viewer_payload(
+                            path=viewer_source_path,
+                            requested_name=requested,
+                            resolved_name=resolved_name,
+                            viewer_source=self._default_viewer_source(resolved_name),
+                            display_name=display_name,
+                            resolved_path=viewer_source_path,
+                        )
                     if source_path and os.path.isfile(source_path):
-                        return _read_text(source_path, display_name, "source", display_name, resolved_viewer_path or source_path)
+                        resolved_name = os.path.basename(source_path)
+                        return self._viewer_payload(
+                            path=source_path,
+                            requested_name=requested,
+                            resolved_name=resolved_name,
+                            viewer_source="source",
+                            display_name=display_name,
+                            resolved_path=source_path,
+                        )
                 except FileNotFoundError:
                     pass
 
         normalized_requested = self._normalize_local_path(requested) if os.path.isabs(requested) else ""
         if normalized_requested and os.path.isfile(normalized_requested):
-            display_name = os.path.basename(normalized_requested)
-            return _read_text(normalized_requested, display_name, "source", display_name, normalized_requested)
+            display_name = self._normalized_name_for_source(os.path.basename(normalized_requested))
+            resolved_name = os.path.basename(normalized_requested)
+            viewer_path = normalized_requested
+            viewer_source = self._default_viewer_source(resolved_name)
+            if not prefer_source:
+                normalized_name = self._normalized_name_for_source(resolved_name)
+                candidate_path = os.path.join(os.path.dirname(normalized_requested), normalized_name)
+                if normalized_name != resolved_name and os.path.isfile(candidate_path):
+                    viewer_path = candidate_path
+                    resolved_name = os.path.basename(candidate_path)
+                    viewer_source = "normalized"
+            return self._viewer_payload(
+                path=viewer_path,
+                requested_name=requested,
+                resolved_name=resolved_name,
+                viewer_source=viewer_source,
+                display_name=display_name,
+                resolved_path=viewer_path,
+            )
 
         reviewed_name = self._reviewed_name_for_source(basename)
         normalized_name = self._normalized_name_for_source(basename)
         source_path = os.path.join(self.data_dir, basename)
         normalized_path = os.path.join(self.data_dir, normalized_name)
+        display_name = normalized_name or basename
 
-        if prefer_source and os.path.isfile(source_path):
-            return _read_text(source_path, basename, "source", basename, source_path)
+        if prefer_source and normalized_name == basename and os.path.isfile(source_path):
+            return self._viewer_payload(
+                path=source_path,
+                requested_name=requested,
+                resolved_name=basename,
+                viewer_source="source",
+                display_name=display_name,
+                resolved_path=source_path,
+            )
 
         if reviewed_name and target_output_dir and os.path.isdir(target_output_dir):
             reviewed_path = os.path.join(target_output_dir, reviewed_name)
-            if os.path.isfile(reviewed_path):
-                return _read_text(reviewed_path, reviewed_name, "reviewed", basename, source_path)
+            if os.path.isfile(reviewed_path) and not prefer_source:
+                return self._viewer_payload(
+                    path=reviewed_path,
+                    requested_name=requested,
+                    resolved_name=reviewed_name,
+                    viewer_source="reviewed",
+                    display_name=display_name,
+                    resolved_path=normalized_path if os.path.isfile(normalized_path) else source_path,
+                )
 
         if normalized_name != basename and os.path.isfile(normalized_path):
-            return _read_text(normalized_path, normalized_name, "normalized", basename, normalized_path)
+            return self._viewer_payload(
+                path=normalized_path,
+                requested_name=requested,
+                resolved_name=normalized_name,
+                viewer_source="normalized",
+                display_name=display_name,
+                resolved_path=normalized_path,
+            )
 
         if os.path.isfile(source_path):
-            return _read_text(source_path, basename, "source", basename, source_path)
+            return self._viewer_payload(
+                path=source_path,
+                requested_name=requested,
+                resolved_name=basename,
+                viewer_source="source",
+                display_name=display_name,
+                resolved_path=source_path,
+            )
 
         raise FileNotFoundError(f"File not found: {requested}")
 

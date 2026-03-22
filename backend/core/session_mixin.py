@@ -8,6 +8,7 @@ import threading
 import uuid
 from typing import Any, Dict, List, Optional, Tuple
 
+from core.input_normalization import InputNormalizer
 from core.reporter import Reporter
 
 
@@ -127,9 +128,26 @@ class ReviewSessionMixin:
         cache_key = os.path.normpath(str(filename or ""))
         aliases = set()
         aliases.add(os.path.basename(cache_key))
+        descriptor = payload.get("file_descriptor", {}) if isinstance(payload.get("file_descriptor", {}), dict) else {}
         display_name = str(payload.get("display_name", "") or "")
         if display_name:
             aliases.add(display_name)
+        for alias in (
+            descriptor.get("requested_name", ""),
+            descriptor.get("canonical_name", ""),
+            descriptor.get("canonical_file_id", ""),
+            descriptor.get("source_name", ""),
+            descriptor.get("reviewed_name", ""),
+            payload.get("file", ""),
+            payload.get("reviewed_name", ""),
+        ):
+            alias_text = os.path.basename(str(alias or "").strip())
+            if alias_text:
+                aliases.add(alias_text)
+        for alias in InputNormalizer.candidate_names_for(filename):
+            alias_text = os.path.basename(str(alias or "").strip())
+            if alias_text:
+                aliases.add(alias_text)
         with session["lock"]:
             session["files"][cache_key] = payload
             file_aliases = session.setdefault("file_aliases", {})
@@ -165,7 +183,7 @@ class ReviewSessionMixin:
         tried = []
         if normalized_name:
             tried.append(normalized_name)
-        tried.extend(candidate for candidate in self._candidate_cached_filenames(basename) if candidate not in tried)
+        tried.extend(candidate for candidate in InputNormalizer.candidate_names_for(basename) if candidate not in tried)
         cached = None
         resolved_cache_key = ""
         with session["lock"]:

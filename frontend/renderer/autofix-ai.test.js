@@ -75,4 +75,36 @@ describe("autofix ai controller", () => {
         expect(bundle.selected_proposal_id).toBe("llm-1");
         expect(bundle.active_proposal_id).toBe("llm-1");
     });
+
+    test("getAutofixApplyGate blocks unsafe proposals", () => {
+        const controller = createController();
+        const gate = controller.getAutofixApplyGate({
+            proposal_id: "llm-unsafe",
+            instruction_preview: { valid: true },
+            quality_preview: {
+                syntax_check_passed: true,
+                validation_errors: [],
+                blocking_errors: ["contains_placeholder_system_obj"],
+                identifier_reuse_confirmed: false,
+            },
+        });
+        expect(gate.canApply).toBe(false);
+        expect(gate.blockedReason).toBe("contains_placeholder_system_obj");
+    });
+
+    test("getAutofixApplyGate allows clean proposals", () => {
+        const controller = createController();
+        const gate = controller.getAutofixApplyGate({
+            proposal_id: "llm-clean",
+            instruction_preview: { valid: true },
+            quality_preview: {
+                syntax_check_passed: true,
+                validation_errors: [],
+                blocking_errors: [],
+                identifier_reuse_confirmed: true,
+            },
+        });
+        expect(gate.canApply).toBe(true);
+        expect(gate.blockedReason).toBe("");
+    });
 });

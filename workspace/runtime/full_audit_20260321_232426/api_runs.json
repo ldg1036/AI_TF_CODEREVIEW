@@ -1,0 +1,128 @@
+{
+  "benchmark_p1_only": {
+    "summary": {
+      "total": 4,
+      "critical": 0,
+      "warning": 4,
+      "info": 0,
+      "score": 80,
+      "p1_total": 4,
+      "p2_total": 0,
+      "p3_total": 0,
+      "requested_file_count": 1,
+      "successful_file_count": 1,
+      "failed_file_count": 0,
+      "ctrlpp_preflight_attempted": false,
+      "ctrlpp_preflight_ready": false,
+      "ctrlpp_preflight_message": "",
+      "ctrlpp_preflight_error_code": "",
+      "verification_level": "CORE+REPORT"
+    },
+    "path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_233341_665238\\analysis_summary.json"
+  },
+  "benchmark_p1_p2": {
+    "summary": {
+      "total": 4,
+      "critical": 0,
+      "warning": 4,
+      "info": 0,
+      "score": 80,
+      "p1_total": 4,
+      "p2_total": 1,
+      "p3_total": 0,
+      "requested_file_count": 1,
+      "successful_file_count": 1,
+      "failed_file_count": 0,
+      "ctrlpp_preflight_attempted": false,
+      "ctrlpp_preflight_ready": true,
+      "ctrlpp_preflight_message": "CtrlppCheck preflight ready: existing binary found",
+      "ctrlpp_preflight_error_code": "",
+      "verification_level": "CORE+REPORT"
+    },
+    "path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_233341_714062\\analysis_summary.json"
+  },
+  "goldentime_p1_only": {
+    "summary": {
+      "total": 4,
+      "critical": 0,
+      "warning": 3,
+      "info": 1,
+      "score": 84,
+      "p1_total": 4,
+      "p2_total": 0,
+      "p3_total": 0,
+      "requested_file_count": 1,
+      "successful_file_count": 1,
+      "failed_file_count": 0,
+      "ctrlpp_preflight_attempted": false,
+      "ctrlpp_preflight_ready": false,
+      "ctrlpp_preflight_message": "",
+      "ctrlpp_preflight_error_code": "",
+      "verification_level": "CORE+REPORT"
+    },
+    "path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_233341_783555\\analysis_summary.json"
+  },
+  "goldentime_p1_p2": {
+    "summary": {
+      "total": 4,
+      "critical": 0,
+      "warning": 3,
+      "info": 1,
+      "score": 84,
+      "p1_total": 4,
+      "p2_total": 43,
+      "p3_total": 0,
+      "requested_file_count": 1,
+      "successful_file_count": 1,
+      "failed_file_count": 0,
+      "ctrlpp_preflight_attempted": false,
+      "ctrlpp_preflight_ready": true,
+      "ctrlpp_preflight_message": "CtrlppCheck preflight ready: existing binary found",
+      "ctrlpp_preflight_error_code": "",
+      "verification_level": "CORE+REPORT"
+    },
+    "path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_233341_760751\\analysis_summary.json"
+  },
+  "txt_p1_only": {
+    "summary": {
+      "total": 38,
+      "critical": 0,
+      "warning": 36,
+      "info": 2,
+      "score": 0,
+      "p1_total": 38,
+      "p2_total": 0,
+      "p3_total": 0,
+      "requested_file_count": 1,
+      "successful_file_count": 1,
+      "failed_file_count": 0,
+      "ctrlpp_preflight_attempted": false,
+      "ctrlpp_preflight_ready": false,
+      "ctrlpp_preflight_message": "",
+      "ctrlpp_preflight_error_code": "",
+      "verification_level": "CORE+REPORT"
+    },
+    "path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_233341_774847\\analysis_summary.json"
+  },
+  "pnl_p1_only": {
+    "summary": {
+      "total": 38,
+      "critical": 0,
+      "warning": 36,
+      "info": 2,
+      "score": 0,
+      "p1_total": 38,
+      "p2_total": 0,
+      "p3_total": 0,
+      "requested_file_count": 1,
+      "successful_file_count": 1,
+      "failed_file_count": 0,
+      "ctrlpp_preflight_attempted": false,
+      "ctrlpp_preflight_ready": false,
+      "ctrlpp_preflight_message": "",
+      "ctrlpp_preflight_error_code": "",
+      "verification_level": "CORE+REPORT"
+    },
+    "path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_234557_780267\\analysis_summary.json"
+  }
+}

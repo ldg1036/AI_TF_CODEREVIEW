@@ -21,16 +21,122 @@ export function basenamePath(value) {
     return parts[parts.length - 1] || text;
 }
 
+export function stripReviewedSuffix(value) {
+    const base = basenamePath(value);
+    if (!base) return "";
+    return /_reviewed\.txt$/i.test(base)
+        ? base.replace(/_reviewed\.txt$/i, ".txt")
+        : base;
+}
+
+export function canonicalizeFileName(value) {
+    const base = stripReviewedSuffix(value);
+    const lower = base.toLowerCase();
+    if (lower.endsWith(".pnl")) return `${base.slice(0, -4)}_pnl.txt`;
+    if (lower.endsWith(".xml")) return `${base.slice(0, -4)}_xml.txt`;
+    return base;
+}
+
+export function sourceNameForFile(value) {
+    const base = stripReviewedSuffix(value);
+    const lower = base.toLowerCase();
+    if (lower.endsWith("_pnl.txt")) return `${base.slice(0, -8)}.pnl`;
+    if (lower.endsWith("_xml.txt")) return `${base.slice(0, -8)}.xml`;
+    return base;
+}
+
 export function fileIdentityKey(value) {
     const text = String(value || "").trim();
     if (!text) return "";
     return text.replace(/\\/g, "/").toLowerCase();
 }
 
+function isDescriptorLike(value) {
+    return !!(
+        value
+        && typeof value === "object"
+        && (
+            value.canonical_file_id
+            || value.canonical_name
+            || value.requested_name
+            || value.source_name
+        )
+    );
+}
+
+function fileLikeValueFromObject(value, fallback = "") {
+    if (!value || typeof value !== "object") return value || fallback;
+    if (isDescriptorLike(value)) return value;
+    if (value.file_descriptor && isDescriptorLike(value.file_descriptor)) return value.file_descriptor;
+    const candidates = [
+        value.file,
+        value.file_path,
+        value.file_name,
+        value.filename,
+        value.parent_file,
+        value.parent_file_path,
+        value.resolved_name,
+        value.requested_name,
+        value.canonical_name,
+        value.canonical_file_id,
+        value.source_name,
+        value.object,
+        fallback,
+    ];
+    for (const candidate of candidates) {
+        if (isDescriptorLike(candidate)) return candidate;
+        if (typeof candidate === "string" && String(candidate || "").trim()) return candidate;
+    }
+    return fallback;
+}
+
+export function fileDescriptorFor(value, fallback = "") {
+    if (value && typeof value === "object") {
+        const descriptor = fileLikeValueFromObject(value, fallback);
+        if (isDescriptorLike(descriptor)) {
+            return descriptor;
+        }
+        value = descriptor;
+    }
+    const requestedName = basenamePath(value || fallback);
+    const canonicalName = canonicalizeFileName(requestedName);
+    return {
+        requested_name: requestedName,
+        canonical_name: canonicalName,
+        canonical_file_id: canonicalName,
+        source_name: sourceNameForFile(requestedName),
+        viewer_source: "",
+        display_name: canonicalName || requestedName,
+    };
+}
+
+export function canonicalFileId(value, fallback = "") {
+    const descriptor = fileDescriptorFor(value, fallback);
+    return String(
+        descriptor.canonical_file_id
+        || descriptor.canonical_name
+        || canonicalizeFileName(descriptor.requested_name || fallback)
+        || "",
+    ).trim();
+}
+
 export function violationResolvedFile(violation, fallback = "") {
+    const fileLike = fileLikeValueFromObject(violation, fallback);
+    if (isDescriptorLike(fileLike)) {
+        return String(
+            fileLike.canonical_file_id
+            || fileLike.canonical_name
+            || fileLike.requested_name
+            || fallback
+            || "",
+        );
+    }
     return String(
         (violation && (
-            violation.file_path
+            violation.canonical_file_id
+            || (violation.file_descriptor && violation.file_descriptor.canonical_file_id)
+            || (violation.file_descriptor && violation.file_descriptor.canonical_name)
+            || violation.file_path
             || violation.parent_file_path
             || violation.file
             || violation.file_name
@@ -41,7 +147,28 @@ export function violationResolvedFile(violation, fallback = "") {
 }
 
 export function violationDisplayFile(violation, fallback = "") {
-    return basenamePath(violationResolvedFile(violation, fallback)) || String((violation && violation.object) || fallback || "");
+    const descriptor = fileDescriptorFor(violation, fallback);
+    return basenamePath(
+        descriptor.display_name
+        || descriptor.canonical_name
+        || violationResolvedFile(violation, fallback)
+        || String((violation && violation.object) || fallback || ""),
+    );
+}
+
+export function violationCanonicalFileId(violation, fallback = "") {
+    return canonicalFileId(
+        (violation && (
+            violation.file_descriptor
+            || violation.canonical_file_id
+            || violation.file
+            || violation.file_path
+            || violation.parent_file
+            || violation.parent_file_path
+            || violation.object
+        )) || fallback || "",
+        fallback,
+    );
 }
 
 export function sameFileIdentity(left, right) {
@@ -49,6 +176,9 @@ export function sameFileIdentity(left, right) {
     const rightKey = fileIdentityKey(right);
     if (!leftKey || !rightKey) return false;
     if (leftKey === rightKey) return true;
+    const leftCanonical = fileIdentityKey(canonicalFileId(left));
+    const rightCanonical = fileIdentityKey(canonicalFileId(right));
+    if (leftCanonical && rightCanonical && leftCanonical === rightCanonical) return true;
     return basenamePath(leftKey) === basenamePath(rightKey);
 }
 
@@ -234,6 +364,7 @@ export function parseReviewedSeverity(reviewLine) {
 
 export function parseReviewedTodoBlocks(content, fileName = "") {
     const lines = String(content || "").split("\n");
+    const descriptor = fileDescriptorFor(fileName);
     const blocks = [];
     for (let i = 0; i < lines.length; i += 1) {
         const raw = String(lines[i] || "");
@@ -241,6 +372,7 @@ export function parseReviewedTodoBlocks(content, fileName = "") {
 
         const block = {
             file: basenamePath(fileName),
+            canonical_file_id: canonicalFileId(descriptor),
             todo_line: i + 1,
             message: "",
             review_line: "",

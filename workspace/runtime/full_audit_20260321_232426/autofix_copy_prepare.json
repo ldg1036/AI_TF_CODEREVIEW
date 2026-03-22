@@ -1,0 +1,672 @@
+{
+  "analyze_status": 200,
+  "analyze": {
+    "summary": {
+      "total": 4,
+      "critical": 0,
+      "warning": 4,
+      "info": 0,
+      "score": 80,
+      "p1_total": 4,
+      "p2_total": 0,
+      "p3_total": 0,
+      "requested_file_count": 1,
+      "successful_file_count": 1,
+      "failed_file_count": 0,
+      "ctrlpp_preflight_attempted": false,
+      "ctrlpp_preflight_ready": false,
+      "ctrlpp_preflight_message": "",
+      "ctrlpp_preflight_error_code": "",
+      "verification_level": "CORE+REPORT"
+    },
+    "violations": {
+      "P1": [
+        {
+          "object": "BenchmarkP1Fixture_copy.ctl",
+          "event": "Global",
+          "violations": [
+            {
+              "issue_id": "P1-EXC-DP-01-37fdad7a39",
+              "rule_id": "EXC-DP-01",
+              "rule_item": "DP 함수 예외 처리",
+              "priority_origin": "P1",
+              "severity": "Warning",
+              "line": 14,
+              "message": "DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성.",
+              "file": "BenchmarkP1Fixture_copy.ctl",
+              "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+            },
+            {
+              "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-0662654103",
+              "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+              "rule_item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+              "priority_origin": "P1",
+              "severity": "Warning",
+              "line": 8,
+              "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+              "file": "BenchmarkP1Fixture_copy.ctl",
+              "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+            },
+            {
+              "issue_id": "P1-EXC-TRY-01-2fa156cc3d",
+              "rule_id": "EXC-TRY-01",
+              "rule_item": "Try, Catch 예외처리",
+              "priority_origin": "P1",
+              "severity": "Warning",
+              "line": 14,
+              "message": "예외 가능 구문에 try/catch 또는 오류 처리 계약 추가 권장.",
+              "file": "BenchmarkP1Fixture_copy.ctl",
+              "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+            },
+            {
+              "issue_id": "P1-ACTIVE-01-d715517b5b",
+              "rule_id": "ACTIVE-01",
+              "rule_item": "스크립트 Active 동작 조건 확인",
+              "priority_origin": "P1",
+              "severity": "Warning",
+              "line": 8,
+              "message": "상태 변경 호출 전 Active/Enable 조건 확인 로직 부재 가능성.",
+              "file": "BenchmarkP1Fixture_copy.ctl",
+              "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+            }
+          ]
+        }
+      ],
+      "P2": [],
+      "P3": []
+    },
+    "ai_review_statuses": [
+      {
+        "status": "skipped",
+        "reason": "priority_limited",
+        "detail": "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+        "parent_source": "P1",
+        "parent_issue_id": "P1-EXC-TRY-01-2fa156cc3d",
+        "parent_rule_id": "EXC-TRY-01",
+        "parent_file": "BenchmarkP1Fixture_copy.ctl",
+        "parent_file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl",
+        "parent_line": 14,
+        "file": "BenchmarkP1Fixture_copy.ctl",
+        "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl",
+        "object": "BenchmarkP1Fixture_copy.ctl",
+        "event": "Global",
+        "severity": "Warning",
+        "message": "예외 가능 구문에 try/catch 또는 오류 처리 계약 추가 권장.",
+        "selected_rank": 4,
+        "selected_cap": 3
+      }
+    ],
+    "p1_config_health": {
+      "mode": "configured",
+      "degraded": false,
+      "reason_codes": [],
+      "reason_text": "",
+      "total_rule_count": 43,
+      "enabled_rule_count": 42,
+      "review_applicability_item_count": 13,
+      "unknown_review_rule_ids": [],
+      "unknown_review_rule_id_count": 0,
+      "unsupported_detector_ops": []
+    },
+    "report_paths": {
+      "html": "combined_analysis_report.html",
+      "excel": [
+        "CodeReview_Submission_BenchmarkP1Fixture_copy_20260321_234430_449308.xlsx"
+      ],
+      "reviewed_txt": [
+        "BenchmarkP1Fixture_copy_REVIEWED.txt"
+      ]
+    },
+    "output_dir": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_234430_449308",
+    "request_id": "f543bae36b7e4cdfa0374ac33080821b",
+    "errors": [],
+    "report_jobs": {
+      "excel": {
+        "pending_count": 0,
+        "running_count": 1,
+        "completed_count": 0,
+        "failed_count": 0,
+        "jobs": [
+          {
+            "job_id": "8b3e484ab61d416cae9df01166f4f7f0",
+            "kind": "excel",
+            "file": "BenchmarkP1Fixture_copy.ctl",
+            "output_filename": "CodeReview_Submission_BenchmarkP1Fixture_copy_20260321_234430_449308.xlsx",
+            "status": "running",
+            "submitted_at": "2026-03-21T14:44:30Z",
+            "started_at": "2026-03-21T14:44:30Z",
+            "finished_at": null,
+            "error": "",
+            "generated": false,
+            "metrics": {}
+          }
+        ]
+      }
+    },
+    "metrics": {
+      "request_id": "f543bae36b7e4cdfa0374ac33080821b",
+      "file_count": 1,
+      "timings_ms": {
+        "total": 9,
+        "collect": 0,
+        "convert": 0,
+        "mcp_context": 0,
+        "analyze": 5,
+        "report": 1,
+        "report_text": 0,
+        "heuristic": 2,
+        "ctrlpp": 0,
+        "ai": 0,
+        "excel_total": 0,
+        "excel_copy": 0,
+        "excel_load": 0,
+        "excel_save": 0,
+        "server_total": 10
+      },
+      "llm_calls": 0,
+      "ctrlpp_calls": 0,
+      "bytes_read": 421,
+      "bytes_written": 829,
+      "convert_cache": {
+        "hits": 0,
+        "misses": 0
+      },
+      "excel_template_cache": {
+        "hits": 0,
+        "misses": 0
+      },
+      "per_file": [
+        {
+          "file": "BenchmarkP1Fixture_copy.ctl",
+          "timings_ms": {
+            "total": 4,
+            "read": 1,
+            "heuristic": 2,
+            "report": 1,
+            "report_text": 0,
+            "excel_total": 0
+          },
+          "p1_groups": 1,
+          "p2_count": 0,
+          "p3_count": 0,
+          "deferred_excel": true,
+          "excel_job_id": "8b3e484ab61d416cae9df01166f4f7f0",
+          "excel_metrics": {}
+        }
+      ],
+      "optional_dependencies": {
+        "openpyxl": {
+          "available": true,
+          "required_for": [
+            "excel_report",
+            "template_coverage"
+          ]
+        }
+      }
+    }
+  },
+  "chosen": {
+    "group": {
+      "object": "BenchmarkP1Fixture_copy.ctl",
+      "event": "Global",
+      "violations": [
+        {
+          "issue_id": "P1-EXC-DP-01-37fdad7a39",
+          "rule_id": "EXC-DP-01",
+          "rule_item": "DP 함수 예외 처리",
+          "priority_origin": "P1",
+          "severity": "Warning",
+          "line": 14,
+          "message": "DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성.",
+          "file": "BenchmarkP1Fixture_copy.ctl",
+          "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+        },
+        {
+          "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-0662654103",
+          "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+          "rule_item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+          "priority_origin": "P1",
+          "severity": "Warning",
+          "line": 8,
+          "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+          "file": "BenchmarkP1Fixture_copy.ctl",
+          "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+        },
+        {
+          "issue_id": "P1-EXC-TRY-01-2fa156cc3d",
+          "rule_id": "EXC-TRY-01",
+          "rule_item": "Try, Catch 예외처리",
+          "priority_origin": "P1",
+          "severity": "Warning",
+          "line": 14,
+          "message": "예외 가능 구문에 try/catch 또는 오류 처리 계약 추가 권장.",
+          "file": "BenchmarkP1Fixture_copy.ctl",
+          "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+        },
+        {
+          "issue_id": "P1-ACTIVE-01-d715517b5b",
+          "rule_id": "ACTIVE-01",
+          "rule_item": "스크립트 Active 동작 조건 확인",
+          "priority_origin": "P1",
+          "severity": "Warning",
+          "line": 8,
+          "message": "상태 변경 호출 전 Active/Enable 조건 확인 로직 부재 가능성.",
+          "file": "BenchmarkP1Fixture_copy.ctl",
+          "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+        }
+      ]
+    },
+    "violation": {
+      "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-0662654103",
+      "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+      "rule_item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+      "priority_origin": "P1",
+      "severity": "Warning",
+      "line": 8,
+      "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+      "file": "BenchmarkP1Fixture_copy.ctl",
+      "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+    }
+  },
+  "prepare_status": 200,
+  "prepare": {
+    "proposal_id": "39c345203e8540d296439aa8ff0f1a41",
+    "session_id": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_234430_449308",
+    "output_dir": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_234430_449308",
+    "file": "BenchmarkP1Fixture_copy.ctl",
+    "source": "rule-template",
+    "base_hash": "8ef0759431a030b3002f143f91d68ab4417e5b91c4fd536835da24ca744ced27",
+    "summary": "Rule template suggestion for PERF-SETMULTIVALUE-ADOPT-01",
+    "unified_diff": "--- BenchmarkP1Fixture_copy.ctl\n+++ BenchmarkP1Fixture_copy.ctl (autofix)\n@@ -5,6 +5,9 @@\n   int v3 = 3;\n \n   // P1 fixture: repeated setValue updates in one block\n+  // [RULE-AUTOFIX:b3efa310] Rule template suggestion for PERF-SETMULTIVALUE-ADOPT-01 (Event, Ctrl Manager 이벤트 교환 횟수 최소화)\n+  // TODO: apply deterministic fix pattern or review manually\n+  // [/RULE-AUTOFIX:b3efa310]\n   setValue(\"A.B.C1\", v1);\n   setValue(\"A.B.C2\", v2);\n   setValue(\"A.B.C3\", v3);\n",
+    "hunks": [
+      {
+        "start_line": 8,
+        "end_line": 8,
+        "context_before": "  // P1 fixture: repeated setValue updates in one block",
+        "context_after": "  setValue(\"A.B.C1\", v1);",
+        "replacement_text": "  // [RULE-AUTOFIX:b3efa310] Rule template suggestion for PERF-SETMULTIVALUE-ADOPT-01 (Event, Ctrl Manager 이벤트 교환 횟수 최소화)\n  // TODO: apply deterministic fix pattern or review manually\n  // [/RULE-AUTOFIX:b3efa310]"
+      }
+    ],
+    "risk_level": "low",
+    "status": "Prepared",
+    "validation_preview": {
+      "anchors_match": true,
+      "hash_match": true,
+      "syntax_check_passed": true,
+      "heuristic_regression_count": 0,
+      "ctrlpp_regression_count": 0,
+      "errors": []
+    },
+    "quality_preview": {
+      "proposal_id": "39c345203e8540d296439aa8ff0f1a41",
+      "generator_type": "rule",
+      "anchors_match": true,
+      "hash_match": true,
+      "syntax_check_passed": true,
+      "heuristic_regression_count": 0,
+      "ctrlpp_regression_count": 0,
+      "applied": false,
+      "rejected_reason": "",
+      "validation_errors": [],
+      "locator_mode": "anchor",
+      "apply_engine_mode": "",
+      "apply_engine_fallback_reason": "",
+      "token_fallback_attempted": false,
+      "token_fallback_confidence": 0.0,
+      "token_fallback_candidates": 0,
+      "semantic_check_passed": true,
+      "semantic_blocked_reason": "",
+      "semantic_violation_count": 0,
+      "token_min_confidence_used": 0.8,
+      "token_min_gap_used": 0.15,
+      "token_max_line_drift_used": 0,
+      "benchmark_tuning_applied": false,
+      "token_prefer_nearest_tie_used": false,
+      "token_hint_bias_used": 0.0,
+      "token_force_nearest_on_ambiguous_used": false,
+      "instruction_mode": "off",
+      "instruction_validation_errors": [],
+      "instruction_operation": "",
+      "instruction_operation_count": 0,
+      "instruction_apply_success": false,
+      "instruction_path_reason": "off",
+      "instruction_failure_stage": "none",
+      "instruction_candidate_hunk_count": 0,
+      "instruction_applied_hunk_count": 0
+    },
+    "generator_type": "rule",
+    "generator_reason": "rule-first fallback annotation template (no deterministic text normalization changes)",
+    "instruction_preview": {},
+    "compare_score": {},
+    "selection_reason": "",
+    "llm_meta": {},
+    "created_at": "2026-03-21T14:44:30Z",
+    "request_id": "929a9022ed8246c6afce62eb8ef6dc7a"
+  },
+  "file_diff_status": 200,
+  "file_diff": {
+    "proposal_id": "39c345203e8540d296439aa8ff0f1a41",
+    "session_id": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_234430_449308",
+    "output_dir": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_234430_449308",
+    "file": "BenchmarkP1Fixture_copy.ctl",
+    "source": "rule-template",
+    "base_hash": "8ef0759431a030b3002f143f91d68ab4417e5b91c4fd536835da24ca744ced27",
+    "summary": "Rule template suggestion for PERF-SETMULTIVALUE-ADOPT-01",
+    "unified_diff": "--- BenchmarkP1Fixture_copy.ctl\n+++ BenchmarkP1Fixture_copy.ctl (autofix)\n@@ -5,6 +5,9 @@\n   int v3 = 3;\n \n   // P1 fixture: repeated setValue updates in one block\n+  // [RULE-AUTOFIX:b3efa310] Rule template suggestion for PERF-SETMULTIVALUE-ADOPT-01 (Event, Ctrl Manager 이벤트 교환 횟수 최소화)\n+  // TODO: apply deterministic fix pattern or review manually\n+  // [/RULE-AUTOFIX:b3efa310]\n   setValue(\"A.B.C1\", v1);\n   setValue(\"A.B.C2\", v2);\n   setValue(\"A.B.C3\", v3);\n",
+    "hunks": [
+      {
+        "start_line": 8,
+        "end_line": 8,
+        "context_before": "  // P1 fixture: repeated setValue updates in one block",
+        "context_after": "  setValue(\"A.B.C1\", v1);",
+        "replacement_text": "  // [RULE-AUTOFIX:b3efa310] Rule template suggestion for PERF-SETMULTIVALUE-ADOPT-01 (Event, Ctrl Manager 이벤트 교환 횟수 최소화)\n  // TODO: apply deterministic fix pattern or review manually\n  // [/RULE-AUTOFIX:b3efa310]"
+      }
+    ],
+    "risk_level": "low",
+    "status": "Prepared",
+    "validation_preview": {
+      "anchors_match": true,
+      "hash_match": true,
+      "syntax_check_passed": true,
+      "heuristic_regression_count": 0,
+      "ctrlpp_regression_count": 0,
+      "errors": []
+    },
+    "quality_preview": {
+      "proposal_id": "39c345203e8540d296439aa8ff0f1a41",
+      "generator_type": "rule",
+      "anchors_match": true,
+      "hash_match": true,
+      "syntax_check_passed": true,
+      "heuristic_regression_count": 0,
+      "ctrlpp_regression_count": 0,
+      "applied": false,
+      "rejected_reason": "",
+      "validation_errors": [],
+      "locator_mode": "anchor",
+      "apply_engine_mode": "",
+      "apply_engine_fallback_reason": "",
+      "token_fallback_attempted": false,
+      "token_fallback_confidence": 0.0,
+      "token_fallback_candidates": 0,
+      "semantic_check_passed": true,
+      "semantic_blocked_reason": "",
+      "semantic_violation_count": 0,
+      "token_min_confidence_used": 0.8,
+      "token_min_gap_used": 0.15,
+      "token_max_line_drift_used": 0,
+      "benchmark_tuning_applied": false,
+      "token_prefer_nearest_tie_used": false,
+      "token_hint_bias_used": 0.0,
+      "token_force_nearest_on_ambiguous_used": false,
+      "instruction_mode": "off",
+      "instruction_validation_errors": [],
+      "instruction_operation": "",
+      "instruction_operation_count": 0,
+      "instruction_apply_success": false,
+      "instruction_path_reason": "off",
+      "instruction_failure_stage": "none",
+      "instruction_candidate_hunk_count": 0,
+      "instruction_applied_hunk_count": 0
+    },
+    "generator_type": "rule",
+    "generator_reason": "rule-first fallback annotation template (no deterministic text normalization changes)",
+    "instruction_preview": {},
+    "compare_score": {},
+    "selection_reason": "",
+    "llm_meta": {},
+    "created_at": "2026-03-21T14:44:30Z"
+  },
+  "apply_status": 409,
+  "apply": {
+    "error": "Autofix semantic guard blocked high-risk token delta",
+    "request_id": "6c4d807efc7e4a35a1fedb3e939acd6e",
+    "error_code": "SEMANTIC_GUARD_BLOCKED",
+    "quality_metrics": {
+      "proposal_id": "39c345203e8540d296439aa8ff0f1a41",
+      "generator_type": "rule",
+      "anchors_match": true,
+      "hash_match": true,
+      "syntax_check_passed": true,
+      "heuristic_regression_count": 0,
+      "ctrlpp_regression_count": 0,
+      "applied": false,
+      "rejected_reason": "semantic guard blocked",
+      "validation_errors": [
+        "semantic guard blocked (high_risk_token_delta): strings_changed"
+      ],
+      "locator_mode": "anchor_exact",
+      "apply_engine_mode": "structure_apply",
+      "apply_engine_fallback_reason": "",
+      "token_fallback_attempted": false,
+      "token_fallback_confidence": 0.0,
+      "token_fallback_candidates": 0,
+      "semantic_check_passed": false,
+      "semantic_blocked_reason": "high_risk_token_delta",
+      "semantic_violation_count": 1,
+      "token_min_confidence_used": 0.8,
+      "token_min_gap_used": 0.15,
+      "token_max_line_drift_used": 50,
+      "benchmark_tuning_applied": false,
+      "token_prefer_nearest_tie_used": false,
+      "token_hint_bias_used": 0.0,
+      "token_force_nearest_on_ambiguous_used": false,
+      "instruction_mode": "off",
+      "instruction_validation_errors": [],
+      "instruction_operation": "",
+      "instruction_operation_count": 0,
+      "instruction_apply_success": false,
+      "instruction_path_reason": "off",
+      "instruction_failure_stage": "none",
+      "instruction_candidate_hunk_count": 0,
+      "instruction_applied_hunk_count": 0,
+      "benchmark_structured_instruction_forced": false
+    }
+  },
+  "copy_hash_before": "8ef0759431a030b3002f143f91d68ab4417e5b91c4fd536835da24ca744ced27",
+  "copy_hash_after": "8ef0759431a030b3002f143f91d68ab4417e5b91c4fd536835da24ca744ced27",
+  "reanalyze_status": 200,
+  "reanalyze": {
+    "summary": {
+      "total": 4,
+      "critical": 0,
+      "warning": 4,
+      "info": 0,
+      "score": 80,
+      "p1_total": 4,
+      "p2_total": 0,
+      "p3_total": 0,
+      "requested_file_count": 1,
+      "successful_file_count": 1,
+      "failed_file_count": 0,
+      "ctrlpp_preflight_attempted": false,
+      "ctrlpp_preflight_ready": false,
+      "ctrlpp_preflight_message": "",
+      "ctrlpp_preflight_error_code": "",
+      "verification_level": "CORE+REPORT"
+    },
+    "violations": {
+      "P1": [
+        {
+          "object": "BenchmarkP1Fixture_copy.ctl",
+          "event": "Global",
+          "violations": [
+            {
+              "issue_id": "P1-EXC-DP-01-37fdad7a39",
+              "rule_id": "EXC-DP-01",
+              "rule_item": "DP 함수 예외 처리",
+              "priority_origin": "P1",
+              "severity": "Warning",
+              "line": 14,
+              "message": "DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성.",
+              "file": "BenchmarkP1Fixture_copy.ctl",
+              "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+            },
+            {
+              "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-0662654103",
+              "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+              "rule_item": "Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+              "priority_origin": "P1",
+              "severity": "Warning",
+              "line": 8,
+              "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+              "file": "BenchmarkP1Fixture_copy.ctl",
+              "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+            },
+            {
+              "issue_id": "P1-EXC-TRY-01-2fa156cc3d",
+              "rule_id": "EXC-TRY-01",
+              "rule_item": "Try, Catch 예외처리",
+              "priority_origin": "P1",
+              "severity": "Warning",
+              "line": 14,
+              "message": "예외 가능 구문에 try/catch 또는 오류 처리 계약 추가 권장.",
+              "file": "BenchmarkP1Fixture_copy.ctl",
+              "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+            },
+            {
+              "issue_id": "P1-ACTIVE-01-d715517b5b",
+              "rule_id": "ACTIVE-01",
+              "rule_item": "스크립트 Active 동작 조건 확인",
+              "priority_origin": "P1",
+              "severity": "Warning",
+              "line": 8,
+              "message": "상태 변경 호출 전 Active/Enable 조건 확인 로직 부재 가능성.",
+              "file": "BenchmarkP1Fixture_copy.ctl",
+              "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl"
+            }
+          ]
+        }
+      ],
+      "P2": [],
+      "P3": []
+    },
+    "ai_review_statuses": [
+      {
+        "status": "skipped",
+        "reason": "priority_limited",
+        "detail": "현재 파일의 상위 우선 parent 개수 제한으로 제외되었습니다.",
+        "parent_source": "P1",
+        "parent_issue_id": "P1-EXC-TRY-01-2fa156cc3d",
+        "parent_rule_id": "EXC-TRY-01",
+        "parent_file": "BenchmarkP1Fixture_copy.ctl",
+        "parent_file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl",
+        "parent_line": 14,
+        "file": "BenchmarkP1Fixture_copy.ctl",
+        "file_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\copies\\BenchmarkP1Fixture_copy.ctl",
+        "object": "BenchmarkP1Fixture_copy.ctl",
+        "event": "Global",
+        "severity": "Warning",
+        "message": "예외 가능 구문에 try/catch 또는 오류 처리 계약 추가 권장.",
+        "selected_rank": 4,
+        "selected_cap": 3
+      }
+    ],
+    "p1_config_health": {
+      "mode": "configured",
+      "degraded": false,
+      "reason_codes": [],
+      "reason_text": "",
+      "total_rule_count": 43,
+      "enabled_rule_count": 42,
+      "review_applicability_item_count": 13,
+      "unknown_review_rule_ids": [],
+      "unknown_review_rule_id_count": 0,
+      "unsupported_detector_ops": []
+    },
+    "report_paths": {
+      "html": "combined_analysis_report.html",
+      "excel": [],
+      "reviewed_txt": [
+        "BenchmarkP1Fixture_copy_REVIEWED.txt"
+      ]
+    },
+    "output_dir": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_234430_492477",
+    "request_id": "028c02c31a0a4e788a9efbd0a3c5c370",
+    "errors": [],
+    "report_jobs": {
+      "excel": {
+        "pending_count": 1,
+        "running_count": 0,
+        "completed_count": 0,
+        "failed_count": 0,
+        "jobs": [
+          {
+            "job_id": "95d98cde835c4cb4ba8cb25b393e27fb",
+            "kind": "excel",
+            "file": "BenchmarkP1Fixture_copy.ctl",
+            "output_filename": "CodeReview_Submission_BenchmarkP1Fixture_copy_20260321_234430_492477.xlsx",
+            "status": "pending",
+            "submitted_at": "2026-03-21T14:44:30Z",
+            "started_at": null,
+            "finished_at": null,
+            "error": "",
+            "generated": false,
+            "metrics": {}
+          }
+        ]
+      }
+    },
+    "metrics": {
+      "request_id": "028c02c31a0a4e788a9efbd0a3c5c370",
+      "file_count": 1,
+      "timings_ms": {
+        "total": 9,
+        "collect": 2,
+        "convert": 0,
+        "mcp_context": 0,
+        "analyze": 2,
+        "report": 0,
+        "report_text": 0,
+        "heuristic": 1,
+        "ctrlpp": 0,
+        "ai": 0,
+        "excel_total": 0,
+        "excel_copy": 0,
+        "excel_load": 0,
+        "excel_save": 0,
+        "server_total": 11
+      },
+      "llm_calls": 0,
+      "ctrlpp_calls": 0,
+      "bytes_read": 421,
+      "bytes_written": 829,
+      "convert_cache": {
+        "hits": 0,
+        "misses": 0
+      },
+      "excel_template_cache": {
+        "hits": 0,
+        "misses": 0
+      },
+      "per_file": [
+        {
+          "file": "BenchmarkP1Fixture_copy.ctl",
+          "timings_ms": {
+            "total": 2,
+            "read": 0,
+            "heuristic": 1,
+            "report": 0,
+            "report_text": 0,
+            "excel_total": 0
+          },
+          "p1_groups": 1,
+          "p2_count": 0,
+          "p3_count": 0,
+          "deferred_excel": true,
+          "excel_job_id": "95d98cde835c4cb4ba8cb25b393e27fb",
+          "excel_metrics": {}
+        }
+      ],
+      "optional_dependencies": {
+        "openpyxl": {
+          "available": true,
+          "required_for": [
+            "excel_report",
+            "template_coverage"
+          ]
+        }
+      }
+    }
+  }
+}

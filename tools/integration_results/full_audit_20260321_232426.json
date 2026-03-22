@@ -1,0 +1,292 @@
+{
+  "audit_id": "20260321_232426",
+  "generated_at": "2026-03-21T23:45:30+09:00",
+  "scope": {
+    "ui": true,
+    "api": true,
+    "cli": true,
+    "ctrlpp": true,
+    "live_ai": true,
+    "excel_report": true,
+    "autofix_copy": true,
+    "autofix_original_restore": true
+  },
+  "environment": {
+    "server_url": "http://127.0.0.1:8873",
+    "ai_provider": "ollama",
+    "ai_model": "qwen2.5-coder:3b",
+    "ctrlpp_ready": true,
+    "playwright_ready": true,
+    "openpyxl_ready": true
+  },
+  "baseline": {
+    "config_alignment": {
+      "unknown_rule_ids": 0,
+      "p1_rule_rows": 43,
+      "p1_enabled": 42
+    },
+    "template_coverage_report": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\template_coverage_20260321_232529.json",
+    "p1_rule_matrix_report": "D:\\AI_TF_CODEREVIEW-main\\docs\\perf_baselines\\p1_rule_matrix_20260321_232531.json",
+    "backend_tests": "passed (177 passed, 1 skipped)",
+    "context_server_tests": "passed (6 passed)",
+    "frontend_tests": "passed (54 passed)",
+    "ctrlpp_smoke_report": "D:\\AI_TF_CODEREVIEW-main\\tools\\integration_results\\ctrlpp_integration_20260321_142728.json",
+    "ui_smoke_report": "D:\\AI_TF_CODEREVIEW-main\\tools\\integration_results\\ui_real_smoke_20260321144115.json",
+    "release_gate_report": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\release_gate_20260321_232728_578477.json"
+  },
+  "manual_vs_auto": [
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "manual_finding": "Repeated setValue block should be grouped",
+      "expected_rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": true,
+      "autofix_candidate": true,
+      "classification": "matched",
+      "notes": "P1 only and UI both show line 8 warning."
+    },
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "manual_finding": "State-changing call lacks active/enable guard",
+      "expected_rule_id": "ACTIVE-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "UI mapping stayed correct after rerun."
+    },
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "manual_finding": "dpSet block lacks try/catch style exception contract",
+      "expected_rule_id": "EXC-TRY-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "Line 14 warning present across CLI/UI/Excel."
+    },
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "manual_finding": "dpSet result/error handling is missing",
+      "expected_rule_id": "EXC-DP-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": true,
+      "classification": "matched",
+      "notes": "Current UI now preserves EXC-DP-01 correctly."
+    },
+    {
+      "file": "GoldenTime.ctl",
+      "manual_finding": "Hardcoded config path",
+      "expected_rule_id": "HARD-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "UI shows Medium on line 16, matching API."
+    },
+    {
+      "file": "GoldenTime.ctl",
+      "manual_finding": "Magic index should be constantized",
+      "expected_rule_id": "STYLE-IDX-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "UI shows Low severity correctly."
+    },
+    {
+      "file": "GoldenTime.ctl",
+      "manual_finding": "Loop/event path includes dpSet-heavy pattern",
+      "expected_rule_id": "PERF-EV-01",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "P2 is additive; P1 row stays visible with correct message."
+    },
+    {
+      "file": "GoldenTime.ctl",
+      "manual_finding": "Critical float literal should be lifted to constant/config",
+      "expected_rule_id": "HARD-03",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "matched",
+      "notes": "Line 298 Medium warning preserved."
+    },
+    {
+      "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "manual_finding": "Large panel-derived text contains repeated code and oversized function",
+      "expected_rule_id": "COMP-01 / CLEAN-DUP-01 / PERF-* cluster",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "partial_ui_mismatch",
+      "notes": "CLI summary and Excel show 38 findings, but workspace UI only showed 17."
+    },
+    {
+      "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "manual_finding": "Panel source should be treated as converted-view boundary, not mixed duplicate stream",
+      "expected_rule_id": "boundary only",
+      "cli_p1_only": true,
+      "cli_p1_p2": true,
+      "ui_visible": true,
+      "excel_visible": true,
+      "ai_mention": false,
+      "autofix_candidate": false,
+      "classification": "ui_boundary_defect",
+      "notes": "Workspace mixed REVIEW-ONLY .pnl rows with underlying _pnl.txt rows and showed 50 items, while CLI summary for .pnl was 38."
+    }
+  ],
+  "defects": [
+    {
+      "id": "TXT-UI-COUNT-MISMATCH",
+      "classification": "UI/??? ??",
+      "severity": "high",
+      "summary": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt shows 17 findings in workspace UI but 38 findings in CLI summary and Excel detail sheet.",
+      "evidence": [
+        "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_233341_774847\\analysis_summary.json",
+        "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_233341_774847\\CodeReview_Submission_POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl_20260321_233341_774847.xlsx",
+        "D:\\AI_TF_CODEREVIEW-main\\output\\playwright\\full_audit_20260321_232426\\workspace-pnl-boundary.png"
+      ]
+    },
+    {
+      "id": "PNL-BOUNDARY-MIX",
+      "classification": "??? ??? ???",
+      "severity": "high",
+      "summary": "Selecting POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl in workspace produced mixed REVIEW-ONLY synthetic .pnl rows plus underlying _pnl.txt findings, with UNKNOWN rule ids on synthetic rows.",
+      "evidence": [
+        "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260321_234557_780267\\analysis_summary.json",
+        "D:\\AI_TF_CODEREVIEW-main\\output\\playwright\\full_audit_20260321_232426\\workspace-pnl-boundary.png"
+      ]
+    },
+    {
+      "id": "AI-PATCH-NONDETERMINISM",
+      "classification": "AI ??? ??",
+      "severity": "medium",
+      "summary": "Live AI compare/prepare is operational, but patch semantics are nondeterministic across runs. One UI smoke/manual run produced dpSet(...) for a setMultiValue recommendation, while later API prepare produced setMultiValue(...).",
+      "evidence": [
+        "D:\\AI_TF_CODEREVIEW-main\\tools\\integration_results\\ui_real_smoke_20260321144115.json",
+        "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\autofix_original_benchmark_live_session.json"
+      ]
+    },
+    {
+      "id": "AUTOFIX-QUALITY-REGRESSION",
+      "classification": "autofix ???/?? ??",
+      "severity": "medium",
+      "summary": "Original Benchmark live-AI apply succeeded and restored cleanly, but reanalysis increased P1 total from 4 to 5 and introduced HARD-02, so successful apply does not yet imply review quality.",
+      "evidence": [
+        "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\autofix_original_benchmark_live_session.json"
+      ]
+    }
+  ],
+  "autofix": {
+    "copy_prepare_artifact": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\autofix_copy_prepare.json",
+    "copy_prepare_result": "semantic_guard_blocked",
+    "copy_prepare_error_code": "SEMANTIC_GUARD_BLOCKED",
+    "original_live_session_artifact": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\full_audit_20260321_232426\\autofix_original_benchmark_live_session.json",
+    "original_apply_status": "applied_then_restored",
+    "restore_hash_match": true,
+    "backup_manifest": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\audit_backups\\20260321_232426\\hash_manifest.json"
+  },
+  "feature_additions": [
+    {
+      "priority": "?? ?? ??",
+      "item": "Triage entry metadata: owner, expires_at, reason template, history log",
+      "rationale": "Suppression is functional today, but audit evidence is thin without ownership and expiry."
+    },
+    {
+      "priority": "?? ?? ??",
+      "item": "Saved analysis presets for P1-only, P1+P2, Live AI, raw txt boundary review",
+      "rationale": "Human test flows repeatedly toggle the same settings."
+    },
+    {
+      "priority": "?? ????",
+      "item": "Excel queue retry and per-run download history panel",
+      "rationale": "Queue state is visible, but it is still hard to trace which xlsx belongs to which rerun without reading output dirs."
+    },
+    {
+      "priority": "?? ????",
+      "item": "Rules editor with sample preview and detector dry-run",
+      "rationale": "Rule tuning would be safer if rule changes could be previewed against fixture snippets before enabling."
+    }
+  ],
+  "maintenance_recommendations": [
+    {
+      "priority": "?? ?? ??",
+      "item": "Split renderer workspace/result normalization path",
+      "rationale": "Current workspace flows still permit txt/pnl count drift and mixed synthetic/native rows."
+    },
+    {
+      "priority": "?? ????",
+      "item": "Reduce oversized frontend modules",
+      "rationale": "renderer.js ~2034 lines, autofix-ai.js ~1484 lines, workspace-view.js ~1315 lines increase coupling and regression risk."
+    },
+    {
+      "priority": "?? ????",
+      "item": "Reduce oversized backend mixins",
+      "rationale": "live_ai_review_mixin.py ~829 lines and analysis_pipeline.py ~548 lines indicate broad contracts that are hard to reason about."
+    },
+    {
+      "priority": "??/?? ??",
+      "item": "Centralize encoding/BOM/cp949 boundary policy and viewer expectations",
+      "rationale": "txt/pnl boundary behavior remains the most confusing user-visible area."
+    },
+    {
+      "priority": "??/?? ??",
+      "item": "Automate audit artifact retention and cleanup",
+      "rationale": "Large numbers of reports, smokes, and benchmark files accumulate quickly during tuning/audit loops."
+    }
+  ],
+  "top10": [
+    "Fix workspace aggregation so raw txt findings count matches CLI/Excel totals.",
+    "Fix .pnl workspace boundary handling so only one canonical stream is shown at a time.",
+    "Preserve true rule_id/severity for converted .pnl rows instead of UNKNOWN synthetic labels.",
+    "Make Live AI patch generation deterministic for canonical WinCC OA transforms like setMultiValue.",
+    "Gate apply success on post-apply heuristic delta, not only syntax/semantic guard pass.",
+    "Add explicit UI badges for synthetic REVIEW-ONLY rows vs engine-native findings.",
+    "Expose triage history and expiry so suppressions can be audited after the fact.",
+    "Add preset-based analysis workflows to reduce repetitive manual toggling.",
+    "Split frontend workspace/autofix code into smaller modules with narrower state contracts.",
+    "Add an audit mode that emits one consolidated machine-readable report without manual stitching."
+  ],
+  "environment_blocks": [],
+  "restore_verification": {
+    "benchmark_original_hash_before": "8EF0759431A030B3002F143F91D68AB4417E5B91C4FD536835DA24CA744CED27",
+    "benchmark_hash_after_restore": "8EF0759431A030B3002F143F91D68AB4417E5B91C4FD536835DA24CA744CED27",
+    "match": true
+  },
+  "final_verdict": {
+    "rule_engine": "pass_on_representative_core_samples",
+    "product": "partial_pass",
+    "summary": "Core P1 rule detection for BenchmarkP1Fixture.ctl and GoldenTime.ctl matches manual review. Remaining problems are concentrated in txt/pnl workspace presentation and Live AI/autofix quality rather than missing P1 detector implementation."
+  }
+}

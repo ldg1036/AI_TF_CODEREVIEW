@@ -1,13 +1,16 @@
 import {
     basenamePath,
     buildFunctionScopes,
+    canonicalFileId,
     findScopeForLine,
+    fileDescriptorFor,
     inferRuleIdFromReviewedBlock,
     messageSearchToken,
     normalizeP1RuleId,
     normalizeReviewedMessageKey,
     parseReviewedTodoBlocks,
     positiveLineOrZero,
+    violationCanonicalFileId,
 } from "./utils.js";
 
 export function createCodeViewerController({ dom, state, caches, virtualState, helpers }) {
@@ -208,14 +211,14 @@ export function createCodeViewerController({ dom, state, caches, virtualState, h
     }
 
     function cacheFunctionScopesForFile(fileName, content) {
-        const key = basenamePath(fileName);
+        const key = canonicalFileId(fileName);
         if (!key) return;
         const scopes = buildFunctionScopes(String(content || "").split("\n"));
         caches.functionScopeCacheByFile.set(key, scopes);
     }
 
     function getFunctionScopeFor(fileName, lineNo) {
-        const key = basenamePath(fileName);
+        const key = canonicalFileId(fileName);
         if (!key) return null;
         return findScopeForLine(caches.functionScopeCacheByFile.get(key) || [], lineNo);
     }
@@ -227,7 +230,7 @@ export function createCodeViewerController({ dom, state, caches, virtualState, h
     }
 
     function resolveReviewedJumpLineFromCache(fileName, violation) {
-        const reviewedFile = basenamePath(fileName || (violation && (violation.file || violation.object)) || "");
+        const reviewedFile = violationCanonicalFileId(violation, fileName || (violation && (violation.file || violation.object)) || "");
         if (!reviewedFile) return 0;
         const blocks = caches.reviewedTodoCacheByFile.get(reviewedFile) || [];
         if (!Array.isArray(blocks) || !blocks.length) return 0;
@@ -344,11 +347,18 @@ export function createCodeViewerController({ dom, state, caches, virtualState, h
                         fetchFileContentPayload(fileName, { preferSource: true }),
                         fetchFileContentPayload(fileName, { preferSource: false }),
                     ]);
-                    cacheFunctionScopesForFile(fileName, String((sourcePayload && sourcePayload.content) || ""));
+                    const descriptor = fileDescriptorFor(
+                        (viewPayload && viewPayload.file_descriptor)
+                        || (sourcePayload && sourcePayload.file_descriptor)
+                        || fileName,
+                        fileName,
+                    );
+                    const cacheKey = canonicalFileId(descriptor, fileName);
+                    cacheFunctionScopesForFile(cacheKey, String((sourcePayload && sourcePayload.content) || ""));
                     if (viewPayload && String(viewPayload.source || "") === "reviewed") {
                         caches.reviewedTodoCacheByFile.set(
-                            basenamePath(fileName),
-                            parseReviewedTodoBlocks(String(viewPayload.content || ""), fileName),
+                            cacheKey,
+                            parseReviewedTodoBlocks(String(viewPayload.content || ""), descriptor.canonical_name || fileName),
                         );
                     }
                 } catch (_) {
@@ -374,7 +384,8 @@ export function createCodeViewerController({ dom, state, caches, virtualState, h
             source: "원본 파일",
         };
         const sourceType = sourceMap[String(payload.source || "")] || String(payload.source || "파일");
-        const resolvedName = String(payload.resolved_name || payload.file || "");
+        const descriptor = fileDescriptorFor(payload.file_descriptor || payload, payload.resolved_name || payload.file || "");
+        const resolvedName = String(descriptor.display_name || payload.resolved_name || payload.file || "");
         return `// 표시 파일: ${resolvedName} (${sourceType})`;
     }
 

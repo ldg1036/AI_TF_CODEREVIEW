@@ -95,14 +95,15 @@ describe("reviewed linking", () => {
             reviewedTodoCacheByFile,
             pickHigherSeverity: (left, right) => right || left,
         });
-        expect(plan.rowPlans).toHaveLength(1);
+        expect(plan.rowPlans).toHaveLength(2);
         expect(plan.rowPlans[0].syncState).toBe("synced");
         expect(plan.rowPlans[0].baseViolation.rule_id).toBe("EXC-DP-01");
         expect(plan.rowPlans[0].baseViolation.severity).toBe("Critical");
         expect(plan.rowPlans[0].matchedItems[0].violation.rule_id).toBe("EXC-DP-01");
+        expect(plan.rowPlans[1].baseViolation.rule_id).toBe("EXC-TRY-01");
     });
 
-    test("buildReviewedP1SyncPlan creates REVIEW-ONLY synthetic rows only for unmatched reviewed blocks", () => {
+    test("buildReviewedP1SyncPlan keeps unmatched reviewed blocks out of visible rows", () => {
         const reviewedTodoCacheByFile = new Map([
             ["sample_reviewed.txt", [
                 {
@@ -121,10 +122,8 @@ describe("reviewed linking", () => {
             reviewedTodoCacheByFile,
             pickHigherSeverity: (left, right) => right || left,
         });
-        expect(plan.rowPlans).toHaveLength(1);
-        expect(plan.rowPlans[0].syncState).toBe("partial");
-        expect(plan.rowPlans[0].matchedItems).toEqual([]);
-        expect(plan.rowPlans[0].baseViolation.issue_id).toContain("REVIEW-ONLY-");
+        expect(plan.rowPlans).toHaveLength(0);
+        expect(plan.reviewOnlyCount).toBe(1);
     });
 
     test("buildReviewedP1SyncPlan matches reviewed aliases and still keeps backend-only rows", () => {
@@ -166,10 +165,53 @@ describe("reviewed linking", () => {
             pickHigherSeverity: (left, right) => right || left,
         });
         expect(plan.rowPlans).toHaveLength(2);
-        expect(plan.rowPlans[0].syncState).toBe("synced");
+        expect(plan.rowPlans[0].syncState).toBe("violation-only");
         expect(plan.rowPlans[0].baseViolation.rule_id).toBe("PERF-SETMULTIVALUE-ADOPT-01");
         expect(plan.rowPlans[1].syncState).toBe("violation-only");
         expect(plan.rowPlans[1].baseViolation.rule_id).toBe("EXC-DP-01");
-        expect(plan.leftoverCount).toBe(1);
+        expect(plan.leftoverCount).toBe(2);
+        expect(plan.reviewOnlyCount).toBe(1);
+    });
+
+    test("buildReviewedP1SyncPlan treats pnl alias and canonical txt as the same file", () => {
+        const reviewedTodoCacheByFile = new Map([
+            ["panel_pnl_REVIEWED.txt", [
+                {
+                    todo_line: 4,
+                    message: "Avoid hardcoded path",
+                    severity: "Warning",
+                    canonical_file_id: "panel_pnl.txt",
+                    meta: {
+                        file: "panel.pnl",
+                        line: "7",
+                        rule_id: "HARD-01",
+                    },
+                },
+            ]],
+        ]);
+        const p1Groups = [
+            {
+                object: "panel_pnl.txt",
+                event: "Global",
+                violations: [
+                    {
+                        issue_id: "P1-HARD-1",
+                        file: "panel_pnl.txt",
+                        line: 7,
+                        rule_id: "HARD-01",
+                        severity: "Warning",
+                        message: "Hardcoded path detected",
+                    },
+                ],
+            },
+        ];
+        const plan = buildReviewedP1SyncPlan({
+            p1Groups,
+            reviewedTodoCacheByFile,
+            pickHigherSeverity: (left, right) => right || left,
+        });
+        expect(plan.rowPlans).toHaveLength(1);
+        expect(plan.rowPlans[0].syncState).toBe("synced");
+        expect(plan.rowPlans[0].baseViolation._reviewed_sync_canonical_file_id).toBe("panel_pnl.txt");
     });
 });

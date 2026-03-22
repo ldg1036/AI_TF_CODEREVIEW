@@ -1307,6 +1307,55 @@ class ApiGeneralCasesMixin:
         self.assertEqual(os.path.normpath(str(viewer_payload.get("resolved_path", ""))), os.path.normpath(external_path))
         self.assertEqual(str(viewer_payload.get("resolved_name", "")), "outside.ctl")
 
+    def test_get_api_file_content_returns_same_canonical_descriptor_for_pnl_alias_and_txt(self):
+        with open(os.path.join(self.data_dir, "panel.pnl"), "w", encoding="utf-8") as f:
+            f.write("<panel />")
+        with open(os.path.join(self.data_dir, "panel_pnl.txt"), "w", encoding="utf-8") as f:
+            f.write('main() { dpSet("A.B.C", 1); }')
+
+        status, payload = self._request("GET", "/api/files")
+        self.assertEqual(status, 200)
+        panel_entry = next((item for item in (payload.get("files") or []) if item.get("name") == "panel.pnl"), {})
+        self.assertEqual(str(panel_entry.get("canonical_file_id", "")), "panel_pnl.txt")
+
+        analyze_status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {
+                "mode": "Static",
+                "selected_files": ["panel_pnl.txt"],
+            },
+        )
+        self.assertEqual(analyze_status, 200)
+        output_dir = str(analyze_payload.get("output_dir", "") or "")
+        alias_query = urllib.parse.urlencode({"name": "panel.pnl", "output_dir": output_dir, "prefer_source": "true"})
+        canonical_query = urllib.parse.urlencode({"name": "panel_pnl.txt", "output_dir": output_dir, "prefer_source": "true"})
+        alias_status, alias_payload = self._request("GET", f"/api/file-content?{alias_query}")
+        canonical_status, canonical_payload = self._request("GET", f"/api/file-content?{canonical_query}")
+        self.assertEqual(alias_status, 200)
+        self.assertEqual(canonical_status, 200)
+        self.assertEqual(str(alias_payload.get("resolved_name", "")), "panel_pnl.txt")
+        self.assertEqual(str(alias_payload.get("source", "")), "normalized")
+        self.assertEqual(alias_payload.get("content"), canonical_payload.get("content"))
+        self.assertEqual(
+            str((alias_payload.get("file_descriptor", {}) or {}).get("canonical_file_id", "")),
+            str((canonical_payload.get("file_descriptor", {}) or {}).get("canonical_file_id", "")),
+        )
+
+    def test_get_api_file_content_decodes_cp949_canonical_txt_via_pnl_alias(self):
+        with open(os.path.join(self.data_dir, "korean_panel.pnl"), "w", encoding="utf-8") as f:
+            f.write("<panel />")
+        with open(os.path.join(self.data_dir, "korean_panel_pnl.txt"), "w", encoding="cp949") as f:
+            f.write("// 한글 경계 테스트\nmain() { DebugN(\"ok\"); }\n")
+
+        query = urllib.parse.urlencode({"name": "korean_panel.pnl"})
+        viewer_status, viewer_payload = self._request("GET", f"/api/file-content?{query}")
+        self.assertEqual(viewer_status, 200)
+        self.assertEqual(str(viewer_payload.get("resolved_name", "")), "korean_panel_pnl.txt")
+        self.assertEqual(str(viewer_payload.get("source", "")), "normalized")
+        self.assertEqual(str(viewer_payload.get("detected_encoding", "")), "cp949")
+        self.assertIn("한글 경계 테스트", str(viewer_payload.get("content", "")))
+
     def test_post_api_analyze_external_folder_path_succeeds(self):
         external_dir = os.path.join(self.data_dir, "folder-input")
         nested_dir = os.path.join(external_dir, "nested")

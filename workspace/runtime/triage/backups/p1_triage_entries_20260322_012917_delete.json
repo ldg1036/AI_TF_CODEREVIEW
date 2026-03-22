@@ -1,0 +1,20 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1774110557829,
+  "entries": [
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||299",
+      "status": "suppressed",
+      "reason": "already reviewed in smoke",
+      "note": "triage smoke round trip",
+      "updated_at_ms": 1774110557829,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 299,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-fd66893c18"
+      }
+    }
+  ]
+}

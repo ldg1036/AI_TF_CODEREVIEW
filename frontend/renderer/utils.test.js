@@ -1,7 +1,10 @@
 import {
+    canonicalFileId,
     messageSearchToken,
     normalizeP1RuleId,
     parseUnifiedDiffForSplit,
+    sameFileIdentity,
+    violationDisplayFile,
 } from "./utils.js";
 
 describe("renderer utils", () => {
@@ -25,5 +28,26 @@ describe("renderer utils", () => {
         const parsed = parseUnifiedDiffForSplit(diff);
         expect(parsed.beforeRows.some((row) => row.text === "old-value")).toBe(true);
         expect(parsed.afterRows.some((row) => row.text === "new-value")).toBe(true);
+    });
+
+    test("canonicalFileId normalizes pnl aliases and reviewed txt", () => {
+        expect(canonicalFileId("panel.pnl")).toBe("panel_pnl.txt");
+        expect(canonicalFileId("panel_pnl_REVIEWED.txt")).toBe("panel_pnl.txt");
+    });
+
+    test("sameFileIdentity treats pnl alias and canonical txt as equal", () => {
+        expect(sameFileIdentity("panel.pnl", "panel_pnl.txt")).toBe(true);
+        expect(sameFileIdentity("panel_pnl_REVIEWED.txt", "panel.pnl")).toBe(true);
+    });
+
+    test("violationDisplayFile resolves nested file descriptors from proposal-like objects", () => {
+        expect(violationDisplayFile({
+            file: {
+                requested_name: "panel.pnl",
+                canonical_name: "panel_pnl.txt",
+                canonical_file_id: "panel_pnl.txt",
+                display_name: "panel_pnl.txt",
+            },
+        })).toBe("panel_pnl.txt");
     });
 });

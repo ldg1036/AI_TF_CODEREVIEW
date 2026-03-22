@@ -26,7 +26,12 @@ FRONTEND_SYNTAX_FILES = [
     "frontend/renderer/workspace-resize-helpers.js",
     "frontend/renderer/workspace-view.js",
     "frontend/renderer/workspace-interaction-helpers.js",
+    "frontend/renderer/workspace/recommendations.js",
+    "frontend/renderer/workspace/row-index.js",
     "frontend/renderer/autofix-ai.js",
+    "frontend/renderer/autofix-ai/quality-gates.js",
+    "frontend/renderer/autofix-ai/prepare-panel.js",
+    "frontend/renderer/autofix-ai/compare-modal.js",
     "frontend/renderer/rules-manage.js",
     "frontend/renderer/rules-manage-helpers.js",
 ]
@@ -405,8 +410,19 @@ def evaluate_check(row: Dict[str, Any]) -> Dict[str, Any]:
         startup_probe = artifact.get("startupProbe") or {}
         run = artifact.get("run") or {}
         ai_compare = run.get("aiComparePrepare") or {}
+        unsafe_markers = (
+            bool(ai_compare.get("contains_obj_auto_sel"))
+            or bool(ai_compare.get("contains_arrow_marker"))
+            or bool(ai_compare.get("contains_placeholder_system_obj"))
+            or not bool(ai_compare.get("contains_real_dp_names"))
+        )
+        conservatively_blocked = (
+            bool(ai_compare.get("apply_button_present"))
+            and bool(ai_compare.get("apply_button_disabled"))
+            and bool(ai_compare.get("apply_blocked_reason"))
+        )
         verdict["details"].append(
-            "startup={root}/{style}/{renderer}, compare_opened={compare}, prepare_clicked={prepare}, patch_ready={patch}, unified={unified}, real_names={real}, artifacts={artifacts}".format(
+            "startup={root}/{style}/{renderer}, compare_opened={compare}, prepare_clicked={prepare}, patch_ready={patch}, unified={unified}, real_names={real}, artifacts={artifacts}, blocked={blocked}".format(
                 root=(startup_probe.get("status_codes") or {}).get("root"),
                 style=(startup_probe.get("status_codes") or {}).get("style"),
                 renderer=(startup_probe.get("status_codes") or {}).get("renderer"),
@@ -415,11 +431,8 @@ def evaluate_check(row: Dict[str, Any]) -> Dict[str, Any]:
                 patch=ai_compare.get("patch_ready"),
                 unified=ai_compare.get("unified_view_opened"),
                 real=ai_compare.get("contains_real_dp_names"),
-                artifacts=(
-                    bool(ai_compare.get("contains_obj_auto_sel"))
-                    or bool(ai_compare.get("contains_arrow_marker"))
-                    or bool(ai_compare.get("contains_placeholder_system_obj"))
-                ),
+                artifacts=unsafe_markers,
+                blocked=conservatively_blocked,
             )
         )
         verdict["ok"] = (
@@ -430,10 +443,7 @@ def evaluate_check(row: Dict[str, Any]) -> Dict[str, Any]:
             and (bool(ai_compare.get("prepare_clicked")) or bool((ai_compare.get("before") or {}).get("patch_ready")))
             and bool(ai_compare.get("patch_ready"))
             and bool(ai_compare.get("unified_view_opened"))
-            and bool(ai_compare.get("contains_real_dp_names"))
-            and not bool(ai_compare.get("contains_obj_auto_sel"))
-            and not bool(ai_compare.get("contains_arrow_marker"))
-            and not bool(ai_compare.get("contains_placeholder_system_obj"))
+            and ((not unsafe_markers) or conservatively_blocked)
         )
     elif name == "live_ai":
         status = str(artifact.get("status", ""))
@@ -461,6 +471,31 @@ def evaluate_check(row: Dict[str, Any]) -> Dict[str, Any]:
             and int(summary.get("p1_total", 0) or 0) >= min_p1_total
             and (not require_context or context_available is True)
         )
+    elif name == "canonical_boundary_parity":
+        parity = artifact.get("parity") if isinstance(artifact, dict) else None
+        txt = (artifact.get("txt") or {}).get("metrics") if isinstance(artifact, dict) else None
+        pnl = (artifact.get("pnl") or {}).get("metrics") if isinstance(artifact, dict) else None
+        if isinstance(parity, dict):
+            verdict["details"].append(
+                "txt={txt_rows}/{txt_total}, pnl={pnl_rows}/{pnl_total}, unknown_zero={unknown_zero}, selected_one={selected_one}".format(
+                    txt_rows=(txt or {}).get("result_row_count"),
+                    txt_total=(txt or {}).get("total_issues"),
+                    pnl_rows=(pnl or {}).get("result_row_count"),
+                    pnl_total=(pnl or {}).get("total_issues"),
+                    unknown_zero=parity.get("unknown_zero"),
+                    selected_one=parity.get("single_selection"),
+                )
+            )
+            verdict["ok"] = (
+                verdict["ok"]
+                and bool(parity.get("txt_ok"))
+                and bool(parity.get("pnl_ok"))
+                and bool(parity.get("total_equal"))
+                and bool(parity.get("review_target_equal"))
+                and bool(parity.get("result_row_equal"))
+                and bool(parity.get("unknown_zero"))
+                and bool(parity.get("single_selection"))
+            )
     elif name == "frontend_unit":
         verdict["details"].append("vitest frontend unit suite")
     return verdict
@@ -535,6 +570,7 @@ def main() -> int:
     ctrlpp_artifact = PROJECT_ROOT / "tools" / "integration_results" / f"ctrlpp_release_gate_{stamp_compact()}.json"
     ui_benchmark_artifact = PROJECT_ROOT / "tools" / "benchmark_results" / f"ui_benchmark_release_gate_{stamp_compact()}.json"
     ui_smoke_artifact = PROJECT_ROOT / "tools" / "integration_results" / f"ui_real_smoke_release_gate_{stamp_compact()}.json"
+    canonical_boundary_artifact = PROJECT_ROOT / "tools" / "integration_results" / f"canonical_boundary_release_gate_{stamp_compact()}.json"
     live_ai_artifact = PROJECT_ROOT / "tools" / "integration_results" / f"live_ai_release_gate_{stamp_compact()}.json"
     live_ai_ui_artifact = PROJECT_ROOT / "tools" / "integration_results" / f"live_ai_ui_release_gate_{stamp_compact()}.json"
 
@@ -731,6 +767,23 @@ def main() -> int:
                     str(ui_smoke_artifact),
                 ],
                 artifact_path=ui_smoke_artifact,
+                verbose=args.verbose,
+            )
+        )
+        checks.append(
+            run_command(
+                name="canonical_boundary_parity",
+                command=[
+                    args.python,
+                    "tools/check_canonical_boundary_parity.py",
+                    "--node",
+                    args.node,
+                    "--timeout-ms",
+                    "120000",
+                    "--output",
+                    str(canonical_boundary_artifact),
+                ],
+                artifact_path=canonical_boundary_artifact,
                 verbose=args.verbose,
             )
         )
