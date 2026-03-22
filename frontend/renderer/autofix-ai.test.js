@@ -1,4 +1,5 @@
 import { createAutofixAiController } from "./autofix-ai.js";
+import { describeAutofixBlockedReason } from "./autofix-ai/quality-gates.js";
 
 describe("autofix ai controller", () => {
     function createController() {
@@ -90,6 +91,8 @@ describe("autofix ai controller", () => {
         });
         expect(gate.canApply).toBe(false);
         expect(gate.blockedReason).toBe("contains_placeholder_system_obj");
+        expect(gate.blockedReasonCodes).toEqual(["contains_placeholder_system_obj"]);
+        expect(gate.blockedReasonDetail).toBe(describeAutofixBlockedReason("contains_placeholder_system_obj"));
     });
 
     test("getAutofixApplyGate allows clean proposals", () => {
@@ -106,5 +109,21 @@ describe("autofix ai controller", () => {
         });
         expect(gate.canApply).toBe(true);
         expect(gate.blockedReason).toBe("");
+    });
+
+    test("getAutofixApplyGate prefers backend allow_apply verdict when present", () => {
+        const controller = createController();
+        const gate = controller.getAutofixApplyGate({
+            proposal_id: "llm-blocked",
+            can_apply: false,
+            blocked_reason: "target_issue_not_reduced",
+            quality_preview: {
+                allow_apply: false,
+                blocked_reason_codes: ["target_issue_not_reduced"],
+            },
+        });
+        expect(gate.canApply).toBe(false);
+        expect(gate.blockedReason).toBe("target_issue_not_reduced");
+        expect(gate.blockedReasonDetail).toBe(describeAutofixBlockedReason("target_issue_not_reduced"));
     });
 });

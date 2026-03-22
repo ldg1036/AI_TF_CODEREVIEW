@@ -2646,4 +2646,22 @@ class ApiGeneralCasesMixin:
             self.app.analyze_file = original_analyze_file
             release_first.set()
 
+    def test_post_api_analyze_violation_evidence_is_included(self):
+        self._force_single_internal_violation()
+        status, payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "mode": "Static", "enable_ctrlppcheck": False, "enable_live_ai": False},
+        )
+        self.assertEqual(status, 200)
+        p1_groups = payload.get("violations", {}).get("P1", [])
+        self.assertGreaterEqual(len(p1_groups), 1)
+        violation = ((p1_groups[0] or {}).get("violations", []) or [None])[0]
+        self.assertIsInstance(violation, dict)
+        evidence = violation.get("evidence", {}) or {}
+        self.assertEqual(evidence.get("canonical_file_id"), "sample.ctl")
+        self.assertEqual(evidence.get("detector_kind"), "heuristic")
+        self.assertEqual(evidence.get("matched_lines"), [1])
+        self.assertTrue(str(evidence.get("display_reason", "")).strip())
+
 

@@ -39,10 +39,10 @@ class AutoFixPrepareMixin:
         ]
         significant = [
             token for token in candidate_tokens
-            if token and (("." in token) or (":" in token) or ("_" in token) or len(token) >= 6)
+            if token and (("." in token) or (":" in token) or ("_" in token))
         ]
         if not significant:
-            return False
+            return True
         return any(token in source_tokens for token in significant)
 
     def _find_matching_ai_review(self, report_data: Dict, object_name: str, event_name: str, review_text: str, issue_id: str = ""):
@@ -181,10 +181,22 @@ class AutoFixPrepareMixin:
                 "_object": str(ai_review.get("object", object_name or "")),
                 "_event": str(ai_review.get("event", event_name or "Global")),
                 "_review": str(ai_review.get("review", review_text or "")),
+                "_target_issue_id": str((violation or {}).get("issue_id", "") or issue_id or ""),
+                "_target_rule_id": str((violation or {}).get("rule_id", "") or ""),
+                "_target_severity": str((violation or {}).get("severity", "") or ""),
                 "_insert_line": insert_at,
                 "_inserted_line_count": len(inserted_lines),
                 "_source_hash_at_prepare": source_hash,
             },
+        )
+        proposal["quality_preview"] = self._quality_preview_with_prepare_verdict(
+            preview=proposal.get("quality_preview", {}) if isinstance(proposal.get("quality_preview", {}), dict) else {},
+            file_name=file_name,
+            source_path=source_path,
+            report_data=report_data,
+            candidate_content=new_content,
+            target_issue_id=str((violation or {}).get("issue_id", "") or issue_id or ""),
+            target_rule_id=str((violation or {}).get("rule_id", "") or ""),
         )
         # Preserve insertion-specific hunk shape for anchor checks/backward compatibility.
         proposal["hunks"] = self._build_autofix_hunks_for_insertion(source_lines, new_lines, insert_at, inserted_lines)
@@ -314,11 +326,23 @@ class AutoFixPrepareMixin:
                 "_object": str(object_name or ""),
                 "_event": str(event_name or "Global"),
                 "_review": "",
+                "_target_issue_id": str(violation.get("issue_id", "") or ""),
+                "_target_rule_id": rule_id,
+                "_target_severity": str(violation.get("severity", "") or ""),
                 "_rule_issue_id": str(violation.get("issue_id", "") or ""),
                 "_rule_id": rule_id,
                 "_rule_item": rule_item,
                 "_rule_stats": normalize_stats,
             },
+        )
+        proposal["quality_preview"] = self._quality_preview_with_prepare_verdict(
+            preview=proposal.get("quality_preview", {}) if isinstance(proposal.get("quality_preview", {}), dict) else {},
+            file_name=file_name,
+            source_path=source_path,
+            report_data=report_data,
+            candidate_content=candidate_content,
+            target_issue_id=str(violation.get("issue_id", "") or ""),
+            target_rule_id=rule_id,
         )
         try:
             structured = self._build_structured_instruction_from_hunks(

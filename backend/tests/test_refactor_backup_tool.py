@@ -32,6 +32,31 @@ class RefactorBackupToolTests(unittest.TestCase):
             "def smoke_test():\n    return True\n",
             encoding="utf-8",
         )
+        (self.project_root / "frontend").mkdir(parents=True, exist_ok=True)
+        (self.project_root / "frontend" / "renderer.js").write_text(
+            "\n".join(
+                [
+                    "export function createRendererController() {",
+                    "    const root = document.getElementById('root');",
+                    "    root.addEventListener('click', () => {});",
+                    "    return {",
+                    "        render,",
+                    "        reset,",
+                    "    };",
+                    "}",
+                    "",
+                    "function render() {",
+                    "    document.querySelector('.toolbar');",
+                    "}",
+                    "",
+                    "function reset() {",
+                    "    window.addEventListener('resize', () => {});",
+                    "}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
         self.backup_root = self.project_root / "workspace" / "runtime" / "refactor_backups"
 
     def test_create_backup_writes_manifest_and_snapshots(self):
@@ -96,6 +121,152 @@ class RefactorBackupToolTests(unittest.TestCase):
         self.assertFalse(reviewed["ok"])
         self.assertEqual(reviewed["error_code"], "CURRENT_FILE_MISSING")
         self.assertIn("backend/server.py", reviewed["missing_current_files"])
+
+    def test_create_backup_captures_javascript_surface(self):
+        created = self.module.create_backup(
+            "frontend-phase",
+            ["frontend/renderer.js"],
+            project_root=self.project_root,
+            backup_root=self.backup_root,
+        )
+        self.assertTrue(created["ok"])
+        file_entry = created["files"][0]
+        self.assertEqual(file_entry["language"], "javascript")
+        surface = file_entry["surface"]
+        self.assertIn("createRendererController", surface["exports"])
+        self.assertIn("render", surface["functions"])
+        self.assertIn("render", surface["controller_methods"])
+        self.assertIn("#root", surface["dom_selectors"])
+        self.assertIn(".toolbar", surface["dom_selectors"])
+        self.assertIn("root:click", surface["event_bindings"])
+
+    def test_review_backup_reports_missing_javascript_exports_and_bindings(self):
+        created = self.module.create_backup(
+            "frontend-phase",
+            ["frontend/renderer.js"],
+            project_root=self.project_root,
+            backup_root=self.backup_root,
+        )
+        self.assertTrue(created["ok"])
+
+        (self.project_root / "frontend" / "renderer.js").write_text(
+            "\n".join(
+                [
+                    "export function createRendererController() {",
+                    "    const root = document.getElementById('root');",
+                    "    return {",
+                    "        render,",
+                    "    };",
+                    "}",
+                    "",
+                    "function render() {",
+                    "    document.querySelector('.workspace');",
+                    "}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        reviewed = self.module.review_backup(created["manifest_path"], project_root=self.project_root)
+        self.assertTrue(reviewed["ok"])
+        file_result = reviewed["files"][0]
+        self.assertIn("reset", file_result["missing_controller_methods"])
+        self.assertIn(".toolbar", file_result["missing_dom_bindings"])
+        self.assertIn("window:resize", file_result["missing_event_bindings"])
+
+    def test_compare_alias_matches_review_behavior(self):
+        created = self.module.create_backup(
+            "phase1",
+            ["backend/server.py"],
+            project_root=self.project_root,
+            backup_root=self.backup_root,
+        )
+        self.assertTrue(created["ok"])
+        exit_code = self.module.main(["compare", created["backup_dir"]])
+        self.assertEqual(exit_code, 0)
+
+    def test_review_backup_aggregate_surface_survives_javascript_refactor_move(self):
+        created = self.module.create_backup(
+            "frontend-phase",
+            ["frontend/renderer.js"],
+            project_root=self.project_root,
+            backup_root=self.backup_root,
+        )
+        self.assertTrue(created["ok"])
+
+        (self.project_root / "frontend" / "renderer.js").write_text(
+            "export function createRendererController() {\n    return { render };\n}\n\nfunction render() {}\n",
+            encoding="utf-8",
+        )
+        (self.project_root / "frontend" / "bootstrap.js").write_text(
+            "const root = document.getElementById('root');\nroot.addEventListener('click', () => {});\nwindow.addEventListener('resize', () => {});\ndocument.querySelector('.toolbar');\n",
+            encoding="utf-8",
+        )
+
+        reviewed = self.module.review_backup(created["manifest_path"], project_root=self.project_root)
+        self.assertTrue(reviewed["ok"])
+        self.assertEqual(reviewed["aggregate_missing_event_bindings"], [])
+        self.assertEqual(reviewed["aggregate_missing_dom_bindings"], [])
+        self.assertEqual(reviewed["missing_event_bindings"], [])
+        self.assertEqual(reviewed["missing_dom_bindings"], [])
+
+    def test_review_backup_normalizes_dom_binding_targets_for_aggregate_compare(self):
+        (self.project_root / "frontend" / "renderer.js").write_text(
+            "\n".join(
+                [
+                    "export function createRendererController() {",
+                    "    const dom = { resultTableWrap: document.getElementById('root') };",
+                    "    dom.resultTableWrap.addEventListener('scroll', () => {});",
+                    "    return {",
+                    "        render,",
+                    "    };",
+                    "}",
+                    "",
+                    "function render() {}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        created = self.module.create_backup(
+            "frontend-phase",
+            ["frontend/renderer.js"],
+            project_root=self.project_root,
+            backup_root=self.backup_root,
+        )
+        self.assertTrue(created["ok"])
+
+        (self.project_root / "frontend" / "renderer.js").write_text(
+            "\n".join(
+                [
+                    "export function createRendererController() {",
+                    "    return {",
+                    "        render,",
+                    "    };",
+                    "}",
+                    "",
+                    "function render() {}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        (self.project_root / "frontend" / "workspace-module.js").write_text(
+            "\n".join(
+                [
+                    "const dom = { resultTableWrap: document.getElementById('root') };",
+                    "dom.resultTableWrap.addEventListener('scroll', () => {});",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        reviewed = self.module.review_backup(created["manifest_path"], project_root=self.project_root)
+        self.assertTrue(reviewed["ok"])
+        self.assertEqual(reviewed["aggregate_missing_event_bindings"], [])
+        self.assertEqual(reviewed["missing_event_bindings"], [])
 
 
 if __name__ == "__main__":

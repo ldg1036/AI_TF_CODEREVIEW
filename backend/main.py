@@ -13,6 +13,7 @@ from core.heuristic_checker import HeuristicChecker
 from core.live_ai_review_mixin import LiveAIReviewMixin
 from core.reporter import Reporter
 from core.session_mixin import ReviewSessionMixin
+from core.violation_evidence import build_violation_evidence
 
 DEFAULT_MODE = "AI 보조"
 
@@ -89,6 +90,7 @@ class AutoFixQualityMetrics(TypedDict, total=False):
     applied: bool
     rejected_reason: str
     validation_errors: List[str]
+    blocking_errors: List[str]
     locator_mode: str
     apply_engine_mode: str
     apply_engine_fallback_reason: str
@@ -115,6 +117,13 @@ class AutoFixQualityMetrics(TypedDict, total=False):
     instruction_failure_stage: str
     instruction_candidate_hunk_count: int
     instruction_applied_hunk_count: int
+    allow_apply: bool
+    blocked_reason_codes: List[str]
+    semantic_verdict: str
+    estimated_issue_delta: Dict[str, Any]
+    identifier_reuse_confirmed: bool
+    identifier_reuse_ok: bool
+    placeholder_free: bool
 
 
 class AutoFixApplyError(RuntimeError):
@@ -205,6 +214,7 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
         internal_violations = self.checker.analyze_raw_code(target, code_content, file_type=file_type)
         heuristic_ms = self._elapsed_ms(heuristic_started)
         self._metrics_add_timing(metrics, "heuristic", heuristic_ms)
+        source_lines = code_content.splitlines()
 
         for group in internal_violations or []:
             for violation in (group.get("violations") or []):
@@ -213,6 +223,14 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
                     violation.setdefault("file_path", os.path.normpath(str(target)))
                     violation.setdefault("file_descriptor", dict(file_descriptor))
                     violation.setdefault("canonical_file_id", canonical_file_id)
+                    violation.setdefault(
+                        "evidence",
+                        build_violation_evidence(
+                            violation,
+                            source_lines=source_lines,
+                            canonical_file_id=canonical_file_id,
+                        ),
+                    )
 
         global_violations = []
         use_ctrlpp = False
@@ -229,6 +247,14 @@ class CodeInspectorApp(AppRuntimeMixin, LiveAIReviewMixin, ReviewSessionMixin, F
                     violation.setdefault("file_path", os.path.normpath(str(target)))
                     violation.setdefault("file_descriptor", dict(file_descriptor))
                     violation.setdefault("canonical_file_id", canonical_file_id)
+                    violation.setdefault(
+                        "evidence",
+                        build_violation_evidence(
+                            violation,
+                            source_lines=source_lines,
+                            canonical_file_id=canonical_file_id,
+                        ),
+                    )
             self._metrics_add_timing(metrics, "ctrlpp", self._elapsed_ms(ctrl_started))
             if use_ctrlpp:
                 self._metrics_inc(metrics, "ctrlpp_calls", 1)

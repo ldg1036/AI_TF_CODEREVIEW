@@ -1,0 +1,206 @@
+{
+  "generated_at": "2026-03-22T11:51:07",
+  "summary": {
+    "sample_count": 2,
+    "total_core_expected": 8,
+    "total_core_matched": 8,
+    "total_core_missing": 0,
+    "macro_core_recall_pct": 100.0,
+    "unexpected_detected_rule_count": 1
+  },
+  "samples": [
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "notes": [
+        "Repeated setValue cluster should trigger setMultiValue adoption guidance.",
+        "dpSet without explicit error contract should trigger DP/try-catch rules.",
+        "Mutating calls exist without active/enable guard."
+      ],
+      "core_expected_rule_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-SETMULTIVALUE-ADOPT-01"
+      ],
+      "detected_rule_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-SETMULTIVALUE-ADOPT-01",
+        "STYLE-HEADER-01"
+      ],
+      "matched_core_rule_ids": [
+        "ACTIVE-01",
+        "EXC-DP-01",
+        "EXC-TRY-01",
+        "PERF-SETMULTIVALUE-ADOPT-01"
+      ],
+      "missing_core_rule_ids": [],
+      "unexpected_detected_rule_ids": [
+        "STYLE-HEADER-01"
+      ],
+      "core_expected_count": 4,
+      "detected_count": 5,
+      "matched_core_count": 4,
+      "missing_core_count": 0,
+      "unexpected_detected_count": 1,
+      "core_recall_pct": 100.0,
+      "ctrlpp_p2_rule_ids": [
+        "voidReturnValueMissingInformation"
+      ],
+      "p1_config_health": {
+        "mode": "configured",
+        "degraded": false,
+        "reason_codes": [],
+        "reason_text": "",
+        "total_rule_count": 43,
+        "enabled_rule_count": 42,
+        "review_applicability_item_count": 13,
+        "unknown_review_rule_ids": [],
+        "unknown_review_rule_id_count": 0,
+        "unsupported_detector_ops": []
+      },
+      "p1_only_summary": {
+        "total": 5,
+        "critical": 0,
+        "warning": 4,
+        "info": 1,
+        "score": 79,
+        "p1_total": 5,
+        "p2_total": 0,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0,
+        "ctrlpp_preflight_attempted": false,
+        "ctrlpp_preflight_ready": false,
+        "ctrlpp_preflight_message": "",
+        "ctrlpp_preflight_error_code": "",
+        "verification_level": "CORE+REPORT"
+      },
+      "p1_p2_summary": {
+        "total": 5,
+        "critical": 0,
+        "warning": 4,
+        "info": 1,
+        "score": 79,
+        "p1_total": 5,
+        "p2_total": 1,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0,
+        "ctrlpp_preflight_attempted": false,
+        "ctrlpp_preflight_ready": true,
+        "ctrlpp_preflight_message": "CtrlppCheck preflight ready: existing binary found",
+        "ctrlpp_preflight_error_code": "",
+        "verification_level": "CORE+REPORT"
+      },
+      "p1_only_output_dir": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_115107_393891",
+      "p1_p2_output_dir": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_115107_402892"
+    },
+    {
+      "file": "GoldenTime.ctl",
+      "notes": [
+        "Config path literal is hardcoded.",
+        "Repeated 0.001 literal should trigger float hardcoding rule.",
+        "Loop/helper path contains repeated event exchange pressure via dpSet.",
+        "Magic index access appears in parsed config handling."
+      ],
+      "core_expected_rule_ids": [
+        "HARD-01",
+        "HARD-03",
+        "PERF-EV-01",
+        "STYLE-IDX-01"
+      ],
+      "detected_rule_ids": [
+        "HARD-01",
+        "HARD-03",
+        "PERF-EV-01",
+        "STYLE-IDX-01"
+      ],
+      "matched_core_rule_ids": [
+        "HARD-01",
+        "HARD-03",
+        "PERF-EV-01",
+        "STYLE-IDX-01"
+      ],
+      "missing_core_rule_ids": [],
+      "unexpected_detected_rule_ids": [],
+      "core_expected_count": 4,
+      "detected_count": 4,
+      "matched_core_count": 4,
+      "missing_core_count": 0,
+      "unexpected_detected_count": 0,
+      "core_recall_pct": 100.0,
+      "ctrlpp_p2_rule_ids": [
+        "badFunc_performance_delay",
+        "badFunc_safety_exit",
+        "badPerformanceInLoops",
+        "missingInclude",
+        "undefinedVariable",
+        "uninitvar",
+        "variableScope"
+      ],
+      "p1_config_health": {
+        "mode": "configured",
+        "degraded": false,
+        "reason_codes": [],
+        "reason_text": "",
+        "total_rule_count": 43,
+        "enabled_rule_count": 42,
+        "review_applicability_item_count": 13,
+        "unknown_review_rule_ids": [],
+        "unknown_review_rule_id_count": 0,
+        "unsupported_detector_ops": []
+      },
+      "p1_only_summary": {
+        "total": 4,
+        "critical": 0,
+        "warning": 3,
+        "info": 1,
+        "score": 84,
+        "p1_total": 4,
+        "p2_total": 0,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0,
+        "ctrlpp_preflight_attempted": false,
+        "ctrlpp_preflight_ready": false,
+        "ctrlpp_preflight_message": "",
+        "ctrlpp_preflight_error_code": "",
+        "verification_level": "CORE+REPORT"
+      },
+      "p1_p2_summary": {
+        "total": 4,
+        "critical": 0,
+        "warning": 3,
+        "info": 1,
+        "score": 84,
+        "p1_total": 4,
+        "p2_total": 43,
+        "p3_total": 0,
+        "requested_file_count": 1,
+        "successful_file_count": 1,
+        "failed_file_count": 0,
+        "ctrlpp_preflight_attempted": false,
+        "ctrlpp_preflight_ready": true,
+        "ctrlpp_preflight_message": "CtrlppCheck preflight ready: existing binary found",
+        "ctrlpp_preflight_error_code": "",
+        "verification_level": "CORE+REPORT"
+      },
+      "p1_only_output_dir": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_115107_448894",
+      "p1_p2_output_dir": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_115107_474405"
+    }
+  ],
+  "tuning_queue": [
+    {
+      "rule_id": "STYLE-HEADER-01",
+      "sample_count": 1,
+      "files": [
+        "BenchmarkP1Fixture.ctl"
+      ]
+    }
+  ]
+}

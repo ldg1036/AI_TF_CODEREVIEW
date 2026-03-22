@@ -1,357 +1,33 @@
-import {
-    basenamePath,
-    escapeHtml,
-    normalizeInsightToken,
-    positiveLineOrZero,
-    truncateUiText,
-    violationCanonicalFileId,
-    violationDisplayFile,
-    violationResolvedFile,
-} from "./utils.js";
-import { buildReviewedP1SyncPlan } from "./reviewed-linking.js";
-import {
-    applyP1TriageToRow,
-    excludeSuppressedP1Rows,
-    shouldHideSuppressedP1Row,
-} from "./p1-triage.js";
+import { positiveLineOrZero } from "./utils.js";
+import { shouldHideSuppressedP1Row } from "./p1-triage.js";
 import {
     buildWorkspaceEmptyStateReason,
     getAdjacentWorkspaceRowId,
     resolveWorkspaceSelection,
 } from "./workspace-interaction-helpers.js";
-import {
-    buildWorkspaceFileListEmptyMessage,
-    buildWorkspaceSearchStateLabel,
-    filterWorkspaceFilesByQuery,
-    getWorkspaceFileName,
-    normalizeWorkspaceQuickPreset,
-    rowMatchesWorkspaceQuickPreset,
-    rowMatchesWorkspaceResultQuery,
-} from "./workspace-search-helpers.js";
-import {
-    buildWorkspaceCommandSummary,
-    buildWorkspaceSelectionSummary,
-    deriveWorkspaceCommandButtonState,
-} from "./workspace-chrome-helpers.js";
-import {
-    DEFAULT_WORKSPACE_CODE_PANE_HEIGHT,
-    calculateWorkspaceCodePaneHeightFromPointer,
-    clampWorkspaceCodePaneHeight,
-} from "./workspace-resize-helpers.js";
-import {
-    buildRecommendationInsightIndex,
-    deriveAnalysisInsights,
-    getRowHotspotKey,
-    getRowRuleFamilies,
-} from "./workspace/recommendations.js";
+import { normalizeWorkspaceQuickPreset } from "./workspace-search-helpers.js";
 import { rebuildWorkspaceRowIndex } from "./workspace/row-index.js";
+import { createWorkspaceFilePaneController } from "./workspace/file-pane.js";
+import { createWorkspacePaneLayoutController } from "./workspace/pane-layout.js";
+import { createWorkspaceRecommendationController } from "./workspace/recommendation-filters.js";
 
 export function createWorkspaceController({ dom, state, caches, virtualState, helpers }) {
-    let activeResizeSession = null;
-
-    function ensureWorkspaceUiState() {
-        const current = (state.workspaceUi && typeof state.workspaceUi === "object") ? state.workspaceUi : {};
-        if (!current.paneVisibility || typeof current.paneVisibility !== "object") {
-            current.paneVisibility = { files: true, code: true, inspector: true };
-        }
-        if (!Number.isFinite(Number.parseInt(current.codePaneHeightPx, 10))) {
-            current.codePaneHeightPx = DEFAULT_WORKSPACE_CODE_PANE_HEIGHT;
-        }
-        current.isResizingCodePane = !!current.isResizingCodePane;
-        state.workspaceUi = current;
-        return current;
-    }
-
-    function getWorkspaceResizableHeight() {
-        const surfaceHeight = Math.max(0, Number.parseInt(dom.workspaceSurface && dom.workspaceSurface.clientHeight, 10) || 0);
-        const resizerHeight = Math.max(0, Math.round(dom.workspaceResizer && dom.workspaceResizer.getBoundingClientRect
-            ? dom.workspaceResizer.getBoundingClientRect().height
-            : 0));
-        return Math.max(0, surfaceHeight - resizerHeight);
-    }
-
-    function syncWorkspaceResizeUi() {
-        const ui = ensureWorkspaceUiState();
-        const isCodeVisible = ui.paneVisibility.code !== false;
-        if (dom.workspaceSurface) {
-            dom.workspaceSurface.classList.toggle("is-resizing", !!ui.isResizingCodePane);
-            if (!isCodeVisible) {
-                dom.workspaceSurface.style.removeProperty("--workspace-code-pane-height");
-            }
-        }
-        if (dom.workspaceResizer) {
-            dom.workspaceResizer.hidden = !isCodeVisible;
-            dom.workspaceResizer.setAttribute("aria-hidden", isCodeVisible ? "false" : "true");
-        }
-        if (typeof document !== "undefined" && document.body) {
-            document.body.classList.toggle("workspace-resize-active", !!ui.isResizingCodePane);
-        }
-        if (typeof helpers.updateRendererDiagnostics === "function") {
-            helpers.updateRendererDiagnostics({
-                workspace_code_pane_height_px: Number.parseInt(ui.codePaneHeightPx, 10) || DEFAULT_WORKSPACE_CODE_PANE_HEIGHT,
-                workspace_resize_active: !!ui.isResizingCodePane,
-            });
-        }
-    }
-
-    function applyWorkspaceCodePaneHeight(options = {}) {
-        const ui = ensureWorkspaceUiState();
-        const isCodeVisible = ui.paneVisibility.code !== false;
-        if (!isCodeVisible) {
-            syncWorkspaceResizeUi();
-            return 0;
-        }
-        const resizableHeight = getWorkspaceResizableHeight();
-        const clampedHeight = resizableHeight > 0
-            ? clampWorkspaceCodePaneHeight(ui.codePaneHeightPx, resizableHeight)
-            : (Number.parseInt(ui.codePaneHeightPx, 10) || DEFAULT_WORKSPACE_CODE_PANE_HEIGHT);
-        ui.codePaneHeightPx = clampedHeight;
-        state.workspaceUi = ui;
-        if (dom.workspaceSurface) {
-            dom.workspaceSurface.style.setProperty("--workspace-code-pane-height", `${clampedHeight}px`);
-        }
-        syncWorkspaceResizeUi();
-        if (options.rerender) {
-            if (typeof helpers.queueCodeViewerWindowRender === "function") {
-                helpers.queueCodeViewerWindowRender(true);
-            }
-            queueResultTableWindowRender(true);
-        }
-        return clampedHeight;
-    }
-
-    function setWorkspaceCodePaneHeight(nextHeight, options = {}) {
-        const ui = ensureWorkspaceUiState();
-        ui.codePaneHeightPx = clampWorkspaceCodePaneHeight(nextHeight, getWorkspaceResizableHeight());
-        state.workspaceUi = ui;
-        return applyWorkspaceCodePaneHeight({ rerender: !!options.rerender });
-    }
-
-    function refreshWorkspaceSplitLayout(options = {}) {
-        return applyWorkspaceCodePaneHeight({ rerender: !!options.rerender });
-    }
-
-    function stopWorkspaceResize(pointerId = null) {
-        const ui = ensureWorkspaceUiState();
-        ui.isResizingCodePane = false;
-        state.workspaceUi = ui;
-        if (dom.workspaceResizer && pointerId !== null && typeof dom.workspaceResizer.releasePointerCapture === "function") {
-            try {
-                dom.workspaceResizer.releasePointerCapture(pointerId);
-            } catch (_) {
-                // Ignore stale capture release errors.
-            }
-        }
-        activeResizeSession = null;
-        refreshWorkspaceSplitLayout({ rerender: true });
-    }
-
-    function bindWorkspaceResizer() {
-        if (!dom.workspaceResizer || dom.workspaceResizer.dataset.resizeBound === "true") return;
-        dom.workspaceResizer.dataset.resizeBound = "true";
-        dom.workspaceResizer.addEventListener("pointerdown", (event) => {
-            if (event.button !== 0) return;
-            if (event.pointerType && event.pointerType !== "mouse") return;
-            const ui = ensureWorkspaceUiState();
-            if (ui.paneVisibility.code === false) return;
-            activeResizeSession = {
-                pointerId: event.pointerId,
-                startY: event.clientY,
-                startHeightPx: Number.parseInt(ui.codePaneHeightPx, 10) || DEFAULT_WORKSPACE_CODE_PANE_HEIGHT,
-            };
-            ui.isResizingCodePane = true;
-            state.workspaceUi = ui;
-            syncWorkspaceResizeUi();
-            if (typeof dom.workspaceResizer.setPointerCapture === "function") {
-                dom.workspaceResizer.setPointerCapture(event.pointerId);
-            }
-            event.preventDefault();
-        });
-        dom.workspaceResizer.addEventListener("pointermove", (event) => {
-            if (!activeResizeSession || event.pointerId !== activeResizeSession.pointerId) return;
-            const nextHeight = calculateWorkspaceCodePaneHeightFromPointer({
-                startHeightPx: activeResizeSession.startHeightPx,
-                startPointerY: activeResizeSession.startY,
-                nextPointerY: event.clientY,
-                containerHeightPx: getWorkspaceResizableHeight(),
-            });
-            setWorkspaceCodePaneHeight(nextHeight, { rerender: false });
-            event.preventDefault();
-        });
-        const finishResize = (event) => {
-            if (!activeResizeSession) return;
-            if (event && event.pointerId !== activeResizeSession.pointerId) return;
-            stopWorkspaceResize(activeResizeSession.pointerId);
-        };
-        dom.workspaceResizer.addEventListener("pointerup", finishResize);
-        dom.workspaceResizer.addEventListener("pointercancel", finishResize);
-        dom.workspaceResizer.addEventListener("lostpointercapture", () => {
-            if (!activeResizeSession) return;
-            stopWorkspaceResize(null);
+    function runWorkspaceSelection(violation, eventName, selectionToken) {
+        const pendingLine = helpers.pendingJumpLineForViolation(violation);
+        helpers.setActiveJumpRequestState("pending", pendingLine);
+        helpers.showDetail(violation, eventName, { jumpPendingLine: pendingLine });
+        return helpers.jumpCodeViewerToViolation(violation).then((jumpResult) => {
+            if (selectionToken !== state.workspaceSelectionToken) return;
+            if (!jumpResult || !jumpResult.ok) helpers.setActiveJumpRequestState("failed", pendingLine);
+            helpers.showDetail(violation, eventName, { jumpResult });
         });
     }
 
-    function rowMatchesRecommendationFilter(row) {
-        const mode = String(state.recommendationWorkspaceFilter.mode || "").trim();
-        const value = String(state.recommendationWorkspaceFilter.value || "").trim();
-        if (!mode || !value) return true;
-        if (mode === "hotspot") return getRowHotspotKey(row) === value;
-        if (mode === "rule_family") return getRowRuleFamilies(row).includes(value);
-        return true;
-    }
-
-    function buildRecommendationWorkspaceFilterText() {
-        const mode = String(state.recommendationWorkspaceFilter.mode || "").trim();
-        const label = String(state.recommendationWorkspaceFilter.label || "").trim();
-        const source = String(state.recommendationWorkspaceFilter.source || "").trim();
-        if (!mode || !label) return "";
-        return `${mode === "rule_family" ? "활성 규칙 필터" : "활성 hotspot 필터"}: ${label}${source ? ` | ${source.toUpperCase()}` : ""}`;
-    }
-
-    function buildWorkspaceFilterComparisonSummary() {
-        const activeMode = String(state.recommendationWorkspaceFilter.mode || "").trim();
-        if (!activeMode) return { banner: "", detail: "" };
-        const overall = (state.analysisInsights && state.analysisInsights.dedupe) || {};
-        const current = (state.workspaceAnalysisInsights && state.workspaceAnalysisInsights.dedupe) || {};
-        const overallIssues = Math.max(0, Number.parseInt(overall.rawIssueCount, 10) || 0);
-        const currentIssues = Math.max(0, Number.parseInt(current.rawIssueCount, 10) || 0);
-        const overallRows = Math.max(0, Number.parseInt(overall.displayedRowCount, 10) || 0);
-        const currentRows = Math.max(0, Number.parseInt(current.displayedRowCount, 10) || 0);
-        const issueDelta = Math.max(0, overallIssues - currentIssues);
-        const rowDelta = Math.max(0, overallRows - currentRows);
-        return {
-            banner: `표시 행 ${currentRows}/${overallRows} | 이슈 ${currentIssues}/${overallIssues} | 숨김 ${rowDelta}/${issueDelta}`,
-            detail: `전체 ${overallRows}개 행, ${overallIssues}개 이슈 중 현재 기준으로 ${currentRows}개 행과 ${currentIssues}개 이슈를 유지합니다. 숨겨진 항목은 ${rowDelta}개 행, ${issueDelta}개 이슈입니다.`,
-        };
-    }
-
-    function renderWorkspaceQuickFilter() {
-        if (!dom.workspaceQuickFilter || !dom.workspaceQuickFilterText) return;
-        const mode = String(state.recommendationWorkspaceFilter.mode || "").trim();
-        const label = String(state.recommendationWorkspaceFilter.label || "").trim();
-        const source = String(state.recommendationWorkspaceFilter.source || "").trim();
-        if (!mode || !label) {
-            dom.workspaceQuickFilter.classList.add("hidden");
-            dom.workspaceQuickFilterText.textContent = "";
-            helpers.updateCodeViewerHeaderMeta();
-            return;
-        }
-        const dedupe = (state.workspaceAnalysisInsights && state.workspaceAnalysisInsights.dedupe) || {};
-        const topRecommendation = Array.isArray(state.workspaceAnalysisInsights && state.workspaceAnalysisInsights.recommendations)
-            ? state.workspaceAnalysisInsights.recommendations[0]
-            : null;
-        const comparison = buildWorkspaceFilterComparisonSummary();
-        const prefix = mode === "rule_family" ? "규칙 집중" : "Hotspot 집중";
-        dom.workspaceQuickFilter.classList.remove("hidden");
-        dom.workspaceQuickFilterText.textContent = `${prefix}: ${label}${source ? ` | ${source.toUpperCase()}` : ""} | 행 ${dedupe.displayedRowCount || 0} | 이슈 ${dedupe.rawIssueCount || 0}${topRecommendation ? ` | 우선 규칙 ${String(topRecommendation.dominantRuleFamily || "UNKNOWN")}` : ""}${comparison.banner ? ` | ${comparison.banner}` : ""}`;
-        helpers.updateCodeViewerHeaderMeta();
-    }
-
-    function applyRecommendationWorkspaceFilter(mode, label, value, source = "") {
-        state.recommendationWorkspaceFilter = {
-            mode: String(mode || "").trim(),
-            label: String(label || "").trim(),
-            value: String(value || "").trim(),
-            source: String(source || "").trim(),
-        };
-        renderWorkspace();
-    }
-
-    function clearRecommendationWorkspaceFilter() {
-        state.recommendationWorkspaceFilter = { mode: "", label: "", value: "", source: "" };
-        renderWorkspace();
-    }
-
-    function findRecommendationInsightForViolation(violation) {
-        const activeRowKey = String(state.activeRecommendationRowId || state.activeWorkspaceRowId || "").trim();
-        const exact = state.workspaceRecommendationInsightByRowId.get(activeRowKey)
-            || state.recommendationInsightByRowId.get(activeRowKey)
-            || null;
-        if (exact) return exact;
-        const violationSource = String((violation && violation.priority_origin) || (violation && violation.source) || "").trim().toUpperCase();
-        const violationTarget = basenamePath((violation && (violation.file || violation.object)) || "") || String((violation && violation.object) || "Global");
-        const matchByTarget = (insights) => {
-            const recommendations = Array.isArray(insights && insights.recommendations) ? insights.recommendations : [];
-            return recommendations.find((item) =>
-                String(item && item.source || "").trim().toUpperCase() === violationSource
-                && String(item && item.target || "").trim() === String(violationTarget || "").trim()
-            ) || null;
-        };
-        return matchByTarget(state.workspaceAnalysisInsights)
-            || matchByTarget(state.analysisInsights)
-            || ((state.workspaceAnalysisInsights && state.workspaceAnalysisInsights.recommendations && state.workspaceAnalysisInsights.recommendations[0]) || null)
-            || ((state.analysisInsights && state.analysisInsights.recommendations && state.analysisInsights.recommendations[0]) || null);
-    }
-
-    function renderAnalysisInsights() {
-        if (dom.dedupeSummary) {
-            const dedupe = (state.analysisInsights && state.analysisInsights.dedupe) || {};
-            if (!dedupe.displayedRowCount) {
-                dom.dedupeSummary.className = "review-insight-empty";
-                dom.dedupeSummary.textContent = "분석 후 중복 정리 요약이 여기에 표시됩니다.";
-            } else {
-                dom.dedupeSummary.className = "";
-                dom.dedupeSummary.innerHTML = `<div class="review-insight-stats"><div class="review-insight-stat"><div class="review-insight-stat-label">원본 이슈</div><div class="review-insight-stat-value">${escapeHtml(dedupe.rawIssueCount)}</div></div><div class="review-insight-stat"><div class="review-insight-stat-label">현재 표시 행</div><div class="review-insight-stat-value">${escapeHtml(dedupe.displayedRowCount)}</div></div><div class="review-insight-stat"><div class="review-insight-stat-label">접힌 중복</div><div class="review-insight-stat-value">${escapeHtml(dedupe.collapsedDuplicateCount)}</div></div></div>`;
-            }
-        }
-        if (!dom.priorityRecommendations) return;
-        const recommendations = (state.analysisInsights && state.analysisInsights.recommendations) || [];
-        state.recommendationInsightByRowId = buildRecommendationInsightIndex(state.analysisInsights);
-        if (!recommendations.length) {
-            dom.priorityRecommendations.className = "review-insight-empty";
-            dom.priorityRecommendations.textContent = "분석 후 우선 검토 추천이 여기에 표시됩니다.";
-            return;
-        }
-        dom.priorityRecommendations.className = "priority-list";
-        dom.priorityRecommendations.replaceChildren();
-        const frag = document.createDocumentFragment();
-        recommendations.forEach((item, idx) => {
-            const severityText = escapeHtml(
-                String(
-                    (typeof helpers.normalizeSeverityKeyword === "function"
-                        ? helpers.normalizeSeverityKeyword(item && item.severity)
-                        : (item && item.severity))
-                    || "정보",
-                ),
-            );
-            const card = document.createElement("div");
-            card.className = "priority-item";
-            card.tabIndex = 0;
-            card.setAttribute("role", "button");
-            card.setAttribute("aria-label", `${idx + 1}. ${String(item.target || "")} 우선 검토 추천 열기`);
-            if (item && item.representativeRow && item.representativeRow.rowId) {
-                card.setAttribute("data-row-id", String(item.representativeRow.rowId));
-            }
-            card.innerHTML = `<div class="priority-item-header"><div class="priority-item-target">${idx + 1}. ${escapeHtml(item.target)}</div><div class="priority-item-score">점수 ${escapeHtml(item.score)}</div></div><div class="priority-item-meta">${escapeHtml(String(item.source).toUpperCase())} | ${severityText} | 행 ${escapeHtml(item.rowCount)} | 이슈 ${escapeHtml(item.duplicateCount)}</div><div class="priority-item-meta">hotspot ${escapeHtml(item.hotspotObject || item.target)} ${escapeHtml(item.hotspotIssueCount || 0)}건 | 규칙 ${escapeHtml(item.dominantRuleFamily || "UNKNOWN")} ${escapeHtml(item.dominantRuleCount || 0)}건 | 폭 ${escapeHtml(item.ruleBreadth || 0)}</div><div class="priority-item-reason">${escapeHtml(item.reason || "집중도와 심각도가 높아 우선 검토 대상으로 적합합니다.")}</div><div class="priority-item-actions"><button type="button" class="priority-chip priority-chip-hotspot">hotspot 보기</button><button type="button" class="priority-chip priority-chip-rule">규칙 보기</button></div><div class="priority-item-message">${escapeHtml(truncateUiText(item.leadMessage || "대표 메시지가 아직 없습니다."))}</div>`;
-            const openRecommendation = () => {
-                helpers.navWorkspace();
-                state.activeRecommendationRowId = String(item && item.representativeRow && item.representativeRow.rowId || "").trim();
-                markWorkspaceRowActive(state.activeRecommendationRowId);
-                if (item && item.representativeRow && typeof item.representativeRow.onClick === "function") {
-                    void item.representativeRow.onClick();
-                    focusWorkspaceRow(item.representativeRow.rowId);
-                }
-            };
-            card.querySelector(".priority-chip-hotspot")?.addEventListener("click", (event) => {
-                event.stopPropagation();
-                helpers.navWorkspace();
-                applyRecommendationWorkspaceFilter("hotspot", String(item.hotspotObject || item.target || "Global"), normalizeInsightToken(item.hotspotObject || item.target, "global"), String(item.source || ""));
-            });
-            card.querySelector(".priority-chip-rule")?.addEventListener("click", (event) => {
-                event.stopPropagation();
-                helpers.navWorkspace();
-                applyRecommendationWorkspaceFilter("rule_family", String(item.dominantRuleFamily || "UNKNOWN"), normalizeInsightToken(item.dominantRuleFamily, "unknown"), String(item.source || ""));
-            });
-            card.addEventListener("click", openRecommendation);
-            card.addEventListener("keydown", (event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    openRecommendation();
-                }
-            });
-            frag.appendChild(card);
-        });
-        dom.priorityRecommendations.appendChild(frag);
+    function findWorkspaceRowById(rowId, rows = state.workspaceFilteredRows) {
+        const targetId = String(rowId || "").trim();
+        if (!targetId) return null;
+        const safeRows = Array.isArray(rows) ? rows : [];
+        return safeRows.find((row) => String((row && row.rowId) || "").trim() === targetId) || null;
     }
 
     function markWorkspaceRowActive(rowId) {
@@ -423,6 +99,67 @@ export function createWorkspaceController({ dom, state, caches, virtualState, he
         });
     }
 
+    const paneLayoutController = createWorkspacePaneLayoutController({
+        dom,
+        state,
+        helpers,
+        onQueueResultRender: (force = false) => queueResultTableWindowRender(force),
+    });
+
+    const {
+        applyWorkspaceCodePaneHeight,
+        bindWorkspaceResizer,
+        refreshWorkspaceSplitLayout,
+        setWorkspaceCodePaneHeight,
+    } = paneLayoutController;
+
+    let recommendationController = null;
+    let filePaneController = null;
+
+    recommendationController = createWorkspaceRecommendationController({
+        dom,
+        state,
+        helpers,
+        getSelectedFiles: () => (filePaneController ? filePaneController.getSelectedFiles() : []),
+        findWorkspaceRowById,
+        markWorkspaceRowActive,
+        focusWorkspaceRow,
+        renderWorkspace,
+        queueResultTableWindowRender,
+    });
+
+    const {
+        applyRecommendationWorkspaceFilter,
+        applyWorkspaceFilters,
+        buildRecommendationWorkspaceFilterText,
+        buildWorkspaceFilterSummaryText,
+        clearRecommendationWorkspaceFilter,
+        findRecommendationInsightForViolation,
+        getFilterState,
+        renderAnalysisInsights,
+        renderWorkspaceCommandBar,
+        renderWorkspaceFilterSummary,
+        renderWorkspaceQuickFilter,
+        rowMatchesRecommendationFilter,
+    } = recommendationController;
+
+    filePaneController = createWorkspaceFilePaneController({
+        dom,
+        state,
+        helpers,
+        applyWorkspaceCodePaneHeight,
+        renderWorkspaceCommandBar: () => recommendationController.renderWorkspaceCommandBar(),
+        renderWorkspaceFilterSummary: () => recommendationController.renderWorkspaceFilterSummary(),
+    });
+
+    const {
+        getSelectedFiles,
+        getSelectedInputSources,
+        loadFiles,
+        renderFileList,
+        setWorkspaceFileQuery,
+    } = filePaneController;
+
     function initFilterControls() {
         if (!dom.filterMatrix) return;
         const boxes = Array.from(dom.filterMatrix.querySelectorAll("input[type='checkbox']"));
@@ -435,156 +172,6 @@ export function createWorkspaceController({ dom, state, caches, virtualState, he
         }
         if (dom.workspaceQuickFilterClear) {
             dom.workspaceQuickFilterClear.onclick = () => clearRecommendationWorkspaceFilter();
-        }
-    }
-
-    function getFilterState() {
-        const read = (cb, fallback = true) => (cb ? !!cb.checked : fallback);
-        return {
-            sources: { p1: read(state.filterControls.p1), p2: read(state.filterControls.p2), p3: false },
-            severities: { critical: read(state.filterControls.critical), warning: read(state.filterControls.warning), info: read(state.filterControls.info) },
-        };
-    }
-
-    function buildWorkspaceFilterSummaryText() {
-        const filters = getFilterState();
-        const sourceLabels = [filters.sources.p1 ? "P1" : "", filters.sources.p2 ? "P2" : ""].filter(Boolean);
-        const severityLabels = [filters.severities.critical ? "치명" : "", filters.severities.warning ? "경고" : "", filters.severities.info ? "정보" : ""].filter(Boolean);
-        const recommendationText = buildRecommendationWorkspaceFilterText();
-        const searchText = buildWorkspaceSearchStateLabel({
-            fileQuery: state.workspaceFileQuery,
-            resultQuery: state.workspaceResultQuery,
-            quickPreset: state.workspaceQuickPreset,
-        });
-        const comparison = buildWorkspaceFilterComparisonSummary();
-        const parts = [
-            `출처: ${sourceLabels.length ? sourceLabels.join(", ") : "전체"}`,
-            `심각도: ${severityLabels.length ? severityLabels.join(", ") : "전체"}`,
-            recommendationText || "추천 필터 없음",
-        ];
-        if (searchText) parts.push(searchText);
-        if (comparison.banner && recommendationText) parts.push(comparison.banner);
-        return parts.join(" | ");
-    }
-
-    function renderWorkspaceFilterSummary() {
-        if (!dom.workspaceFilterSummaryText) return;
-        dom.workspaceFilterSummaryText.textContent = buildWorkspaceFilterSummaryText();
-    }
-
-    function findWorkspaceRowById(rowId, rows = state.workspaceFilteredRows) {
-        const targetId = String(rowId || "").trim();
-        if (!targetId) return null;
-        const safeRows = Array.isArray(rows) ? rows : [];
-        return safeRows.find((row) => String((row && row.rowId) || "").trim() === targetId) || null;
-    }
-
-    function buildActiveSelectionLabel() {
-        const row = findWorkspaceRowById(state.activeWorkspaceRowId);
-        if (!row) return buildWorkspaceSelectionSummary(null);
-        return buildWorkspaceSelectionSummary({
-            source: (row && row.source) || "P1",
-            object: (row && row.object) || "Global",
-            line: positiveLineOrZero(row && row.line) || "-",
-        });
-    }
-
-    function renderWorkspaceCommandBar() {
-        applyWorkspaceCodePaneHeight();
-        const selectedCount = getSelectedFiles().length;
-        const visibleCount = Array.isArray(state.workspaceFilteredRows) ? state.workspaceFilteredRows.length : 0;
-        const totalCount = Array.isArray(state.workspaceRowIndex) ? state.workspaceRowIndex.length : 0;
-        const hiddenSuppressedCount = Array.isArray(state.workspaceRowIndex)
-            ? state.workspaceRowIndex.filter((row) => shouldHideSuppressedP1Row(row, !!state.showSuppressedP1)).length
-            : 0;
-        const hasRows = visibleCount > 0;
-        const hasActive = !!findWorkspaceRowById(state.activeWorkspaceRowId);
-        const hasAi = !!(helpers.getInspectorAiEnabled && helpers.getInspectorAiEnabled());
-        const hasQuickFilter = !!String((state.recommendationWorkspaceFilter && state.recommendationWorkspaceFilter.mode) || "").trim();
-        const filters = getFilterState();
-        const searchStateLabel = buildWorkspaceSearchStateLabel({
-            fileQuery: state.workspaceFileQuery,
-            resultQuery: state.workspaceResultQuery,
-            quickPreset: state.workspaceQuickPreset,
-        });
-        const sourceStateLabel = [filters.sources.p1 ? "P1" : "", filters.sources.p2 ? "P2" : ""].filter(Boolean);
-        const severityStateLabel = [
-            filters.severities.critical ? "치명" : "",
-            filters.severities.warning ? "경고" : "",
-            filters.severities.info ? "정보" : "",
-        ].filter(Boolean);
-        const activeFilterText = [
-            searchStateLabel,
-            (!filters.sources.p1 || !filters.sources.p2) ? `출처 ${sourceStateLabel.join(", ") || "없음"}` : "",
-            (!filters.severities.critical || !filters.severities.warning || !filters.severities.info) ? `심각도 ${severityStateLabel.join(", ") || "없음"}` : "",
-            hasQuickFilter ? "추천 기준 적용" : "",
-        ].filter(Boolean).join(" | ");
-        const hasCustomFilter = !filters.sources.p1
-            || !filters.sources.p2
-            || !filters.severities.critical
-            || !filters.severities.warning
-            || !filters.severities.info
-            || !!searchStateLabel;
-        const buttonState = deriveWorkspaceCommandButtonState({
-            hasRows,
-            hasActiveSelection: hasActive,
-            hasAiAvailable: hasAi,
-            hasQuickFilter,
-            hasCustomFilter,
-        });
-        if (dom.workspaceCommandSummaryText) {
-            dom.workspaceCommandSummaryText.textContent = buildWorkspaceCommandSummary({
-                selectedCount,
-                visibleCount,
-                totalCount,
-                hiddenSuppressedCount,
-                activeFilterText,
-            });
-        }
-        if (dom.workspaceCommandSelectionText) {
-            dom.workspaceCommandSelectionText.textContent = buildActiveSelectionLabel();
-        }
-        if (dom.workspaceCommandShowSuppressed) {
-            dom.workspaceCommandShowSuppressed.checked = !!state.showSuppressedP1;
-            dom.workspaceCommandShowSuppressed.disabled = !!state.p1TriageLoading;
-            dom.workspaceCommandShowSuppressed.title = state.p1TriageError
-                ? `P1 triage를 사용할 수 없습니다: ${state.p1TriageError}`
-                : "검토 중 숨김 처리한 P1 항목을 다시 표시합니다.";
-        }
-        if (dom.workspaceCommandPrev) {
-            dom.workspaceCommandPrev.disabled = buttonState.prevDisabled;
-            dom.workspaceCommandPrev.title = buttonState.prevTitle;
-        }
-        if (dom.workspaceCommandNext) {
-            dom.workspaceCommandNext.disabled = buttonState.nextDisabled;
-            dom.workspaceCommandNext.title = buttonState.nextTitle;
-        }
-        if (dom.workspaceCommandJump) {
-            dom.workspaceCommandJump.disabled = buttonState.jumpDisabled;
-            dom.workspaceCommandJump.title = buttonState.jumpTitle;
-        }
-        if (dom.workspaceCommandDetail) {
-            dom.workspaceCommandDetail.disabled = buttonState.detailDisabled;
-            dom.workspaceCommandDetail.title = buttonState.detailTitle;
-        }
-        if (dom.workspaceCommandAi) {
-            dom.workspaceCommandAi.disabled = buttonState.aiDisabled;
-            dom.workspaceCommandAi.title = buttonState.aiTitle;
-        }
-        if (dom.workspaceCommandReset) {
-            dom.workspaceCommandReset.disabled = buttonState.resetDisabled;
-            dom.workspaceCommandReset.title = buttonState.resetTitle;
-        }
-        if (dom.workspacePresetAll) dom.workspacePresetAll.setAttribute("aria-pressed", state.workspaceQuickPreset === "all" ? "true" : "false");
-        if (dom.workspacePresetP1) dom.workspacePresetP1.setAttribute("aria-pressed", state.workspaceQuickPreset === "p1_only" ? "true" : "false");
-        if (dom.workspacePresetAttention) dom.workspacePresetAttention.setAttribute("aria-pressed", state.workspaceQuickPreset === "attention_only" ? "true" : "false");
-        if (dom.workspaceFileSearch) dom.workspaceFileSearch.value = String(state.workspaceFileQuery || "");
-        if (dom.workspaceResultSearch) dom.workspaceResultSearch.value = String(state.workspaceResultQuery || "");
-        if (typeof helpers.updateRendererDiagnostics === "function") {
-            helpers.updateRendererDiagnostics({
-                selected_file_count: selectedCount,
-                workspace_hidden_suppressed_count: hiddenSuppressedCount,
-            });
         }
     }
 
@@ -648,23 +235,6 @@ export function createWorkspaceController({ dom, state, caches, virtualState, he
         renderWorkspace({ autoSelect: true, resetScroll: true });
     }
 
-    function shouldRenderRow(source, severity) {
-        const filters = getFilterState();
-        const srcKey = helpers.sourceFilterKey(source);
-        const sevKey = helpers.severityFilterKey(severity);
-        return !!filters.sources[srcKey] && !!filters.severities[sevKey];
-    }
-
-    async function runWorkspaceSelection(violation, eventName, selectionToken) {
-        const pendingLine = helpers.pendingJumpLineForViolation(violation);
-        helpers.setActiveJumpRequestState("pending", pendingLine);
-        helpers.showDetail(violation, eventName, { jumpPendingLine: pendingLine });
-        const jumpResult = await helpers.jumpCodeViewerToViolation(violation);
-        if (selectionToken !== state.workspaceSelectionToken) return;
-        if (!jumpResult || !jumpResult.ok) helpers.setActiveJumpRequestState("failed", pendingLine);
-        helpers.showDetail(violation, eventName, { jumpResult });
-    }
-
     function createResultRow(rowData) {
         const row = document.createElement("tr");
         const rowId = rowData && rowData.rowId;
@@ -685,7 +255,7 @@ export function createWorkspaceController({ dom, state, caches, virtualState, he
             row.classList.add("result-item-row-suppressed");
             const suppressedBadge = document.createElement("span");
             suppressedBadge.className = "result-inline-badge result-inline-badge-suppressed";
-            suppressedBadge.textContent = "숨김";
+            suppressedBadge.textContent = "제외";
             sourceCell.appendChild(suppressedBadge);
         }
         const objectCell = document.createElement("td");
@@ -868,15 +438,7 @@ export function createWorkspaceController({ dom, state, caches, virtualState, he
     function renderWorkspace(options = {}) {
         const previousRows = Array.isArray(state.workspaceFilteredRows) ? state.workspaceFilteredRows : [];
         state.workspaceRenderToken += 1;
-        state.workspaceFilteredRows = (state.workspaceRowIndex || []).filter(
-            (row) => shouldRenderRow(row.source, row.severity)
-                && rowMatchesWorkspaceQuickPreset(row, state.workspaceQuickPreset)
-                && rowMatchesWorkspaceResultQuery(row, state.workspaceResultQuery)
-                && rowMatchesRecommendationFilter(row)
-                && !shouldHideSuppressedP1Row(row, !!state.showSuppressedP1),
-        );
-        state.workspaceAnalysisInsights = deriveAnalysisInsights(excludeSuppressedP1Rows(state.workspaceFilteredRows), helpers);
-        state.workspaceRecommendationInsightByRowId = buildRecommendationInsightIndex(state.workspaceAnalysisInsights);
+        state.workspaceFilteredRows = applyWorkspaceFilters(state.workspaceRowIndex || []);
         const selection = resolveWorkspaceSelection({
             previousRows,
             nextRows: state.workspaceFilteredRows,
@@ -901,169 +463,6 @@ export function createWorkspaceController({ dom, state, caches, virtualState, he
         if (typeof helpers.updateDashboard === "function") {
             helpers.updateDashboard();
         }
-    }
-
-    function getSelectedFiles() {
-        const selectedSet = state.workspaceSelectedFiles instanceof Set ? state.workspaceSelectedFiles : new Set();
-        return (Array.isArray(state.workspaceAvailableFiles) ? state.workspaceAvailableFiles : [])
-            .map((fileLike) => getWorkspaceFileName(fileLike))
-            .filter((fileName) => selectedSet.has(fileName));
-    }
-
-    function getSelectedInputSources() {
-        return state.sessionInputSources.map((item) => ({
-            type: String(item.type || ""),
-            value: String(item.value || ""),
-        }));
-    }
-
-    function syncWorkspaceFileSelection(files = []) {
-        const safeFiles = Array.isArray(files) ? files : [];
-        const previousFiles = Array.isArray(state.workspaceAvailableFiles) ? state.workspaceAvailableFiles : [];
-        const previousSelection = state.workspaceSelectedFiles instanceof Set ? state.workspaceSelectedFiles : new Set();
-        const allFileNames = safeFiles
-            .map((fileLike) => getWorkspaceFileName(fileLike))
-            .filter(Boolean);
-        const availableSet = new Set(allFileNames);
-        const preservedSelection = new Set(
-            Array.from(previousSelection)
-                .filter((fileName) => availableSet.has(fileName)),
-        );
-        const shouldPreserveExplicitEmpty = previousFiles.length > 0 && previousSelection.size === 0;
-        if (!preservedSelection.size && !shouldPreserveExplicitEmpty) {
-            allFileNames.forEach((fileName) => preservedSelection.add(fileName));
-        }
-        state.workspaceAvailableFiles = safeFiles;
-        state.workspaceSelectedFiles = preservedSelection;
-    }
-
-    function getVisibleWorkspaceFiles() {
-        return filterWorkspaceFilesByQuery(state.workspaceAvailableFiles, state.workspaceFileQuery);
-    }
-
-    function renderFileList(files, options = {}) {
-        applyWorkspaceCodePaneHeight();
-        if (!dom.fileList) return;
-        dom.fileList.replaceChildren();
-        const safeFiles = Array.isArray(files) ? files : [];
-        syncWorkspaceFileSelection(safeFiles);
-        const visibleFiles = getVisibleWorkspaceFiles();
-        const emptyMessage = buildWorkspaceFileListEmptyMessage({
-            totalFileCount: safeFiles.length,
-            fileQuery: state.workspaceFileQuery,
-            fallbackMessage: String((options && options.emptyMessage) || "").trim(),
-        });
-
-        const selectAllWrap = document.createElement("div");
-        selectAllWrap.className = "sidebar-select-all";
-        const chkAll = document.createElement("input");
-        chkAll.type = "checkbox";
-        chkAll.id = "chk-all";
-        chkAll.checked = visibleFiles.length > 0 && visibleFiles.every((fileLike) => state.workspaceSelectedFiles.has(getWorkspaceFileName(fileLike)));
-        chkAll.indeterminate = visibleFiles.length > 0 && !chkAll.checked && visibleFiles.some((fileLike) => state.workspaceSelectedFiles.has(getWorkspaceFileName(fileLike)));
-        const chkAllLabel = document.createElement("strong");
-        chkAllLabel.textContent = "현재 표시 파일 전체 선택";
-        selectAllWrap.append(chkAll, " ", chkAllLabel);
-        dom.fileList.appendChild(selectAllWrap);
-
-        visibleFiles.forEach((file) => {
-            const fileName = getWorkspaceFileName(file);
-            const row = document.createElement("div");
-            row.className = "file-item";
-            row.style.cursor = "pointer";
-            const cb = document.createElement("input");
-            cb.type = "checkbox";
-            cb.checked = state.workspaceSelectedFiles.has(fileName);
-            cb.setAttribute("data-file", fileName);
-            cb.addEventListener("click", (event) => event.stopPropagation());
-            cb.addEventListener("change", () => {
-                const nextSelection = new Set(state.workspaceSelectedFiles instanceof Set ? state.workspaceSelectedFiles : []);
-                if (cb.checked) nextSelection.add(fileName);
-                else nextSelection.delete(fileName);
-                state.workspaceSelectedFiles = nextSelection;
-                renderWorkspaceCommandBar();
-            });
-            const label = document.createElement("span");
-            label.className = "file-item-label";
-            label.textContent = fileName;
-            row.append(cb, label);
-            row.addEventListener("click", () => {
-                void helpers.loadCodeViewer(fileName).catch(() => {});
-            });
-            dom.fileList.appendChild(row);
-        });
-
-        if (!visibleFiles.length) {
-            const empty = document.createElement("div");
-            empty.className = "file-item file-item-empty";
-            empty.textContent = emptyMessage;
-            dom.fileList.appendChild(empty);
-        }
-
-        chkAll.addEventListener("change", () => {
-            const checked = chkAll.checked;
-            const nextSelection = new Set(state.workspaceSelectedFiles instanceof Set ? state.workspaceSelectedFiles : []);
-            visibleFiles.forEach((fileLike) => {
-                const fileName = getWorkspaceFileName(fileLike);
-                if (!fileName) return;
-                if (checked) nextSelection.add(fileName);
-                else nextSelection.delete(fileName);
-            });
-            state.workspaceSelectedFiles = nextSelection;
-            dom.fileList.querySelectorAll("input[type='checkbox'][data-file]").forEach((cb) => {
-                cb.checked = checked;
-            });
-            renderWorkspaceCommandBar();
-        });
-
-        if (typeof helpers.updateRendererDiagnostics === "function") {
-            helpers.updateRendererDiagnostics({
-                file_list_status: safeFiles.length ? "ready" : "empty",
-                file_list_dom_count: visibleFiles.length,
-                file_list_empty_message: emptyMessage,
-                file_list_query: String(state.workspaceFileQuery || ""),
-            });
-        }
-        renderWorkspaceCommandBar();
-    }
-
-    async function loadFiles() {
-        applyWorkspaceCodePaneHeight();
-        const response = await fetch("/api/files");
-        if (!response.ok) {
-            state.workspaceAvailableFiles = [];
-            state.workspaceSelectedFiles = new Set();
-            renderFileList([], { emptyMessage: `파일 목록을 불러오지 못했습니다. (${response.status})` });
-            if (typeof helpers.updateRendererDiagnostics === "function") {
-                helpers.updateRendererDiagnostics({
-                    file_list_status: "http_error",
-                    file_list_http_status: response.status,
-                });
-            }
-            throw new Error(`파일 목록을 불러오지 못했습니다. (${response.status})`);
-        }
-        const payload = await response.json();
-        if (!payload || !Array.isArray(payload.files)) {
-            state.workspaceAvailableFiles = [];
-            state.workspaceSelectedFiles = new Set();
-            renderFileList([], { emptyMessage: "파일 목록 응답 형식이 올바르지 않습니다." });
-            if (typeof helpers.updateRendererDiagnostics === "function") {
-                helpers.updateRendererDiagnostics({
-                    file_list_status: "invalid_payload",
-                    file_list_http_status: response.status,
-                    file_list_payload_keys: payload && typeof payload === "object" ? Object.keys(payload) : [],
-                });
-            }
-            return;
-        }
-        renderFileList(payload.files || []);
-        helpers.renderExternalInputSources();
-    }
-
-    function setWorkspaceFileQuery(query = "") {
-        state.workspaceFileQuery = String(query || "");
-        renderFileList(state.workspaceAvailableFiles || []);
-        renderWorkspaceFilterSummary();
     }
 
     function setWorkspaceResultQuery(query = "") {

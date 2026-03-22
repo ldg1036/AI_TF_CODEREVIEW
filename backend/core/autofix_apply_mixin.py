@@ -39,6 +39,8 @@ class AutoFixApplyMixin:
             return "ANCHOR_MISMATCH"
         if "semantic guard blocked" in msg:
             return "SEMANTIC_GUARD_BLOCKED"
+        if "autofix apply blocked" in msg:
+            return "APPLY_BLOCKED"
         if "syntax precheck failed" in msg:
             return "SYNTAX_PRECHECK_FAILED"
         if "apply engine failed" in msg:
@@ -92,6 +94,12 @@ class AutoFixApplyMixin:
         instruction_failure_stage: str = "none",
         instruction_candidate_hunk_count: int = 0,
         instruction_applied_hunk_count: int = 0,
+        allow_apply: bool = False,
+        blocked_reason_codes: Optional[List[str]] = None,
+        semantic_verdict: str = "",
+        estimated_issue_delta: Optional[Dict[str, Any]] = None,
+        identifier_reuse_ok: Optional[bool] = None,
+        placeholder_free: bool = True,
     ) -> AutoFixQualityMetrics:
         return {
             "proposal_id": str(proposal_id or ""),
@@ -131,6 +139,14 @@ class AutoFixApplyMixin:
             "instruction_failure_stage": str(instruction_failure_stage or "none"),
             "instruction_candidate_hunk_count": int(instruction_candidate_hunk_count or 0),
             "instruction_applied_hunk_count": int(instruction_applied_hunk_count or 0),
+            "allow_apply": bool(allow_apply),
+            "blocked_reason_codes": list(blocked_reason_codes or []),
+            "semantic_verdict": str(semantic_verdict or ""),
+            "estimated_issue_delta": dict(estimated_issue_delta or {}),
+            "identifier_reuse_ok": bool(
+                identifier_reuse_confirmed if identifier_reuse_ok is None else identifier_reuse_ok
+            ),
+            "placeholder_free": bool(placeholder_free),
         }
 
     def _autofix_apply_error(
@@ -432,6 +448,42 @@ class AutoFixApplyMixin:
                 )
             if not hash_match and benchmark_observe_enabled:
                 hash_gate_bypassed = True
+            instruction_preview = self._instruction_preview_for_proposal(proposal, normalized_file)
+            can_apply, blocked_reason = self._proposal_apply_gate({**proposal, "instruction_preview": instruction_preview})
+            if not can_apply:
+                quality = proposal.get("quality_preview", {}) if isinstance(proposal.get("quality_preview", {}), dict) else {}
+                quality_metrics = _with_tuning_metrics(self._new_autofix_quality_metrics(
+                    proposal_id=str(proposal.get("proposal_id", "")),
+                    generator_type=str(proposal.get("generator_type", "unknown")),
+                    anchors_match=bool(quality.get("anchors_match", True)),
+                    hash_match=hash_match,
+                    syntax_check_passed=bool(quality.get("syntax_check_passed", True)),
+                    heuristic_regression_count=self._safe_int(quality.get("heuristic_regression_count", 0), 0),
+                    ctrlpp_regression_count=self._safe_int(quality.get("ctrlpp_regression_count", 0), 0),
+                    applied=False,
+                    rejected_reason="apply blocked",
+                    validation_errors=list(quality.get("validation_errors", []) or []),
+                    blocking_errors=list(quality.get("blocking_errors", []) or []),
+                    identifier_reuse_confirmed=bool(quality.get("identifier_reuse_confirmed", True)),
+                    allow_apply=False,
+                    blocked_reason_codes=list(quality.get("blocked_reason_codes", []) or [blocked_reason]),
+                    semantic_verdict=str(quality.get("semantic_verdict", "") or blocked_reason or "apply_blocked"),
+                    estimated_issue_delta=dict(quality.get("estimated_issue_delta", {}) or {}),
+                    identifier_reuse_ok=bool(quality.get("identifier_reuse_ok", quality.get("identifier_reuse_confirmed", True))),
+                    placeholder_free=bool(quality.get("placeholder_free", True)),
+                ))
+                self._mark_autofix_proposal_failure(
+                    session,
+                    proposal,
+                    error_code="APPLY_BLOCKED",
+                    quality_metrics=quality_metrics,
+                )
+                _record_instruction_observability()
+                raise self._autofix_apply_error(
+                    f"Autofix apply blocked: {blocked_reason}",
+                    error_code="APPLY_BLOCKED",
+                    quality_metrics=quality_metrics,
+                )
 
             base_hunks = list(proposal.get("hunks", []) or [])
             apply_hunks = list(base_hunks)

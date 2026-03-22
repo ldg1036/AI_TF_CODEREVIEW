@@ -1,0 +1,51 @@
+﻿{
+  "tool": "playwright_ui_real_smoke",
+  "started_at": "2026-03-22T03:45:01.481Z",
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "target_file_preference": "BenchmarkP1Fixture.ctl",
+    "timeout_ms": 120000,
+    "with_live_ai_compare_prepare": false,
+    "headed": false,
+    "no_sandbox": false
+  },
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "browser": "145.0.7632.6"
+  },
+  "backend": {
+    "started_server": true,
+    "discovered_file_count": 4,
+    "triage_reset": {
+      "ok": true,
+      "deleted_count": 0,
+      "initial_count": 0,
+      "errors": []
+    },
+    "selected_target_file": "BenchmarkP1Fixture.ctl",
+    "triage_cleanup": {
+      "ok": true,
+      "deleted_count": 0,
+      "initial_count": 0,
+      "errors": []
+    }
+  },
+  "startupProbe": {
+    "root_ok": true,
+    "style_ok": true,
+    "renderer_ok": true,
+    "ok": true,
+    "status_codes": {
+      "root": 200,
+      "style": 200,
+      "renderer": 200
+    },
+    "errors": {}
+  },
+  "ok": false,
+  "error": "page.waitForSelector: Timeout 120000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#file-list input[data-file]') to be visible\u001b[22m\n\n    at runSmoke (D:\\AI_TF_CODEREVIEW-main\\tools\\perf\\playwright_ui_real_smoke.js:966:14)\n    at async main (D:\\AI_TF_CODEREVIEW-main\\tools\\perf\\playwright_ui_real_smoke.js:1400:18)",
+  "finished_at": "2026-03-22T03:47:04.850Z"
+}

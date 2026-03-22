@@ -1,0 +1,71 @@
+{
+  "created_at": "2026-03-22T12:59:51",
+  "backup_dir": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\refactor_backups\\20260322_121615_839_renderer_workspace_refactor",
+  "compare_json_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\refactor_backups\\20260322_121615_839_renderer_workspace_refactor\\review\\compare_20260322_125903_296.json",
+  "compare_markdown_path": "D:\\AI_TF_CODEREVIEW-main\\workspace\\runtime\\refactor_backups\\20260322_121615_839_renderer_workspace_refactor\\review\\compare_20260322_125903_296.md",
+  "renderer_line_count": 1176,
+  "workspace_view_line_count": 516,
+  "thresholds": {
+    "renderer_le_1200": true,
+    "workspace_view_le_700": true
+  },
+  "backup_compare": {
+    "missing_exports": [],
+    "missing_controller_methods": [],
+    "missing_dom_bindings": [],
+    "missing_event_bindings": [],
+    "aggregate_missing_exports": [],
+    "aggregate_missing_controller_methods": [],
+    "aggregate_missing_dom_bindings": [],
+    "aggregate_missing_event_bindings": [],
+    "changed_files": [
+      "frontend/renderer.js",
+      "frontend/renderer/workspace-view.js"
+    ]
+  },
+  "smoke_baseline": {
+    "path": "tools/integration_results/ui_real_smoke_refactor_check.json",
+    "target_file": "BenchmarkP1Fixture.ctl",
+    "row_count": 6,
+    "total_issues": 6,
+    "note": "Historical baseline artifact kept for reference. Current acceptance is validated by latest smoke plus backup compare."
+  },
+  "smoke_current": {
+    "path": "tools/integration_results/ui_real_smoke_20260322035233.json",
+    "ok": true,
+    "target_file": "BenchmarkP1Fixture.ctl",
+    "row_count": 5,
+    "review_target_count": 5,
+    "total_issues": 5,
+    "unknown_rule_row_count": 0,
+    "excel_completed": true
+  },
+  "ai_smoke_current": {
+    "path": "tools/integration_results/ui_real_smoke_20260322035244.json",
+    "ok": true,
+    "target_file": "BenchmarkP1Fixture.ctl",
+    "compare_opened": true,
+    "prepare_clicked": true,
+    "patch_ready": true,
+    "unified_view_opened": true,
+    "selected_candidate": "RULE (1128)",
+    "apply_button_disabled": true,
+    "apply_blocked_reason": "No prepared source proposal is available. [proposal_missing]"
+  },
+  "release_gate": {
+    "path": "CodeReview_Report/release_gate_20260322_125310_041165.json",
+    "status": "passed",
+    "passed": 15,
+    "failed": 0,
+    "live_ai_ui_status": "passed",
+    "ui_real_smoke_status": "passed",
+    "canonical_boundary_parity_status": "passed"
+  },
+  "verdict": {
+    "backup_contract_ok": true,
+    "basic_smoke_ok": true,
+    "ai_smoke_ok": true,
+    "gate_ok": true,
+    "no_missing_features": true
+  }
+}

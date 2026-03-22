@@ -3,11 +3,12 @@
 from core.autofix_apply_engine import apply_with_engine
 from core.autofix_instruction import instruction_to_hunks, normalize_instruction, validate_instruction
 from core.autofix_apply_mixin import AutoFixApplyMixin, AutoFixQualityMetrics
+from core.autofix_prepare_quality_mixin import AutoFixPrepareQualityMixin
 from core.autofix_prepare_mixin import AutoFixPrepareMixin
 from core.autofix_proposal_mixin import AutoFixProposalMixin
 
 
-class AutoFixMixin(AutoFixProposalMixin, AutoFixPrepareMixin, AutoFixApplyMixin):
+class AutoFixMixin(AutoFixProposalMixin, AutoFixPrepareQualityMixin, AutoFixPrepareMixin, AutoFixApplyMixin):
     """Compose autofix proposal preparation, application, and regression helpers.
 
     Host class must supply (via __init__ or other mixins):

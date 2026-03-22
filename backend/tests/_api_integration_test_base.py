@@ -138,23 +138,29 @@ class ApiIntegrationTestBase(unittest.TestCase):
         return self._collect_rule_ids(groups)
 
     def _force_single_internal_violation(self):
-        self.app.checker.analyze_raw_code = lambda *_args, **_kwargs: [
-            {
-                "object": "sample.ctl",
-                "event": "Global",
-                "violations": [
-                    {
-                        "issue_id": "P1-R1-1",
-                        "rule_id": "R1",
-                        "rule_item": "test-item",
-                        "priority_origin": "P1",
-                        "severity": "Warning",
-                        "line": 1,
-                        "message": "test violation",
-                    }
-                ],
-            }
-        ]
+        def _analyze_raw_code(_target, code_content, **_kwargs):
+            text = str(code_content or "")
+            if "[AI-AUTOFIX:" in text or "isValid" in text or "raw-fix" in text:
+                return []
+            return [
+                {
+                    "object": "sample.ctl",
+                    "event": "Global",
+                    "violations": [
+                        {
+                            "issue_id": "P1-R1-1",
+                            "rule_id": "R1",
+                            "rule_item": "test-item",
+                            "priority_origin": "P1",
+                            "severity": "Warning",
+                            "line": 1,
+                            "message": "test violation",
+                        }
+                    ],
+                }
+            ]
+
+        self.app.checker.analyze_raw_code = _analyze_raw_code
 
     def _install_temp_rule_config(self, p1_rows, parsed_rows=None, review_applicability=None):
         config_dir = os.path.join(self.data_dir, "Config")

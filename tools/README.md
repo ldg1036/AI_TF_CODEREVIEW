@@ -82,7 +82,17 @@ node tools/playwright_ui_benchmark.js --iterations 3
 python tools/http_perf_baseline.py --dataset-name local-sample --iterations 3
 python tools/run_ctrlpp_integration_smoke.py --allow-missing-binary --skip-unittest
 python tools/release_gate.py --profile local --with-live-ai --with-live-ai-ui
+python tools/cleanup_runtime_artifacts.py
+python tools/cleanup_runtime_artifacts.py --apply
 ```
+
+## Runtime Artifact Cleanup
+
+`tools/cleanup_runtime_artifacts.py` keeps the latest pinned runtime artifacts and reports older candidates.
+
+- Default: dry-run only
+- `--apply`: move stale candidates into `bk/runtime_cleanup/<timestamp>/`
+- Locked files are reported as `skipped_locked` and do not fail the run
 
 ## 호환성 entrypoint
 

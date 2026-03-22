@@ -166,6 +166,12 @@ class AutoFixProposalMixin:
             "errors": list(preview.get("errors", []) or []),
             "blocking_errors": list(preview.get("blocking_errors", preview.get("errors", [])) or []),
             "identifier_reuse_confirmed": bool(preview.get("identifier_reuse_confirmed", True)),
+            "allow_apply": bool(preview.get("allow_apply", False)),
+            "blocked_reason_codes": list(preview.get("blocked_reason_codes", []) or []),
+            "semantic_verdict": str(preview.get("semantic_verdict", "") or ""),
+            "estimated_issue_delta": dict(preview.get("estimated_issue_delta", {}) or {}),
+            "identifier_reuse_ok": bool(preview.get("identifier_reuse_ok", preview.get("identifier_reuse_confirmed", True))),
+            "placeholder_free": bool(preview.get("placeholder_free", True)),
         }
         quality_preview_payload = self._new_autofix_quality_metrics(
             proposal_id=proposal_id,
@@ -180,6 +186,12 @@ class AutoFixProposalMixin:
             validation_errors=list(preview.get("errors", []) or []),
             blocking_errors=list(preview.get("blocking_errors", []) or []),
             identifier_reuse_confirmed=bool(preview.get("identifier_reuse_confirmed", True)),
+            allow_apply=bool(preview.get("allow_apply", False)),
+            blocked_reason_codes=list(preview.get("blocked_reason_codes", []) or []),
+            semantic_verdict=str(preview.get("semantic_verdict", "") or ""),
+            estimated_issue_delta=dict(preview.get("estimated_issue_delta", {}) or {}),
+            identifier_reuse_ok=bool(preview.get("identifier_reuse_ok", preview.get("identifier_reuse_confirmed", True))),
+            placeholder_free=bool(preview.get("placeholder_free", True)),
         )
         proposal = {
             "proposal_id": proposal_id,
@@ -252,6 +264,18 @@ class AutoFixProposalMixin:
         if not preview:
             preview = self._instruction_preview_for_proposal(proposal, str(proposal.get("file", "") or ""))
         quality = proposal.get("quality_preview", {}) if isinstance(proposal.get("quality_preview", {}), dict) else {}
+        explicit_allow_apply = quality.get("allow_apply", None)
+        blocked_reason_codes = [
+            str(item or "").strip()
+            for item in (quality.get("blocked_reason_codes", []) or [])
+            if str(item or "").strip()
+        ]
+        if isinstance(explicit_allow_apply, bool):
+            if explicit_allow_apply:
+                return True, ""
+            if blocked_reason_codes:
+                return False, blocked_reason_codes[0]
+            return False, "apply_blocked"
         validation_errors = [
             str(item or "").strip()
             for item in (quality.get("validation_errors", []) or [])
@@ -350,24 +374,26 @@ class AutoFixProposalMixin:
             valid_instruction = 1 if bool(preview.get("valid", False)) else 0
             syntax_ok = 1 if bool(quality.get("syntax_check_passed", True)) else 0
             artifact_free = 0 if artifact_errors else 1
+            allow_apply = 1 if bool(quality.get("allow_apply", False)) else 0
             prefer_live_llm = 1 if (
                 str(item.get("generator_type", "")).lower() == "llm"
                 and str(item.get("source", "")).lower() == "live-ai"
             ) else 0
             prefer_rule = 1 if str(item.get("generator_type", "")).lower() == "rule" else 0
             item["compare_score"] = {
+                "allow_apply": allow_apply,
                 "instruction_valid": valid_instruction,
                 "syntax_ok": syntax_ok,
                 "artifact_free": artifact_free,
                 "prefer_live_llm": prefer_live_llm,
                 "prefer_rule": prefer_rule,
-                "total": (valid_instruction * 100) + (syntax_ok * 20) + (artifact_free * 5) + (prefer_live_llm * 2) + prefer_rule,
+                "total": (allow_apply * 1000) + (valid_instruction * 100) + (syntax_ok * 20) + (artifact_free * 5) + (prefer_rule * 3) + prefer_live_llm,
             }
-            return (valid_instruction, syntax_ok, artifact_free, prefer_live_llm, prefer_rule)
+            return (allow_apply, valid_instruction, syntax_ok, artifact_free, prefer_rule, prefer_live_llm)
 
         selected = max([p for p in proposals if isinstance(p, dict)], key=_score)
-        selected["selection_reason"] = "max(score=instruction_valid*100 + syntax_ok*20 + artifact_free*5 + prefer_live_llm*2 + prefer_rule)"
-        return selected, "instruction_validity_then_syntax_then_artifact_free_then_live_llm_then_rule"
+        selected["selection_reason"] = "max(score=allow_apply*1000 + instruction_valid*100 + syntax_ok*20 + artifact_free*5 + prefer_rule*3 + prefer_live_llm)"
+        return selected, "allow_apply_then_instruction_validity_then_syntax_then_artifact_free_then_rule_then_live_llm"
 
     def _store_autofix_proposal(self, session: Dict, proposal: Dict):
         autofix = session.setdefault("autofix", {})

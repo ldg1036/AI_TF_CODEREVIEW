@@ -1,0 +1,61 @@
+{
+  "tool": "ctrlpp_integration_smoke",
+  "started_at": "2026-03-22T02:52:36Z",
+  "project_root": "D:\\AI_TF_CODEREVIEW-main",
+  "config": {
+    "binary": "",
+    "sample_file": "",
+    "skip_direct": false,
+    "skip_unittest": true,
+    "test_name": "backend.tests.test_api_and_reports.ApiIntegrationTests.test_autofix_apply_ctrlpp_regression_check_real_binary_optional",
+    "timeout_sec": 180,
+    "allow_missing_binary": true
+  },
+  "binary": {
+    "requested": null,
+    "resolved": "D:\\AI_TF_CODEREVIEW-main\\tools\\CtrlppCheck\\v1.0.2\\extract\\WinCCOA_QualityChecks\\bin\\ctrlppcheck\\ctrlppcheck.exe",
+    "exists": true
+  },
+  "direct_smoke": {
+    "ok": true,
+    "infra_error": false,
+    "finding_count": 2,
+    "finding_type_counts": {
+      "information": 1,
+      "style": 1
+    },
+    "messages_tail": [
+      "Void function without void return type.",
+      "Use throwError() instead of DebugN() functions"
+    ],
+    "sample_file": "C:\\Users\\39145\\AppData\\Local\\Temp\\tmpqzb4p9c5\\ctrlpp_integration_smoke_sample.ctl",
+    "elapsed_ms": 21,
+    "raw_findings_preview": [
+      {
+        "type": "information",
+        "severity": "information",
+        "rule_id": "voidReturnValueMissingInformation",
+        "line": 1,
+        "message": "Void function without void return type.",
+        "verbose": "Void function without void return type.",
+        "file": "C:\\Users\\39145\\AppData\\Local\\Temp\\tmpqzb4p9c5\\ctrlpp_integration_smoke_sample.ctl",
+        "source": "CtrlppCheck",
+        "priority_origin": "P2"
+      },
+      {
+        "type": "style",
+        "severity": "style",
+        "rule_id": "badFunc_style_DebugN",
+        "line": 5,
+        "message": "Use throwError() instead of DebugN() functions",
+        "verbose": "Use throwError() instead of DebugN() functions",
+        "file": "C:\\Users\\39145\\AppData\\Local\\Temp\\tmpqzb4p9c5\\ctrlpp_integration_smoke_sample.ctl",
+        "source": "CtrlppCheck",
+        "priority_origin": "P2"
+      }
+    ]
+  },
+  "unittest_harness": null,
+  "status": "passed",
+  "finished_at": "2026-03-22T02:52:36Z"
+}

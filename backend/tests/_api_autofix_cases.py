@@ -164,23 +164,28 @@ class ApiAutofixCasesMixin:
         self.assertIn("if (isValid) {", patched)
 
     def test_autofix_prepare_and_apply_raw_txt_llm_only(self):
-        self.app.checker.analyze_raw_code = lambda *_args, **_kwargs: [
-            {
-                "object": "raw_input.txt",
-                "event": "Global",
-                "violations": [
-                    {
-                        "issue_id": "P1-RAW-1",
-                        "rule_id": "R-RAW",
-                        "rule_item": "raw-item",
-                        "priority_origin": "P1",
-                        "severity": "Warning",
-                        "line": 1,
-                        "message": "raw test violation",
-                    }
-                ],
-            }
-        ]
+        def _raw_analyze(_target, code_content, **_kwargs):
+            if "raw-fix" in str(code_content or ""):
+                return []
+            return [
+                {
+                    "object": "raw_input.txt",
+                    "event": "Global",
+                    "violations": [
+                        {
+                            "issue_id": "P1-RAW-1",
+                            "rule_id": "R-RAW",
+                            "rule_item": "raw-item",
+                            "priority_origin": "P1",
+                            "severity": "Warning",
+                            "line": 1,
+                            "message": "raw test violation",
+                        }
+                    ],
+                }
+            ]
+
+        self.app.checker.analyze_raw_code = _raw_analyze
         self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
             "요약: 로그를 개선하세요.\n\n"
             "코드:\n```cpp\nDebugN(\"raw-fix\");\n```"
@@ -610,7 +615,7 @@ class ApiAutofixCasesMixin:
             compare_meta = prepare_payload.get("compare_meta", {})
             self.assertEqual(
                 compare_meta.get("selection_policy"),
-                "instruction_validity_then_syntax_then_artifact_free_then_live_llm_then_rule",
+                "allow_apply_then_instruction_validity_then_syntax_then_artifact_free_then_rule_then_live_llm",
             )
             self.assertIsInstance(compare_meta.get("selected_compare_score", {}), dict)
             self.assertGreaterEqual(int((compare_meta.get("selected_compare_score", {}) or {}).get("total", 0) or 0), 0)
@@ -1517,6 +1522,12 @@ class ApiAutofixCasesMixin:
             original_candidate = str(proposal.get("_candidate_content", ""))
             hunks[0]["replacement_text"] = 'main() { dpSet("A.B.D", 1); }'
             proposal["_candidate_content"] = original_candidate
+            quality_preview = proposal.setdefault("quality_preview", {})
+            quality_preview["allow_apply"] = True
+            quality_preview["blocked_reason_codes"] = []
+            quality_preview["semantic_verdict"] = "allow_apply"
+            quality_preview["validation_errors"] = []
+            quality_preview["blocking_errors"] = []
 
         apply_status, apply_payload = self._request(
             "POST",
@@ -1594,6 +1605,12 @@ class ApiAutofixCasesMixin:
                 },
             ]
             proposal["_candidate_content"] = "main()\n{\n  int a = 10;\n  int b = 20;\n  return;\n}\n"
+            quality_preview = proposal.setdefault("quality_preview", {})
+            quality_preview["allow_apply"] = True
+            quality_preview["blocked_reason_codes"] = []
+            quality_preview["semantic_verdict"] = "allow_apply"
+            quality_preview["validation_errors"] = []
+            quality_preview["blocking_errors"] = []
 
         apply_status, apply_payload = self._request(
             "POST",
@@ -1667,6 +1684,12 @@ class ApiAutofixCasesMixin:
                 },
             ]
             proposal["_candidate_content"] = "main()\n{\n  int a = 10;\n  int b = 200;\n  return;\n}\n"
+            quality_preview = proposal.setdefault("quality_preview", {})
+            quality_preview["allow_apply"] = True
+            quality_preview["blocked_reason_codes"] = []
+            quality_preview["semantic_verdict"] = "allow_apply"
+            quality_preview["validation_errors"] = []
+            quality_preview["blocking_errors"] = []
 
         apply_status, apply_payload = self._request(
             "POST",
@@ -1849,4 +1872,108 @@ class ApiAutofixCasesMixin:
         )
         self.assertEqual(diff_status, 409)
         self.assertIn("session cache", diff_payload.get("error", "").lower())
+
+    def test_autofix_prepare_marks_allow_apply_false_when_target_issue_not_reduced(self):
+        self.app.checker.analyze_raw_code = lambda *_args, **_kwargs: [
+            {
+                "object": "sample.ctl",
+                "event": "Global",
+                "violations": [
+                    {
+                        "issue_id": "P1-R1-1",
+                        "rule_id": "R1",
+                        "rule_item": "test-item",
+                        "priority_origin": "P1",
+                        "severity": "Warning",
+                        "line": 1,
+                        "message": "test violation",
+                    }
+                ],
+            }
+        ]
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "LIVE REVIEW\n```ctl\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        quality = prepare_payload.get("quality_preview", {}) or {}
+        self.assertFalse(bool(quality.get("allow_apply", True)))
+        self.assertIn("target_issue_not_reduced", quality.get("blocked_reason_codes", []) or [])
+        self.assertEqual(str(quality.get("semantic_verdict", "")), "target_issue_not_reduced")
+        self.assertIn("estimated_issue_delta", quality)
+
+    def test_autofix_apply_rejects_prepare_blocked_proposal(self):
+        self.app.checker.analyze_raw_code = lambda *_args, **_kwargs: [
+            {
+                "object": "sample.ctl",
+                "event": "Global",
+                "violations": [
+                    {
+                        "issue_id": "P1-R1-1",
+                        "rule_id": "R1",
+                        "rule_item": "test-item",
+                        "priority_origin": "P1",
+                        "severity": "Warning",
+                        "line": 1,
+                        "message": "test violation",
+                    }
+                ],
+            }
+        ]
+        self.app.ai_tool.generate_review = lambda *_args, **_kwargs: (
+            "LIVE REVIEW\n```ctl\nif (isValid) {\n  return;\n}\n```"
+        )
+        status, analyze_payload = self._request(
+            "POST",
+            "/api/analyze",
+            {"selected_files": ["sample.ctl"], "enable_live_ai": True, "mode": "AI 보조"},
+        )
+        self.assertEqual(status, 200)
+        ai_review = analyze_payload.get("violations", {}).get("P3", [])[0]
+        prepare_status, prepare_payload = self._request(
+            "POST",
+            "/api/autofix/prepare",
+            {
+                "file": "sample.ctl",
+                "object": ai_review.get("object", "sample.ctl"),
+                "event": ai_review.get("event", "Global"),
+                "review": ai_review.get("review", ""),
+                "session_id": analyze_payload.get("output_dir", ""),
+            },
+        )
+        self.assertEqual(prepare_status, 200)
+        apply_status, apply_payload = self._request(
+            "POST",
+            "/api/autofix/apply",
+            {
+                "proposal_id": prepare_payload.get("proposal_id"),
+                "session_id": analyze_payload.get("output_dir", ""),
+                "file": "sample.ctl",
+                "expected_base_hash": prepare_payload.get("base_hash"),
+                "apply_mode": "source_ctl",
+                "block_on_regression": False,
+            },
+        )
+        self.assertEqual(apply_status, 409)
+        self.assertEqual(apply_payload.get("error_code"), "APPLY_BLOCKED")
+        quality = apply_payload.get("quality_metrics", {}) or {}
+        self.assertFalse(bool(quality.get("allow_apply", True)))
+        self.assertIn("target_issue_not_reduced", quality.get("blocked_reason_codes", []) or [])
 

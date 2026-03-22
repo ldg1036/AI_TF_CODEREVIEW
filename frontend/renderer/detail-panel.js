@@ -316,6 +316,26 @@ export function createDetailPanelController({ dom, state, helpers }) {
         };
     }
 
+    function buildViolationEvidenceRows(violation) {
+        const evidence = (violation && typeof violation === "object" && violation.evidence && typeof violation.evidence === "object")
+            ? violation.evidence
+            : {};
+        const rows = [];
+        const detectorKind = String(evidence.detector_kind || "").trim();
+        const matchedLines = Array.isArray(evidence.matched_lines)
+            ? evidence.matched_lines.map((value) => positiveLineOrZero(value)).filter((value) => value > 0)
+            : [];
+        const matchedText = truncateMiddle(String(evidence.matched_text || "").trim(), 180);
+        const displayReason = truncateMiddle(String(evidence.display_reason || "").trim(), 180);
+        const canonicalFileId = String(evidence.canonical_file_id || (violation && violation.canonical_file_id) || "").trim();
+        if (detectorKind) rows.push({ label: "Detector", value: detectorKind });
+        if (matchedLines.length) rows.push({ label: "Matched lines", value: matchedLines.join(", ") });
+        if (matchedText) rows.push({ label: "Matched text", value: matchedText });
+        if (displayReason) rows.push({ label: "Reason", value: displayReason });
+        if (canonicalFileId) rows.push({ label: "Canonical file", value: canonicalFileId });
+        return rows;
+    }
+
     function renderDetailDescriptionBlocks(container, blocks) {
         const title = document.createElement("p");
         title.className = "detail-description-title";
@@ -329,6 +349,18 @@ export function createDetailPanelController({ dom, state, helpers }) {
             paragraph.textContent = line;
             container.appendChild(paragraph);
         });
+    }
+
+    function renderDetailEvidence(container, violation) {
+        const rows = buildViolationEvidenceRows(violation);
+        if (!rows.length) return;
+        const title = document.createElement("p");
+        title.className = "detail-description-title";
+        const titleStrong = document.createElement("strong");
+        titleStrong.textContent = "검출 근거:";
+        title.appendChild(titleStrong);
+        container.appendChild(title);
+        rows.forEach((item) => appendDetailFact(container, item.label, item.value));
     }
 
     function localizeCtrlppSeverity(severity) {
@@ -348,7 +380,9 @@ export function createDetailPanelController({ dom, state, helpers }) {
         buildP1DetailBlocks,
         buildP2DetailBlocks,
         buildP2LocalizedMessage,
+        buildViolationEvidenceRows,
         localizeCtrlppSeverity,
+        renderDetailEvidence,
         renderDetailDescriptionBlocks,
         renderInspectorSelectionMeta,
     };

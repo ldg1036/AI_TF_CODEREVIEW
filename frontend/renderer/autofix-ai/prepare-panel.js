@@ -113,6 +113,12 @@ export function buildQualityPreviewSummaryLines(qualityPreview) {
     if (regressionParts.length) {
         lines.push(`Regression preview: ${regressionParts.join(" | ")}`);
     }
+    if (Object.prototype.hasOwnProperty.call(preview, "allow_apply")) {
+        lines.push(`Apply gate: ${preview.allow_apply ? "allow" : "blocked"}`);
+    }
+    if (preview.semantic_verdict) {
+        lines.push(`Semantic verdict: ${String(preview.semantic_verdict)}`);
+    }
     const modeParts = [];
     const locatorMode = String(preview.locator_mode || "").trim();
     const applyEngineMode = String(preview.apply_engine_mode || "").trim();
@@ -126,6 +132,12 @@ export function buildQualityPreviewSummaryLines(qualityPreview) {
     const errors = Array.isArray(preview.validation_errors)
         ? preview.validation_errors.map((item) => String(item || "").trim()).filter(Boolean)
         : [];
+    const blockedCodes = Array.isArray(preview.blocked_reason_codes)
+        ? preview.blocked_reason_codes.map((item) => String(item || "").trim()).filter(Boolean)
+        : [];
+    if (blockedCodes.length) {
+        lines.push(`Blocked codes: ${blockedCodes.slice(0, 2).join(" | ")}`);
+    }
     if (errors.length) {
         lines.push(`Validation errors: ${errors.slice(0, 2).join(" | ")}`);
     } else if (preview.rejected_reason) {
