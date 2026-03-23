@@ -1,24 +1,28 @@
 # User Operations Guide
 
-Last Updated: 2026-03-17
+Last updated: 2026-03-23
 
 ## 목적
 
-이 문서는 운영자나 리뷰 담당자가 개발 문서를 깊게 읽지 않고도 프로그램을 안정적으로 실행하고 사용하는 데 필요한 현재 기준 사용 방법을 정리합니다.
+이 문서는 운영자와 리뷰 담당자가 개발 문서를 깊게 읽지 않고도 프로그램을 실행하고, 분석하고, 결과를 검토하는 데 필요한 현재 기준 사용 흐름을 정리합니다.
 
 ## 1. 시작 전 준비
 
 필수:
+
 - Windows 환경
 - Python 3.10+
 - `python -m pip install -r requirements-dev.txt`
-- 입력 파일이 `CodeReview_Data` 또는 외부 선택 경로에 준비됨
+- `npm install`
 
 권장:
-- `npm install`
-- `npx playwright install chromium`
+
+```powershell
+npx playwright install chromium
+```
 
 선택 의존성:
+
 - `CtrlppCheck`
 - `Ollama`
 - Playwright browser runtime
@@ -33,7 +37,7 @@ Last Updated: 2026-03-17
 python backend/server.py
 ```
 
-접속:
+기본 주소:
 
 ```text
 http://127.0.0.1:8765
@@ -42,183 +46,199 @@ http://127.0.0.1:8765
 ### CLI 모드
 
 ```powershell
-python backend/main.py --selected-files GoldenTime.ctl
+python backend/main.py --selected-files CodeReview_Data\\GoldenTime.ctl
 ```
 
-## 3. 화면 구조
+## 3. 현재 화면 구조
 
 ### 대시보드
-- 프로젝트 요약
-- 전체 이슈 / 현재 검토 대상 / 치명 / 경고
-- 중복 정리 요약
-- 우선 수정 추천
-- compact 시스템 상태 요약
 
-참고:
-- 자세한 운영 검증과 규칙 관리는 더 이상 대시보드에 직접 나오지 않습니다.
-- `설정에서 자세히 보기` 또는 좌측 `설정`으로 이동합니다.
+- 상단 공통 분석 strip
+- 프로젝트 요약 카드
+- 최근 검증 / 운영 상태
+- 작업공간으로 이어지는 개요 화면
 
 ### 작업공간
-- 파일 목록 / 파일 검색
-- 코드 뷰어
-- 결과 리스트 / 결과 검색
-- preset 버튼 (`기본 보기`, `P1만`, `치명/경고`)
-- P1 triage
-- AI / compare / autofix
 
-작업공간 주요 동작:
-- 코드 뷰어와 결과 리스트 사이 높이 드래그 조절
-- 첫 결과 자동 선택
-- `이전 이슈`, `다음 이슈`, `코드 보기`, `상세 탭`, `AI 탭`
-- `숨김 처리 포함` 토글
+- 왼쪽 파일 영역
+  - 외부 파일 추가
+  - 폴더 선택
+  - 세션 입력 요약
+  - 파일 검색 / 파일 목록
+- 상단 compact 분석 strip
+  - 선택 파일 / 현재 표시 / 전체 검토 대상 요약
+  - `선택 항목 분석`
+  - `고급`
+  - `Live AI 사용 (P3)`
+- 메인 리뷰 영역
+  - 코드뷰어
+  - 결과 리스트
+  - 이슈 상세 / AI 패널
 
 ### 설정
+
+- dependency readiness
+- rules health
+- rules CRUD / import / rollback
 - 운영 검증 상세
-  - UI benchmark
-  - real UI smoke
-  - Ctrlpp integration
-- 규칙 / 의존성 관리
-  - dependency readiness
-  - rule list / create / replace / delete
-  - import dry-run preview
-  - rollback latest
 
-## 4. 분석 흐름
+## 4. 기본 사용자 흐름
 
-UI 기본 분석은 비동기 경로를 사용합니다.
+### 1) 입력 준비
 
-- `POST /api/analyze/start`
-- `GET /api/analyze/status`
+- 왼쪽 파일 영역에서 `외부 파일 추가` 또는 `폴더 선택`
+- 파일 목록에서 분석 대상을 확인
 
-UI에서 보이는 항목:
-- 진행률
-- ETA
-- 경과 시간
-- 최종 결과 요약
+### 2) 분석 실행
 
-필요 시 `/api/analyze` 동기 경로도 계속 지원됩니다.
+- 상단 strip에서 `선택 항목 분석`
+- 필요 시 `Live AI 사용 (P3)` 활성화
+- `고급` 패널에서 추가 옵션 사용
 
-## 5. P1 Triage 사용법
+### 3) 결과 검토
 
-P1 항목은 triage를 통해 숨김 처리할 수 있습니다.
+- 코드뷰어에서 코드 문맥 확인
+- 결과 리스트에서 이슈 탐색
+- 상세 패널에서 검출 근거와 설명 확인
+
+### 4) AI 제안 검토
+
+- AI 제안 생성
+- compare / prepare 결과 확인
+- 적용 가능 여부 또는 차단 이유 확인
+
+## 5. 작업공간 세부 동작
+
+### 코드뷰어
+
+- 현재 선택 이슈 기준으로 점프
+- 코드 필터 사용 가능
+- 결과 리스트와 높이 리사이즈 가능
+- 현재 기준 동작:
+  - 아래로 드래그하면 코드뷰어가 길어짐
+  - 위로 드래그하면 코드뷰어가 줄어듦
+
+### 결과 리스트
+
+- preset 사용 가능
+  - `기본 보기`
+  - `P1만`
+  - `치명/경고`
+- 검색 조건으로 메시지 / 파일 / 규칙 기준 필터 가능
+
+### 고급 패널
+
+기본 화면에서는 닫혀 있고, 필요할 때만 floating panel로 열립니다.
+
+포함 항목:
+
+- `CtrlppCheck 사용 (P2)`
+- `P3 모델`
+- `AI 분석 강화 (추가 문맥 사용)`
+- 검증 배지
+- Excel 생성 / 다운로드 상태
+- 운영 토글
+
+## 6. P1 Triage
+
+P1 triage 기능은 유지되지만, 일반 사용 흐름에서는 상세 패널보다 운영 경로에서 사용하는 것이 기본입니다.
 
 기본 동작:
+
 - 숨김 처리된 P1은 기본 결과 리스트에서 숨김
 - `숨김 처리 포함`을 켜면 다시 보임
 - 재분석 후에도 동일 fingerprint의 P1 이슈는 계속 숨김 유지
 
-상세 패널에서 가능한 작업:
-- `숨김 처리`
-- `숨김 해제`
-- `사유`
-- `메모`
-
 저장 위치:
+
 - `workspace/runtime/triage/p1_triage_entries.json`
 
-## 6. Rules Manage 사용법
+## 7. AI / Autofix 상태 해석
 
-설정 화면에서 다음 작업을 할 수 있습니다.
+AI 패널에서는 현재 상태를 가능한 한 정직하게 표시합니다.
+
+주요 상태:
+
+- 모델 / 엔드포인트 미준비
+- 생성 실패
+- 생성 성공이지만 실질 리뷰 없음
+- 수정안 준비 완료
+- 적용 차단
+- 적용 가능
+
+차단 예:
+
+- placeholder / example code 포함
+- identifier reuse 실패
+- no-op patch
+- semantic guard 차단
+
+## 8. Rules Manage 사용법
+
+설정 화면에서 다음 작업을 수행할 수 있습니다.
 
 - 규칙 목록 확인
 - 새 규칙 생성
 - 기존 규칙 수정 / 삭제
-- `enabled` 토글 저장
-- JSON export
+- export
 - import preview (`merge`, `replace`)
 - rollback latest
 
-현재 편집 모델:
-- detector / meta는 JSON 형태 편집
-- 저장 전 validation 수행
+현재 rules write 응답은 revision 기반 검증 정보를 함께 제공합니다.
 
-## 7. 릴리스 게이트 단축 명령
+## 9. 권장 검증 명령
 
-빠른 게이트:
-
-```powershell
-python tools/run_local_quality_gate.py
-```
-
-확장 게이트:
-
-```powershell
-python tools/run_local_extended_gate.py
-```
-
-통합 게이트:
-
-```powershell
-python tools/release_gate.py
-python tools/release_gate.py --profile ci
-```
-
-## 8. 자주 쓰는 검증
-
-프론트 변경:
+### 프런트 변경
 
 ```powershell
 npm run test:frontend
 node tools/playwright_ui_real_smoke.js --timeout-ms 120000
 ```
 
-백엔드 / API 변경:
+### Live AI compare / prepare 경로
+
+```powershell
+node tools/playwright_ui_real_smoke.js --timeout-ms 180000 --target-file BenchmarkP1Fixture.ctl --with-live-ai-compare-prepare
+```
+
+### 백엔드 / API 변경
 
 ```powershell
 python -m unittest backend.tests.test_api_and_reports -v
-python backend/system_verification.py
+python -m unittest backend.tests.test_winccoa_context_server -v
 ```
 
-rules / config 변경:
+### rules / config 변경
 
 ```powershell
 python backend/tools/check_config_rule_alignment.py --json
 python backend/tools/analyze_template_coverage.py
 ```
 
-## 9. 자주 발생하는 문제
+### 통합 gate
 
-### UI가 열리지 않음
+```powershell
+python tools/release_gate.py --profile local --with-live-ai --with-live-ai-ui
+```
 
-확인:
-- `python backend/server.py`가 실행 중인지
-- `8765` 포트가 사용 가능한지
+## 10. 자주 발생하는 문제
 
-### 대시보드에 상세 운영 카드가 없음
+### Playwright browser가 없음
 
-정상입니다.
+- `npx playwright install chromium` 실행
+- 또는 UI smoke를 skip하고 backend / unit test만 우선 수행
 
-- 운영 검증 상세와 규칙 관리는 `설정` 화면으로 이동했습니다.
+### CtrlppCheck가 없음
 
-### 결과가 안 보임
+- `python tools/run_ctrlpp_integration_smoke.py --allow-missing-binary --skip-unittest`
+- fail-soft 경로로 현재 상태를 확인
 
-확인:
-- 파일 선택 여부
-- source / severity 필터
-- 결과 검색 입력
-- `숨김 처리 포함` 상태
-- triage로 P1이 숨겨졌는지
+### Ollama / Live AI가 준비되지 않음
 
-### rules / dependency가 degraded로 보임
+- 기본 분석은 계속 가능
+- AI 패널은 미준비 상태와 이유를 표시
 
-주요 원인:
-- `openpyxl` 미설치
-- Playwright browser 미설치
-- Ctrlpp binary 미설치
+### `.pnl` / `.xml` 입력이 바로 안 보임
 
-기본 정적 분석 자체가 자동으로 막히는 것은 아닙니다.
-
-### UI smoke 또는 benchmark가 실패함
-
-확인:
-- `npm install`
-- `npx playwright install chromium`
-- 브라우저/머신 부하
-
-## 10. 현재 범위에 없는 것
-
-아직 포함하지 않은 것:
-- detector-type 전용 rich form editor
-- triage owner / history / expires_at
-- 모바일 전용 반응형 재설계
-- rules manage full history UI
+- 현재 제품 정책은 canonical converted text 기준입니다
+- `*_pnl.txt`, `*_xml.txt` 기준으로 분석 / 표시 / Excel / summary가 맞춰집니다

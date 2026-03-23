@@ -14,6 +14,7 @@ import {
 } from "./utils.js";
 
 export function createCodeViewerController({ dom, state, caches, virtualState, helpers }) {
+    const FULL_RENDER_LINE_THRESHOLD = 320;
     function currentViewerLineCount() {
         if (!state.currentViewerContent) return 0;
         return String(state.currentViewerContent).split("\n").length;
@@ -106,17 +107,38 @@ export function createCodeViewerController({ dom, state, caches, virtualState, h
             return;
         }
 
-        const headerOffset = getCodeViewerLineAreaOffset();
-        const lineHeight = Math.max(16, getViewerLineHeight());
+        const headerOffset = Number.isFinite(getCodeViewerLineAreaOffset()) ? getCodeViewerLineAreaOffset() : 0;
+        let lineHeight = Math.max(16, getViewerLineHeight());
+        if (!Number.isFinite(lineHeight) || lineHeight <= 0) {
+            lineHeight = 20;
+        }
         virtualState.codeViewerVirtualState.lineHeight = lineHeight;
-        const viewportHeight = Math.max(1, dom.codeViewer.clientHeight || 1);
+        const rawViewportHeight = Number.parseInt(dom.codeViewer.clientHeight, 10) || 1;
+        const viewportHeight = Math.max(1, rawViewportHeight - headerOffset);
         const scrollTop = Math.max(0, (dom.codeViewer.scrollTop || 0) - headerOffset);
         const overscan = 14;
-        let start = Math.floor(scrollTop / lineHeight) - overscan;
-        if (!Number.isFinite(start)) start = 0;
-        start = Math.max(0, start);
-        const visibleCount = Math.max(1, Math.ceil(viewportHeight / lineHeight) + overscan * 2);
-        const end = Math.min(totalLines, start + visibleCount);
+        const visibleCount = Math.max(1, Math.ceil(viewportHeight / lineHeight));
+        const bufferedCount = visibleCount + overscan * 2;
+        const shouldVirtualize = totalLines > FULL_RENDER_LINE_THRESHOLD && totalLines > bufferedCount;
+        let start = 0;
+        let end = totalLines;
+        if (shouldVirtualize) {
+            start = Math.floor(scrollTop / lineHeight) - overscan;
+            if (!Number.isFinite(start) || start < 0) start = 0;
+            end = Math.min(totalLines, start + bufferedCount);
+            if (!Number.isFinite(end) || end <= start) {
+                start = 0;
+                end = Math.min(totalLines, bufferedCount);
+            }
+            if (end >= totalLines) {
+                end = totalLines;
+                start = Math.max(0, totalLines - bufferedCount);
+            }
+            if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end < start) {
+                start = 0;
+                end = totalLines;
+            }
+        }
 
         if (
             start === virtualState.codeViewerVirtualState.renderedStart
@@ -128,8 +150,8 @@ export function createCodeViewerController({ dom, state, caches, virtualState, h
         virtualState.codeViewerVirtualState.renderedStart = start;
         virtualState.codeViewerVirtualState.renderedEnd = end;
 
-        topSpacer.style.height = `${start * lineHeight}px`;
-        bottomSpacer.style.height = `${Math.max(0, totalLines - end) * lineHeight}px`;
+        topSpacer.style.height = shouldVirtualize ? `${start * lineHeight}px` : "0px";
+        bottomSpacer.style.height = shouldVirtualize ? `${Math.max(0, totalLines - end) * lineHeight}px` : "0px";
 
         const frag = document.createDocumentFragment();
         for (let idx = start; idx < end; idx += 1) {
@@ -149,7 +171,7 @@ export function createCodeViewerController({ dom, state, caches, virtualState, h
                 virtualState.codeViewerVirtualState.lineHeight = measured;
                 virtualState.codeViewerVirtualState.renderedStart = -1;
                 virtualState.codeViewerVirtualState.renderedEnd = -1;
-                queueCodeViewerWindowRender();
+                queueCodeViewerWindowRender(true);
             }
         }
     }
@@ -526,7 +548,8 @@ export function createCodeViewerController({ dom, state, caches, virtualState, h
         const clampedLine = totalLines > 0 ? Math.min(line, totalLines) : line;
         const lineHeight = Math.max(16, getViewerLineHeight());
         const headerOffset = getCodeViewerLineAreaOffset();
-        const centerOffset = Math.max(0, (dom.codeViewer.clientHeight - lineHeight) / 2);
+        const viewportHeight = Math.max(1, (Number.parseInt(dom.codeViewer.clientHeight, 10) || 1) - headerOffset);
+        const centerOffset = Math.max(0, (viewportHeight - lineHeight) / 2);
         const targetTop = Math.max(0, headerOffset + (clampedLine - 1) * lineHeight - centerOffset);
         dom.codeViewer.scrollTop = targetTop;
         queueCodeViewerWindowRender(true);

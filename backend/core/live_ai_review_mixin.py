@@ -620,12 +620,25 @@ class LiveAIReviewMixin:
                 status_item=status_meta,
             )
 
+        review_source = str((review_item or {}).get("source", "") or "").strip().lower()
+        review_text = str((review_item or {}).get("review", "") or "").strip()
+        status_value = str((status_meta or {}).get("status", "generated" if review_item else "failed") or "").strip() or ("generated" if review_item else "failed")
+        status_reason = str((status_meta or {}).get("reason", "") or "").strip()
+        status_reason_text = str((status_meta or {}).get("detail", "") or "").strip()
+
         result = {
             "request_id": str(request_id or uuid.uuid4().hex),
             "available": bool(review_item),
             "message": "P3 review generated" if review_item else str(status_meta.get("detail", "") or "P3 review unavailable"),
             "review_item": review_item,
             "status_item": status_meta,
+            "status": status_value,
+            "status_reason": status_reason,
+            "status_reason_text": status_reason_text,
+            "review_source": review_source,
+            "review_text_present": bool(review_text),
+            "review_substantive": bool(review_text),
+            "mock_review": review_source == "mock",
         }
         if session_output_dir:
             result["session_id"] = session_output_dir

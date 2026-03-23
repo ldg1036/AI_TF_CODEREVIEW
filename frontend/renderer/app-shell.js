@@ -53,6 +53,11 @@ export function createRendererShell() {
 
     const elements = {
         dashboardView: queryById("dashboard-view"),
+        dashboardAnalysisSummaryText: queryById("dashboard-analysis-summary-text"),
+        dashboardAnalysisSummaryNote: queryById("dashboard-analysis-summary-note"),
+        dashboardAnalyze: queryById("dashboard-btn-analyze"),
+        dashboardAdvanced: queryById("dashboard-command-advanced"),
+        dashboardLiveAiToggle: queryById("dashboard-toggle-live-ai"),
         settingsView: queryById("settings-view"),
         fileTreeSidebar: queryById("file-tree-sidebar"),
         inspectorPanel: queryById("inspector-panel"),
@@ -64,6 +69,7 @@ export function createRendererShell() {
         navWorkspace: queryById("nav-workspace"),
         navSettings: queryById("nav-settings"),
         dashboardOpenSettings: queryById("dashboard-open-settings"),
+        dashboardOpenWorkspace: queryById("dashboard-open-workspace"),
         btnAnalyze: queryById("btn-analyze"),
         btnAddExternalFiles: queryById("btn-add-external-files"),
         btnAddExternalFolder: queryById("btn-add-external-folder"),
@@ -86,6 +92,7 @@ export function createRendererShell() {
         aiContextToggle: queryById("toggle-ai-context"),
         aiContextLabel: queryById("label-ai-context"),
         aiContextHelp: queryById("ai-context-help"),
+        analysisAdvancedPanel: queryById("analysis-advanced-panel"),
         inspectorTabDetail: queryById("inspector-tab-detail"),
         inspectorTabAi: queryById("inspector-tab-ai"),
         workspaceCommandPrev: queryById("workspace-command-prev"),
@@ -93,6 +100,7 @@ export function createRendererShell() {
         workspaceCommandJump: queryById("workspace-command-jump"),
         workspaceCommandDetail: queryById("workspace-command-detail"),
         workspaceCommandAi: queryById("workspace-command-ai"),
+        workspaceCommandAdvanced: queryById("workspace-command-advanced"),
         workspaceCommandReset: queryById("workspace-command-reset"),
         workspaceCommandShowSuppressed: queryById("workspace-command-show-suppressed"),
         workspaceFileSearch: queryById("workspace-file-search"),
@@ -131,6 +139,8 @@ export function createRendererShell() {
         aiTextFull: queryById("ai-text-full"),
         aiValidationPanel: queryById("autofix-validation-panel"),
         aiValidationText: queryById("autofix-validation-text"),
+        analysisStripSummaryNote: queryById("analysis-strip-summary-note"),
+        analysisStripSummaryText: queryById("analysis-strip-summary-text"),
         analysisDiffCompare: queryById("analysis-diff-compare"),
         btnAiMore: queryById("btn-ai-more"),
         codeViewer: queryById("code-viewer"),
@@ -162,6 +172,8 @@ export function createRendererShell() {
         scoreText: queryById("score-text"),
         totalText: queryById("total-issues"),
         currentReviewText: queryById("current-review-issues"),
+        dashboardAnalysisSummaryNote: queryById("dashboard-analysis-summary-note"),
+        dashboardAnalysisSummaryText: queryById("dashboard-analysis-summary-text"),
         verificationBadge: queryById("verification-badge"),
         verificationProfileCard: queryById("verification-profile-card"),
         violationDetail: queryById("violation-detail"),
@@ -189,6 +201,7 @@ export function createRendererShell() {
         workspaceQuickFilter: queryById("workspace-quick-filter"),
         workspaceQuickFilterClear: queryById("workspace-quick-filter-clear"),
         workspaceQuickFilterText: queryById("workspace-quick-filter-text"),
+        workspacePrioritySummary: queryById("workspace-priority-summary"),
     };
 
     return {

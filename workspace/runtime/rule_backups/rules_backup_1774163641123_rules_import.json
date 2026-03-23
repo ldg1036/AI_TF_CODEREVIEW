@@ -1,0 +1,26 @@
+{
+  "tool": "rule_backup",
+  "created_at_ms": 1774163641123,
+  "reason": "rules_import",
+  "config_dir": "C:\\Users\\39145\\AppData\\Local\\Temp\\tmpqh337jsp\\Config",
+  "rules": [
+    {
+      "id": "cfg-test-01",
+      "order": 10,
+      "enabled": true,
+      "file_types": [
+        "Client"
+      ],
+      "rule_id": "TEST-01",
+      "item": "테스트 규칙 1",
+      "detector": {
+        "kind": "regex",
+        "pattern": "DebugN"
+      },
+      "finding": {
+        "severity": "Warning",
+        "message": "message-1"
+      }
+    }
+  ]
+}

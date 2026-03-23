@@ -13,6 +13,7 @@ export function createAnalyzeRunController({
         analyzeProgressStatus,
         btnAnalyze,
         ctrlppToggle,
+        dashboardAnalyze,
         liveAiToggle,
         navWorkspace,
     } = elements;
@@ -164,6 +165,10 @@ export function createAnalyzeRunController({
                     btnAnalyze.disabled = true;
                     btnAnalyze.textContent = "Analyzing...";
                 }
+                if (dashboardAnalyze) {
+                    dashboardAnalyze.disabled = true;
+                    dashboardAnalyze.textContent = "분석 중...";
+                }
                 setAnalyzeProgressVisible(true);
                 updateAnalyzeProgressUi({
                     status: "queued",
@@ -250,6 +255,10 @@ export function createAnalyzeRunController({
                 if (btnAnalyze) {
                     btnAnalyze.disabled = false;
                     btnAnalyze.textContent = originalText || "Start Analysis";
+                }
+                if (dashboardAnalyze) {
+                    dashboardAnalyze.disabled = false;
+                    dashboardAnalyze.textContent = "선택 항목 분석";
                 }
             }
         };

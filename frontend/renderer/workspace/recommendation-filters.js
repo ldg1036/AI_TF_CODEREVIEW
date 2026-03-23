@@ -295,6 +295,18 @@ export function createWorkspaceRecommendationController({
         if (dom.workspaceCommandSelectionText) {
             dom.workspaceCommandSelectionText.textContent = buildActiveSelectionLabel();
         }
+        if (dom.dashboardAnalysisSummaryText) {
+            dom.dashboardAnalysisSummaryText.textContent = buildWorkspaceCommandSummary({
+                selectedCount,
+                visibleCount,
+                totalCount,
+                hiddenSuppressedCount,
+                activeFilterText,
+            });
+        }
+        if (dom.dashboardAnalysisSummaryNote) {
+            dom.dashboardAnalysisSummaryNote.textContent = buildActiveSelectionLabel();
+        }
         if (dom.workspaceCommandShowSuppressed) {
             dom.workspaceCommandShowSuppressed.checked = !!state.showSuppressedP1;
             dom.workspaceCommandShowSuppressed.disabled = !!state.p1TriageLoading;

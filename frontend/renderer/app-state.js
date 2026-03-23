@@ -36,6 +36,8 @@ export function createRendererStateSeed() {
                 code: true,
                 inspector: true,
             },
+            advancedOpen: false,
+            activePrimaryView: "dashboard",
             codePaneHeightPx: 380,
             isResizingCodePane: false,
         },

@@ -440,47 +440,47 @@ export function findAiStatusForViolation({ analysisData, violation, eventName })
 
 function aiStatusDisplayLabel(status) {
     const key = String(status || "").trim().toLowerCase();
-    if (key === "generated") return "Generated";
-    if (key === "failed") return "Generation failed";
-    if (key === "skipped") return "Skipped";
-    return key || "Unknown";
+    if (key === "generated") return "생성됨";
+    if (key === "failed") return "생성 실패";
+    if (key === "skipped") return "건너뜀";
+    return key || "알 수 없음";
 }
 
 function aiReasonDisplayMeta(reason) {
     const key = String(reason || "").trim();
     if (key === "generated") {
         return {
-            title: "AI review was generated for this finding.",
-            detail: "A matching P3 review is available for the selected issue.",
-            label: "Generated",
+            title: "이 이슈에 대한 AI 검토가 생성되었습니다.",
+            detail: "선택한 이슈에 연결된 P3 검토를 사용할 수 있습니다.",
+            label: "생성됨",
         };
     }
     if (key === "mock_generated") {
         return {
-            title: "A mock AI review was generated.",
-            detail: "Live AI was not used, but a mock review is available for preview.",
-            label: "Mock generated",
+            title: "모의 AI 검토가 생성되었습니다.",
+            detail: "Live AI는 사용하지 않았지만 미리보기용 모의 검토를 볼 수 있습니다.",
+            label: "모의 생성",
         };
     }
     if (key === "timeout") {
         return {
-            title: "AI review generation timed out.",
-            detail: "Live AI did not respond in time, so no P3 review was attached.",
-            label: "Timed out",
+            title: "AI 검토 생성 시간이 초과되었습니다.",
+            detail: "Live AI 응답이 늦어 P3 검토가 연결되지 않았습니다.",
+            label: "시간 초과",
         };
     }
     if (key === "response_parse_failed") {
         return {
-            title: "AI review response could not be parsed.",
+            title: "AI 검토 응답을 해석하지 못했습니다.",
             detail: "The AI returned a response, but it was not in a usable format.",
-            label: "Parse failed",
+            label: "해석 실패",
         };
     }
     if (key === "fail_soft_skip") {
         return {
-            title: "AI review was skipped in fail-soft mode.",
-            detail: "Live AI was unavailable, so the app continued without attaching a P3 review.",
-            label: "Fail-soft skip",
+            title: "fail-soft 모드로 AI 검토를 건너뛰었습니다.",
+            detail: "Live AI를 사용할 수 없어 P3 검토 없이 계속 진행했습니다.",
+            label: "fail-soft 건너뜀",
         };
     }
     if (key === "empty_response") {
@@ -492,22 +492,22 @@ function aiReasonDisplayMeta(reason) {
     }
     if (key === "severity_filtered") {
         return {
-            title: "P3 generation was skipped by severity filter.",
-            detail: "This issue did not meet the threshold for generating a P3 review.",
-            label: "Severity filtered",
+            title: "심각도 기준으로 P3 생성을 건너뛰었습니다.",
+            detail: "이 이슈는 P3 검토 생성 기준을 충족하지 않았습니다.",
+            label: "심각도 제외",
         };
     }
     if (key === "priority_limited") {
         return {
-            title: "P3 generation was skipped by priority limits.",
-            detail: "Another nearby parent review took precedence over this issue.",
-            label: "Priority limited",
+            title: "우선순위 제한으로 P3 생성을 건너뛰었습니다.",
+            detail: "가까운 다른 부모 검토가 이 이슈보다 우선 적용되었습니다.",
+            label: "우선순위 제한",
         };
     }
     return {
         title: "No AI review metadata is available.",
-        detail: "A matching P3 status could not be found for this issue.",
-        label: key || "Unknown",
+        detail: "이 이슈와 맞는 P3 상태를 찾지 못했습니다.",
+        label: key || "알 수 없음",
     };
 }
 
@@ -554,7 +554,7 @@ export function buildAiUnavailableDiagnostic({ analysisData, violation, eventNam
     const reasonMeta = aiReasonDisplayMeta(reason);
     let classification = "not_found";
     let classificationLabel = "Not found";
-    let matchLabel = "No related P3 item";
+    let matchLabel = "관련 P3 항목 없음";
     let matchHint = "";
 
     if (aiStatus) {
@@ -562,23 +562,23 @@ export function buildAiUnavailableDiagnostic({ analysisData, violation, eventNam
         classificationLabel = aiStatusDisplayLabel(status);
         if (status === "generated" && nearby) {
             classification = "not_matched";
-            classificationLabel = "Matched elsewhere";
-            matchLabel = "P3 was generated but did not exact-match this parent";
+            classificationLabel = "다른 항목과 매칭";
+            matchLabel = "P3가 생성되었지만 현재 부모와 정확히 일치하지 않습니다";
             matchHint = `nearest parent_rule_id=${String(nearby.parent_rule_id || "-")}, selected rule_id=${String((violation && violation.rule_id) || "-")}`;
         } else if (status === "generated") {
-            matchLabel = "Status is generated but no exact P3 match was found";
+            matchLabel = "생성 상태이지만 정확히 일치하는 P3를 찾지 못했습니다";
         } else {
-            matchLabel = "P3 status matched";
+            matchLabel = "P3 상태가 일치합니다";
         }
     } else if (nearby) {
         classification = "not_matched";
         classificationLabel = "Matched elsewhere";
-        matchLabel = "Nearby P3 found for another parent";
+        matchLabel = "다른 부모에 연결된 근접 P3가 있습니다";
         matchHint = `nearest parent_rule_id=${String(nearby.parent_rule_id || "-")}, selected rule_id=${String((violation && violation.rule_id) || "-")}`;
     } else {
         classification = "not_found";
         classificationLabel = "Not found";
-        matchLabel = sourceKey === "p2" ? "No related P3 status for this P2 issue" : "No related P3/status match";
+        matchLabel = sourceKey === "p2" ? "이 P2 이슈와 관련된 P3 상태가 없습니다" : "관련된 P3 또는 상태 매칭이 없습니다";
     }
 
     return {
@@ -608,8 +608,8 @@ export function describeAiUnavailable({ analysisData, violation, eventName, live
     const diagnostic = buildAiUnavailableDiagnostic({ analysisData, violation, eventName, sourceFilterKey });
     if (!liveAiEnabled) {
         return {
-            title: "AI review is currently disabled.",
-            detail: "Enable Live AI to request a P3 review for this finding.",
+            title: "AI 검토가 현재 비활성화되어 있습니다.",
+            detail: "이 이슈의 P3 검토를 요청하려면 Live AI를 켜 주세요.",
             diagnostic,
         };
     }

@@ -34,9 +34,9 @@ describe("autofix ai controller", () => {
             },
         );
         expect(lines).toEqual(expect.arrayContaining([
-            expect.stringContaining("Review summary:"),
-            expect.stringContaining("Generator LLM"),
-            expect.stringContaining("Validation preview:"),
+            expect.stringContaining("검토 요약:"),
+            expect.stringContaining("생성기 LLM"),
+            expect.stringContaining("검증 미리보기:"),
         ]));
     });
 
@@ -52,7 +52,7 @@ describe("autofix ai controller", () => {
             },
         );
         expect(lines.length).toBeGreaterThan(0);
-        expect(lines.some((line) => line.includes("Validation preview:"))).toBe(false);
+        expect(lines.some((line) => line.includes("검증 미리보기:"))).toBe(false);
     });
 
     test("normalizeAutofixBundle falls back to highest scored live llm proposal", () => {
@@ -149,5 +149,39 @@ describe("autofix ai controller", () => {
         expect(gate.canApply).toBe(false);
         expect(gate.blockedReason).toBe("source_changed_since_prepare");
         expect(gate.blockedReasonDetail).toBe(describeAutofixBlockedReason("source_changed_since_prepare"));
+    });
+
+    test("describeGeneratedAiPayload marks mock reviews as preview-only", () => {
+        const controller = createController();
+        const state = controller.describeGeneratedAiPayload({
+            status: "generated",
+            status_reason: "mock_generated",
+            review_source: "mock",
+            review_text_present: true,
+            review_item: {
+                source: "mock",
+                review: "Mock review text",
+            },
+        });
+        expect(state.isMock).toBe(true);
+        expect(state.usable).toBe(false);
+        expect(state.message).toContain("모의 검토만 생성되었습니다");
+    });
+
+    test("describeGeneratedAiPayload reports live review success only when review text is present", () => {
+        const controller = createController();
+        const state = controller.describeGeneratedAiPayload({
+            status: "generated",
+            status_reason: "generated",
+            review_source: "live",
+            review_text_present: true,
+            review_item: {
+                source: "live",
+                review: "Use grouped setter",
+            },
+        });
+        expect(state.isMock).toBe(false);
+        expect(state.usable).toBe(true);
+        expect(state.message).toBe("Live AI 개선 제안이 생성되었습니다.");
     });
 });

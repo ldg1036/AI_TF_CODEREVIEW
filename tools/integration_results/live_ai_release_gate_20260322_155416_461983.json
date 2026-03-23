@@ -1,0 +1,66 @@
+{
+  "tool": "live_ai_release_gate",
+  "target_file": "BenchmarkP1Fixture.ctl",
+  "with_context": false,
+  "context": {
+    "requested": false,
+    "available": null
+  },
+  "status": "passed",
+  "summary": {
+    "successful_file_count": 1,
+    "failed_file_count": 0,
+    "p1_total": 5,
+    "p2_total": 0,
+    "p3_total": 3,
+    "verification_level": "CORE+REPORT",
+    "output_dir": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Report\\20260322_155905_434767"
+  },
+  "p3_preview": [
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "file_path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+      "object": "BenchmarkP1Fixture.ctl",
+      "event": "Global",
+      "review": "요약: 다중 Set 업데이트 감지로 setMultiValue 구문 적용 권장.\n\n코드:\n```cpp\ndpSet(\"A.B.C1\", v1, \"A.B.C2\", v2, \"A.B.C3\", v3);\n```",
+      "source": "live",
+      "status": "Pending",
+      "parent_source": "P1",
+      "parent_issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-4b8c8448a0",
+      "parent_rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+      "parent_file": "BenchmarkP1Fixture.ctl",
+      "parent_file_path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+      "parent_line": 8
+    },
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "file_path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+      "object": "BenchmarkP1Fixture.ctl",
+      "event": "Global",
+      "review": "요약: 상태 변경 호출 전 Active/Enable 조건 확인 로직 부재 가능성 해결\n\n코드:\n```cpp\n// TODO: 위반 항목에 맞는 최소 수정 코드를 여기에 작성하세요.\n```",
+      "source": "live",
+      "status": "Pending",
+      "parent_source": "P1",
+      "parent_issue_id": "P1-ACTIVE-01-bc9ad90421",
+      "parent_rule_id": "ACTIVE-01",
+      "parent_file": "BenchmarkP1Fixture.ctl",
+      "parent_file_path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+      "parent_line": 8
+    },
+    {
+      "file": "BenchmarkP1Fixture.ctl",
+      "file_path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+      "object": "BenchmarkP1Fixture.ctl",
+      "event": "Global",
+      "review": "요약: DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성 해결\n\n코드:\n```cpp\ntry {\n    setValue(\"A.B.C3\", v3);\n} catch (Exception e) {\n    DebugTN(e.message());\n}\ndpSet(\"SYS.A.C1\", v1);\ndpSet(\"SYS.A.C2\", v2);\n```",
+      "source": "live",
+      "status": "Pending",
+      "parent_source": "P1",
+      "parent_issue_id": "P1-EXC-DP-01-9b39c7f5d6",
+      "parent_rule_id": "EXC-DP-01",
+      "parent_file": "BenchmarkP1Fixture.ctl",
+      "parent_file_path": "D:\\AI_TF_CODEREVIEW-main\\CodeReview_Data\\BenchmarkP1Fixture.ctl",
+      "parent_line": 14
+    }
+  ]
+}

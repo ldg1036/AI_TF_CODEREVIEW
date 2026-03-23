@@ -1,0 +1,62 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1774184411415,
+  "entries": [
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||299",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184409140,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 299,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-fd66893c18"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||365",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184409998,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 365,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-c47222cc7f"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-05||dpSetTimed 대체 가능 패턴 감지.||433",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184410760,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 433,
+        "rule_id": "PERF-05",
+        "message": "dpSetTimed 대체 가능 패턴 감지.",
+        "issue_id": "P1-PERF-05-0fc1d77639"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-DPSET-BATCH-01||반복 구간 dpSet 일괄/배치 처리 권장.||754",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184411414,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 754,
+        "rule_id": "PERF-DPSET-BATCH-01",
+        "message": "반복 구간 dpSet 일괄/배치 처리 권장.",
+        "issue_id": "P1-PERF-DPSET-BATCH-01-dc7b6544dd"
+      }
+    }
+  ]
+}

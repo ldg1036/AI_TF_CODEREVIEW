@@ -1,0 +1,202 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1774184418278,
+  "entries": [
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||299",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184409140,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 299,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-fd66893c18"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||365",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184409998,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 365,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-c47222cc7f"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-05||dpSetTimed 대체 가능 패턴 감지.||433",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184410760,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 433,
+        "rule_id": "PERF-05",
+        "message": "dpSetTimed 대체 가능 패턴 감지.",
+        "issue_id": "P1-PERF-05-0fc1d77639"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-DPSET-BATCH-01||반복 구간 dpSet 일괄/배치 처리 권장.||754",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184411414,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 754,
+        "rule_id": "PERF-DPSET-BATCH-01",
+        "message": "반복 구간 dpSet 일괄/배치 처리 권장.",
+        "issue_id": "P1-PERF-DPSET-BATCH-01-dc7b6544dd"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-DPSET-BATCH-01||반복 구간 dpSet 일괄/배치 처리 권장.||722",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184411866,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 722,
+        "rule_id": "PERF-DPSET-BATCH-01",
+        "message": "반복 구간 dpSet 일괄/배치 처리 권장.",
+        "issue_id": "P1-PERF-DPSET-BATCH-01-0f2b4c8b46"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||1117",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184414028,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 1117,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-712b018f70"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||1164",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184414572,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 1164,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-0f72f749d2"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||DUP-ACT-01||동일 대상(obj_sel_errorBX.visible)에 대한 중복 동작 처리(가드/중복방지) 부재 가능성.||1117",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184415949,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 1117,
+        "rule_id": "DUP-ACT-01",
+        "message": "동일 대상(obj_sel_errorBX.visible)에 대한 중복 동작 처리(가드/중복방지) 부재 가능성.",
+        "issue_id": "P1-DUP-ACT-01-7efd130c21"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||1230",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184416851,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 1230,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-b694659278"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||1318",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184417272,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 1318,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-c61164dd8b"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-DPGET-BATCH-01||반복 구간 dpGet 일괄/캐시 처리 권장.||1522",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184417454,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 1522,
+        "rule_id": "PERF-DPGET-BATCH-01",
+        "message": "반복 구간 dpGet 일괄/캐시 처리 권장.",
+        "issue_id": "P1-PERF-DPGET-BATCH-01-ed015a8ff2"
+      }
+    },
+    {
+      "triage_key": "benchmarkp1fixture.ctl||EXC-DP-01||DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성.||14",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184417662,
+      "match": {
+        "file": "BenchmarkP1Fixture.ctl",
+        "line": 14,
+        "rule_id": "EXC-DP-01",
+        "message": "DP 함수 호출 결과에 대한 예외 처리/오류 확인 로직 누락 가능성.",
+        "issue_id": "P1-EXC-DP-01-9b39c7f5d6"
+      }
+    },
+    {
+      "triage_key": "benchmarkp1fixture.ctl||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||8",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184417844,
+      "match": {
+        "file": "BenchmarkP1Fixture.ctl",
+        "line": 8,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-4b8c8448a0"
+      }
+    },
+    {
+      "triage_key": "benchmarkp1fixture.ctl||EXC-TRY-01||예외 가능 구문에 try/catch 또는 오류 처리 계약 추가 권장.||14",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184418277,
+      "match": {
+        "file": "BenchmarkP1Fixture.ctl",
+        "line": 14,
+        "rule_id": "EXC-TRY-01",
+        "message": "예외 가능 구문에 try/catch 또는 오류 처리 계약 추가 권장.",
+        "issue_id": "P1-EXC-TRY-01-e510be386b"
+      }
+    }
+  ]
+}

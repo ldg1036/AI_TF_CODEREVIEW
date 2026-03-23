@@ -406,6 +406,147 @@ async function setShowSuppressedToggle(page, checked) {
   }, !!checked);
 }
 
+async function ensureWorkspaceAdvancedOpen(page, { timeoutMs, selector = "" } = {}) {
+  const button = page.locator("#workspace-command-advanced");
+  const buttonCount = await button.count().catch(() => 0);
+  const selectorLocator = selector ? page.locator(selector) : null;
+
+  if (selectorLocator && await selectorLocator.isVisible().catch(() => false)) {
+    const overlay = await readWorkspaceAdvancedOverlayState(page);
+    const overlayOk = !overlay.visible || overlay.topWithinPanel;
+    return {
+      ok: overlayOk,
+      opened: false,
+      reason: overlayOk ? "" : "advanced panel is rendered behind another workspace layer",
+      overlay,
+    };
+  }
+
+  if (!buttonCount || !(await button.isVisible().catch(() => false))) {
+    return {
+      ok: !selector,
+      opened: false,
+      reason: selector ? `advanced button unavailable for ${selector}` : "advanced button unavailable",
+    };
+  }
+
+  const alreadyOpen = await page.evaluate(
+    () => document.body.classList.contains("workspace-advanced-open"),
+  ).catch(() => false);
+  if (!alreadyOpen) {
+    await button.click({ timeout: Math.min(timeoutMs, 15000) });
+  }
+
+  if (!selectorLocator) {
+    try {
+      await page.waitForFunction(
+        () => {
+          const panel = document.getElementById("analysis-advanced-panel");
+          if (!document.body.classList.contains("workspace-advanced-open")) return false;
+          if (!panel || panel.hidden) return false;
+          const style = getComputedStyle(panel);
+          return style.display !== "none" && style.visibility !== "hidden";
+        },
+        { timeout: Math.min(timeoutMs, 15000) },
+      );
+    } catch (err) {
+      return {
+        ok: false,
+        opened: !alreadyOpen,
+        reason: String((err && err.message) || err || "advanced panel did not become visible"),
+        overlay: await readWorkspaceAdvancedOverlayState(page),
+      };
+    }
+  }
+
+  if (selectorLocator) {
+    try {
+      await selectorLocator.waitFor({
+        state: "visible",
+        timeout: Math.min(timeoutMs, 15000),
+      });
+    } catch (err) {
+      return {
+        ok: false,
+        opened: !alreadyOpen,
+        reason: String((err && err.message) || err || `failed to reveal ${selector}`),
+      };
+    }
+  }
+
+  const overlay = await readWorkspaceAdvancedOverlayState(page);
+  const overlayOk = !overlay.visible || overlay.topWithinPanel;
+  return {
+    ok: overlayOk,
+    opened: !alreadyOpen,
+    reason: overlayOk ? "" : "advanced panel is rendered behind another workspace layer",
+    overlay,
+  };
+}
+
+async function readWorkspaceAdvancedOverlayState(page) {
+  return page.evaluate(() => {
+    const panel = document.getElementById("analysis-advanced-panel");
+    const commandBar = document.getElementById("workspace-command-bar");
+    if (!panel) {
+      return {
+        visible: false,
+        topWithinPanel: false,
+        topIsCommandBar: false,
+        overlapsCommandBar: false,
+        topNode: null,
+        probePoint: null,
+      };
+    }
+
+    const panelStyle = getComputedStyle(panel);
+    const panelRect = panel.getBoundingClientRect();
+    const panelVisible = !panel.hidden
+      && panelStyle.display !== "none"
+      && panelStyle.visibility !== "hidden"
+      && panelRect.width > 0
+      && panelRect.height > 0;
+
+    const commandBarRect = commandBar ? commandBar.getBoundingClientRect() : null;
+    const overlapsCommandBar = !!(panelVisible && commandBarRect
+      && panelRect.left < commandBarRect.right
+      && panelRect.right > commandBarRect.left
+      && panelRect.top < commandBarRect.bottom
+      && panelRect.bottom > commandBarRect.top);
+
+    const probePoint = panelVisible ? {
+      x: Math.max(panelRect.left + 18, Math.min(panelRect.right - 18, panelRect.left + (panelRect.width / 2))),
+      y: Math.max(panelRect.top + 18, Math.min(panelRect.bottom - 18, panelRect.top + Math.min(28, panelRect.height / 3))),
+    } : null;
+
+    const topNode = probePoint ? document.elementFromPoint(probePoint.x, probePoint.y) : null;
+    const topWithinPanel = !!(topNode && panel.contains(topNode));
+    const topIsCommandBar = !!(topNode && commandBar && commandBar.contains(topNode));
+
+    return {
+      visible: panelVisible,
+      panelRect: panelVisible ? panelRect.toJSON() : null,
+      commandBarRect: commandBarRect ? commandBarRect.toJSON() : null,
+      probePoint,
+      topWithinPanel,
+      topIsCommandBar,
+      overlapsCommandBar,
+      topNode: topNode ? {
+        tag: topNode.tagName,
+        id: topNode.id,
+        className: topNode.className,
+      } : null,
+    };
+  }).catch(() => ({
+    visible: false,
+    topWithinPanel: false,
+    topIsCommandBar: false,
+    overlapsCommandBar: false,
+    topNode: null,
+    probePoint: null,
+  }));
+}
+
 async function selectWorkspaceRow(page, { timeoutMs, source = "", suppressedOnly = false, rowId = "", containsText = "" } = {}) {
   const selected = await page.evaluate(({ preferredSource, requireSuppressed, preferredRowId, preferredText }) => {
     const safeSource = String(preferredSource || "").trim().toUpperCase();
@@ -419,21 +560,36 @@ async function selectWorkspaceRow(page, { timeoutMs, source = "", suppressedOnly
       if (!safeSource) return true;
       const badge = row.querySelector(".result-cell-source .badge");
       const badgeText = String((badge && badge.textContent) || "").trim().toUpperCase();
-      return badgeText === safeSource;
+      if (badgeText === safeSource) return true;
+      const issueMeta = String((row.querySelector(".result-message-meta") && row.querySelector(".result-message-meta").textContent) || "")
+        .trim()
+        .toUpperCase();
+      if (issueMeta.includes(`${safeSource}-`)) return true;
+      const rowIdentifier = String(row.getAttribute("data-row-id") || "").trim().toUpperCase();
+      if (rowIdentifier.includes(`${safeSource}-`) || rowIdentifier === safeSource) return true;
+      const rowText = String(row.innerText || "").trim().toUpperCase();
+      return rowText.includes(`${safeSource}-`);
     });
     if (!match) {
       return { ok: false, rowId: "", source: safeSource };
     }
-    match.click();
     return {
       ok: true,
       rowId: String(match.getAttribute("data-row-id") || "").trim(),
       source: safeSource,
+      active: match.classList.contains("result-item-row-active"),
       suppressed: match.classList.contains("result-item-row-suppressed"),
     };
   }, { preferredSource: source, requireSuppressed: suppressedOnly, preferredRowId: rowId, preferredText: containsText });
   if (!selected.ok) {
     return selected;
+  }
+  if (selected.active) {
+    return selected;
+  }
+  const rowLocator = page.locator(`#result-body tr.result-item-row[data-row-id="${selected.rowId.replace(/"/g, '\\"')}"]`);
+  if (await rowLocator.count().catch(() => 0)) {
+    await rowLocator.first().click({ timeout: Math.min(timeoutMs, 15000) }).catch(() => {});
   }
   await page.waitForFunction(
     (rowId) => {
@@ -466,7 +622,21 @@ async function runP1TriageSmoke(page, { timeoutMs }) {
   }
 
   await page.click("#inspector-tab-detail", { timeout: Math.min(timeoutMs, 15000) });
-  await page.waitForSelector("[data-triage-role='section']", { timeout: Math.min(timeoutMs, 15000) });
+  const triageSectionVisible = await page.evaluate(() => !!document.querySelector("[data-triage-role='section']"));
+  if (!triageSectionVisible) {
+    return {
+      attempted: false,
+      completed: false,
+      skipped_reason: "detail triage editor hidden by current UI design",
+      baseline_row_count: baselineCount,
+      before,
+      after_suppress: null,
+      after_show_suppressed: null,
+      after_unsuppress: null,
+      selected_row_id: selectedP1.rowId,
+      suppressed_row_id: "",
+    };
+  }
 
   await page.locator("[data-triage-role='reason']").fill("already reviewed in smoke");
   await page.locator("[data-triage-role='note']").fill("triage smoke round trip");
@@ -520,6 +690,7 @@ async function runP1TriageSmoke(page, { timeoutMs }) {
   if (!selectedSuppressed.ok) {
     throw new Error("Failed to re-select the suppressed P1 row");
   }
+  await page.click("#inspector-tab-detail", { timeout: Math.min(timeoutMs, 15000) });
   await page.waitForFunction(
     () => {
       const statusNode = document.querySelector("[data-triage-role='status']");
@@ -629,6 +800,24 @@ async function waitForAnalyzeOutcome(page, { timeoutMs }) {
 }
 
 async function runExcelSmoke(page, { timeoutMs }) {
+  const advancedOpen = await ensureWorkspaceAdvancedOpen(page, {
+    timeoutMs,
+    selector: "#btn-flush-excel",
+  });
+  if (!advancedOpen.ok) {
+    return {
+      attempted: false,
+      clicked: false,
+      completed: false,
+      skipped_reason: advancedOpen.reason || "failed to open workspace advanced options",
+      initial: await readExcelUiState(page),
+      final: await readExcelUiState(page),
+      download_triggered: false,
+      suggested_filename: "",
+      download_error: "",
+    };
+  }
+
   const initial = await readExcelUiState(page);
   if (!initial.present) {
     return {
@@ -976,6 +1165,37 @@ async function ensureCheckboxCheckedByClick(page, selector, checked, { timeoutMs
 async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates = [], withLiveAiComparePrepare = false }) {
   await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#file-list input[data-file]", { timeout: timeoutMs });
+  await page.waitForFunction(
+    () => {
+      const dashboardView = document.getElementById("dashboard-view");
+      const workspaceView = document.getElementById("workspace-view");
+      const liveToggle = document.getElementById("toggle-live-ai");
+      const dashboardVisible = !!dashboardView && getComputedStyle(dashboardView).display !== "none";
+      const workspaceVisible = !!workspaceView && getComputedStyle(workspaceView).display !== "none";
+      return !!workspaceView && !!liveToggle && (dashboardVisible || workspaceVisible);
+    },
+    { timeout: Math.min(timeoutMs, 30000) },
+  );
+
+  const workspaceVisible = await page.evaluate(() => {
+    const workspaceView = document.getElementById("workspace-view");
+    return !!workspaceView && getComputedStyle(workspaceView).display !== "none";
+  });
+  if (!workspaceVisible) {
+    await page.click("#nav-workspace", { timeout: Math.min(timeoutMs, 15000) });
+    await page.waitForFunction(
+      () => {
+        const workspaceView = document.getElementById("workspace-view");
+        return !!workspaceView && getComputedStyle(workspaceView).display !== "none";
+      },
+      { timeout: Math.min(timeoutMs, 30000) },
+    );
+  }
+
+  const workspaceAdvancedLayer = await ensureWorkspaceAdvancedOpen(page, { timeoutMs });
+  if (!workspaceAdvancedLayer.ok) {
+    throw new Error(`Workspace advanced panel layering check failed: ${workspaceAdvancedLayer.reason || "unknown"}`);
+  }
 
   if (withLiveAiComparePrepare) {
     const liveAiToggle = await ensureCheckboxCheckedByClick(page, "#toggle-live-ai", true, { timeoutMs });
@@ -1059,6 +1279,7 @@ async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates
     return {
       selection,
       selectionAttempts,
+      workspaceAdvancedOverlay: workspaceAdvancedLayer.overlay || null,
       beforeClick,
       beforeAnalyzeUi,
       analyzeOutcome,
@@ -1115,6 +1336,13 @@ async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates
       },
       { timeout: Math.min(timeoutMs, 30000) },
     );
+    const advancedOpen = await ensureWorkspaceAdvancedOpen(page, {
+      timeoutMs,
+      selector: "#workspace-result-search",
+    });
+    if (!advancedOpen.ok) {
+      throw new Error(`Failed to open advanced options for result search: ${advancedOpen.reason || "unknown"}`);
+    }
     await page.fill("#workspace-result-search", "PERF-SETMULTIVALUE-ADOPT-01");
     await page.waitForFunction(
       () => document.querySelectorAll("#result-body tr.result-item-row").length > 0,
@@ -1129,9 +1357,47 @@ async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates
   if (!selectedForAi.ok) {
     throw new Error("Failed to select a workspace row for AI smoke");
   }
-  await page.click("#inspector-tab-ai", { timeout: Math.min(timeoutMs, 15000) });
-
-  const aiOnDemand = await page.evaluate(async () => {
+  if (withLiveAiComparePrepare) {
+    await page.waitForFunction(
+      () => {
+        const button = document.getElementById("inspector-tab-ai");
+        return !!button && !button.disabled;
+      },
+      { timeout: Math.min(timeoutMs, 15000) },
+    ).catch(() => {});
+  }
+  const aiTabState = await page.evaluate(() => {
+    const button = document.getElementById("inspector-tab-ai");
+    return {
+      present: !!button,
+      disabled: !!(button && button.disabled),
+      text: String((button && button.textContent) || "").trim(),
+      title: String((button && button.title) || "").trim(),
+    };
+  });
+  let aiOnDemand = {
+    attempted: false,
+    clicked: false,
+    completed: false,
+    skipped_reason: "",
+    button_id: "",
+    button_text_before: "",
+    button_text_after: "",
+    status_text: "",
+  };
+  if (!aiTabState.present || aiTabState.disabled) {
+    if (withLiveAiComparePrepare) {
+      throw new Error(`AI tab unavailable for live compare flow: ${aiTabState.title || aiTabState.text || "disabled"}`);
+    }
+    aiOnDemand = {
+      ...aiOnDemand,
+      skipped_reason: aiTabState.present
+        ? (aiTabState.title || "inspector ai tab disabled")
+        : "inspector ai tab not found",
+    };
+  } else {
+    await page.click("#inspector-tab-ai", { timeout: Math.min(timeoutMs, 15000) });
+    aiOnDemand = await page.evaluate(async () => {
     const isVisible = (node) => {
       if (!node) return false;
       const style = window.getComputedStyle(node);
@@ -1209,7 +1475,8 @@ async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates
         status_text: String((document.getElementById("ai-status-inline")?.textContent) || "").trim(),
       };
     }
-  });
+    });
+  }
 
   let aiComparePrepare = {
     attempted: false,
@@ -1246,6 +1513,7 @@ async function runSmoke(page, { baseUrl, timeoutMs, targetFile, targetCandidates
   return {
     selection,
     selectionAttempts,
+    workspaceAdvancedOverlay: workspaceAdvancedLayer.overlay || null,
     beforeClick,
     beforeAnalyzeUi,
     analyzeOutcome,

@@ -1,0 +1,34 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1774184409998,
+  "entries": [
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||299",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184409140,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 299,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-fd66893c18"
+      }
+    },
+    {
+      "triage_key": "pop_ctrl_autobackup_hgb_c2_2_pnl.txt||PERF-SETMULTIVALUE-ADOPT-01||다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.||365",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184409998,
+      "match": {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 365,
+        "rule_id": "PERF-SETMULTIVALUE-ADOPT-01",
+        "message": "다중 Set 업데이트 감지, setMultiValue 구문 적용 권장.",
+        "issue_id": "P1-PERF-SETMULTIVALUE-ADOPT-01-c47222cc7f"
+      }
+    }
+  ]
+}

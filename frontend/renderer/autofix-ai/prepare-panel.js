@@ -11,7 +11,7 @@ export function formatAutofixValidationSummary(resultPayload) {
         }
         return fallback;
     };
-    const boolText = (value) => (value ? "yes" : "no");
+    const boolText = (value) => (value ? "예" : "아니오");
     const toFloat = (value, fallback = 0) => {
         const parsed = Number.parseFloat(value);
         return Number.isFinite(parsed) ? parsed : fallback;
@@ -30,23 +30,23 @@ export function formatAutofixValidationSummary(resultPayload) {
     const instructionOperation = String(readValue("instruction_operation", "") || "-");
     const instructionApplySuccess = !!readValue("instruction_apply_success", false);
     const lines = [
-        `hash_match: ${boolText(!!readValue("hash_match", false))}`,
-        `anchors_match: ${boolText(!!readValue("anchors_match", false))}`,
-        `syntax_check_passed: ${boolText(!!readValue("syntax_check_passed", false))}`,
-        `heuristic_regression_count: ${toInt(readValue("heuristic_regression_count", 0), 0)}`,
-        `ctrlpp_regression_count: ${toInt(readValue("ctrlpp_regression_count", 0), 0)}`,
-        `locator_mode: ${String(readValue("locator_mode", "")) || "-"}`,
-        `apply_engine_mode: ${String(readValue("apply_engine_mode", "")) || "-"}`,
-        `apply_engine_fallback_reason: ${String(readValue("apply_engine_fallback_reason", "")) || "-"}`,
-        `benchmark_observe_mode: ${observeMode}`,
-        `hash_gate_bypassed: ${boolText(hashBypassed)}`,
-        `benchmark_tuning_applied: ${boolText(tuningApplied)}`,
-        `token_min_confidence_used: ${tokenMinConfidence}`,
-        `token_min_gap_used: ${tokenMinGap}`,
-        `token_max_line_drift_used: ${tokenMaxLineDrift}`,
-        `instruction_mode: ${instructionMode}`,
-        `instruction_operation: ${instructionOperation}`,
-        `instruction_apply_success: ${boolText(instructionApplySuccess)}`,
+        `해시 일치: ${boolText(!!readValue("hash_match", false))}`,
+        `앵커 일치: ${boolText(!!readValue("anchors_match", false))}`,
+        `구문 검증 통과: ${boolText(!!readValue("syntax_check_passed", false))}`,
+        `휴리스틱 회귀 수: ${toInt(readValue("heuristic_regression_count", 0), 0)}`,
+        `Ctrlpp 회귀 수: ${toInt(readValue("ctrlpp_regression_count", 0), 0)}`,
+        `탐지 모드: ${String(readValue("locator_mode", "")) || "-"}`,
+        `적용 엔진 모드: ${String(readValue("apply_engine_mode", "")) || "-"}`,
+        `적용 엔진 fallback 사유: ${String(readValue("apply_engine_fallback_reason", "")) || "-"}`,
+        `벤치 관찰 모드: ${observeMode}`,
+        `해시 게이트 우회: ${boolText(hashBypassed)}`,
+        `벤치 튜닝 적용: ${boolText(tuningApplied)}`,
+        `토큰 최소 신뢰도: ${tokenMinConfidence}`,
+        `토큰 최소 간격: ${tokenMinGap}`,
+        `토큰 최대 라인 드리프트: ${tokenMaxLineDrift}`,
+        `지시 모드: ${instructionMode}`,
+        `지시 작업: ${instructionOperation}`,
+        `지시 적용 성공: ${boolText(instructionApplySuccess)}`,
     ];
     const validationErrors = Array.isArray(validation.errors) ? validation.errors.filter(Boolean) : [];
     const qualityErrors = Array.isArray(quality.validation_errors) ? quality.validation_errors.filter(Boolean) : [];
@@ -56,11 +56,11 @@ export function formatAutofixValidationSummary(resultPayload) {
         ? readValue("instruction_validation_errors", []).filter(Boolean).map((item) => String(item))
         : [];
     if (instructionErrors.length) {
-        lines.push(`instruction_validation_errors: ${instructionErrors.slice(0, 3).join(" | ")}`);
+        lines.push(`지시 검증 오류: ${instructionErrors.slice(0, 3).join(" | ")}`);
     }
     if (errors.length) {
         lines.push("");
-        lines.push("errors:");
+        lines.push("오류:");
         errors.slice(0, 10).forEach((err) => lines.push(`- ${String(err)}`));
     }
     return lines.join("\n");
@@ -85,7 +85,7 @@ export function buildAiReviewSummary(reviewText) {
 export function buildQualityPreviewSummaryLines(qualityPreview) {
     const preview = (qualityPreview && typeof qualityPreview === "object") ? qualityPreview : {};
     if (!Object.keys(preview).length) return [];
-    const boolText = (value) => (value ? "yes" : "no");
+    const boolText = (value) => (value ? "예" : "아니오");
     const lines = [];
     const validationParts = [];
     if (Object.prototype.hasOwnProperty.call(preview, "hash_match")) {
@@ -98,7 +98,7 @@ export function buildQualityPreviewSummaryLines(qualityPreview) {
         validationParts.push(`syntax ${boolText(!!preview.syntax_check_passed)}`);
     }
     if (validationParts.length) {
-        lines.push(`Validation preview: ${validationParts.join(" | ")}`);
+        lines.push(`검증 미리보기: ${validationParts.join(" | ")}`);
     }
     const regressionParts = [];
     if (Object.prototype.hasOwnProperty.call(preview, "heuristic_regression_count")) {
@@ -111,10 +111,10 @@ export function buildQualityPreviewSummaryLines(qualityPreview) {
         regressionParts.push(`semantic ${Number.parseInt(preview.semantic_violation_count, 10) || 0}`);
     }
     if (regressionParts.length) {
-        lines.push(`Regression preview: ${regressionParts.join(" | ")}`);
+        lines.push(`회귀 미리보기: ${regressionParts.join(" | ")}`);
     }
     if (Object.prototype.hasOwnProperty.call(preview, "allow_apply")) {
-        lines.push(`Apply gate: ${preview.allow_apply ? "allow" : "blocked"}`);
+        lines.push(`적용 게이트: ${preview.allow_apply ? "허용" : "차단"}`);
     }
     if (preview.semantic_verdict) {
         lines.push(`Semantic verdict: ${String(preview.semantic_verdict)}`);
@@ -127,7 +127,7 @@ export function buildQualityPreviewSummaryLines(qualityPreview) {
     if (applyEngineMode) modeParts.push(`apply ${applyEngineMode}`);
     if (instructionMode) modeParts.push(`instruction ${instructionMode}`);
     if (modeParts.length) {
-        lines.push(`Execution mode: ${modeParts.join(" | ")}`);
+        lines.push(`실행 모드: ${modeParts.join(" | ")}`);
     }
     const errors = Array.isArray(preview.validation_errors)
         ? preview.validation_errors.map((item) => String(item || "").trim()).filter(Boolean)
@@ -136,12 +136,12 @@ export function buildQualityPreviewSummaryLines(qualityPreview) {
         ? preview.blocked_reason_codes.map((item) => String(item || "").trim()).filter(Boolean)
         : [];
     if (blockedCodes.length) {
-        lines.push(`Blocked codes: ${blockedCodes.slice(0, 2).join(" | ")}`);
+        lines.push(`차단 코드: ${blockedCodes.slice(0, 2).join(" | ")}`);
     }
     if (errors.length) {
-        lines.push(`Validation errors: ${errors.slice(0, 2).join(" | ")}`);
+        lines.push(`검증 오류: ${errors.slice(0, 2).join(" | ")}`);
     } else if (preview.rejected_reason) {
-        lines.push(`Rejected reason: ${String(preview.rejected_reason || "").trim()}`);
+        lines.push(`거부 사유: ${String(preview.rejected_reason || "").trim()}`);
     }
     return lines.slice(0, 4);
 }
@@ -180,25 +180,25 @@ export function buildAiSummaryLines(
     const isMultiAggregationRule = !!(helpers && typeof helpers.isMultiAggregationRule === "function")
         && helpers.isMultiAggregationRule(effectiveRuleId);
     if (isMultiAggregationRule) {
-        lines.push(`Grouped-rule hint: ${typeof reviewHasGroupedExample === "function" && reviewHasGroupedExample(effectiveRuleId, reviewText) ? "grouped example found in review" : "no grouped example found in review"}`);
+        lines.push(`묶음 규칙 힌트: ${typeof reviewHasGroupedExample === "function" && reviewHasGroupedExample(effectiveRuleId, reviewText) ? "검토 본문에 묶음 예시가 있습니다" : "검토 본문에 묶음 예시가 아직 없습니다"}`);
     }
     const reviewSummary = buildAiReviewSummary(reviewText);
     if (reviewSummary) {
-        lines.push(`Review summary: ${reviewSummary}`);
+        lines.push(`검토 요약: ${reviewSummary}`);
     }
     const generatorType = String((activeProposal && activeProposal.generator_type) || "").trim().toUpperCase();
     const generatorReason = helpers && typeof helpers.compactUiText === "function"
         ? helpers.compactUiText((activeProposal && activeProposal.generator_reason) || "", 130)
         : String((activeProposal && activeProposal.generator_reason) || "").trim();
     if (generatorType || generatorReason) {
-        const generatorText = [generatorType && `Generator ${generatorType}`, generatorReason].filter(Boolean).join(" | ");
+        const generatorText = [generatorType && `생성기 ${generatorType}`, generatorReason].filter(Boolean).join(" | ");
         if (generatorText) lines.push(generatorText);
     } else {
         const fileName = helpers && typeof helpers.violationDisplayFile === "function"
             ? helpers.violationDisplayFile(violation)
             : "";
-        if (fileName) lines.push(`Source file ${fileName}`);
-        lines.push("No generator metadata was attached, so the source file and summary are being used as the fallback context.");
+        if (fileName) lines.push(`원본 파일 ${fileName}`);
+        lines.push("생성기 메타데이터가 없어 원본 파일과 요약을 기본 문맥으로 사용합니다.");
     }
     buildQualityPreviewSummaryLines(activeProposal && activeProposal.quality_preview).forEach((line) => {
         if (line) lines.push(line);

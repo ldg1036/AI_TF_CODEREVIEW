@@ -15,7 +15,7 @@ export function createAutofixUiStateController({ dom, state, helpers }) {
         if (!node) return;
         node.replaceChildren();
         const strong = document.createElement("strong");
-        strong.textContent = title || "AI detail is not available for this item yet.";
+        strong.textContent = title || "이 항목에는 아직 AI 개선 제안이 준비되지 않았습니다.";
         const paragraph = document.createElement("p");
         paragraph.textContent = detail || "";
         node.append(strong, paragraph);
@@ -25,10 +25,10 @@ export function createAutofixUiStateController({ dom, state, helpers }) {
             const summary = document.createElement("div");
             summary.className = "ai-empty-diagnostic-summary";
             [
-                ["Classification", String(diagnostic.classification_label || diagnostic.classification || "-")],
-                ["AI status", String(diagnostic.status_label || diagnostic.status || "-")],
-                ["AI reason", String(diagnostic.reason_label || diagnostic.reason || "-")],
-                ["Match", String(diagnostic.match_label || "-")],
+                ["분류", String(diagnostic.classification_label || diagnostic.classification || "-")],
+                ["AI 상태", String(diagnostic.status_label || diagnostic.status || "-")],
+                ["AI 사유", String(diagnostic.reason_label || diagnostic.reason || "-")],
+                ["매칭", String(diagnostic.match_label || "-")],
             ].forEach(([label, value]) => {
                 const item = document.createElement("div");
                 item.className = "ai-empty-diagnostic-item";
@@ -47,18 +47,18 @@ export function createAutofixUiStateController({ dom, state, helpers }) {
             details.className = "ai-empty-diagnostic-details";
             details.classList.add("is-collapsed");
             const rows = [
-                ["Selected source", String(diagnostic.selected_source || "-")],
-                ["Selected issue_id", String(diagnostic.selected_issue_id || "-")],
-                ["Selected rule_id", String(diagnostic.selected_rule_id || "-")],
-                ["Selected line", String(diagnostic.selected_line || "-")],
-                ["AI parent issue_id", String(diagnostic.parent_issue_id || "-")],
-                ["AI parent rule_id", String(diagnostic.parent_rule_id || "-")],
-                ["AI parent line", String(diagnostic.parent_line || "-")],
+                ["선택 소스", String(diagnostic.selected_source || "-")],
+                ["선택 issue_id", String(diagnostic.selected_issue_id || "-")],
+                ["선택 rule_id", String(diagnostic.selected_rule_id || "-")],
+                ["선택 라인", String(diagnostic.selected_line || "-")],
+                ["AI 부모 issue_id", String(diagnostic.parent_issue_id || "-")],
+                ["AI 부모 rule_id", String(diagnostic.parent_rule_id || "-")],
+                ["AI 부모 라인", String(diagnostic.parent_line || "-")],
             ];
-            if (diagnostic.match_hint) rows.push(["Match hint", String(diagnostic.match_hint)]);
-            if (helpers.positiveLineOrZero(diagnostic.selected_cap || 0) > 0) rows.push(["Selected cap", String(diagnostic.selected_cap)]);
-            if (helpers.positiveLineOrZero(diagnostic.selected_rank || 0) > 0) rows.push(["Selected rank", String(diagnostic.selected_rank)]);
-            if (diagnostic.detail) rows.push(["Detail", String(diagnostic.detail)]);
+            if (diagnostic.match_hint) rows.push(["매칭 힌트", String(diagnostic.match_hint)]);
+            if (helpers.positiveLineOrZero(diagnostic.selected_cap || 0) > 0) rows.push(["선택 cap", String(diagnostic.selected_cap)]);
+            if (helpers.positiveLineOrZero(diagnostic.selected_rank || 0) > 0) rows.push(["선택 rank", String(diagnostic.selected_rank)]);
+            if (diagnostic.detail) rows.push(["상세", String(diagnostic.detail)]);
             rows.forEach(([label, value]) => {
                 const row = document.createElement("div");
                 row.className = "ai-empty-diagnostic-row";
@@ -75,10 +75,10 @@ export function createAutofixUiStateController({ dom, state, helpers }) {
                 const toggle = document.createElement("button");
                 toggle.type = "button";
                 toggle.className = "ai-empty-diagnostic-toggle";
-                toggle.textContent = "Show diagnostics";
+                toggle.textContent = "진단 정보 보기";
                 toggle.onclick = () => {
                     const collapsed = details.classList.toggle("is-collapsed");
-                    toggle.textContent = collapsed ? "Show diagnostics" : "Hide diagnostics";
+                    toggle.textContent = collapsed ? "진단 정보 보기" : "진단 정보 숨기기";
                 };
                 wrap.append(toggle, details);
             }
@@ -88,7 +88,7 @@ export function createAutofixUiStateController({ dom, state, helpers }) {
             generateBtn.type = "button";
             generateBtn.id = "btn-ai-generate-empty";
             generateBtn.className = "ai-empty-diagnostic-toggle";
-            generateBtn.textContent = "Generate AI Review";
+            generateBtn.textContent = "AI 개선 제안 생성";
             actionWrap.appendChild(generateBtn);
             wrap.appendChild(actionWrap);
             node.appendChild(wrap);
@@ -113,7 +113,7 @@ export function createAutofixUiStateController({ dom, state, helpers }) {
         const show = !!state.aiMoreMenuOpen;
         dom.aiMoreActions.style.display = show ? "grid" : "none";
         if (dom.btnAiMore) {
-            dom.btnAiMore.textContent = show ? "Close more actions" : "More actions";
+            dom.btnAiMore.textContent = show ? "추가 작업 닫기" : "추가 작업";
         }
     }
 

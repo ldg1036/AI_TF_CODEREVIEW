@@ -88,6 +88,8 @@ export function rebuildWorkspaceRowIndex({ state, caches, helpers, runWorkspaceS
             ruleId: rowRuleId,
             rule_id: rowRuleId,
             ruleIds: Array.from(new Set(groupedRules)),
+            violation: jumpReadyViolation,
+            eventName: eventName || "Global",
             onClick: async (selectionToken) => {
                 await runWorkspaceSelection(jumpReadyViolation, eventName || "Global", selectionToken);
             },
@@ -156,6 +158,8 @@ export function rebuildWorkspaceRowIndex({ state, caches, helpers, runWorkspaceS
             issueId: jumpReadyP2Violation.issue_id || "",
             canonicalFileId: violationCanonicalFileId(jumpReadyP2Violation, fileHint || displayObject),
             duplicateCount: 1,
+            violation: jumpReadyP2Violation,
+            eventName: "Global",
             ruleIds: [String(jumpReadyP2Violation.rule_id || "").trim()].filter(Boolean),
             onClick: async (selectionToken) => {
                 await runWorkspaceSelection(jumpReadyP2Violation, "Global", selectionToken);

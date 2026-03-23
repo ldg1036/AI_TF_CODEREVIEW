@@ -19,6 +19,9 @@ export function bindRendererDomContentLoaded({ dom, elements, state, helpers }) 
         inspectorTabAi,
         inspectorTabDetail,
         aiReviewToggleBtn,
+        dashboardAdvanced,
+        dashboardAnalyze,
+        dashboardLiveAiToggle,
         liveAiToggle,
         aiModelSelect,
         aiContextToggle,
@@ -27,6 +30,7 @@ export function bindRendererDomContentLoaded({ dom, elements, state, helpers }) 
         workspaceCommandJump,
         workspaceCommandDetail,
         workspaceCommandAi,
+        workspaceCommandAdvanced,
         workspaceCommandReset,
         workspaceCommandShowSuppressed,
         workspaceFileSearch,
@@ -105,6 +109,19 @@ export function bindRendererDomContentLoaded({ dom, elements, state, helpers }) 
                 }
             });
         }
+        if (workspaceCommandAdvanced) {
+            workspaceCommandAdvanced.addEventListener("click", () => helpers.toggleWorkspaceAdvanced());
+        }
+        if (dashboardAdvanced) {
+            dashboardAdvanced.addEventListener("click", () => helpers.toggleWorkspaceAdvanced());
+        }
+        if (dashboardAnalyze) {
+            dashboardAnalyze.addEventListener("click", () => {
+                if (elements.btnAnalyze && typeof elements.btnAnalyze.click === "function") {
+                    elements.btnAnalyze.click();
+                }
+            });
+        }
         if (workspaceCommandReset) {
             workspaceCommandReset.addEventListener("click", () => helpers.workspaceResetWorkspaceFilters());
         }
@@ -174,6 +191,12 @@ export function bindRendererDomContentLoaded({ dom, elements, state, helpers }) 
         }
         if (liveAiToggle) {
             liveAiToggle.addEventListener("change", helpers.syncAiContextToggle);
+        }
+        if (dashboardLiveAiToggle && liveAiToggle) {
+            dashboardLiveAiToggle.addEventListener("change", () => {
+                liveAiToggle.checked = !!dashboardLiveAiToggle.checked;
+                helpers.syncAiContextToggle();
+            });
         }
         if (aiModelSelect) {
             aiModelSelect.addEventListener("change", () => {

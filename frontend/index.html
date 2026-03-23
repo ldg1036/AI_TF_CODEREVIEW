@@ -27,19 +27,19 @@
         <div class="sidebar-section-header">
             <strong>프로젝트 파일</strong>
         </div>
-        <div class="sidebar-search-shell">
-            <label class="sidebar-search-label" for="workspace-file-search">파일 검색</label>
-            <input id="workspace-file-search" class="sidebar-search-input" type="search" placeholder="파일 이름으로 좁히기">
-        </div>
-        <div class="sidebar-ingest-tools">
+        <div class="sidebar-ingest-tools" aria-label="외부 입력">
             <div class="sidebar-ingest-actions">
                 <button type="button" id="btn-add-external-files">외부 파일 추가</button>
                 <button type="button" id="btn-add-external-folder">폴더 선택</button>
             </div>
-            <input type="file" id="external-file-input" multiple hidden>
-            <input type="file" id="external-folder-input" webkitdirectory directory multiple hidden>
             <div id="external-input-summary" class="external-input-summary">세션 입력 없음</div>
             <div id="external-input-list" class="external-input-list"></div>
+            <input type="file" id="external-file-input" multiple hidden>
+            <input type="file" id="external-folder-input" webkitdirectory directory multiple hidden>
+        </div>
+        <div class="sidebar-search-shell">
+            <label class="sidebar-search-label" for="workspace-file-search">파일 검색</label>
+            <input id="workspace-file-search" class="sidebar-search-input" type="search" placeholder="파일 이름으로 좁히기">
         </div>
         <div id="file-list" class="sidebar-section-body">
             <div><input type="checkbox" id="chk-all" checked> <strong>전체 선택</strong></div>
@@ -72,33 +72,85 @@
                     <section class="header-group header-group-controls" aria-label="분석 제어">
                         <div class="header-group-label">분석 제어</div>
                         <div class="header-group-body">
-                            <label class="header-inline-label">
-                                <input type="checkbox" id="toggle-ctrlppcheck">
-                                CtrlppCheck 사용 (P2)
-                            </label>
-                            <div class="ai-context-toggle-group">
-                                <label class="header-toggle-label">
-                                    <input type="checkbox" id="toggle-live-ai">
-                                    Live AI 사용 (P3)
-                                </label>
-                                <label class="header-toggle-label">
-                                    <span>P3 모델</span>
-                                    <select id="select-ai-model" disabled>
-                                        <option value="">기본 모델</option>
-                                    </select>
-                                </label>
-                                <div class="ai-context-block" id="label-ai-context">
-                                    <label class="header-toggle-label">
-                                        <input type="checkbox" id="toggle-ai-context" disabled>
-                                        MCP 문맥 포함
-                                    </label>
-                                    <div class="ai-context-help" id="ai-context-help" title="MCP 문맥 상태">
-                                        MCP 문맥: 대기 중
+                            <div class="header-action-row header-action-row-analysis-strip">
+                                <div class="analysis-strip-main">
+                                    <div class="analysis-strip-summary" aria-live="polite">
+                                        <div id="analysis-strip-summary-text" class="analysis-strip-summary-text">선택 파일 0개 | 현재 표시 0개</div>
+                                        <div id="analysis-strip-summary-note" class="analysis-strip-summary-note">활성 이슈 없음</div>
                                     </div>
+                                    <div class="analysis-strip-actions">
+                                        <button id="btn-analyze">선택 항목 분석</button>
+                                        <button id="workspace-command-advanced" type="button" class="workspace-advanced-trigger" hidden aria-expanded="false" aria-controls="analysis-advanced-panel">고급</button>
+                                    </div>
+                                    <label class="header-toggle-label analysis-strip-live-toggle">
+                                        <input type="checkbox" id="toggle-live-ai">
+                                        Live AI 사용 (P3)
+                                    </label>
                                 </div>
                             </div>
-                            <div class="header-action-row header-action-row-buttons">
-                                <button id="btn-analyze">선택 항목 분석</button>
+                            <div id="analysis-advanced-panel" class="analysis-advanced-panel" hidden aria-label="고급 분석 옵션">
+                                <div class="analysis-advanced-body">
+                                    <div class="analysis-advanced-section" aria-label="AI 및 분석 설정">
+                                        <div class="analysis-advanced-section-title">AI · 분석 설정</div>
+                                        <div class="analysis-advanced-section-body">
+                                            <label class="header-inline-label">
+                                                <input type="checkbox" id="toggle-ctrlppcheck">
+                                                CtrlppCheck 사용 (P2)
+                                            </label>
+                                            <label class="header-toggle-label">
+                                                <span>P3 모델</span>
+                                                <select id="select-ai-model" disabled>
+                                                    <option value="">기본 모델</option>
+                                                </select>
+                                            </label>
+                                            <div class="ai-context-block" id="label-ai-context">
+                                                <label class="header-toggle-label">
+                                                    <input type="checkbox" id="toggle-ai-context" disabled>
+                                                    AI 분석 강화 (추가 문맥 사용)
+                                                </label>
+                                                <div class="ai-context-help" id="ai-context-help" title="추가 문맥 상태">
+                                                    관련 코드 문맥을 더 함께 읽어 AI 제안 품질을 높입니다.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="analysis-advanced-section" aria-label="검토 보기">
+                                        <div class="analysis-advanced-section-title">검토 보기</div>
+                                        <div class="analysis-advanced-section-body">
+                                            <label class="workspace-command-toggle">
+                                                <input id="workspace-command-show-suppressed" type="checkbox">
+                                                <span>숨김 처리 포함</span>
+                                            </label>
+                                            <button id="workspace-command-reset" type="button">필터 초기화</button>
+                                        </div>
+                                    </div>
+                                    <div class="analysis-advanced-section" aria-label="검증 상태">
+                                        <div class="analysis-advanced-section-title">검증 상태</div>
+                                        <div class="analysis-advanced-section-body analysis-advanced-status-body">
+                                            <div id="verification-badge" class="verification-badge verification-badge--unknown" title="검증 레벨 정보 없음">검증 레벨: UNKNOWN</div>
+                                            <div id="verification-profile-card" class="verification-profile-card verification-profile-card--unknown" title="검증 프로파일 정보를 불러오는 중">검증 프로파일: 로딩 중...</div>
+                                        </div>
+                                    </div>
+                                    <div class="analysis-advanced-section" aria-label="산출물">
+                                        <div class="analysis-advanced-section-title">산출물</div>
+                                        <div class="analysis-advanced-section-body analysis-advanced-artifact-body">
+                                            <div class="header-action-row header-action-row-buttons">
+                                                <button id="btn-flush-excel" type="button" disabled>Excel 결과 생성</button>
+                                            </div>
+                                            <div id="excel-report-controls" class="header-action-row excel-report-controls" aria-live="polite">
+                                                <div class="excel-report-meta">
+                                                    <span id="excel-job-status" class="excel-job-status"></span>
+                                                    <button id="excel-download-toggle" class="excel-download-toggle" type="button" hidden aria-expanded="false">
+                                                        Excel 0개
+                                                    </button>
+                                                </div>
+                                                <div id="excel-download-panel" class="excel-download-panel" hidden>
+                                                    <div id="excel-download-list" class="excel-download-list"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="header-action-row header-action-row-progress">
                                 <div id="analyze-progress-panel" class="analyze-progress-panel" style="display:none;" aria-live="polite">
@@ -111,38 +163,30 @@
                             </div>
                         </div>
                     </section>
-                    <section class="header-group header-group-status" aria-label="검증 상태">
-                        <div class="header-group-label">검증 상태</div>
-                        <div class="header-group-body header-status-chips">
-                            <div id="verification-badge" class="verification-badge verification-badge--unknown" title="검증 레벨 정보 없음">검증 레벨: UNKNOWN</div>
-                            <div id="verification-profile-card" class="verification-profile-card verification-profile-card--unknown" title="검증 프로파일 정보를 불러오는 중">검증 프로파일: 로딩 중...</div>
-                        </div>
-                    </section>
-                    <section class="header-group header-group-artifacts" aria-label="산출물">
-                        <div class="header-group-label">산출물</div>
-                        <div class="header-group-body header-action-group">
-                            <div class="header-action-row header-action-row-buttons">
-                                <button id="btn-flush-excel" type="button" disabled>Excel 결과 생성</button>
-                            </div>
-                            <div id="excel-report-controls" class="header-action-row excel-report-controls" aria-live="polite">
-                                <div class="excel-report-meta">
-                                    <span id="excel-job-status" class="excel-job-status"></span>
-                                    <button id="excel-download-toggle" class="excel-download-toggle" type="button" hidden aria-expanded="false">
-                                        Excel 0개
-                                    </button>
-                                </div>
-                                <div id="excel-download-panel" class="excel-download-panel" hidden>
-                                    <div id="excel-download-list" class="excel-download-list"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
                 </div>
             </div>
         </header>
 
         <!-- Dashboard View -->
         <div id="dashboard-view" class="dashboard-view">
+            <section id="dashboard-analysis-module" class="dashboard-analysis-module" aria-label="대시보드 분석 제어">
+                <div class="dashboard-analysis-strip">
+                    <div class="analysis-strip-main">
+                        <div class="analysis-strip-summary" aria-live="polite">
+                            <div id="dashboard-analysis-summary-text" class="analysis-strip-summary-text">선택 파일 0개 | 현재 표시 0개</div>
+                            <div id="dashboard-analysis-summary-note" class="analysis-strip-summary-note">활성 이슈 없음</div>
+                        </div>
+                        <div class="analysis-strip-actions">
+                            <button id="dashboard-btn-analyze" type="button">선택 항목 분석</button>
+                            <button id="dashboard-command-advanced" type="button" class="workspace-advanced-trigger" aria-expanded="false" aria-controls="analysis-advanced-panel">고급</button>
+                        </div>
+                        <label class="header-toggle-label analysis-strip-live-toggle">
+                            <input type="checkbox" id="dashboard-toggle-live-ai">
+                            Live AI 사용 (P3)
+                        </label>
+                    </div>
+                </div>
+            </section>
             <section class="dashboard-hero">
                 <div class="dashboard-hero-copy">
                     <p class="dashboard-kicker">릴리스 리뷰 관제</p>
@@ -207,7 +251,10 @@
                         <h3>시스템 상태</h3>
                         <p class="dashboard-system-status-note">대시보드에는 핵심 상태만 남기고, 상세 운영 검증과 규칙 관리는 설정 화면으로 분리합니다.</p>
                     </div>
-                    <button id="dashboard-open-settings" type="button" class="dashboard-system-status-cta">설정에서 자세히 보기</button>
+                    <div class="dashboard-system-status-actions">
+                        <button id="dashboard-open-workspace" type="button" class="dashboard-system-status-cta dashboard-system-status-cta-primary">작업공간으로 바로 이동</button>
+                        <button id="dashboard-open-settings" type="button" class="dashboard-system-status-cta">설정에서 자세히 보기</button>
+                    </div>
                 </div>
                 <div id="dashboard-system-summary" class="dashboard-system-summary review-insight-empty">검증 상태와 dependency 준비 정보를 불러오는 중입니다.</div>
             </section>
@@ -247,20 +294,15 @@
         <div id="workspace-view" class="workspace-view" style="display: none;">
             <section id="workspace-command-bar" class="workspace-command-bar" aria-label="Workspace command bar">
                 <div class="workspace-command-copy">
-                    <div id="workspace-command-summary-text" class="workspace-command-summary-text">선택 파일 0개 | 현재 표시 0개</div>
-                    <div id="workspace-command-selection-text" class="workspace-command-selection-text">활성 이슈 없음</div>
+                    <span id="workspace-command-summary-text" class="workspace-command-summary-text">선택 파일 0개 | 현재 표시 0개</span>
+                    <span id="workspace-command-selection-text" class="workspace-command-selection-text">활성 이슈 없음</span>
                 </div>
                 <div class="workspace-command-actions">
-                    <label class="workspace-command-toggle">
-                        <input id="workspace-command-show-suppressed" type="checkbox">
-                        <span>숨김 처리 포함</span>
-                    </label>
                     <button id="workspace-command-prev" type="button">이전 이슈</button>
                     <button id="workspace-command-next" type="button">다음 이슈</button>
                     <button id="workspace-command-jump" type="button">코드 보기</button>
                     <button id="workspace-command-detail" type="button">상세 탭</button>
                     <button id="workspace-command-ai" type="button">AI 탭</button>
-                    <button id="workspace-command-reset" type="button">필터 초기화</button>
                 </div>
                 <div class="workspace-pane-actions">
                     <button id="workspace-pane-files" type="button" aria-pressed="true">파일</button>
@@ -392,12 +434,12 @@
                     <button id="btn-ai-review-toggle" type="button" class="ai-secondary-button">원문 보기</button>
                     <pre id="ai-text-full" class="ai-text-full" style="display:none;"></pre>
                     <div id="autofix-compare-panel" class="ai-subpanel ai-subpanel-compare" style="display:none;">
-                        <div class="ai-subpanel-title ai-subpanel-title-blue">Autofix Candidates</div>
+                        <div class="ai-subpanel-title ai-subpanel-title-blue">자동 수정 후보</div>
                         <div id="autofix-compare-buttons" class="ai-compare-buttons"></div>
                         <p id="autofix-compare-meta" class="ai-compare-meta"></p>
                     </div>
                     <div id="autofix-validation-panel" class="ai-subpanel ai-subpanel-validation" style="display:none;">
-                        <div class="ai-subpanel-title ai-subpanel-title-green">Autofix Validation</div>
+                        <div class="ai-subpanel-title ai-subpanel-title-green">자동 수정 검증</div>
                         <pre id="autofix-validation-text" class="ai-validation-text ai-validation-text-ok"></pre>
                     </div>
                     <div class="ai-secondary-actions">
@@ -414,7 +456,7 @@
         <div class="diff-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="autofix-diff-modal-title">
             <div class="diff-modal-header">
                 <div class="diff-modal-header-copy">
-                    <p class="diff-modal-kicker">Issue To P3 Compare</p>
+                    <p class="diff-modal-kicker">이슈와 P3 비교</p>
                     <h3 id="autofix-diff-modal-title">P1/P2 <> P3 비교</h3>
                     <div id="autofix-diff-modal-meta" class="diff-modal-meta"></div>
                 </div>

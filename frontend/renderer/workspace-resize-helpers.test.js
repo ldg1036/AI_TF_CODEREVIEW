@@ -16,7 +16,7 @@ describe("workspace resize helpers", () => {
         expect(clampWorkspaceCodePaneHeight(undefined, 720)).toBe(DEFAULT_WORKSPACE_CODE_PANE_HEIGHT);
     });
 
-    test("calculateWorkspaceCodePaneHeightFromPointer applies pointer delta before clamping", () => {
+    test("calculateWorkspaceCodePaneHeightFromPointer grows the code pane when dragging downward", () => {
         expect(calculateWorkspaceCodePaneHeightFromPointer({
             startHeightPx: 380,
             startPointerY: 300,
@@ -25,12 +25,21 @@ describe("workspace resize helpers", () => {
         })).toBe(440);
     });
 
-    test("calculateWorkspaceCodePaneHeightFromPointer respects the minimum results height", () => {
+    test("calculateWorkspaceCodePaneHeightFromPointer respects the maximum code height when dragging downward", () => {
         expect(calculateWorkspaceCodePaneHeightFromPointer({
             startHeightPx: 380,
             startPointerY: 300,
             nextPointerY: 640,
             containerHeightPx: 720,
         })).toBe(720 - MIN_WORKSPACE_RESULTS_PANE_HEIGHT);
+    });
+
+    test("calculateWorkspaceCodePaneHeightFromPointer respects the minimum code height when dragging upward", () => {
+        expect(calculateWorkspaceCodePaneHeightFromPointer({
+            startHeightPx: 380,
+            startPointerY: 420,
+            nextPointerY: 40,
+            containerHeightPx: 720,
+        })).toBe(MIN_WORKSPACE_CODE_PANE_HEIGHT);
     });
 });

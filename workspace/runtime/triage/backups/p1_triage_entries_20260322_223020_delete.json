@@ -1,0 +1,20 @@
+{
+  "tool": "winccoa-code-review",
+  "updated_at_ms": 1774186220556,
+  "entries": [
+    {
+      "triage_key": "benchmarkp1fixture.ctl||ACTIVE-01||상태 변경 호출 전 Active/Enable 조건 확인 로직 부재 가능성.||8",
+      "status": "suppressed",
+      "reason": "",
+      "note": "",
+      "updated_at_ms": 1774184422167,
+      "match": {
+        "file": "BenchmarkP1Fixture.ctl",
+        "line": 8,
+        "rule_id": "ACTIVE-01",
+        "message": "상태 변경 호출 전 Active/Enable 조건 확인 로직 부재 가능성.",
+        "issue_id": "P1-ACTIVE-01-bc9ad90421"
+      }
+    }
+  ]
+}

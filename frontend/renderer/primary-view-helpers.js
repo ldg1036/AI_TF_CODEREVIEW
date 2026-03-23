@@ -1,6 +1,6 @@
 export function normalizePrimaryView(viewName) {
     const normalized = String(viewName || "").trim().toLowerCase();
-    if (normalized === "workspace" || normalized === "settings") {
+    if (normalized === "dashboard" || normalized === "workspace" || normalized === "settings") {
         return normalized;
     }
     return "dashboard";

@@ -3,6 +3,7 @@ import { buildPrimaryViewState, normalizePrimaryView } from "./primary-view-help
 describe("primary view helpers", () => {
     test("normalizePrimaryView falls back to dashboard", () => {
         expect(normalizePrimaryView("SETTINGS")).toBe("settings");
+        expect(normalizePrimaryView("DASHBOARD")).toBe("dashboard");
         expect(normalizePrimaryView("unknown")).toBe("dashboard");
         expect(normalizePrimaryView("")).toBe("dashboard");
     });

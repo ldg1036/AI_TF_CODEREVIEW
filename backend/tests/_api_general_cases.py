@@ -1695,6 +1695,11 @@ class ApiGeneralCasesMixin:
         self.assertEqual((payload.get("review_item") or {}).get("source"), "live")
         self.assertEqual((payload.get("status_item") or {}).get("status"), "generated")
         self.assertEqual((payload.get("status_item") or {}).get("reason"), "generated")
+        self.assertEqual(str(payload.get("status", "")), "generated")
+        self.assertEqual(str(payload.get("status_reason", "")), "generated")
+        self.assertEqual(str(payload.get("review_source", "")), "live")
+        self.assertTrue(bool(payload.get("review_text_present", False)))
+        self.assertFalse(bool(payload.get("mock_review", True)))
 
     def test_post_api_ai_review_generate_timeout_reason_mapping(self):
         self.app.ai_tool.generate_review = lambda *_args, **_kwargs: "AI live review failed: timed out"
@@ -1719,6 +1724,9 @@ class ApiGeneralCasesMixin:
         self.assertFalse(payload.get("available"))
         self.assertEqual((payload.get("status_item") or {}).get("status"), "failed")
         self.assertEqual((payload.get("status_item") or {}).get("reason"), "timeout")
+        self.assertEqual(str(payload.get("status", "")), "failed")
+        self.assertEqual(str(payload.get("status_reason", "")), "timeout")
+        self.assertFalse(bool(payload.get("review_text_present", True)))
 
     def test_post_api_ai_review_generate_domain_hint_warning_when_keywords_missing(self):
         calls = {"count": 0}

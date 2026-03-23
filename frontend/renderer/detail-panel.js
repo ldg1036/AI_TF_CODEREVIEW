@@ -354,13 +354,17 @@ export function createDetailPanelController({ dom, state, helpers }) {
     function renderDetailEvidence(container, violation) {
         const rows = buildViolationEvidenceRows(violation);
         if (!rows.length) return;
-        const title = document.createElement("p");
-        title.className = "detail-description-title";
-        const titleStrong = document.createElement("strong");
-        titleStrong.textContent = "검출 근거:";
-        title.appendChild(titleStrong);
-        container.appendChild(title);
-        rows.forEach((item) => appendDetailFact(container, item.label, item.value));
+        const details = document.createElement("details");
+        details.className = "detail-evidence-block";
+        const summary = document.createElement("summary");
+        summary.className = "detail-evidence-summary";
+        summary.textContent = "검출 근거 자세히 보기";
+        details.appendChild(summary);
+        const body = document.createElement("div");
+        body.className = "detail-evidence-body";
+        rows.forEach((item) => appendDetailFact(body, item.label, item.value));
+        details.appendChild(body);
+        container.appendChild(details);
     }
 
     function localizeCtrlppSeverity(severity) {
