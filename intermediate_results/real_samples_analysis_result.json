@@ -1,0 +1,1342 @@
+﻿[
+  {
+    "filename": "bar_h.xml",
+    "encoding": "utf-8-sig",
+    "parse_status": "parsed",
+    "target_ruleset": "client",
+    "functions_count": 0,
+    "global_vars_count": 0,
+    "violations_count": 0,
+    "violations": []
+  },
+  {
+    "filename": "bar_h_xml.txt",
+    "encoding": "",
+    "parse_status": "parse_failed",
+    "target_ruleset": "client",
+    "functions_count": 0,
+    "global_vars_count": 0,
+    "violations_count": 0,
+    "violations": []
+  },
+  {
+    "filename": "CA2_Na2SO3_VALVE.pnl",
+    "encoding": "latin1",
+    "parse_status": "parsed",
+    "target_ruleset": "client",
+    "functions_count": 0,
+    "global_vars_count": 0,
+    "violations_count": 16,
+    "violations": [
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 36
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 37
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 38
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 39
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 40
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 41
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 42
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 43
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 44
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 45
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 46
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 47
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 48
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 50
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 2305
+      },
+      {
+        "rule_id": "CTL_ERR_002",
+        "severity": "Medium",
+        "message": "[CTL_ERR_002] 위반: Try, Catch 예외처리",
+        "line_start": 2305
+      }
+    ]
+  },
+  {
+    "filename": "CA2_Na2SO3_VALVE_pnl.txt",
+    "encoding": "utf-8-sig",
+    "parse_status": "parsed",
+    "target_ruleset": "client",
+    "functions_count": 0,
+    "global_vars_count": 0,
+    "violations_count": 18,
+    "violations": [
+      {
+        "rule_id": "MANUAL-005",
+        "severity": "Info",
+        "message": "[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가",
+        "line_start": 28
+      },
+      {
+        "rule_id": "MANUAL-005",
+        "severity": "Info",
+        "message": "[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가",
+        "line_start": 40
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 28
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 29
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 30
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 31
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 32
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 33
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 34
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 35
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 36
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 37
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 38
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 39
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 40
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 42
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 436
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 440
+      }
+    ]
+  },
+  {
+    "filename": "GoldenTime_todo (2).ctl.txt",
+    "encoding": "utf-8-sig",
+    "parse_status": "parsed",
+    "target_ruleset": "server",
+    "functions_count": 5,
+    "global_vars_count": 32,
+    "violations_count": 1,
+    "violations": [
+      {
+        "rule_id": "MANUAL-005",
+        "severity": "Info",
+        "message": "[MANUAL_REVIEW] 적절한 DP 처리 함수 사용: 2) 비동기 처리(dpConnect, dpQueryConnectSing) 시, Callback함수의 병목 요소는 없는가? - Callback함수 내 이벤트 처리의 병목 발생 요소 최소화 : delay() 사용 지양 : 처리 시간 소요되는 작업은 별도 스레드/큐 사용 필요",
+        "line_start": 80
+      }
+    ]
+  },
+  {
+    "filename": "PitPumpEWSAlarm.ctl",
+    "encoding": "utf-8-sig",
+    "parse_status": "parsed",
+    "target_ruleset": "server",
+    "functions_count": 20,
+    "global_vars_count": 130,
+    "violations_count": 6,
+    "violations": [
+      {
+        "rule_id": "CTL_PRF_001",
+        "severity": "Medium",
+        "message": "[CTL_PRF_001] 위반: Loop문 내에 처리 조건",
+        "line_start": 1038
+      },
+      {
+        "rule_id": "CTL_PRF_001",
+        "severity": "Medium",
+        "message": "[CTL_PRF_001] 위반: Loop문 내에 처리 조건",
+        "line_start": 1511
+      },
+      {
+        "rule_id": "CTL_PRF_001",
+        "severity": "Medium",
+        "message": "[CTL_PRF_001] 위반: Loop문 내에 처리 조건",
+        "line_start": 1615
+      },
+      {
+        "rule_id": "MANUAL-005",
+        "severity": "Info",
+        "message": "[MANUAL_REVIEW] 적절한 DP 처리 함수 사용: 2) 비동기 처리(dpConnect, dpQueryConnectSing) 시, Callback함수의 병목 요소는 없는가? - Callback함수 내 이벤트 처리의 병목 발생 요소 최소화 : delay() 사용 지양 : 처리 시간 소요되는 작업은 별도 스레드/큐 사용 필요",
+        "line_start": 170
+      },
+      {
+        "rule_id": "CTL_ERR_002",
+        "severity": "Medium",
+        "message": "[CTL_ERR_002] 위반: Try, Catch 예외처리",
+        "line_start": 968
+      },
+      {
+        "rule_id": "CTL_ERR_002",
+        "severity": "Medium",
+        "message": "[CTL_ERR_002] 위반: Try, Catch 예외처리",
+        "line_start": 1323
+      }
+    ]
+  },
+  {
+    "filename": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+    "encoding": "latin1",
+    "parse_status": "parsed",
+    "target_ruleset": "client",
+    "functions_count": 0,
+    "global_vars_count": 0,
+    "violations_count": 81,
+    "violations": [
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 833
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 834
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 835
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1019
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1020
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1021
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1022
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1023
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1040
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1042
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1045
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1054
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1056
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1065
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1067
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1076
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1078
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1186
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1187
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1188
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1189
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1190
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3539
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3540
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3541
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3542
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3608
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3609
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3610
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3611
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3678
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3679
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3680
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3681
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3799
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3800
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3801
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3802
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 3803
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 4433
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 4434
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 4440
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 4445
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 4493
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 4499
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 4504
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 4545
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 4551
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 4556
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 5158
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 5159
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 5160
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 5161
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 5228
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 5229
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 5230
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 5231
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 53
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 55
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 56
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 58
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 70
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 72
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 74
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 75
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 76
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 81
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 3257
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 3306
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 3355
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 3786
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 3787
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 3788
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 3789
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 3790
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 4153
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 4238
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 4322
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 5017
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 5066
+      },
+      {
+        "rule_id": "CTL_ERR_002",
+        "severity": "Medium",
+        "message": "[CTL_ERR_002] 위반: Try, Catch 예외처리",
+        "line_start": 1106
+      }
+    ]
+  },
+  {
+    "filename": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+    "encoding": "utf-8-sig",
+    "parse_status": "parsed",
+    "target_ruleset": "client",
+    "functions_count": 0,
+    "global_vars_count": 0,
+    "violations_count": 87,
+    "violations": [
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 432
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 433
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 434
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 597
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 598
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 599
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 600
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 601
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 618
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 620
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 623
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 632
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 634
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 643
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 645
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 654
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 656
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 764
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 765
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 766
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 767
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 768
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 972
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 973
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 974
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 975
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1012
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1013
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1014
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1015
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1053
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1054
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1055
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1056
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1102
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1103
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1104
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1105
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1106
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1368
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1369
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1370
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1371
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1409
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1410
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1411
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1412
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1522
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1523
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1529
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1534
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1567
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1573
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1578
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1604
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1610
+      },
+      {
+        "rule_id": "CTL_PRF_002",
+        "severity": "Medium",
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화",
+        "line_start": 1615
+      },
+      {
+        "rule_id": "MANUAL-005",
+        "severity": "Info",
+        "message": "[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가",
+        "line_start": 876
+      },
+      {
+        "rule_id": "MANUAL-005",
+        "severity": "Info",
+        "message": "[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가",
+        "line_start": 77
+      },
+      {
+        "rule_id": "MANUAL-005",
+        "severity": "Info",
+        "message": "[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가",
+        "line_start": 54
+      },
+      {
+        "rule_id": "MANUAL-005",
+        "severity": "Info",
+        "message": "[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가",
+        "line_start": 60
+      },
+      {
+        "rule_id": "MANUAL-005",
+        "severity": "Info",
+        "message": "[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가",
+        "line_start": 1089
+      },
+      {
+        "rule_id": "MANUAL-005",
+        "severity": "Info",
+        "message": "[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가",
+        "line_start": 49
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 49
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 51
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 52
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 54
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 66
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 68
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 70
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 71
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 72
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 77
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 876
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 911
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 946
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 1089
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 1090
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 1091
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 1092
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 1093
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 1153
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 1196
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 1266
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 1307
+      },
+      {
+        "rule_id": "CTL_RES_001",
+        "severity": "Medium",
+        "message": "[CTL_RES_001] 위반: 메모리 누수 체크",
+        "line_start": 1342
+      },
+      {
+        "rule_id": "CTL_ERR_002",
+        "severity": "Medium",
+        "message": "[CTL_ERR_002] 위반: Try, Catch 예외처리",
+        "line_start": 691
+      }
+    ]
+  }
+]

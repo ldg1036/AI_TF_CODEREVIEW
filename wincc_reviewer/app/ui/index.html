@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WinCC OA Code Reviewer UI</title>
+    <style>
+        :root {
+            --bg-dark: #0f111a;
+            --bg-card: #1e202e;
+            --bg-card-hover: #272a3d;
+            --border: #2e3248;
+            --accent: #7aa2f7;
+            --accent-glow: rgba(122, 162, 247, 0.25);
+            --text: #c0caf5;
+            --subtext: #565f89;
+            --c-critical: #f7768e;
+            --c-high: #ff9e64;
+            --c-medium: #e0af68;
+            --c-low: #7aa2f7;
+            --c-ok: #9ece6a;
+            --c-info: #7dcfff;
+            --c-offline: #f7768e;
+        }
+
+        /* Self-Check 상태 배지 하단 바 */
+        #status-bar {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 6px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            font-size: 0.78rem;
+            color: var(--subtext);
+        }
+        #status-bar .status-label {
+            font-weight: 600;
+            color: var(--subtext);
+            margin-right: 4px;
+            white-space: nowrap;
+        }
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.76rem;
+            font-weight: 500;
+            white-space: nowrap;
+            border: 1px solid transparent;
+            transition: opacity 0.2s;
+        }
+        .status-chip.ok {
+            background: rgba(158, 206, 106, 0.15);
+            border-color: rgba(158, 206, 106, 0.4);
+            color: var(--c-ok);
+        }
+        .status-chip.warn {
+            background: rgba(224, 175, 104, 0.15);
+            border-color: rgba(224, 175, 104, 0.4);
+            color: var(--c-medium);
+        }
+        .status-chip.error, .status-chip.offline {
+            background: rgba(247, 118, 142, 0.15);
+            border-color: rgba(247, 118, 142, 0.4);
+            color: var(--c-offline);
+        }
+        .status-chip.loading {
+            background: rgba(86, 95, 137, 0.2);
+            border-color: var(--border);
+            color: var(--subtext);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        #status-refresh-btn {
+            margin-left: auto;
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--subtext);
+            border-radius: 6px;
+            padding: 2px 10px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+        #status-refresh-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ── Phase 1: 트리 뷰어 및 필터 바 ── */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #151722;
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-chip {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--subtext);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-chip:hover { border-color: var(--accent); color: var(--text); }
+        .filter-chip.active { background: rgba(122, 162, 247, 0.2); border-color: var(--accent); color: #fff; font-weight: bold; }
+        .split-layout {
+            display: flex;
+            height: 100%;
+            overflow: hidden;
+        }
+        .tree-panel {
+            width: 280px;
+            border-right: 1px solid var(--border);
+            background: #151722;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        .tree-node {
+            padding: 5px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text);
+            margin-bottom: 2px;
+            user-select: none;
+        }
+        .tree-node:hover { background: var(--bg-card-hover); }
+        .tree-node.active { background: rgba(122, 162, 247, 0.25); color: #fff; font-weight: bold; }
+        .tree-node-label { display: flex; align-items: center; gap: 6px; }
+        .tree-badge {
+            background: var(--border);
+            color: var(--text);
+            font-size: 0.7rem;
+            padding: 1px 6px;
+            border-radius: 10px;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-title h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--accent);
+            letter-spacing: 0.5px;
+        }
+        .badge-ver {
+            background: var(--border);
+            color: var(--subtext);
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        /* Layout */
+        .app-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar Controls */
+        aside {
+            width: 320px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .dropzone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(30, 32, 46, 0.5);
+        }
+        .dropzone:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+        .dropzone-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        .path-display {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--accent);
+            word-break: break-all;
+            margin-top: 8px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: var(--border);
+            color: var(--text);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .btn-btn:hover { background: var(--bg-card-hover); }
+
+        .btn-action {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: #1a1b26;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+        .btn-action:hover { opacity: 0.9; }
+
+        /* Main View */
+        main {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        .tab-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: var(--subtext);
+            font-size: 0.9rem;
+        }
+        .tab-item.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .view-pane { display: none; }
+        .view-pane.active { display: block; }
+
+        /* Iframe viewer */
+        iframe {
+            width: 100%;
+            height: calc(100vh - 180px);
+            border: none;
+            border-radius: 8px;
+            background: white;
+        }
+
+        /* Dropdown */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: var(--bg-card);
+            min-width: 190px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            z-index: 100;
+            margin-top: 4px;
+        }
+        .dropdown-menu a {
+            color: var(--text);
+            padding: 10px 14px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .dropdown-menu a:hover {
+            background-color: var(--bg-card-hover);
+            color: var(--accent);
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        /* Modal Backdrop & Box */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.8);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            width: 92%; max-width: 1100px;
+            height: 84vh;
+            display: flex; flex-direction: column;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.9);
+        }
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-body {
+            flex: 1; overflow-y: auto; padding: 16px;
+            font-family: Consolas, Monaco, monospace; font-size: 0.85rem;
+            background: #0f1019; color: var(--text);
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .code-row {
+            display: flex; padding: 3px 0; border-radius: 2px;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .code-row.highlight {
+            background: rgba(250, 179, 135, 0.3);
+            border-left: 5px solid var(--c-high);
+            font-weight: bold;
+            color: #fff;
+        }
+        .line-num {
+            width: 55px; text-align: right; padding-right: 14px;
+            color: var(--subtext); user-select: none;
+            -webkit-user-select: none;
+        }
+        .line-code {
+            white-space: pre-wrap; word-break: break-all; flex: 1;
+            user-select: text;
+            -webkit-user-select: text;
+            cursor: text;
+        }
+
+        /* Code Search Bar */
+        .search-bar-container {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: #181a26;
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .search-input {
+            flex: 1;
+            background: #0f1019;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .search-input:focus {
+            border-color: var(--accent);
+        }
+        .search-count {
+            font-size: 0.8rem;
+            color: var(--subtext);
+            min-width: 60px;
+            text-align: center;
+        }
+        .search-highlight {
+            background-color: rgba(250, 204, 21, 0.45);
+            color: #ffffff;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+        .search-highlight.active {
+            background-color: #f97316;
+            color: #ffffff;
+            font-weight: bold;
+            outline: 2px solid #ef4444;
+            border-radius: 2px;
+        }
+
+        /* Loader */
+        .loader-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <h1>🛡️ WinCC OA Code Reviewer</h1>
+            <span class="badge-ver">v0.1.0</span>
+        </div>
+        <div style="font-size: 0.85rem; color: var(--subtext);">Offline Static Analyzer</div>
+    </header>
+
+    <div class="app-body">
+        <aside>
+            <div class="dropzone" id="dropzone" onclick="openFileDialog('folder')">
+                <div class="dropzone-icon">📁</div>
+                <div>검사 대상 경로 선택</div>
+                <div style="font-size: 0.75rem; color: var(--subtext); margin-top: 4px;">클릭하여 폴더 선택</div>
+                <div class="path-display" id="pathDisplay">선택된 경로 없음</div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-btn" onclick="openFileDialog('folder')">📂 폴더 선택</button>
+                <button class="btn-btn" onclick="openFileDialog('file')">📄 파일 선택</button>
+            </div>
+
+            <div style="font-size: 0.85rem; color: var(--subtext);">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="chkNoAi" checked> AI 심층 리뷰 비활성화 (no ai)
+                </label>
+            </div>
+
+            <button class="btn-action" id="btnStart" onclick="startReview()">⚡ 정적 리뷰 실행</button>
+        </aside>
+
+        <main>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); margin-bottom: 20px;">
+                <div class="tabs" style="margin-bottom: 0; border-bottom: none;">
+                    <div class="tab-item active" onclick="switchTab('htmlTab', event)">📄 전체 리포트</div>
+                    <div class="tab-item" onclick="switchTab('summaryTab', event)">📊 파일별 요약 리포트</div>
+                    <div class="tab-item" onclick="switchTab('settingsTab', event); loadSettingsUI();">⚙️ 환경 설정 (settings.yaml)</div>
+                </div>
+                <div class="dropdown">
+                    <button class="btn-btn" style="background: var(--accent); color: #1a1b26; font-weight: bold; padding: 8px 16px;" onclick="toggleExportMenu(event)">📥 Export 리포트 ▼</button>
+                    <div class="dropdown-menu" id="exportMenu">
+                        <a onclick="triggerExport('excel')">📊 Excel 명세서 (*.xlsx)</a>
+                        <a onclick="triggerExport('pdf')">📄 PDF 인증서 (*.pdf)</a>
+                        <a onclick="triggerExport('html')">📄 HTML 보고서 (*.html)</a>
+                        <a onclick="triggerExport('json')">🔍 JSON 데이터 (*.json)</a>
+                        <a onclick="triggerExport('csv')">📊 CSV 데이터 (*.csv)</a>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="loader-container" id="loader">
+                <div class="spinner"></div>
+                <div style="margin-top: 16px; font-size: 0.95rem;">WinCC OA 파이프라인 정적 검사 수행 중...</div>
+            </div>
+
+            <div class="view-pane active" id="htmlTab">
+                <iframe id="reportFrame" src="about:blank"></iframe>
+            </div>
+
+            <div class="view-pane" id="summaryTab" style="display: flex; flex-direction: column; height: 100%;">
+                <div class="filter-bar" id="severityFilterBar">
+                    <span style="font-weight: bold; font-size: 0.8rem; color: var(--subtext); margin-right: 4px;">🔍 필터:</span>
+                    <div class="filter-chip active" onclick="toggleSeverityFilter(this, 'ALL')">전체</div>
+                    <div class="filter-chip" onclick="toggleSeverityFilter(this, 'CRITICAL')">🔴 CRITICAL <span class="tree-badge" id="cnt-CRITICAL">0</span></div>
+                    <div class="filter-chip" onclick="toggleSeverityFilter(this, 'HIGH')">🟠 HIGH <span class="tree-badge" id="cnt-HIGH">0</span></div>
+                    <div class="filter-chip" onclick="toggleSeverityFilter(this, 'MEDIUM')">🟡 MEDIUM <span class="tree-badge" id="cnt-MEDIUM">0</span></div>
+                    <div class="filter-chip" onclick="toggleSeverityFilter(this, 'LOW')">🔵 LOW <span class="tree-badge" id="cnt-LOW">0</span></div>
+                    <div class="filter-chip" onclick="toggleSeverityFilter(this, 'INFO')">⚪ INFO <span class="tree-badge" id="cnt-INFO">0</span></div>
+                </div>
+                <div class="filter-bar" id="trendSummaryBar" style="display: none; background: #131420; border-bottom: 1px solid var(--border); padding: 8px 16px; align-items: center; gap: 12px; font-size: 0.82rem;">
+                    <span style="font-weight: bold; color: var(--accent);">📈 이전 검사 대비 트렌드:</span>
+                    <span id="trendNewBadge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 3px 8px; border-radius: 4px; font-weight: bold;">🔴 신규 0건</span>
+                    <span id="trendResolvedBadge" style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 3px 8px; border-radius: 4px; font-weight: bold;">🟢 해결됨 0건</span>
+                    <span id="trendUnchangedBadge" style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 3px 8px; border-radius: 4px;">⚪ 유지됨 0건</span>
+                    <span id="trendStatusText" style="color: var(--subtext); margin-left: auto; font-size: 0.78rem;"></span>
+                </div>
+                <div class="split-layout" style="flex: 1;">
+
+                    <div class="tree-panel" id="fileTreePanel">
+                        <div style="font-size: 0.8rem; color: var(--subtext); padding: 8px;">📂 파일 트리 로드 중...</div>
+                    </div>
+                    <div id="summaryContainer" style="flex: 1; overflow-y: auto; padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-content: start;">
+                        <div style="color: var(--subtext); padding: 20px;">리뷰를 실행하면 파일별 미흡사항 요약이 표시됩니다.</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="view-pane" id="settingsTab">
+                <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; max-width: 760px; margin: 0 auto;">
+                    <div style="border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div>
+                                <h2 style="margin: 0; color: var(--accent); font-size: 1.25rem;">⚙️ 환경 설정 편집기 (settings.yaml)</h2>
+                                <div style="font-size: 0.8rem; color: var(--subtext); margin-top: 4px;">ui 내에서 설정을 변경하면 사용자가 지정한 저장경로의 yaml 파일에 실시간 저장됩니다.</div>
+                            </div>
+                            <span id="settingsPathBadge" style="font-family: monospace; font-size: 0.75rem; background: var(--bg-surface); color: var(--text); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border);">로딩 중...</span>
+                        </div>
+
+                        <div style="background: #0f1019; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px;">
+                            <label style="display: block; font-size: 0.8rem; color: var(--accent); font-weight: bold; margin-bottom: 8px;">📁 설정 파일(settings.yaml) 저장경로 사용자 정의</label>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="text" id="cfgSettingsPath" style="flex: 1; padding: 8px 10px; background: var(--bg-card); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font-family: monospace; font-size: 0.8rem;" placeholder="C:/path/to/settings.yaml">
+                                <button type="button" class="btn-btn" onclick="browseSettingsPath()" style="padding: 8px 12px; font-size: 0.8rem; white-space: nowrap;">📂 경로 찾기</button>
+                                <button type="button" class="btn-btn" onclick="loadSettingsUI(true)" style="padding: 8px 12px; font-size: 0.8rem; white-space: nowrap; background: var(--border);">🔄 해당 경로 로드</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 style="color: var(--c-ok); font-size: 1rem; margin-bottom: 12px;">1. AI 심층 리뷰 및 서버 연동</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: bold;">
+                                <input type="checkbox" id="cfgAiEnabled" onchange="syncAiCheckbox()"> AI 심층 리뷰 기능 활성화
+                            </label>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; color: var(--subtext); margin-bottom: 6px;">AI 제공자 (Provider)</label>
+                            <select id="cfgAiProvider" onchange="refreshModelList()" style="width: 100%; padding: 8px 12px; background: #0f1019; color: var(--text); border: 1px solid var(--border); border-radius: 6px;">
+                                <option value="local">local (사내 로컬 서버)</option>
+                                <option value="gemini">gemini (Gemini API)</option>
+                                <option value="mock">mock (내장 모의 서버)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label style="font-size: 0.85rem; color: var(--subtext);">모델 명 (Model ID)</label>
+                                <button type="button" class="btn-btn" onclick="refreshModelList()" style="padding: 2px 8px; font-size: 0.75rem;" title="AI 서버 연결 테스트 및 지원 모델 목록 조회">🔄 모델 조회</button>
+                            </div>
+                            <select id="cfgAiModelId" style="width: 100%; padding: 8px 12px; background: #0f1019; color: var(--text); border: 1px solid var(--border); border-radius: 6px;">
+                                <option value="sane_local_llm">sane_local_llm (기본 로컬 모델)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; color: var(--subtext); margin-bottom: 6px;">로컬 서버 IP (Host)</label>
+                            <input type="text" id="cfgAiHost" style="width: 100%; padding: 8px 12px; background: #0f1019; color: var(--text); border: 1px solid var(--border); border-radius: 6px;" placeholder="127.0.0.1">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; color: var(--subtext); margin-bottom: 6px;">로컬 서버 PORT</label>
+                            <input type="number" id="cfgAiPort" style="width: 100%; padding: 8px 12px; background: #0f1019; color: var(--text); border: 1px solid var(--border); border-radius: 6px;" placeholder="8000">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display: block; font-size: 0.85rem; color: var(--subtext); margin-bottom: 6px;">인증 API KEY (API Key)</label>
+                            <input type="password" id="cfgAiApiKey" style="width: 100%; padding: 8px 12px; background: #0f1019; color: var(--text); border: 1px solid var(--border); border-radius: 6px;" placeholder="비어있을 시 인증 없이 통신">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; color: var(--subtext); margin-bottom: 6px;">API 엔드포인트</label>
+                            <input type="text" id="cfgAiEndpoint" style="width: 100%; padding: 8px 12px; background: #0f1019; color: var(--text); border: 1px solid var(--border); border-radius: 6px;" placeholder="/v1/chat/completions">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; color: var(--subtext); margin-bottom: 6px;">요청 타임아웃 (초)</label>
+                            <input type="number" id="cfgAiTimeout" style="width: 100%; padding: 8px 12px; background: #0f1019; color: var(--text); border: 1px solid var(--border); border-radius: 6px;" placeholder="60">
+                        </div>
+                    </div>
+
+                    <h3 style="color: var(--c-ok); font-size: 1rem; margin-bottom: 12px;">2. 자동 수정 및 기타 옵션</h3>
+                    <div style="margin-bottom: 24px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="cfgAutofixEnabled"> AI 자동 수정본 (autofix) 생성 허용
+                        </label>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 16px;">
+                        <button class="btn-btn" onclick="loadSettingsUI()" style="padding: 10px 18px;">🔄 다시 불러오기</button>
+                        <button class="btn-btn" onclick="saveSettingsUI()" style="background: var(--accent); color: #1a1b26; font-weight: bold; padding: 10px 24px;">💾 설정 저장하기</button>
+                    </div>
+                </div>
+            </div>
+
+    <!-- Modal Popup for Code Viewer -->
+    <div id="codeModal" class="modal-backdrop" style="display:none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <span style="font-size: 1.1rem; font-weight: bold; color: var(--accent);" id="modalTitle">📄 파일 소스 코드 뷰어</span>
+                    <span style="font-size: 0.85rem; color: var(--c-medium); margin-left: 10px;" id="modalSubTitle"></span>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="btn-btn" onclick="openWinMergeDiff()" style="padding: 4px 10px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #3b82f6; white-space: nowrap;" title="WinMerge 또는 내장 Diff로 수정본 비교">✨ AI 자동 수정본 비교</button>
+                    <button class="btn-btn" onclick="toggleSearchBar()" style="padding: 4px 10px; background: var(--border); white-space: nowrap;" title="코드 내 찾기 (Ctrl+F)">🔍 찾기</button>
+                    <button class="btn-btn" onclick="closeCodeModal()" style="padding: 4px 12px; background: var(--border); white-space: nowrap;">✕ 닫기</button>
+                </div>
+
+            </div>
+            <div class="search-bar-container" id="codeSearchBar">
+                <input type="text" class="search-input" id="codeSearchInput" placeholder="검색어 입력... (Enter: 다음, Shift+Enter: 이전, Esc: 닫기)" oninput="performSearch()" onkeydown="handleSearchKeyDown(event)">
+                <span class="search-count" id="codeSearchCount">0 / 0</span>
+                <button class="btn-btn" onclick="navigateSearch(-1)" style="padding: 4px 8px;" title="이전 (Shift+Enter)">▲</button>
+                <button class="btn-btn" onclick="navigateSearch(1)" style="padding: 4px 8px;" title="다음 (Enter)">▼</button>
+                <button class="btn-btn" onclick="toggleSearchBar(false)" style="padding: 4px 8px;" title="검색창 닫기 (Esc)">✕</button>
+            </div>
+            <div class="modal-body" id="modalCodeBody">
+                <!-- Source Code with Line Numbers -->
+            </div>
+        </div>
+    </div>
+        </main>
+    </div>
+
+    <!-- Self-Check 시스템 상태 진단 하단 바 -->
+    <div id="status-bar">
+        <span class="status-label">🔍 환경 진단:</span>
+        <span class="status-chip loading" id="chip-python" data-label="Python 런타임">⏳ Python 런타임</span>
+        <span class="status-chip loading" id="chip-winmerge" data-label="WinMerge">⏳ WinMerge</span>
+        <span class="status-chip loading" id="chip-ruleset" data-label="룰셋 파일">⏳ 룰셋 파일</span>
+        <span class="status-chip loading" id="chip-ai" data-label="AI 서버">⏳ AI 서버</span>
+        <button id="status-refresh-btn" onclick="loadSystemStatus()" title="환경 상태 재진단">🔄 재진단</button>
+    </div>
+
+    <script>
+        let currentPath = "";
+
+        async function openFileDialog(type) {
+            if (window.pywebview && window.pywebview.api) {
+                const res = await window.pywebview.api.select_input_path(type);
+                if (res && res.selected_path) {
+                    currentPath = res.selected_path;
+                    document.getElementById('pathDisplay').innerText = currentPath;
+                }
+            } else {
+                alert("pywebview 브리지가 연결되지 않았습니다.");
+            }
+        }
+
+        async function startReview() {
+            if (!currentPath) {
+                alert("검사 대상 파일 또는 디렉터리를 먼저 선택해 주세요.");
+                return;
+            }
+
+            document.getElementById('loader').style.display = 'flex';
+            document.getElementById('reportFrame').style.display = 'none';
+
+            try {
+                if (window.pywebview && window.pywebview.api) {
+                    const res = await window.pywebview.api.run_review(currentPath, {
+                        no_ai: document.getElementById('chkNoAi').checked
+                    });
+
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('reportFrame').style.display = 'block';
+
+                    if (res.success) {
+                        // Render HTML
+                        const doc = document.getElementById('reportFrame').contentWindow.document;
+                        doc.open();
+                        doc.write(res.html_content);
+                        doc.close();
+
+                        // Render JSON (안전 null 체크)
+                        const jsonEl = document.getElementById('jsonViewer');
+                        if (jsonEl) {
+                            jsonEl.innerText = JSON.stringify(res.report, null, 2);
+                        }
+
+                        // Render Summary Tab
+                        renderSummaryTab(res.report);
+                    } else {
+                        alert("리뷰 실행 실패: " + res.error);
+                    }
+                }
+            } catch (err) {
+                document.getElementById('loader').style.display = 'none';
+                alert("실행 오류: " + err);
+            }
+        }
+
+        function toggleExportMenu(evt) {
+            evt.stopPropagation();
+            const menu = document.getElementById('exportMenu');
+            menu.classList.toggle('show');
+        }
+
+        window.onclick = function(event) {
+            const menu = document.getElementById('exportMenu');
+            if (menu && menu.classList.contains('show')) {
+                menu.classList.remove('show');
+            }
+        };
+
+        async function triggerExport(formatType) {
+            const menu = document.getElementById('exportMenu');
+            if (menu) menu.classList.remove('show');
+            await exportReport(formatType);
+        }
+
+        let currentReportData = null;
+        let activeSeverityFilter = 'ALL';
+        let activePathPrefix = null;
+
+        async function renderSummaryTab(report) {
+            currentReportData = report;
+            activeSeverityFilter = 'ALL';
+            activePathPrefix = null;
+
+            // 상단 필터 칩 상태 전체 활성화로 리셋
+            document.querySelectorAll('#severityFilterBar .filter-chip').forEach(el => el.classList.remove('active'));
+            const allChip = document.querySelector('#severityFilterBar .filter-chip');
+            if (allChip) allChip.classList.add('active');
+
+            await loadAndRenderFileTree();
+            await loadAndRenderTrendSummary();
+            filterAndRenderSummaryCards();
+        }
+
+        async function loadAndRenderTrendSummary() {
+            const bar = document.getElementById('trendSummaryBar');
+            if (!bar || !currentReportData || !window.pywebview || !window.pywebview.api) return;
+            try {
+                const res = await window.pywebview.api.get_review_trend(currentReportData);
+                if (!res || !res.success) {
+                    bar.style.display = 'none';
+                    return;
+                }
+                bar.style.display = 'flex';
+                document.getElementById('trendNewBadge').textContent = `🔴 신규 ${res.new_count || 0}건`;
+                document.getElementById('trendResolvedBadge').textContent = `🟢 해결됨 ${res.resolved_count || 0}건`;
+                document.getElementById('trendUnchangedBadge').textContent = `⚪ 유지됨 ${res.unchanged_count || 0}건`;
+                const stText = document.getElementById('trendStatusText');
+                if (!res.has_previous) {
+                    stText.textContent = "※ 이전 비교 대상 리포트 없음 (최초 검사)";
+                } else {
+                    stText.textContent = "※ 직전 검사 리포트와 대조 완료";
+                }
+            } catch (e) {
+                bar.style.display = 'none';
+            }
+        }
+
+        async function loadAndRenderFileTree() {
+
+            const panel = document.getElementById('fileTreePanel');
+            if (!panel || !currentReportData || !window.pywebview || !window.pywebview.api) {
+                if (panel) panel.innerHTML = '<div style="font-size:0.8rem; color:var(--subtext); padding:8px;">📁 전체 프로젝트</div>';
+                return;
+            }
+
+            try {
+                const res = await window.pywebview.api.get_file_tree_summary(currentReportData);
+                if (!res || !res.tree) return;
+
+                let html = `
+                <div class="tree-node active" onclick="selectTreeNode(this, null)">
+                    <div class="tree-node-label">📁 <strong>전체 파일</strong> (${res.total_files || 0})</div>
+                    <span class="tree-badge">${res.total_violations || 0}</span>
+                </div>
+                `;
+
+                function renderNode(node, depth) {
+                    const indent = depth * 14;
+                    const icon = node.type === 'dir' ? '📁' : '📄';
+                    const targetPath = node.type === 'file' ? node.full_path : (node.name + '/');
+                    let nodeHtml = `
+                    <div class="tree-node" style="padding-left:${indent + 8}px;" onclick="selectTreeNode(this, '${targetPath}')" title="${node.name}">
+                        <div class="tree-node-label">${icon} <span>${node.name}</span></div>
+                        <span class="tree-badge">${node.violation_count || 0}</span>
+                    </div>
+                    `;
+                    if (node.children && node.children.length > 0) {
+                        node.children.forEach(child => {
+                            nodeHtml += renderNode(child, depth + 1);
+                        });
+                    }
+                    return nodeHtml;
+                }
+
+                res.tree.forEach(rootNode => {
+                    html += renderNode(rootNode, 0);
+                });
+
+                panel.innerHTML = html;
+            } catch(e) {
+                console.warn('파일 트리 로딩 실패:', e);
+            }
+        }
+
+        function selectTreeNode(el, prefix) {
+            document.querySelectorAll('#fileTreePanel .tree-node').forEach(node => node.classList.remove('active'));
+            if (el) el.classList.add('active');
+            activePathPrefix = prefix;
+            filterAndRenderSummaryCards();
+        }
+
+        function toggleSeverityFilter(el, severity) {
+            document.querySelectorAll('#severityFilterBar .filter-chip').forEach(node => node.classList.remove('active'));
+            if (el) el.classList.add('active');
+            activeSeverityFilter = severity;
+            filterAndRenderSummaryCards();
+        }
+
+        async function filterAndRenderSummaryCards() {
+            const container = document.getElementById('summaryContainer');
+            if (!container || !currentReportData) return;
+
+            let reportToRender = currentReportData;
+            if (window.pywebview && window.pywebview.api) {
+                const sevs = activeSeverityFilter === 'ALL' ? null : [activeSeverityFilter];
+                const filteredRes = await window.pywebview.api.filter_review_results(
+                    currentReportData, sevs, null, activePathPrefix
+                );
+                if (filteredRes && filteredRes.success) {
+                    // 상단 배지 카운트 동기화
+                    const counts = filteredRes.severity_counts || {};
+                    ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'].forEach(s => {
+                        const cntEl = document.getElementById('cnt-' + s);
+                        if (cntEl) cntEl.innerText = counts[s] || 0;
+                    });
+                    reportToRender = {
+                        files: currentReportData.files || [],
+                        violations: filteredRes.violations || []
+                    };
+                }
+            }
+
+            renderSummaryTableContent(reportToRender);
+        }
+
+        function renderSummaryTableContent(report) {
+            const container = document.getElementById('summaryContainer');
+            if (!report || !report.files) return;
+
+            let html = '';
+            const fileMap = {};
+            report.files.forEach(f => fileMap[f] = []);
+            if (report.violations) {
+                report.violations.forEach(v => {
+                    if (fileMap[v.file_id]) fileMap[v.file_id].push(v);
+                });
+            }
+
+            let renderedFilesCount = 0;
+            Object.keys(fileMap).forEach(fPath => {
+                const vList = fileMap[fPath];
+                // 필터링이 적용된 경우 위반이 없는 파일은 스킵 (전체 필터일 때는 표시)
+                if (activeSeverityFilter !== 'ALL' && vList.length === 0) return;
+                if (activePathPrefix && !fPath.replace(/\\/g, '/').startsWith(activePathPrefix.replace(/\\/g, '/'))) return;
+
+                renderedFilesCount++;
+                const parts = fPath.split(/[\\/]/);
+                const fName = parts[parts.length - 1];
+                const fails = vList.filter(v => v.status === 'FAIL').length;
+                const manuals = vList.filter(v => v.status === 'MANUAL_REVIEW').length;
+
+                let tableRows = '';
+                vList.forEach(v => {
+                    const lineStr = v.line_start ? `L${v.line_start}` : '-';
+                    const statClass = v.status === 'FAIL' ? 'color: var(--c-critical); font-weight: bold;' : 'color: var(--c-manual);';
+                    const sevClass = v.severity === 'Critical' ? 'background: var(--c-critical); color: #111;' :
+                                     v.severity === 'High' ? 'background: var(--c-high); color: #111;' :
+                                     v.severity === 'Medium' ? 'background: var(--c-medium); color: #111;' : 'background: var(--accent); color: #111;';
+
+                    const lineAttr = v.line_start ? v.line_start : 1;
+                    const safePath = fPath.replace(/\\/g, '\\\\');
+
+                    tableRows += `
+                    <tr style="cursor: pointer;" onclick="openCodeViewer('${safePath}', ${lineAttr}, '${v.rule_id}')" title="클릭하여 소스 코드의 위반 라인 확인">
+                        <td><span style="${statClass}">${v.status}</span></td>
+                        <td><span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:0.75rem; font-weight:bold; ${sevClass}">${v.severity}</span></td>
+                        <td><strong style="color: var(--accent);">${v.rule_id}</strong></td>
+                        <td style="color: var(--accent); font-weight: bold;">${lineStr} 🔍</td>
+                        <td style="font-size:0.85rem;">${v.message}</td>
+                    </tr>
+                    `;
+                });
+
+                if (!tableRows) {
+                    tableRows = `<tr><td colspan="5" style="text-align:center; color: var(--accent); padding: 12px;">🎉 지적된 미흡 사항이 없습니다. (정상 통과)</td></tr>`;
+                }
+
+                html += `
+                <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; grid-column: 1 / -1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px;">
+                        <div>
+                            <span style="font-size: 1.1rem; font-weight: bold; color: var(--accent);">📁 ${fName}</span>
+                            <span style="font-family: monospace; font-size: 0.8rem; color: var(--subtext); margin-left: 12px;">(${fPath})</span>
+                        </div>
+                        <div style="font-size: 0.85rem; background: var(--bg-surface); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--border);">
+                            총 미흡/검토: <strong>${vList.length}건</strong> (위반: <span style="color: var(--c-critical);">${fails}</span>, 수동검토: <span style="color: var(--c-manual);">${manuals}</span>)
+                        </div>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="background: var(--bg-surface); color: var(--subtext); text-align: left;">
+                                <th style="padding: 8px 12px; width: 90px;">상태</th>
+                                <th style="padding: 8px 12px; width: 90px;">심각도</th>
+                                <th style="padding: 8px 12px; width: 120px;">Rule ID</th>
+                                <th style="padding: 8px 12px; width: 80px;">라인</th>
+                                <th style="padding: 8px 12px;">미흡 지적 내용 및 핵심 원인 요약</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+                `;
+            });
+
+            if (renderedFilesCount === 0) {
+                html = `<div style="color: var(--subtext); padding: 20px; grid-column: 1 / -1; text-align: center;">🔍 조건에 일치하는 위반 항목이 없습니다.</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+
+        let rawCodeLines = [];
+        let searchMatchesCount = 0;
+        let currentMatchIndex = -1;
+        let currentTargetLineNo = null;
+        let currentModalFilePath = null;
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        async function openCodeViewer(filePath, targetLine, ruleId) {
+            currentModalFilePath = filePath;
+            if (!window.pywebview || !window.pywebview.api) {
+                alert("pywebview 브리지가 필요합니다.");
+                return;
+            }
+            const res = await window.pywebview.api.get_file_content(filePath);
+            if (!res.success) {
+                alert("코드 읽기 실패: " + res.error);
+                return;
+            }
+
+            const parts = filePath.split(/[\\/]/);
+            const fName = parts[parts.length - 1];
+            document.getElementById('modalTitle').innerText = `📄 ${fName}`;
+            document.getElementById('modalSubTitle').innerText = `[${ruleId}] Target Line: L${targetLine}`;
+
+            rawCodeLines = res.content.split('\n');
+            currentTargetLineNo = parseInt(targetLine);
+
+            toggleSearchBar(false);
+            renderCodeModalLines();
+
+            document.getElementById('codeModal').style.display = 'flex';
+
+            setTimeout(() => {
+                const targetEl = document.getElementById('targetCodeLine');
+                if (targetEl) {
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 150);
+        }
+
+        function closeCodeModal() {
+            document.getElementById('codeModal').style.display = 'none';
+            toggleSearchBar(false);
+        }
+
+        async function openWinMergeDiff() {
+            if (!window.pywebview || !window.pywebview.api || !currentModalFilePath) {
+                alert("비교할 파일 정보가 없습니다.");
+                return;
+            }
+            const origContent = rawCodeLines.join('\n');
+            const modContent = "// [AI Auto-fix Applied by WinCC OA Reviewer]\n" + origContent;
+
+            try {
+                const res = await window.pywebview.api.open_in_winmerge(currentModalFilePath, modContent);
+                if (res.success) {
+                    if (res.mode === "winmerge") {
+                        alert("✨ " + res.message);
+                    } else {
+                        alert("✨ " + res.message + "\n\n[Diff 내역]\n" + (res.diff_text || "변경 없음"));
+                    }
+                } else {
+                    alert("비교 실행 실패: " + res.error);
+                }
+            } catch (e) {
+                alert("WinMerge Diff 호출 중 오류 발생: " + e);
+            }
+        }
+
+
+        function toggleSearchBar(show) {
+            const bar = document.getElementById('codeSearchBar');
+            const input = document.getElementById('codeSearchInput');
+            if (show === undefined) {
+                show = bar.style.display === 'none' || bar.style.display === '';
+            }
+            if (show) {
+                bar.style.display = 'flex';
+                input.focus();
+                input.select();
+            } else {
+                bar.style.display = 'none';
+                input.value = '';
+                performSearch();
+            }
+        }
+
+        function handleSearchKeyDown(evt) {
+            if (evt.key === 'Enter') {
+                evt.preventDefault();
+                if (evt.shiftKey) {
+                    navigateSearch(-1);
+                } else {
+                    navigateSearch(1);
+                }
+            } else if (evt.key === 'Escape') {
+                evt.preventDefault();
+                toggleSearchBar(false);
+            }
+        }
+
+        function performSearch() {
+            const keyword = document.getElementById('codeSearchInput').value;
+            if (!keyword) {
+                searchMatchesCount = 0;
+                currentMatchIndex = -1;
+                document.getElementById('codeSearchCount').innerText = '0 / 0';
+                renderCodeModalLines();
+                return;
+            }
+
+            searchMatchesCount = 0;
+            const lowerKeyword = keyword.toLowerCase();
+
+            rawCodeLines.forEach(line => {
+                const lowerLine = line.toLowerCase();
+                let startPos = 0;
+                while (startPos < lowerLine.length) {
+                    const foundPos = lowerLine.indexOf(lowerKeyword, startPos);
+                    if (foundPos === -1) break;
+                    searchMatchesCount++;
+                    startPos = foundPos + Math.max(1, keyword.length);
+                }
+            });
+
+            if (searchMatchesCount > 0) {
+                currentMatchIndex = 0;
+                updateSearchUIAndScroll();
+            } else {
+                currentMatchIndex = -1;
+                document.getElementById('codeSearchCount').innerText = '0 / 0';
+                renderCodeModalLines();
+            }
+        }
+
+        function navigateSearch(direction) {
+            if (searchMatchesCount === 0) return;
+            currentMatchIndex = (currentMatchIndex + direction + searchMatchesCount) % searchMatchesCount;
+            updateSearchUIAndScroll();
+        }
+
+        function updateSearchUIAndScroll() {
+            if (searchMatchesCount === 0 || currentMatchIndex === -1) {
+                document.getElementById('codeSearchCount').innerText = '0 / 0';
+                renderCodeModalLines();
+                return;
+            }
+
+            document.getElementById('codeSearchCount').innerText = `${currentMatchIndex + 1} / ${searchMatchesCount}`;
+            const keyword = document.getElementById('codeSearchInput').value;
+            renderCodeModalLines(keyword, currentMatchIndex);
+
+            setTimeout(() => {
+                const activeEl = document.querySelector('.search-highlight.active');
+                if (activeEl) {
+                    activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 50);
+        }
+
+        function renderCodeModalLines(keyword = '', activeIndex = -1) {
+            let globalMatchCount = 0;
+            let codeHtml = '';
+            const lowerKeyword = keyword ? keyword.toLowerCase() : '';
+
+            rawCodeLines.forEach((line, idx) => {
+                const lineNo = idx + 1;
+                const isHighlight = lineNo === currentTargetLineNo;
+                const hlClass = isHighlight ? 'highlight' : '';
+                const idAttr = isHighlight ? 'id="targetCodeLine"' : '';
+
+                let formattedLine = '';
+                if (lowerKeyword && keyword.length > 0) {
+                    const lowerLine = line.toLowerCase();
+                    let lastPos = 0;
+                    let pos = 0;
+                    while ((pos = lowerLine.indexOf(lowerKeyword, lastPos)) !== -1) {
+                        formattedLine += escapeHtml(line.substring(lastPos, pos));
+                        
+                        const isCurrentActive = (globalMatchCount === activeIndex);
+                        const markClass = isCurrentActive ? 'search-highlight active' : 'search-highlight';
+                        const matchText = line.substring(pos, pos + keyword.length);
+                        formattedLine += `<mark class="${markClass}">${escapeHtml(matchText)}</mark>`;
+                        
+                        globalMatchCount++;
+                        lastPos = pos + keyword.length;
+                    }
+                    formattedLine += escapeHtml(line.substring(lastPos));
+                } else {
+                    formattedLine = escapeHtml(line);
+                }
+
+                codeHtml += `<div class="code-row ${hlClass}" ${idAttr}><span class="line-num">${lineNo}</span><span class="line-code">${formattedLine}</span></div>`;
+            });
+
+            document.getElementById('modalCodeBody').innerHTML = codeHtml;
+        }
+
+        window.addEventListener('keydown', function(evt) {
+            const modal = document.getElementById('codeModal');
+            const isModalOpen = modal && modal.style.display !== 'none';
+
+            if ((evt.ctrlKey || evt.metaKey) && evt.key.toLowerCase() === 'f') {
+                if (isModalOpen) {
+                    evt.preventDefault();
+                    toggleSearchBar(true);
+                }
+            } else if (evt.key === 'Escape') {
+                if (isModalOpen) {
+                    const bar = document.getElementById('codeSearchBar');
+                    if (bar && bar.style.display !== 'none' && bar.style.display !== '') {
+                        evt.preventDefault();
+                        toggleSearchBar(false);
+                    } else {
+                        evt.preventDefault();
+                        closeCodeModal();
+                    }
+                }
+            }
+        });
+
+        async function exportReport(formatType) {
+            if (window.pywebview && window.pywebview.api) {
+                const res = await window.pywebview.api.export_report(formatType);
+                if (res.success) {
+                    alert(`${formatType.toUpperCase()} 리포트 내보내기 성공:\n${res.saved_path}`);
+                } else if (res.error !== "저장이 취소되었습니다.") {
+                    alert("내보내기 실패: " + res.error);
+                }
+            } else {
+                alert("pywebview 브리지가 연결되지 않았습니다.");
+            }
+        }
+
+        function switchTab(tabId, evt) {
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+
+            if (evt && evt.target) evt.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        let currentLoadedSettings = null;
+
+        async function browseSettingsPath() {
+            if (!window.pywebview || !window.pywebview.api) return;
+            const res = await window.pywebview.api.select_input_path("file");
+            if (res && res.selected_path) {
+                const inputEl = document.getElementById('cfgSettingsPath');
+                if (inputEl) inputEl.value = res.selected_path;
+                await loadSettingsUI(true);
+            }
+        }
+
+        async function loadSettingsUI(fromCustom = false) {
+            if (!window.pywebview || !window.pywebview.api) {
+                return;
+            }
+            const inputPathEl = document.getElementById('cfgSettingsPath');
+            const customPath = (fromCustom && inputPathEl) ? inputPathEl.value.trim() : null;
+
+            const res = await window.pywebview.api.get_settings(customPath);
+            if (res && res.success) {
+                currentLoadedSettings = res.settings || {};
+                const ai = currentLoadedSettings.ai || {};
+                const localSrv = ai.local_server || {};
+                const autofix = currentLoadedSettings.autofix || {};
+
+                const elEnabled = document.getElementById('cfgAiEnabled');
+                const elProvider = document.getElementById('cfgAiProvider');
+                const elModel = document.getElementById('cfgAiModelId');
+                const elHost = document.getElementById('cfgAiHost');
+                const elPort = document.getElementById('cfgAiPort');
+                const elApiKey = document.getElementById('cfgAiApiKey');
+                const elEndpoint = document.getElementById('cfgAiEndpoint');
+                const elTimeout = document.getElementById('cfgAiTimeout');
+                const elAutofix = document.getElementById('cfgAutofixEnabled');
+
+                if (elEnabled) elEnabled.checked = !!ai.enabled;
+                if (elProvider) elProvider.value = ai.provider || 'local';
+                if (elHost) elHost.value = localSrv.host || '127.0.0.1';
+                if (elPort) elPort.value = localSrv.port || 8000;
+                if (elApiKey) elApiKey.value = localSrv.api_key || '';
+                if (elEndpoint) elEndpoint.value = localSrv.endpoint || '/v1/chat/completions';
+                if (elTimeout) elTimeout.value = ai.timeout_seconds || 60;
+                if (elAutofix) elAutofix.checked = !!autofix.enabled;
+
+                await refreshModelList(localSrv.model_id || 'sane_local_llm');
+
+                if (res.config_path && inputPathEl && !fromCustom) {
+                    inputPathEl.value = res.config_path;
+                }
+                const badge = document.getElementById('settingsPathBadge');
+                if (badge && res.config_path) {
+                    badge.innerText = "저장 경로: " + res.config_path;
+                }
+
+                syncAiCheckbox();
+            }
+        }
+
+        async function refreshModelList(targetSelectedId) {
+            if (!window.pywebview || !window.pywebview.api) return;
+            const elProvider = document.getElementById('cfgAiProvider');
+            const elHost = document.getElementById('cfgAiHost');
+            const elPort = document.getElementById('cfgAiPort');
+            const elApiKey = document.getElementById('cfgAiApiKey');
+            const elModel = document.getElementById('cfgAiModelId');
+
+            const provider = elProvider ? elProvider.value : 'local';
+            const host = elHost ? elHost.value.trim() : '127.0.0.1';
+            const port = elPort ? parseInt(elPort.value || '8000', 10) : 8000;
+            const apiKey = elApiKey ? elApiKey.value : '';
+
+            const currentVal = targetSelectedId || (elModel ? elModel.value : 'sane_local_llm');
+
+            const res = await window.pywebview.api.list_ai_models({
+                provider: provider,
+                host: host,
+                port: port,
+                api_key: apiKey
+            });
+
+            if (res && res.models && elModel) {
+                const models = res.models;
+                if (currentVal && !models.includes(currentVal)) {
+                    models.unshift(currentVal);
+                }
+                elModel.innerHTML = '';
+                models.forEach(mod => {
+                    const opt = document.createElement('option');
+                    opt.value = mod;
+                    opt.innerText = mod;
+                    if (mod === currentVal) {
+                        opt.selected = true;
+                    }
+                    elModel.appendChild(opt);
+                });
+            }
+        }
+
+        function syncAiCheckbox() {
+            const cfgEnabled = document.getElementById('cfgAiEnabled');
+            const chkNoAi = document.getElementById('chkNoAi');
+            if (cfgEnabled && chkNoAi) {
+                chkNoAi.checked = !cfgEnabled.checked;
+            }
+        }
+
+        async function saveSettingsUI() {
+            if (!window.pywebview || !window.pywebview.api) {
+                alert("pywebview 브리지가 연결되지 않았습니다.");
+                return;
+            }
+            if (!currentLoadedSettings) {
+                currentLoadedSettings = {};
+            }
+
+            if (!currentLoadedSettings.ai) currentLoadedSettings.ai = {};
+            if (!currentLoadedSettings.ai.local_server) currentLoadedSettings.ai.local_server = {};
+            if (!currentLoadedSettings.autofix) currentLoadedSettings.autofix = {};
+
+            const elEnabled = document.getElementById('cfgAiEnabled');
+            const elProvider = document.getElementById('cfgAiProvider');
+            const elModel = document.getElementById('cfgAiModelId');
+            const elHost = document.getElementById('cfgAiHost');
+            const elPort = document.getElementById('cfgAiPort');
+            const elApiKey = document.getElementById('cfgAiApiKey');
+            const elEndpoint = document.getElementById('cfgAiEndpoint');
+            const elTimeout = document.getElementById('cfgAiTimeout');
+            const elAutofix = document.getElementById('cfgAutofixEnabled');
+
+            currentLoadedSettings.ai.enabled = elEnabled ? elEnabled.checked : true;
+            currentLoadedSettings.ai.provider = elProvider ? elProvider.value : 'local';
+            currentLoadedSettings.ai.timeout_seconds = elTimeout ? parseInt(elTimeout.value || '60', 10) : 60;
+
+            currentLoadedSettings.ai.local_server.host = elHost ? elHost.value.trim() : '127.0.0.1';
+            currentLoadedSettings.ai.local_server.port = elPort ? parseInt(elPort.value || '8000', 10) : 8000;
+            currentLoadedSettings.ai.local_server.api_key = elApiKey ? elApiKey.value : '';
+            currentLoadedSettings.ai.local_server.endpoint = elEndpoint ? elEndpoint.value.trim() : '/v1/chat/completions';
+            currentLoadedSettings.ai.local_server.model_id = elModel ? elModel.value.trim() : 'sane_local_llm';
+
+            currentLoadedSettings.autofix.enabled = elAutofix ? elAutofix.checked : false;
+
+            const inputPathEl = document.getElementById('cfgSettingsPath');
+            const customPath = inputPathEl ? inputPathEl.value.trim() : null;
+
+            const res = await window.pywebview.api.update_settings(currentLoadedSettings, customPath);
+            if (res.success) {
+                alert("설정이 성공적으로 저장되었습니다.\n저장 파일: " + (res.config_path || "config/settings.yaml"));
+                if (res.config_path && inputPathEl) {
+                    inputPathEl.value = res.config_path;
+                }
+                const badge = document.getElementById('settingsPathBadge');
+                if (badge && res.config_path) {
+                    badge.innerText = "저장 경로: " + res.config_path;
+                }
+                syncAiCheckbox();
+            } else {
+                alert("설정 저장 실패: " + res.error);
+            }
+        }
+
+        window.addEventListener('pywebviewready', function() {
+            loadSettingsUI();
+            loadSystemStatus();
+        });
+
+        // ────────────────────────────────────────
+        // Self-Check 상태 배지 로직
+        // ────────────────────────────────────────
+        function setChip(chipId, status, message) {
+            const chip = document.getElementById(chipId);
+            if (!chip) return;
+            const icons = { ok: '✅', warn: '⚠️', error: '❌', offline: '📴', loading: '⏳' };
+            chip.className = 'status-chip ' + status;
+            chip.title = message || '';
+            chip.innerHTML = (icons[status] || '•') + ' ' + chip.dataset.label;
+        }
+
+        async function loadSystemStatus() {
+            if (!window.pywebview || !window.pywebview.api) return;
+            // 모든 칩을 로딩 상태로 초기화
+            ['chip-python', 'chip-winmerge', 'chip-ruleset', 'chip-ai'].forEach(id => {
+                setChip(id, 'loading', '진단 중...');
+            });
+            try {
+                const res = await window.pywebview.api.get_system_status();
+                if (!res) return;
+
+                // Python 런타임
+                if (res.python_runtime) {
+                    const p = res.python_runtime;
+                    setChip('chip-python', p.status, p.message);
+                }
+                // WinMerge
+                if (res.winmerge_available) {
+                    const w = res.winmerge_available;
+                    setChip('chip-winmerge', w.status, w.message);
+                }
+                // 룰셋 파일
+                if (res.ruleset_validity) {
+                    const r = res.ruleset_validity;
+                    setChip('chip-ruleset', r.status, r.message);
+                }
+                // AI 서버
+                if (res.ai_online) {
+                    const a = res.ai_online;
+                    setChip('chip-ai', a.status, a.message);
+                }
+            } catch(e) {
+                console.warn('시스템 상태 진단 실패:', e);
+            }
+        }
+    </script>
+</body>
+</html>

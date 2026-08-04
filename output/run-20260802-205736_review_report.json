@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "run-20260802-205736",
+  "rule_source": "Client/Server Excel Config",
+  "files": [
+    "C:\\Users\\39145\\Downloads\\Coder_Wincc-main\\CodeReview_Data\\GoldenTime.ctl"
+  ],
+  "violations": [],
+  "errors": [],
+  "metrics": {
+    "timings_ms": {
+      "total": 73
+    },
+    "cache_hits": {},
+    "cache_misses": {},
+    "file_count": 1,
+    "violation_count": 0,
+    "optional_dependencies": {}
+  },
+  "ruleset_version": "1.0.0",
+  "ruleset_source_sha256": "",
+  "app_version": "0.1.0",
+  "generated_at": "2026-08-02T11:57:36.098663+00:00",
+  "checklist_applicability": [],
+  "stage_status": {}
+}

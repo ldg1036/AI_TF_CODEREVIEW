@@ -1,0 +1,2413 @@
+   1: V 13
+   2: 2
+   3: LANG:1 0 
+   4: LANG:31 0 
+   5: PANEL,-1 -1 485 675 N {30,30,30} 6
+   6: "$DP1"
+   7: "$DP2"
+   8: "$DP3"
+   9: "$DP4"
+  10: "$DP5"
+  11: "$DP6"
+  12: "main()
+  13: {
+  14:   dyn_errClass err;
+  15: 
+  16:   MAPP();
+  17: 
+  18:   PARAMETER_WINDOW_INITIAL(myModuleName(),myPanelName(),
+  19:                            DYN_ALL_MAP_EDITABLE_KEYS,DYN_ALL_MAP_EDITABLE_VALUES,
+  20:                            mappingKeys(MAP_ALERT_PRIO),DYN_ALL_INIT_INVISIBLE);
+  21:   
+  22:   string obj_delaysp = MAP_EDITABLE_VALUE[OBJ_DELAYSP];
+  23:   string obj_interlocksp = MAP_EDITABLE_VALUE[OBJ_INTERLOCKSP];
+  24:   string obj_interlockdbsp = MAP_EDITABLE_VALUE[OBJ_INTERLOCKDBSP];
+  25:   string obj_closesp = MAP_EDITABLE_VALUE[OBJ_CLOSESP];
+  26:   string obj_deadbandsp = MAP_EDITABLE_VALUE[OBJ_DEADBANDSP];
+  27:   string obj_openvvsp = MAP_EDITABLE_VALUE[OBJ_OPENVVSP];
+  28:   string obj_closevvsp = MAP_EDITABLE_VALUE[OBJ_CLOSEVVSP];
+  29:   string obj_minvvsp = MAP_EDITABLE_VALUE[OBJ_MINVVSP];
+  30:   string obj_assset = MAP_EDITABLE_VALUE[OBJ_ASSSET];
+  31:   string dp_lastval = MAP_READONLY_VALUE[OBJ_LASTVAL];
+  32:   string dp_orplastval = MAP_READONLY_VALUE[OBJ_ORPLASTVAL];
+  33:   string obj_orpsp = MAP_READONLY_VALUE[OBJ_ORPSP];
+  34:   string dp_select1 = MAP_CHECK[OBJ_SELECT1];
+  35: 
+  36:   dpConnect(\"CB_value_textfield_dpid\", obj_delaysp);
+  37:   dpConnect(\"CB_value_textfield_dpid\", obj_interlocksp);
+  38:   dpConnect(\"CB_value_textfield_dpid\", obj_interlockdbsp);
+  39:   dpConnect(\"CB_value_textfield_dpid\", obj_closesp);
+  40:   dpConnect(\"CB_value_textfield_dpid\", obj_deadbandsp);
+  41:   dpConnect(\"CB_value_textfield_dpid\", obj_openvvsp);
+  42:   dpConnect(\"CB_value_textfield_dpid\", obj_closevvsp);
+  43:   dpConnect(\"CB_value_textfield_dpid\", obj_minvvsp);
+  44:   dpConnect(\"CB_value_textfield_dpid\", obj_assset);
+  45:   dpConnect(\"CB_value_textfield_dpid\", dp_lastval);
+  46:   dpConnect(\"CB_value_textfield_dpid\", dp_orplastval);
+  47:   dpConnect(\"CB_value_textfield_dpid\", obj_orpsp);
+  48:   dpConnect(\"CB_value_check_box_sp\", dp_select1);
+  49:   
+  50:   dpConnect(\"mode_change\",$DP3 + \".value.ORP_MODE_RESULT\");
+  51:   
+  52:   err = getLastError();
+  53:   if (dynlen(err) > 0)
+  54:     DebugN(\"Erro:\",err);
+  55: }
+  56: 
+  57: void mode_change(string dp, bool mode)
+  58: {
+  59:   if(mode)
+  60:   {
+  61:     setMultiValue(\"bg_PID\", \"backCol\", \"{166,166,166}\",
+  62:                   \"line_PID\", \"visible\", FALSE,
+  63:                   \"bg_ORP\", \"backCol\", \"STD_value_invalid\",
+  64:                   \"line_ORP\", \"visible\", TRUE);
+  65:   }
+  66:   else
+  67:   {
+  68:     setMultiValue(\"bg_PID\", \"backCol\", \"STD_value_invalid\",
+  69:                   \"line_PID\", \"visible\", TRUE,
+  70:                   \"bg_ORP\", \"backCol\", \"{166,166,166}\",
+  71:                   \"line_ORP\", \"visible\", FALSE);
+  72:   }
+  73: }
+  74: 
+  75: 
+  76: 
+  77: 
+  78: " 0
+  79:  E E E E 1 -1 -1 0  43 59
+  80: ""0  1
+  81: E "
+  82: string OBJ_ORPSP = \"obj_orpsp\";
+  83: string OBJ_DELAYSP = \"obj_delaysp\";
+  84: string OBJ_INTERLOCKSP = \"obj_interlocksp\";
+  85: string OBJ_INTERLOCKDBSP = \"obj_interlockdbsp\";
+  86: string OBJ_CLOSESP = \"obj_closesp\";
+  87: string OBJ_DEADBANDSP = \"obj_deadbandsp\";
+  88: string OBJ_OPENVVSP = \"obj_openvvsp\";
+  89: string OBJ_CLOSEVVSP = \"obj_closevvsp\";
+  90: string OBJ_MINVVSP = \"obj_minvvsp\";
+  91: string OBJ_ASSSET = \"obj_assset\";
+  92: string OBJ_MODE = \"obj_mode\";
+  93: string OBJ_LASTVAL = \"obj_lastval\";
+  94: string OBJ_ORPLASTVAL = \"obj_orplastval\";
+  95: string OBJ_SELECT1 = \"CHECK_BOX1\";
+  96: 
+  97: 
+  98: dyn_string DYN_ALL_MAP_EDITABLE_VALUES; // DP ELEMENT 값 EX: TI_001A.CMD.PVSOURCE -  EDIT 가능 속성 - 배열저장
+  99: dyn_string DYN_ALL_MAP_EDITABLE_KEYS;  // DPE Object Name - 배열저장
+ 100: dyn_string DYN_ALL_MAP_EDITABLE_DESC;  // MSG BOX DESCRIPTION - TEXT OBJ - 배열저장
+ 101: dyn_string DYN_ALL_INIT_INVISIBLE;  // COMBO BOX INVISIBLE - 배열저장
+ 102: 
+ 103: mapping MAP_SHAPE_TYPE;  // 화면  object type 명기 (ex : text, combo box, radio box .... 등등)
+ 104: mapping MAP_EDITABLE_ALM;  // ALARM VALUE DPE 지정
+ 105: mapping MAP_EDITABLE_VALUE;  // TEXT OBJ  DPE 지정
+ 106: mapping MAP_ALERT_BOOL;  // BIT TYPE ALARM DPE 지정
+ 107: mapping MAP_READONLY_VALUE;  // READ ONLY DPE 지정
+ 108: mapping MAP_ALERT_PRIO;  // CASCADE OBJ - ALARM PRIO DPE 지정
+ 109: mapping MAP_ALERT_COMBO_PRIO;  // COMBO BOX OBJ - ALARM PRIO DPE 지정
+ 110: mapping MAP_EDITABLE_DESC;  // DPE Object Name 지정
+ 111: mapping MAP_RADIO; // 입력 / 센서구분 DPE 지정
+ 112: mapping MAP_CHECK; // CHECK BOX OBJECT DPE 지정
+ 113: mapping MAP_DEPEND_VALUE;  //의존성이 있는 경우 : 수동 모드 일때 수동값 필드가 ON되는 경우
+ 114: mapping MAP_VALUE_BOOL;  // BIT TYPE VALUE DPE 지정
+ 115: 
+ 116: void MAPP()
+ 117: {
+ 118:   string caption, PTS;
+ 119: 
+ 120:   MAP_SHAPE_TYPE[\"TEXT_FIELD\"] = 1;
+ 121:   MAP_SHAPE_TYPE[\"COMBO_BOX\"] = 2;
+ 122:   MAP_SHAPE_TYPE[\"RADIO_BOX\"] = 3;
+ 123:   MAP_SHAPE_TYPE[\"CASCADE_BOX\"] = 4;
+ 124:   MAP_SHAPE_TYPE[\"CHECK_BOX\"] = 5;
+ 125:   
+ 126: // **************************************** check box ***************************************************
+ 127:   
+ 128:   MAP_CHECK[OBJ_SELECT1] = $DP3 + \".cmd.ORP_USE\";
+ 129:   MAP_EDITABLE_DESC[OBJ_SELECT1] = \"ORP 제어 사용 여부\";
+ 130:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_SELECT1);  
+ 131:   
+ 132: 
+ 133: // ****************************** text ****************************************
+ 134:   
+ 135:   MAP_EDITABLE_VALUE[OBJ_DELAYSP] = $DP3 + \".cmd.ORP_MODE_DELAY\";
+ 136: //   getValue(\"text_pressdelay\",\"text\",caption);
+ 137:   MAP_EDITABLE_DESC[OBJ_DELAYSP] = \"PID <-> ORP 모드 전환 Delay\";
+ 138:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_DELAYSP);
+ 139:   
+ 140:   MAP_EDITABLE_VALUE[OBJ_INTERLOCKSP] = $DP3 + \".cmd.ORP_INTERLOCK_SP\";
+ 141: //   getValue(\"text_pressdelay\",\"text\",caption);
+ 142:   MAP_EDITABLE_DESC[OBJ_INTERLOCKSP] = \"ORP INTERLOCK 설정값\";
+ 143:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_INTERLOCKSP);
+ 144:   
+ 145:   MAP_EDITABLE_VALUE[OBJ_INTERLOCKDBSP] = $DP3 + \".cmd.ORP_INTERLOCK_DB\";
+ 146: //   getValue(\"text_pressdelay\",\"text\",caption);
+ 147:   MAP_EDITABLE_DESC[OBJ_INTERLOCKDBSP] = \"ORP INTERLOCK DEADBAND\";
+ 148:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_INTERLOCKDBSP);
+ 149:   
+ 150:   MAP_EDITABLE_VALUE[OBJ_CLOSESP] = $DP3 + \".cmd.ORP_CLOSE_RUN_SP\";
+ 151: //   getValue(\"text_pressdelay\",\"text\",caption);
+ 152:   MAP_EDITABLE_DESC[OBJ_CLOSESP] = \"ORP CLOSE 동작 설정값\";
+ 153:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_CLOSESP);
+ 154:   
+ 155:   MAP_EDITABLE_VALUE[OBJ_DEADBANDSP] = $DP3 + \".cmd.ORP_CLOSE_DB\";
+ 156: //   getValue(\"text_pressdelay\",\"text\",caption);
+ 157:   MAP_EDITABLE_DESC[OBJ_DEADBANDSP] = \"ORP CLOSE 동작 DEADBAND\";
+ 158:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_DEADBANDSP);
+ 159:   
+ 160:   MAP_EDITABLE_VALUE[OBJ_OPENVVSP] = $DP3 + \".cmd.ORP_OPEN_SP\";
+ 161: //   getValue(\"text_pressdelay\",\"text\",caption);
+ 162:   MAP_EDITABLE_DESC[OBJ_OPENVVSP] = \"V/V OPEN 개도 설정값\";
+ 163:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_OPENVVSP);
+ 164:   
+ 165:   MAP_EDITABLE_VALUE[OBJ_CLOSEVVSP] = $DP3 + \".cmd.ORP_CLOSE_SP\";
+ 166: //   getValue(\"text_pressdelay\",\"text\",caption);
+ 167:   MAP_EDITABLE_DESC[OBJ_CLOSEVVSP] = \"V/V CLOSE 개도 설정값\";
+ 168:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_CLOSEVVSP);
+ 169:   
+ 170:   MAP_EDITABLE_VALUE[OBJ_MINVVSP] = $DP5 + \".cmd.LOLM_SP\";
+ 171: //   getValue(\"main\",\"text\",caption);
+ 172:   MAP_EDITABLE_DESC[OBJ_MINVVSP] = \"Na2SO3 V/V 최소개도\";
+ 173:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_MINVVSP);
+ 174:   
+ 175:   MAP_EDITABLE_VALUE[OBJ_ASSSET] = $DP6 + \".cmd.AMPLO_SP\";
+ 176: //   getValue(\"text_pressset\",\"text\",caption);
+ 177:   MAP_EDITABLE_DESC[OBJ_ASSSET] = \"FAN 전류하한 설정값\";
+ 178:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_ASSSET);
+ 179:   
+ 180:   
+ 181:   //radio 객체    
+ 182:   MAP_RADIO[OBJ_MODE] = $DP3 + \".cmd.ORP_INTERLOCK_USE\";
+ 183: //   getValue(\"text_mode\",\"text\",caption);
+ 184:   MAP_EDITABLE_DESC[OBJ_MODE] = \"ORP INTERLOCK 사용/미사용\";
+ 185:   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_MODE);
+ 186:   
+ 187:   // read only mapping
+ 188:   MAP_READONLY_VALUE[OBJ_LASTVAL] = $DP1 + \"_SEL.value.PV_LAST\";
+ 189:   MAP_READONLY_VALUE[OBJ_ORPLASTVAL] = $DP2 + \"_SEL.value.PV_LAST\";
+ 190:   MAP_READONLY_VALUE[OBJ_ORPSP] = $DP3 + \".cmd.ORP_MODE_SP\";
+ 191: 
+ 192:   string map_value,map_key;
+ 193:   bool bool_haskey;
+ 194:   
+ 195:   for(int i=1;i<=dynlen(DYN_ALL_MAP_EDITABLE_KEYS);i++)
+ 196:   {
+ 197:     map_key = DYN_ALL_MAP_EDITABLE_KEYS[i];
+ 198:   //알람설정
+ 199:     bool_haskey = mappingHasKey(MAP_EDITABLE_ALM,map_key);
+ 200:   
+ 201:     if(bool_haskey)
+ 202:     {
+ 203:       map_value = MAP_EDITABLE_ALM[map_key];
+ 204:       dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+ 205:       dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+ 206:       continue;
+ 207:     }
+ 208:     //알람 Prio설정
+ 209:     bool_haskey = mappingHasKey(MAP_ALERT_COMBO_PRIO,map_key);
+ 210:   
+ 211:     if(bool_haskey)
+ 212:     {
+ 213:       map_value = MAP_ALERT_COMBO_PRIO[map_key];
+ 214:       dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+ 215:       dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+ 216:       continue;
+ 217:     }
+ 218:     //기타 설정값
+ 219:     bool_haskey = mappingHasKey(MAP_EDITABLE_VALUE,map_key);    
+ 220:     if(bool_haskey)
+ 221:     {  
+ 222:       map_value = MAP_EDITABLE_VALUE[map_key];
+ 223:       dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+ 224:       dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+ 225:       continue;
+ 226:     }
+ 227:     bool_haskey = mappingHasKey(MAP_ALERT_PRIO,map_key);    
+ 228:     if(bool_haskey)
+ 229:     {  
+ 230:       map_value = MAP_ALERT_PRIO[map_key];
+ 231:       dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+ 232:       dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+ 233:       continue;
+ 234:     }
+ 235:     bool_haskey = mappingHasKey(MAP_RADIO,map_key);    
+ 236:     if(bool_haskey)
+ 237:     {  
+ 238:       map_value = MAP_RADIO[map_key];
+ 239:       dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+ 240:       dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+ 241:       continue;
+ 242:     }
+ 243:     bool_haskey = mappingHasKey(MAP_CHECK,map_key);  
+ 244:     if(bool_haskey)
+ 245:     {  
+ 246:       map_value = MAP_CHECK[map_key];
+ 247:       dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+ 248:       dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+ 249:       continue;
+ 250:     }
+ 251:   }  
+ 252: }
+ 253: 
+ 254: 
+ 255: 
+ 256: 
+ 257: 
+ 258: 
+ 259: 
+ 260: 
+ 261: 
+ 262: " 0
+ 263:  2
+ 264: "CBRef" "1"
+ 265: "EClose" E
+ 266: 0 0 0
+ 267: ""
+ 268: DISPLAY_LAYER, 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0
+ 269: LAYER, 0 
+ 270: 2
+ 271: LANG:1 0 
+ 272: LANG:31 0 
+ 273: 6 257
+ 274: "RECTANGLE11234"
+ 275: ""
+ 276: 1 222 15 E E E 1 E 1 E N {0,0,0} E N {58,58,58} E E
+ 277:  E E
+ 278: 173 0 0 0 0 0
+ 279: E E E
+ 280: 4
+ 281: 2
+ 282: LANG:1 0 
+ 283: LANG:31 0 
+ 284: 
+ 285: 2
+ 286: "dashclr"N "_Transparent"
+ 287: "antiAliased" "0"
+ 288: E E 0 1 1 2 1 E 1.254010695187166 0 1.829999999999999 -270.3903743315508 11.55 1 E 222 15 596 339
+ 289: 6 2
+ 290: "RECTANGLE10031"
+ 291: ""
+ 292: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+ 293:  E E
+ 294: 2 0 0 0 0 0
+ 295: E E E
+ 296: 4
+ 297: 2
+ 298: LANG:1 0 
+ 299: LANG:31 0 
+ 300: 
+ 301: 2
+ 302: "dashclr"N "_Transparent"
+ 303: "antiAliased" "0"
+ 304: E E 0 1 1 2 1 E 3.186210751381298 0 0.7058823529411763 -158.0553805745901 -243.9999999999999 1 E 54 408 163 442
+ 305: 6 12
+ 306: "RECTANGLE11178"
+ 307: ""
+ 308: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+ 309:  E E
+ 310: 12 0 0 0 0 0
+ 311: E E E
+ 312: 4
+ 313: 2
+ 314: LANG:1 0 
+ 315: LANG:31 0 
+ 316: 
+ 317: 2
+ 318: "dashclr"N "_Transparent"
+ 319: "antiAliased" "0"
+ 320: E E 0 1 1 2 1 E 2.140530889639596 0 0.7058823529411763 14.13789733449994 -303.4641856742697 1 E 163 492 214 526
+ 321: 6 43
+ 322: "RECTANGLE160"
+ 323: ""
+ 324: 1 355 55 E E E 1 E 1 E N "_Transparent" E N "_Window" E E
+ 325:  E E
+ 326: 40 0 0 0 0 0
+ 327: E E E
+ 328: 0
+ 329: 2
+ 330: LANG:1 0 
+ 331: LANG:31 0 
+ 332: 
+ 333: 2
+ 334: "dashclr"N "_Transparent"
+ 335: "antiAliased" "0"
+ 336: E E 0 1 1 2 1 E 1.67508793729554 0 1 -587.3895923263702 -57.32822083613573 2  1 0  "pictures/etc/TitleBar_4.png" 4294967295 E 355 55 545 100
+ 337: 2 44
+ 338: "PRIMITIVE_TEXT1973"
+ 339: ""
+ 340: 1 166.3463659311451 12.00000000000003 E E E 1 E 1 E N "white" E N "white" E E
+ 341:  E E
+ 342: 41 0 0 0 0 0
+ 343: E E E
+ 344: 0
+ 345: 2
+ 346: LANG:1 0 
+ 347: LANG:31 0 
+ 348: 
+ 349: 3
+ 350: "sizePolicy" "Fixed Fixed"
+ 351: "dashclr"N "_Transparent"
+ 352: "antiAliased" "1"
+ 353: E E 0 1 1 2 1 E U  0 E 37 12.00000000000003 295 28
+ 354: 0 2 2 "0s" 0 0 0 193 0 0  166.3463659311451 12.00000000000003 1
+ 355: 2
+ 356: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+ 357: LANG:31 30  ,10,-1,5,75,0,0,0,0,0
+ 358: 0 2
+ 359: LANG:1 8 MA(105T)
+ 360: LANG:31 38 A2 NaSO3 Զ Valve(ORP ȯ )
+ 361: 6 149
+ 362: "edit_button"
+ 363: ""
+ 364: 1 330 260 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ 365:  E E
+ 366: 114 0 0 0 0 0
+ 367: E E E
+ 368: 0
+ 369: 2
+ 370: LANG:1 0 
+ 371: LANG:31 0 
+ 372: 
+ 373: 3
+ 374: "sizePolicy" "Preferred Preferred"
+ 375: "dashclr"N "_Transparent"
+ 376: "antiAliased" "0"
+ 377: E E 0 1 1 2 1 E 0.6585365853658537 0 0.9354838709677419 82.6829268292683 396.7741935483871 2  1 0  "pictures/btn/para/normal_para.jpg" 4294967295 E 330 260 410 290
+ 378: 6 150
+ 379: "app_button"
+ 380: ""
+ 381: 1 330 260 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ 382:  E E
+ 383: 115 0 0 0 0 0
+ 384: E E E
+ 385: 0
+ 386: 2
+ 387: LANG:1 0 
+ 388: LANG:31 0 
+ 389: 
+ 390: 3
+ 391: "sizePolicy" "Preferred Preferred"
+ 392: "dashclr"N "_Transparent"
+ 393: "antiAliased" "0"
+ 394: E E 0 1 1 2 1 E 0.6585365853658537 0 0.9354838709677419 143.6829268292684 396.7741935483871 2  1 0  "pictures/btn/para/normal_para.jpg" 4294967295 E 330 260 410 290
+ 395: 2 151
+ 396: "app_text"
+ 397: ""
+ 398: 1 -1461.090730925579 -1512.436523647445 E E E 1 E 1 E N "white" E N "_Window" E E
+ 399:  E E
+ 400: 116 0 0 0 0 0
+ 401: E E E
+ 402: 0
+ 403: 2
+ 404: LANG:1 0 
+ 405: LANG:31 0 
+ 406: 
+ 407: 3
+ 408: "sizePolicy" "Fixed Fixed"
+ 409: "dashclr"N "_Transparent"
+ 410: "antiAliased" "1"
+ 411: E E 0 1 1 2 1 E 1 0 0.9354838709677419 33.34146341463411 224.6451612903227 0 E 339 449 369 468
+ 412: 0 2 2 "0s" 0 0 0 193 0 0  354 449 1
+ 413: 2
+ 414: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+ 415: LANG:31 30  ,11,-1,5,75,0,0,0,0,0
+ 416: 0 2
+ 417: LANG:1 4 
+ 418: LANG:31 4 
+ 419: 6 152
+ 420: "close_btn"
+ 421: ""
+ 422: 1 330 260 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ 423:  E E
+ 424: 117 0 0 0 0 0
+ 425: E E "main(bool enter)
+ 426: {
+ 427:   if(enter)
+ 428:     this.fill(\"[pattern,[fit,png,base/마우스 위/button_over.png]]\");
+ 429:   else
+ 430:     this.fill(\"[pattern,[fit,png,base/기본/button.png]]\");
+ 431: }
+ 432: " 0
+ 433: 
+ 434: 0
+ 435: 2
+ 436: LANG:1 0 
+ 437: LANG:31 0 
+ 438: 
+ 439: 3
+ 440: "sizePolicy" "Preferred Preferred"
+ 441: "dashclr"N "_Transparent"
+ 442: "antiAliased" "0"
+ 443: E E 0 1 1 2 1 E 0.6585365853658537 0 0.9354838709677419 204.3414634146341 396.7741935483871 2  1 0  "pictures/btn/para/normal_para.jpg" 4294967295 E 330 260 410 290
+ 444: 2 153
+ 445: "PRIMITIVE_TEXT333"
+ 446: ""
+ 447: 1 -3700.91999921827 -1512.436523647445 E E E 1 E 1 E N "white" E N "_Window" E E
+ 448:  E E
+ 449: 118 0 0 0 0 0
+ 450: E E E
+ 451: 0
+ 452: 2
+ 453: LANG:1 0 
+ 454: LANG:31 0 
+ 455: 
+ 456: 3
+ 457: "sizePolicy" "Fixed Fixed"
+ 458: "dashclr"N "_Transparent"
+ 459: "antiAliased" "1"
+ 460: E E 0 1 1 2 1 E 1 0 0.9354838709677419 -5.000000000000227 224.6451612903227 0 E 438 449 468 468
+ 461: 0 2 2 "0s" 0 0 0 193 0 0  453 449 1
+ 462: 2
+ 463: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+ 464: LANG:31 30  ,11,-1,5,75,0,0,0,0,0
+ 465: 0 2
+ 466: LANG:1 4 
+ 467: LANG:31 4 ݱ
+ 468: 6 154
+ 469: "edit_button_press"
+ 470: ""
+ 471: 1 330 260 E E E 1 E 0 E N "_Transparent" E N "_Transparent" E E
+ 472:  E E
+ 473: 119 0 0 0 0 0
+ 474: E E E
+ 475: 0
+ 476: 2
+ 477: LANG:1 0 
+ 478: LANG:31 0 
+ 479: 
+ 480: 3
+ 481: "sizePolicy" "Preferred Preferred"
+ 482: "dashclr"N "_Transparent"
+ 483: "antiAliased" "0"
+ 484: E E 0 1 1 2 1 E 0.654320987654321 0 0.9354838709677419 84.415537488708 396.7741935483871 2  1 0  "pictures/btn/para/active_para.jpg" 4294967295 E 330 260 410 290
+ 485: 2 155
+ 486: "mod_text"
+ 487: ""
+ 488: 1 877.9092690744167 -1512.436523647445 E E E 1 E 1 E N "white" E N "_Window" E E
+ 489:  E E
+ 490: 120 0 0 0 0 0
+ 491: E E E
+ 492: 0
+ 493: 2
+ 494: LANG:1 0 
+ 495: LANG:31 0 
+ 496: 
+ 497: 3
+ 498: "sizePolicy" "Fixed Fixed"
+ 499: "dashclr"N "_Transparent"
+ 500: "antiAliased" "1"
+ 501: E E 0 1 1 2 1 E 1 0 0.9354838709677419 73.34146341463419 224.6451612903227 0 E 238 449 268 468
+ 502: 0 2 2 "0s" 0 0 0 193 0 0  253 449 1
+ 503: 2
+ 504: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+ 505: LANG:31 30  ,11,-1,5,75,0,0,0,0,0
+ 506: 0 2
+ 507: LANG:1 4 
+ 508: LANG:31 4 
+ 509: 6 156
+ 510: "RECTANGLE11047"
+ 511: ""
+ 512: 1 330 260 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ 513:  E E
+ 514: 121 0 0 0 0 0
+ 515: E E "main(bool enter)
+ 516: {
+ 517:   if(enter)
+ 518:     edit_button.fill(\"[pattern,[fit,jpg,btn/para/mouseover_para.jpg]]\");
+ 519:   else
+ 520:     edit_button.fill(\"[pattern,[fit,jpg,btn/para/normal_para.jpg]]\");
+ 521: }" 0
+ 522: 
+ 523: 0
+ 524: 2
+ 525: LANG:1 0 
+ 526: LANG:31 0 
+ 527: 
+ 528: 3
+ 529: "sizePolicy" "Preferred Preferred"
+ 530: "dashclr"N "_Transparent"
+ 531: "antiAliased" "0"
+ 532: E "main()
+ 533: {
+ 534:   if (user_permission < 5){
+ 535:     if(mod_text.text==\"수정\"){
+ 536: 
+ 537:       MODIFY_ACTION_BTN(myModuleName(),myPanelName(),
+ 538:                         MAP_DEPEND_VALUE,DYN_ALL_MAP_EDITABLE_KEYS,
+ 539:                         DYN_ALL_MAP_EDITABLE_VALUES,mappingKeys(MAP_ALERT_PRIO),
+ 540:                         DYN_ALL_INIT_INVISIBLE);
+ 541:       }
+ 542:     
+ 543:   }else if (user_permission == 5)
+ 544:   {
+ 545:    ChildPanelOn(\"vision/login.pnl\",
+ 546:       \"\",
+ 547:       makeDynString(),650,150);
+ 548:   }
+ 549:   
+ 550:   if(EDITMODE)
+ 551:   {
+ 552:     bool check_tmp1;
+ 553: 
+ 554:     getValue(\"CHECK_BOX_R1\",\"state\",0,check_tmp1);
+ 555:     
+ 556:     setMultiValue(\"CHECK_BOX1\",\"state\",0,check_tmp1,
+ 557:                   \"CHECK_BOX1\",\"visible\",true,
+ 558:                   \"CHECK_BOX_R1\",\"visible\",false);
+ 559:   }
+ 560:   else
+ 561:   {
+ 562:     setMultiValue(\"CHECK_BOX1\",\"visible\",false,
+ 563:                   \"CHECK_BOX_R1\",\"visible\",true);
+ 564:   }
+ 565: }
+ 566: 
+ 567: 
+ 568: 
+ 569: " 0
+ 570:  0 1 1 2 1 E 0.6585365853658537 0 0.9354838709677419 82.6829268292683 396.7741935483871 1 E 330 260 410 290
+ 571: 6 157
+ 572: "RECTANGLE11048"
+ 573: ""
+ 574: 1 330 260 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ 575:  E E
+ 576: 122 0 0 0 0 0
+ 577: E E "main(bool enter)
+ 578: {
+ 579:   if(enter)
+ 580:     app_button.fill(\"[pattern,[fit,jpg,btn/para/mouseover_para.jpg]]\");
+ 581:   else
+ 582:     app_button.fill(\"[pattern,[fit,jpg,btn/para/normal_para.jpg]]\");
+ 583: }" 0
+ 584: 
+ 585: 0
+ 586: 2
+ 587: LANG:1 0 
+ 588: LANG:31 0 
+ 589: 
+ 590: 3
+ 591: "sizePolicy" "Preferred Preferred"
+ 592: "dashclr"N "_Transparent"
+ 593: "antiAliased" "0"
+ 594: E "main()
+ 595: {  
+ 596:   string euhi,eulo,err_msg,all_err_msg;
+ 597:   float dp_hh,dp_hi,dp_lo,dp_ll,alm_value,alm_chg_value;
+ 598:   dyn_float dyn_dp_alm_value,dyn_cur_alm_value,dyn_chg_alm_value;
+ 599:   dyn_string dyn_sort_cur_alm_value,dyn_obj,dyn_error_msg;
+ 600:   int error_idx;
+ 601:   mapping map_sort_alm_value;
+ 602:   anytype tmp;
+ 603: 
+ 604:   float r_interlockdbsp;
+ 605:   float r_deadbandsp;
+ 606:   bool check_tmp1, check_tmp_R1;
+ 607: 
+ 608:   getMultiValue(\"obj_interlockdbsp\",\"text\",r_interlockdbsp,
+ 609:                 \"obj_deadbandsp\",\"text\",r_deadbandsp,
+ 610:                 \"CHECK_BOX_R1\",\"state\",0,check_tmp_R1,
+ 611:                 \"CHECK_BOX1\",\"state\",0,check_tmp1);
+ 612:   
+ 613:   if( r_interlockdbsp < 0 )
+ 614:   {
+ 615:     err_msg = \"제약조건 위반: INTERLOCK DEADBAND 설정범위 (0 이상)\\n\";
+ 616:     dynAppend(dyn_error_msg,err_msg);
+ 617:   }
+ 618:   
+ 619:   if( r_deadbandsp < 0 )
+ 620:   {
+ 621:     err_msg = \"제약조건 위반: CLOSE DEADBAND 설정범위 (0 이상)\\n\";
+ 622:     dynAppend(dyn_error_msg,err_msg);
+ 623:   }
+ 624: 
+ 625:   // 정상상태 변경값 적용
+ 626:   if(dynlen(dyn_error_msg) == 0)
+ 627:     APPLY_ACTION_BTN_PP(POPUP_MSG_FILENAME,DYN_ALL_MAP_EDITABLE_DESC,
+ 628:                    DYN_ALL_MAP_EDITABLE_KEYS,DYN_ALL_MAP_EDITABLE_VALUES,
+ 629:                    mappingKeys(MAP_ALERT_PRIO),DYN_ALL_INIT_INVISIBLE);
+ 630:   // 제약조건 위반의 경우
+ 631:   else                        
+ 632:   {
+ 633:     for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+ 634:     {
+ 635:       all_err_msg += dyn_error_msg[i];
+ 636:     }
+ 637:     
+ 638:       ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\"err\",
+ 639:              makeDynString(\"$text:\"+all_err_msg));
+ 640:       PARAMETER_WINDOW_INITIAL(myModuleName(),myPanelName(),
+ 641:                                DYN_ALL_MAP_EDITABLE_KEYS,DYN_ALL_MAP_EDITABLE_VALUES,
+ 642:                                mappingKeys(MAP_ALERT_PRIO),DYN_ALL_INIT_INVISIBLE);
+ 643:   }
+ 644:   
+ 645:   setMultiValue(\"CHECK_BOX1\",\"visible\",FALSE,
+ 646:                 \"CHECK_BOX_R1\",\"visible\",TRUE);
+ 647: }
+ 648: 
+ 649: 
+ 650: " 0
+ 651:  0 1 1 2 1 E 0.6585365853658537 0 0.9354838709677419 143.6829268292684 395.7741935483871 1 E 330 260 410 290
+ 652: 6 158
+ 653: "RECTANGLE7"
+ 654: ""
+ 655: 1 330 260 E E E 1 E 1 E N "_Transparent" E N "_Transparent" E E
+ 656:  E E
+ 657: 123 0 0 0 0 0
+ 658: E E "main(bool enter)
+ 659: {
+ 660:   if(enter)
+ 661:     close_btn.fill(\"[pattern,[fit,jpg,btn/para/mouseover_para.jpg]]\");
+ 662:   else
+ 663:     close_btn.fill(\"[pattern,[fit,jpg,btn/para/normal_para.jpg]]\");
+ 664: }" 0
+ 665: 
+ 666: 0
+ 667: 2
+ 668: LANG:1 0 
+ 669: LANG:31 0 
+ 670: 
+ 671: 3
+ 672: "sizePolicy" "Preferred Preferred"
+ 673: "dashclr"N "_Transparent"
+ 674: "antiAliased" "0"
+ 675: E "main()
+ 676: {
+ 677:   PanelOffReturn(makeDynFloat(0),makeDynString(\"FALSE\"));  
+ 678: }" 0
+ 679:  0 1 1 2 1 E 0.6585365853658537 0 0.9354838709677419 204.3414634146342 396.7741935483871 1 E 330 260 410 290
+ 680: 6 228
+ 681: "bg_PID"
+ 682: ""
+ 683: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+ 684:  E E
+ 685: 160 0 0 0 0 0
+ 686: E E E
+ 687: 4
+ 688: 2
+ 689: LANG:1 0 
+ 690: LANG:31 0 
+ 691: 
+ 692: 2
+ 693: "dashclr"N "_Transparent"
+ 694: "antiAliased" "0"
+ 695: E E 0 1 1 2 1 E 2.086897959183673 0 1.441176470588235 -98.422874654439 -435.9999999999999 1 E 54 408 163 442
+ 696: 6 294
+ 697: "RECTANGLE11235"
+ 698: ""
+ 699: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+ 700:  E E
+ 701: 180 0 0 0 0 0
+ 702: E E E
+ 703: 4
+ 704: 2
+ 705: LANG:1 0 
+ 706: LANG:31 0 
+ 707: 
+ 708: 2
+ 709: "dashclr"N "_Transparent"
+ 710: "antiAliased" "0"
+ 711: E E 0 1 1 2 1 E 3.186210751381298 0 0.7058823529411763 -158.05538057459 -217.9999999999999 1 E 54 408 163 442
+ 712: 6 295
+ 713: "RECTANGLE11236"
+ 714: ""
+ 715: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+ 716:  E E
+ 717: 181 0 0 0 0 0
+ 718: E E E
+ 719: 4
+ 720: 2
+ 721: LANG:1 0 
+ 722: LANG:31 0 
+ 723: 
+ 724: 2
+ 725: "dashclr"N "_Transparent"
+ 726: "antiAliased" "0"
+ 727: E E 0 1 1 2 1 E 2.140530889639596 0 0.7058823529411763 14.13789733449994 -277.4641856742697 1 E 163 492 214 526
+ 728: 14 297
+ 729: "obj_orpsp"
+ 730: ""
+ 731: 1 187.153195164076 -171.4571374485597 E E E 1 E 1 E N "White" E N "Black" E E
+ 732:  E E
+ 733: 183 0 0 0 0 0
+ 734: E E E
+ 735: 0
+ 736: 2
+ 737: LANG:1 0 
+ 738: LANG:31 0 
+ 739: 
+ 740: 1
+ 741: "sizePolicy" "Expanding Fixed"
+ 742: 2
+ 743: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+ 744: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+ 745: 0  378 70 456 94
+ 746: 2 "3.2f" 6 0 0 2 0 -1  E E E
+ 747: 6 298
+ 748: "RECTANGLE11237"
+ 749: ""
+ 750: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+ 751:  E E
+ 752: 184 0 0 0 0 0
+ 753: E E E
+ 754: 4
+ 755: 2
+ 756: LANG:1 0 
+ 757: LANG:31 0 
+ 758: 
+ 759: 2
+ 760: "dashclr"N "_Transparent"
+ 761: "antiAliased" "0"
+ 762: E E 0 1 1 2 1 E 3.186210751381298 0 0.7058823529411763 -158.05538057459 -191.9999999999999 1 E 54 408 163 442
+ 763: 6 299
+ 764: "RECTANGLE11238"
+ 765: ""
+ 766: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+ 767:  E E
+ 768: 185 0 0 0 0 0
+ 769: E E E
+ 770: 4
+ 771: 2
+ 772: LANG:1 0 
+ 773: LANG:31 0 
+ 774: 
+ 775: 2
+ 776: "dashclr"N "_Transparent"
+ 777: "antiAliased" "0"
+ 778: E E 0 1 1 2 1 E 2.140530889639596 0 0.7058823529411763 14.13789733449994 -251.4641856742697 1 E 163 492 214 526
+ 779: 14 301
+ 780: "obj_delaysp"
+ 781: ""
+ 782: 1 187 -6.457137448559678 E E E 1 E 1 E N "White" E N "Black" E E
+ 783:  E E
+ 784: 187 0 0 0 0 0
+ 785: E E E
+ 786: 0
+ 787: 2
+ 788: LANG:1 0 
+ 789: LANG:31 0 
+ 790: 
+ 791: 1
+ 792: "sizePolicy" "Expanding Fixed"
+ 793: 2
+ 794: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+ 795: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+ 796: 0  378 96 431 120
+ 797: 2 "3d" 3 0 0 2 0 -1  E E E
+ 798: 2 302
+ 799: "PRIMITIVE_TEXT2934"
+ 800: ""
+ 801: 1 449 104.6482910981156 E E E 1 E 1 E N {200,200,200} E N "_Transparent" E E
+ 802:  E E
+ 803: 188 0 0 0 0 0
+ 804: E E E
+ 805: 0
+ 806: 2
+ 807: LANG:1 0 
+ 808: LANG:31 0 
+ 809: 
+ 810: 3
+ 811: "sizePolicy" "Fixed Fixed"
+ 812: "dashclr"N "_Transparent"
+ 813: "antiAliased" "1"
+ 814: E E 0 1 1 2 1 E U  0 E 432 104.6482910981156 466 115
+ 815: 0 2 2 "0s" 0 0 0 193 0 0  449 104.6482910981156 1
+ 816: 2
+ 817: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+ 818: LANG:31 24 ,8,-1,5,75,0,0,0,0,0
+ 819: 0 2
+ 820: LANG:1 9 CT-A3301A
+ 821: LANG:31 5 [sec]
+ 822: 6 303
+ 823: "bg_ORP"
+ 824: ""
+ 825: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+ 826:  E E
+ 827: 189 0 0 0 0 0
+ 828: E E E
+ 829: 4
+ 830: 2
+ 831: LANG:1 0 
+ 832: LANG:31 0 
+ 833: 
+ 834: 2
+ 835: "dashclr"N "_Transparent"
+ 836: "antiAliased" "0"
+ 837: E E 0 1 1 2 1 E 2.096091342263777 0 1.441176470588235 130.811067517756 -435.9999999999999 1 E 54 408 163 442
+ 838: 6 308
+ 839: "RECTANGLE11240"
+ 840: ""
+ 841: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+ 842:  E E
+ 843: 192 0 0 0 0 0
+ 844: E E E
+ 845: 4
+ 846: 2
+ 847: LANG:1 0 
+ 848: LANG:31 0 
+ 849: 
+ 850: 2
+ 851: "dashclr"N "_Transparent"
+ 852: "antiAliased" "0"
+ 853: E E 0 1 1 2 1 E 4.205430905281367 0 0.7058823529411763 -213.0932688851938 -84.9999999999999 1 E 54 408 163 442
+ 854: 6 310
+ 855: "RECTANGLE11241"
+ 856: ""
+ 857: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+ 858:  E E
+ 859: 194 0 0 0 0 0
+ 860: E E E
+ 861: 4
+ 862: 2
+ 863: LANG:1 0 
+ 864: LANG:31 0 
+ 865: 
+ 866: 2
+ 867: "dashclr"N "_Transparent"
+ 868: "antiAliased" "0"
+ 869: E E 0 1 1 2 1 E 8.988826252358303 0 0.7058823529411763 -1451.178679134403 -118.2941176470587 1 E 163 492 214 526
+ 870: 6 313
+ 871: "RECTANGLE11242"
+ 872: ""
+ 873: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+ 874:  E E
+ 875: 196 0 0 0 0 0
+ 876: E E E
+ 877: 4
+ 878: 2
+ 879: LANG:1 0 
+ 880: LANG:31 0 
+ 881: 
+ 882: 2
+ 883: "dashclr"N "_Transparent"
+ 884: "antiAliased" "0"
+ 885: E E 0 1 1 2 1 E 2.086897959183673 0 0.7058823529411763 -99.42287465443901 -32.99999999999993 1 E 54 408 163 442
+ 886: 6 314
+ 887: "RECTANGLE11243"
+ 888: ""
+ 889: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+ 890:  E E
+ 891: 197 0 0 0 0 0
+ 892: E E E
+ 893: 4
+ 894: 2
+ 895: LANG:1 0 
+ 896: LANG:31 0 
+ 897: 
+ 898: 2
+ 899: "dashclr"N "_Transparent"
+ 900: "antiAliased" "0"
+ 901: E E 0 1 1 2 1 E 1.263122448979592 0 0.7058823529411763 174.791387755102 -32.99999999999993 1 E 54 408 163 442
+ 902: 6 317
+ 903: "RECTANGLE11244"
+ 904: ""
+ 905: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+ 906:  E E
+ 907: 200 0 0 0 0 0
+ 908: E E E
+ 909: 4
+ 910: 2
+ 911: LANG:1 0 
+ 912: LANG:31 0 
+ 913: 
+ 914: 2
+ 915: "dashclr"N "_Transparent"
+ 916: "antiAliased" "0"
+ 917: E E 0 1 1 2 1 E 1.747772928237835 0 0.7058823529411763 98.11301269723283 -92.4641856742697 1 E 163 492 214 526
+ 918: 14 318
+ 919: "obj_closesp"
+ 920: ""
+ 921: 1 197 13.54286255144029 E E E 1 E 1 E N "White" E N "Black" E E
+ 922:  E E
+ 923: 201 0 0 0 0 0
+ 924: E E E
+ 925: 0
+ 926: 2
+ 927: LANG:1 0 
+ 928: LANG:31 0 
+ 929: 
+ 930: 1
+ 931: "sizePolicy" "Expanding Fixed"
+ 932: 2
+ 933: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+ 934: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+ 935: 0  388 255 466 279
+ 936: 2 "3.2f" 6 0 0 2 0 -1  E E E
+ 937: 6 319
+ 938: "RECTANGLE11245"
+ 939: ""
+ 940: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {0,0,0} E E
+ 941:  E E
+ 942: 202 0 0 0 0 0
+ 943: E E E
+ 944: 4
+ 945: 2
+ 946: LANG:1 0 
+ 947: LANG:31 0 
+ 948: 
+ 949: 2
+ 950: "dashclr"N "_Transparent"
+ 951: "antiAliased" "0"
+ 952: E E 0 1 1 2 1 E 4.47478686798623 0 0.7058823529411763 -716.3902594817554 -66.29411764705873 1 E 163 492 214 526
+ 953: 6 321
+ 954: "RECTANGLE11246"
+ 955: ""
+ 956: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+ 957:  E E
+ 958: 204 0 0 0 0 0
+ 959: E E E
+ 960: 4
+ 961: 2
+ 962: LANG:1 0 
+ 963: LANG:31 0 
+ 964: 
+ 965: 2
+ 966: "dashclr"N "_Transparent"
+ 967: "antiAliased" "0"
+ 968: E E 0 1 1 2 1 E 1.253969387755102 0 0.7058823529411763 -54.71434693877553 19.00000000000007 1 E 54 408 163 442
+ 969: 6 323
+ 970: "RECTANGLE11247"
+ 971: ""
+ 972: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+ 973:  E E
+ 974: 206 0 0 0 0 0
+ 975: E E E
+ 976: 4
+ 977: 2
+ 978: LANG:1 0 
+ 979: LANG:31 0 
+ 980: 
+ 981: 2
+ 982: "dashclr"N "_Transparent"
+ 983: "antiAliased" "0"
+ 984: E E 0 1 1 2 1 E 1.747772928237835 0 0.7058823529411763 -132.8869873027672 -40.46418567426969 1 E 163 492 214 526
+ 985: 14 324
+ 986: "obj_interlocksp"
+ 987: ""
+ 988: 1 -34 65.54286255144029 E E E 1 E 1 E N "White" E N "Black" E E
+ 989:  E E
+ 990: 207 0 0 0 0 0
+ 991: E E E
+ 992: 0
+ 993: 2
+ 994: LANG:1 0 
+ 995: LANG:31 0 
+ 996: 
+ 997: 1
+ 998: "sizePolicy" "Expanding Fixed"
+ 999: 2
+1000: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+1001: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+1002: 0  157 307 235 331
+1003: 2 "3.2f" 6 0 0 2 0 -1  E E E
+1004: 6 325
+1005: "RECTANGLE11248"
+1006: ""
+1007: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+1008:  E E
+1009: 208 0 0 0 0 0
+1010: E E E
+1011: 4
+1012: 2
+1013: LANG:1 0 
+1014: LANG:31 0 
+1015: 
+1016: 2
+1017: "dashclr"N "_Transparent"
+1018: "antiAliased" "0"
+1019: E E 0 1 1 2 1 E 1.253969387755102 0 0.7058823529411763 -54.71434693877553 45.00000000000007 1 E 54 408 163 442
+1020: 6 327
+1021: "RECTANGLE11249"
+1022: ""
+1023: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+1024:  E E
+1025: 210 0 0 0 0 0
+1026: E E E
+1027: 4
+1028: 2
+1029: LANG:1 0 
+1030: LANG:31 0 
+1031: 
+1032: 2
+1033: "dashclr"N "_Transparent"
+1034: "antiAliased" "0"
+1035: E E 0 1 1 2 1 E 1.747772928237835 0 0.7058823529411763 -132.8869873027672 -14.46418567426969 1 E 163 492 214 526
+1036: 14 328
+1037: "obj_interlockdbsp"
+1038: ""
+1039: 1 -34 91.54286255144029 E E E 1 E 1 E N "White" E N "Black" E E
+1040:  E E
+1041: 211 0 0 0 0 0
+1042: E E E
+1043: 0
+1044: 2
+1045: LANG:1 0 
+1046: LANG:31 0 
+1047: 
+1048: 1
+1049: "sizePolicy" "Expanding Fixed"
+1050: 2
+1051: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+1052: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+1053: 0  157 333 235 357
+1054: 2 "3.2f" 6 0 0 2 0 -1  E E E
+1055: 6 329
+1056: "RECTANGLE11250"
+1057: ""
+1058: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+1059:  E E
+1060: 212 0 0 0 0 0
+1061: E E E
+1062: 4
+1063: 2
+1064: LANG:1 0 
+1065: LANG:31 0 
+1066: 
+1067: 2
+1068: "dashclr"N "_Transparent"
+1069: "antiAliased" "0"
+1070: E E 0 1 1 2 1 E 1.263122448979592 0 0.7058823529411763 174.791387755102 -6.999999999999929 1 E 54 408 163 442
+1071: 6 331
+1072: "RECTANGLE11251"
+1073: ""
+1074: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+1075:  E E
+1076: 214 0 0 0 0 0
+1077: E E E
+1078: 4
+1079: 2
+1080: LANG:1 0 
+1081: LANG:31 0 
+1082: 
+1083: 2
+1084: "dashclr"N "_Transparent"
+1085: "antiAliased" "0"
+1086: E E 0 1 1 2 1 E 1.747772928237835 0 0.7058823529411763 98.11301269723283 -66.46418567426969 1 E 163 492 214 526
+1087: 14 332
+1088: "obj_deadbandsp"
+1089: ""
+1090: 1 197 39.54286255144029 E E E 1 E 1 E N "White" E N "Black" E E
+1091:  E E
+1092: 215 0 0 0 0 0
+1093: E E E
+1094: 0
+1095: 2
+1096: LANG:1 0 
+1097: LANG:31 0 
+1098: 
+1099: 1
+1100: "sizePolicy" "Expanding Fixed"
+1101: 2
+1102: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+1103: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+1104: 0  388 281 466 305
+1105: 2 "3.2f" 6 0 0 2 0 -1  E E E
+1106: 6 333
+1107: "RECTANGLE11252"
+1108: ""
+1109: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+1110:  E E
+1111: 216 0 0 0 0 0
+1112: E E E
+1113: 4
+1114: 2
+1115: LANG:1 0 
+1116: LANG:31 0 
+1117: 
+1118: 2
+1119: "dashclr"N "_Transparent"
+1120: "antiAliased" "0"
+1121: E E 0 1 1 2 1 E 1.263122448979592 0 0.7058823529411763 174.791387755102 19.00000000000007 1 E 54 408 163 442
+1122: 6 335
+1123: "RECTANGLE11253"
+1124: ""
+1125: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+1126:  E E
+1127: 218 0 0 0 0 0
+1128: E E E
+1129: 4
+1130: 2
+1131: LANG:1 0 
+1132: LANG:31 0 
+1133: 
+1134: 2
+1135: "dashclr"N "_Transparent"
+1136: "antiAliased" "0"
+1137: E E 0 1 1 2 1 E 1.747772928237835 0 0.7058823529411763 98.11301269723283 -40.46418567426969 1 E 163 492 214 526
+1138: 14 336
+1139: "obj_openvvsp"
+1140: ""
+1141: 1 197 65.54286255144029 E E E 1 E 1 E N "White" E N "Black" E E
+1142:  E E
+1143: 219 0 0 0 0 0
+1144: E E E
+1145: 0
+1146: 2
+1147: LANG:1 0 
+1148: LANG:31 0 
+1149: 
+1150: 1
+1151: "sizePolicy" "Expanding Fixed"
+1152: 2
+1153: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+1154: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+1155: 0  388 307 466 331
+1156: 2 "3.2f" 6 0 0 2 0 -1  E E E
+1157: 6 337
+1158: "RECTANGLE11254"
+1159: ""
+1160: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+1161:  E E
+1162: 220 0 0 0 0 0
+1163: E E E
+1164: 4
+1165: 2
+1166: LANG:1 0 
+1167: LANG:31 0 
+1168: 
+1169: 2
+1170: "dashclr"N "_Transparent"
+1171: "antiAliased" "0"
+1172: E E 0 1 1 2 1 E 1.263122448979592 0 0.7058823529411763 174.791387755102 45.00000000000007 1 E 54 408 163 442
+1173: 6 339
+1174: "RECTANGLE11255"
+1175: ""
+1176: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+1177:  E E
+1178: 222 0 0 0 0 0
+1179: E E E
+1180: 4
+1181: 2
+1182: LANG:1 0 
+1183: LANG:31 0 
+1184: 
+1185: 2
+1186: "dashclr"N "_Transparent"
+1187: "antiAliased" "0"
+1188: E E 0 1 1 2 1 E 1.747772928237835 0 0.7058823529411763 98.11301269723283 -14.46418567426969 1 E 163 492 214 526
+1189: 14 340
+1190: "obj_closevvsp"
+1191: ""
+1192: 1 197 91.54286255144029 E E E 1 E 1 E N "White" E N "Black" E E
+1193:  E E
+1194: 223 0 0 0 0 0
+1195: E E E
+1196: 0
+1197: 2
+1198: LANG:1 0 
+1199: LANG:31 0 
+1200: 
+1201: 1
+1202: "sizePolicy" "Expanding Fixed"
+1203: 2
+1204: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+1205: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+1206: 0  388 333 466 357
+1207: 2 "3.2f" 6 0 0 2 0 -1  E E E
+1208: 6 341
+1209: "RECTANGLE11256"
+1210: ""
+1211: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+1212:  E E
+1213: 224 0 0 0 0 0
+1214: E E E
+1215: 4
+1216: 2
+1217: LANG:1 0 
+1218: LANG:31 0 
+1219: 
+1220: 3
+1221: "sizePolicy" "Preferred Preferred"
+1222: "dashclr"N "_Transparent"
+1223: "antiAliased" "0"
+1224: E E 0 1 1 2 1 E 2.086897959183673 0 3.5 -99.42287465443899 -1069 1 E 54 408 163 442
+1225: 6 342
+1226: "RECTANGLE11257"
+1227: ""
+1228: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+1229:  E E
+1230: 225 0 0 0 0 0
+1231: E E E
+1232: 4
+1233: 2
+1234: LANG:1 0 
+1235: LANG:31 0 
+1236: 
+1237: 3
+1238: "sizePolicy" "Preferred Preferred"
+1239: "dashclr"N "_Transparent"
+1240: "antiAliased" "0"
+1241: E E 0 1 1 2 1 E 2.096091342263777 0 3.5 129.8110675177561 -1069 1 E 54 408 163 442
+1242: 2 371
+1243: "text_ampset"
+1244: ""
+1245: 1 122.6496832899592 50.22296946068866 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1246:  E E
+1247: 253 0 0 0 0 0
+1248: E E E
+1249: 0
+1250: 2
+1251: LANG:1 0 
+1252: LANG:31 0 
+1253: 
+1254: 3
+1255: "sizePolicy" "Fixed Fixed"
+1256: "dashclr"N "_Transparent"
+1257: "antiAliased" "1"
+1258: E E 0 1 1 2 1 E U  0 E 122.6496832899592 50.22296946068866 251 61
+1259: 0 2 2 "0s" 0 0 0 192 0 0  122.6496832899592 50.22296946068866 1
+1260: 2
+1261: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1262: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1263: 0 2
+1264: LANG:1 9 CT-A3301A
+1265: LANG:31 17 OUTLET NO2 簪
+1266: 2 372
+1267: "PRIMITIVE_TEXT2954"
+1268: ""
+1269: 1 103.6496832899592 76.22296946068866 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1270:  E E
+1271: 254 0 0 0 0 0
+1272: E E E
+1273: 0
+1274: 2
+1275: LANG:1 0 
+1276: LANG:31 0 
+1277: 
+1278: 3
+1279: "sizePolicy" "Fixed Fixed"
+1280: "dashclr"N "_Transparent"
+1281: "antiAliased" "1"
+1282: E E 0 1 1 2 1 E U  0 E 103.6496832899592 76.22296946068866 270 87
+1283: 0 2 2 "0s" 0 0 0 192 0 0  103.6496832899592 76.22296946068866 1
+1284: 2
+1285: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1286: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1287: 0 2
+1288: LANG:1 9 CT-A3301A
+1289: LANG:31 24 ORP  ȯ NO2 
+1290: 2 373
+1291: "PRIMITIVE_TEXT2955"
+1292: ""
+1293: 1 96.64968328995917 102.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1294:  E E
+1295: 255 0 0 0 0 0
+1296: E E E
+1297: 0
+1298: 2
+1299: LANG:1 0 
+1300: LANG:31 0 
+1301: 
+1302: 3
+1303: "sizePolicy" "Fixed Fixed"
+1304: "dashclr"N "_Transparent"
+1305: "antiAliased" "1"
+1306: E E 0 1 1 2 1 E U  0 E 96.64968328995917 102.2229694606887 286 113
+1307: 0 2 2 "0s" 0 0 0 192 0 0  96.64968328995917 102.2229694606887 1
+1308: 2
+1309: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1310: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1311: 0 2
+1312: LANG:1 9 CT-A3301A
+1313: LANG:31 27 PID <-> ORP  ȯ Delay
+1314: 2 374
+1315: "PRIMITIVE_TEXT2956"
+1316: ""
+1317: 1 127.6496832899592 163.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1318:  E E
+1319: 256 0 0 0 0 0
+1320: E E E
+1321: 0
+1322: 2
+1323: LANG:1 0 
+1324: LANG:31 0 
+1325: 
+1326: 3
+1327: "sizePolicy" "Fixed Fixed"
+1328: "dashclr"N "_Transparent"
+1329: "antiAliased" "1"
+1330: E E 0 1 1 2 1 E U  0 E 42 163.2229694606887 214 188
+1331: 0 2 2 "0s" 0 0 0 193 0 0  127.6496832899592 163.2229694606887 2
+1332: 2
+1333: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1334: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1335: 0 2
+1336: LANG:1 9 CT-A3301A
+1337: LANG:31 20 OUTLET NO2 (PID)
+1338: 2
+1339: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1340: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1341: 0 2
+1342: LANG:1 0 
+1343: LANG:31 25 (NO2 簪 > NO2 )
+1344: 2 375
+1345: "PRIMITIVE_TEXT2957"
+1346: ""
+1347: 1 357.6496832899592 163.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1348:  E E
+1349: 257 0 0 0 0 0
+1350: E E E
+1351: 0
+1352: 2
+1353: LANG:1 0 
+1354: LANG:31 0 
+1355: 
+1356: 3
+1357: "sizePolicy" "Fixed Fixed"
+1358: "dashclr"N "_Transparent"
+1359: "antiAliased" "1"
+1360: E E 0 1 1 2 1 E U  0 E 271 163.2229694606887 445 188
+1361: 0 2 2 "0s" 0 0 0 193 0 0  357.6496832899592 163.2229694606887 2
+1362: 2
+1363: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1364: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1365: 0 2
+1366: LANG:1 9 CT-A3301A
+1367: LANG:31 8 ORP 
+1368: 2
+1369: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1370: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1371: 0 2
+1372: LANG:1 0 
+1373: LANG:31 26 (NO2 簪  NO2 )
+1374: 2 376
+1375: "PRIMITIVE_TEXT2958"
+1376: ""
+1377: 1 205.6496832899592 209.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1378:  E E
+1379: 258 0 0 0 0 0
+1380: E E E
+1381: 0
+1382: 2
+1383: LANG:1 0 
+1384: LANG:31 0 
+1385: 
+1386: 3
+1387: "sizePolicy" "Fixed Fixed"
+1388: "dashclr"N "_Transparent"
+1389: "antiAliased" "1"
+1390: E E 0 1 1 2 1 E U  0 E 205.6496832899592 209.2229694606887 279 220
+1391: 0 2 2 "0s" 0 0 0 192 0 0  205.6496832899592 209.2229694606887 1
+1392: 2
+1393: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1394: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1395: 0 2
+1396: LANG:1 9 CT-A3301A
+1397: LANG:31 10 ORP 簪
+1398: 2 377
+1399: "PRIMITIVE_TEXT2959"
+1400: ""
+1401: 1 71.64968328995917 261.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1402:  E E
+1403: 259 0 0 0 0 0
+1404: E E E
+1405: 0
+1406: 2
+1407: LANG:1 0 
+1408: LANG:31 0 
+1409: 
+1410: 3
+1411: "sizePolicy" "Fixed Fixed"
+1412: "dashclr"N "_Transparent"
+1413: "antiAliased" "1"
+1414: E E 0 1 1 2 1 E U  0 E 71.64968328995917 261.2229694606887 181 272
+1415: 0 2 2 "0s" 0 0 0 192 0 0  71.64968328995917 261.2229694606887 1
+1416: 2
+1417: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1418: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1419: 0 2
+1420: LANG:1 9 CT-A3301A
+1421: LANG:31 13 ORP INTERLOCK
+1422: 2 378
+1423: "PRIMITIVE_TEXT2960"
+1424: ""
+1425: 1 247.6496832899592 261.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1426:  E E
+1427: 260 0 0 0 0 0
+1428: E E E
+1429: 0
+1430: 2
+1431: LANG:1 0 
+1432: LANG:31 0 
+1433: 
+1434: 3
+1435: "sizePolicy" "Fixed Fixed"
+1436: "dashclr"N "_Transparent"
+1437: "antiAliased" "1"
+1438: E E 0 1 1 2 1 E U  0 E 247.6496832899592 261.2229694606887 376 274
+1439: 0 2 2 "0s" 0 0 0 192 0 0  247.6496832899592 261.2229694606887 1
+1440: 2
+1441: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1442: LANG:31 25 Arial,8,-1,5,75,0,0,0,0,0
+1443: 0 2
+1444: LANG:1 9 CT-A3301A
+1445: LANG:31 21 CLOSE  ORP 
+1446: 2 379
+1447: "PRIMITIVE_TEXT2961"
+1448: ""
+1449: 1 274.6496832899592 287.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1450:  E E
+1451: 261 0 0 0 0 0
+1452: E E E
+1453: 0
+1454: 2
+1455: LANG:1 0 
+1456: LANG:31 0 
+1457: 
+1458: 3
+1459: "sizePolicy" "Fixed Fixed"
+1460: "dashclr"N "_Transparent"
+1461: "antiAliased" "1"
+1462: E E 0 1 1 2 1 E U  0 E 274.6496832899592 287.2229694606887 348 298
+1463: 0 2 2 "0s" 0 0 0 192 0 0  274.6496832899592 287.2229694606887 1
+1464: 2
+1465: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1466: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1467: 0 2
+1468: LANG:1 9 CT-A3301A
+1469: LANG:31 8 DEADBAND
+1470: 2 380
+1471: "PRIMITIVE_TEXT2962"
+1472: ""
+1473: 1 254.6496832899592 314.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1474:  E E
+1475: 262 0 0 0 0 0
+1476: E E E
+1477: 0
+1478: 2
+1479: LANG:1 0 
+1480: LANG:31 0 
+1481: 
+1482: 3
+1483: "sizePolicy" "Fixed Fixed"
+1484: "dashclr"N "_Transparent"
+1485: "antiAliased" "1"
+1486: E E 0 1 1 2 1 E U  0 E 254.6496832899592 314.2229694606887 368 325
+1487: 0 2 2 "0s" 0 0 0 192 0 0  254.6496832899592 314.2229694606887 1
+1488: 2
+1489: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1490: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1491: 0 2
+1492: LANG:1 9 CT-A3301A
+1493: LANG:31 16 OPEN  
+1494: 2 381
+1495: "PRIMITIVE_TEXT2963"
+1496: ""
+1497: 1 250.6496832899592 339.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1498:  E E
+1499: 263 0 0 0 0 0
+1500: E E E
+1501: 0
+1502: 2
+1503: LANG:1 0 
+1504: LANG:31 0 
+1505: 
+1506: 3
+1507: "sizePolicy" "Fixed Fixed"
+1508: "dashclr"N "_Transparent"
+1509: "antiAliased" "1"
+1510: E E 0 1 1 2 1 E U  0 E 250.6496832899592 339.2229694606887 373 350
+1511: 0 2 2 "0s" 0 0 0 192 0 0  250.6496832899592 339.2229694606887 1
+1512: 2
+1513: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1514: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1515: 0 2
+1516: LANG:1 9 CT-A3301A
+1517: LANG:31 17 CLOSE  
+1518: 2 383
+1519: "PRIMITIVE_TEXT2965"
+1520: ""
+1521: 1 16.64968328995917 313.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1522:  E E
+1523: 265 0 0 0 0 0
+1524: E E E
+1525: 0
+1526: 2
+1527: LANG:1 0 
+1528: LANG:31 0 
+1529: 
+1530: 3
+1531: "sizePolicy" "Fixed Fixed"
+1532: "dashclr"N "_Transparent"
+1533: "antiAliased" "1"
+1534: E E 0 1 1 2 1 E U  0 E 16.64968328995917 313.2229694606887 144 327
+1535: 0 2 2 "0s" 0 0 0 192 0 0  16.64968328995917 313.2229694606887 1
+1536: 2
+1537: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1538: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+1539: 0 2
+1540: LANG:1 9 CT-A3301A
+1541: LANG:31 19 INTERLCK ORP 
+1542: 2 384
+1543: "PRIMITIVE_TEXT2966"
+1544: ""
+1545: 1 43.64968328995917 339.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1546:  E E
+1547: 266 0 0 0 0 0
+1548: E E E
+1549: 0
+1550: 2
+1551: LANG:1 0 
+1552: LANG:31 0 
+1553: 
+1554: 3
+1555: "sizePolicy" "Fixed Fixed"
+1556: "dashclr"N "_Transparent"
+1557: "antiAliased" "1"
+1558: E E 0 1 1 2 1 E U  0 E 43.64968328995917 339.2229694606887 117 350
+1559: 0 2 2 "0s" 0 0 0 192 0 0  43.64968328995917 339.2229694606887 1
+1560: 2
+1561: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1562: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1563: 0 2
+1564: LANG:1 9 CT-A3301A
+1565: LANG:31 8 DEADBAND
+1566: 2 385
+1567: "PRIMITIVE_TEXT2967"
+1568: ""
+1569: 1 14.64968328995917 369.2229694606887 E E E 1 E 1 E N {255,255,0} E N "_Transparent" E E
+1570:  E E
+1571: 267 0 0 0 0 0
+1572: E E E
+1573: 0
+1574: 2
+1575: LANG:1 0 
+1576: LANG:31 0 
+1577: 
+1578: 3
+1579: "sizePolicy" "Fixed Fixed"
+1580: "dashclr"N "_Transparent"
+1581: "antiAliased" "1"
+1582: E E 0 1 1 2 1 E U  0 E 14.64968328995917 369.2229694606887 175 381
+1583: 0 2 2 "0s" 0 0 0 192 0 0  14.64968328995917 369.2229694606887 1
+1584: 2
+1585: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1586: LANG:31 25 ,10,-1,5,75,0,0,0,0,0
+1587: 0 2
+1588: LANG:1 9 CT-A3301A
+1589: LANG:31 21  ORP INTERLOCK 
+1590: 2 386
+1591: "PRIMITIVE_TEXT2968"
+1592: ""
+1593: 1 21 387.2229694606887 E E E 1 E 1 E N {255,255,0} E N "_Transparent" E E
+1594:  E E
+1595: 268 0 0 0 0 0
+1596: E E E
+1597: 0
+1598: 2
+1599: LANG:1 0 
+1600: LANG:31 0 
+1601: 
+1602: 3
+1603: "sizePolicy" "Fixed Fixed"
+1604: "dashclr"N "_Transparent"
+1605: "antiAliased" "1"
+1606: E E 0 1 1 2 1 E U  0 E 21 387.2229694606887 239 464
+1607: 0 2 2 "0s" 0 0 0 192 0 0  21 387.2229694606887 5
+1608: 2
+1609: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1610: LANG:31 25 Arial,8,-1,5,75,0,0,0,0,0
+1611: 0 2
+1612: LANG:1 9 CT-A3301A
+1613: LANG:31 37 - ORP 簪  INTERLOCK ORP :
+1614: 2
+1615: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1616: LANG:31 25 Arial,8,-1,5,75,0,0,0,0,0
+1617: 0 2
+1618: LANG:1 0 
+1619: LANG:31 13 -> V/V CLOSE 
+1620: 2
+1621: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1622: LANG:31 25 Arial,8,-1,5,75,0,0,0,0,0
+1623: 0 2
+1624: LANG:1 0 
+1625: LANG:31 39 - ORP 簪  INTERLOCK ORP  + 
+1626: 2
+1627: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1628: LANG:31 25 Arial,8,-1,5,75,0,0,0,0,0
+1629: 0 2
+1630: LANG:1 0 
+1631: LANG:31 10 DEADBAND :
+1632: 2
+1633: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1634: LANG:31 25 Arial,8,-1,5,75,0,0,0,0,0
+1635: 0 2
+1636: LANG:1 0 
+1637: LANG:31 15 -> V/V PID 
+1638: 2 387
+1639: "PRIMITIVE_TEXT2969"
+1640: ""
+1641: 1 244.6496832899592 369.2229694606887 E E E 1 E 1 E N {255,255,0} E N "_Transparent" E E
+1642:  E E
+1643: 269 0 0 0 0 0
+1644: E E E
+1645: 0
+1646: 2
+1647: LANG:1 0 
+1648: LANG:31 0 
+1649: 
+1650: 3
+1651: "sizePolicy" "Fixed Fixed"
+1652: "dashclr"N "_Transparent"
+1653: "antiAliased" "1"
+1654: E E 0 1 1 2 1 E U  0 E 244.6496832899592 369.2229694606887 374 381
+1655: 0 2 2 "0s" 0 0 0 192 0 0  244.6496832899592 369.2229694606887 1
+1656: 2
+1657: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1658: LANG:31 25 ,10,-1,5,75,0,0,0,0,0
+1659: 0 2
+1660: LANG:1 9 CT-A3301A
+1661: LANG:31 18  VALVE  
+1662: 2 388
+1663: "PRIMITIVE_TEXT2970"
+1664: ""
+1665: 1 248.6496832899592 388.2229694606887 E E E 1 E 1 E N {255,255,0} E N "_Transparent" E E
+1666:  E E
+1667: 270 0 0 0 0 0
+1668: E E E
+1669: 0
+1670: 2
+1671: LANG:1 0 
+1672: LANG:31 0 
+1673: 
+1674: 3
+1675: "sizePolicy" "Fixed Fixed"
+1676: "dashclr"N "_Transparent"
+1677: "antiAliased" "1"
+1678: E E 0 1 1 2 1 E U  0 E 248.6496832899592 388.2229694606887 469 465
+1679: 0 2 2 "0s" 0 0 0 192 0 0  248.6496832899592 388.2229694606887 5
+1680: 2
+1681: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1682: LANG:31 25 Arial,8,-1,5,75,0,0,0,0,0
+1683: 0 2
+1684: LANG:1 9 CT-A3301A
+1685: LANG:31 38 - ORP 簪  CLOSE  ORP :
+1686: 2
+1687: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1688: LANG:31 25 Arial,8,-1,5,75,0,0,0,0,0
+1689: 0 2
+1690: LANG:1 0 
+1691: LANG:31 36 -> CLOSE   ŭ V/V CLOSE 
+1692: 2
+1693: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1694: LANG:31 25 Arial,8,-1,5,75,0,0,0,0,0
+1695: 0 2
+1696: LANG:1 0 
+1697: LANG:31 40 - ORP 簪  CLOSE  ORP  + 
+1698: 2
+1699: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1700: LANG:31 25 Arial,8,-1,5,75,0,0,0,0,0
+1701: 0 2
+1702: LANG:1 0 
+1703: LANG:31 10 DEADBAND :
+1704: 2
+1705: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1706: LANG:31 25 Arial,8,-1,5,75,0,0,0,0,0
+1707: 0 2
+1708: LANG:1 0 
+1709: LANG:31 33 -> OPEN   ŭ V/V OPEN
+1710: 19 389
+1711: "obj_mode"
+1712: ""
+1713: 1 -343.3381337876737 -237.2514733784353 E E E 0 E 1 E N "white" E N "_Transparent" E E
+1714:  E E
+1715: 271 0 0 0 0 0
+1716: E E E
+1717: 0
+1718: 2
+1719: LANG:1 0 
+1720: LANG:31 0 
+1721: 
+1722: 2
+1723: "sizePolicy" "Preferred Preferred"
+1724: "horizontal" ""
+1725: 2
+1726: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+1727: LANG:31 22 ??,9,-1,5,75,0,0,0,0,0
+1728: 0  50 280 203 306
+1729: 2
+1730: T 
+1731: 2
+1732: LANG:1 3 ???
+1733: LANG:31 6 ̻
+1734: 
+1735: 1 
+1736: 2
+1737: LANG:1 0 
+1738: LANG:31 0 
+1739: E E
+1740: 0 0 0 0 0
+1741: T 
+1742: 2
+1743: LANG:1 3 ???
+1744: LANG:31 4 
+1745: 
+1746: 0 
+1747: 2
+1748: LANG:1 0 
+1749: LANG:31 0 
+1750: E E
+1751: 0 0 0 0 0
+1752: 1
+1753: E E
+1754: 6 390
+1755: "line_PID"
+1756: ""
+1757: 1 14 227 E E E 1 E 1 E N "STD_value_invalid" E N "_Transparent" E E
+1758:  E E
+1759: 272 0 0 0 0 0
+1760: E E E
+1761: 0
+1762: 2
+1763: LANG:1 0 
+1764: LANG:31 0 
+1765: 
+1766: 3
+1767: "sizePolicy" "Preferred Preferred"
+1768: "dashclr"N "_Transparent"
+1769: "antiAliased" "0"
+1770: E E 0 4 1 2 1 E 1 0 1.222222222222222 -3 -24.44444444444447 1 E 14 227 242 412
+1771: 6 391
+1772: "line_ORP"
+1773: ""
+1774: 1 14 227 E E E 1 E 1 E N "STD_value_invalid" E N "_Transparent" E E
+1775:  E E
+1776: 273 0 0 0 0 0
+1777: E E E
+1778: 0
+1779: 2
+1780: LANG:1 0 
+1781: LANG:31 0 
+1782: 
+1783: 2
+1784: "dashclr"N "_Transparent"
+1785: "antiAliased" "0"
+1786: E E 0 4 1 2 1 E 1 0 1.221621621621622 229 -23.30810810810812 1 E 14 227 242 412
+1787: 6 396
+1788: "RECTANGLE11258"
+1789: ""
+1790: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+1791:  E E
+1792: 274 0 0 0 0 0
+1793: E E E
+1794: 4
+1795: 2
+1796: LANG:1 0 
+1797: LANG:31 0 
+1798: 
+1799: 2
+1800: "dashclr"N "_Transparent"
+1801: "antiAliased" "0"
+1802: E E 0 1 1 2 1 E 4.205430905281367 0 0.7058823529411763 -213.0932688851938 202.0000000000001 1 E 54 408 163 442
+1803: 2 397
+1804: "PRIMITIVE_TEXT2971"
+1805: ""
+1806: 1 228.6496832899592 496.2229694606886 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1807:  E E
+1808: 275 0 0 0 0 0
+1809: E E E
+1810: 0
+1811: 2
+1812: LANG:1 0 
+1813: LANG:31 0 
+1814: 
+1815: 3
+1816: "sizePolicy" "Fixed Fixed"
+1817: "dashclr"N "_Transparent"
+1818: "antiAliased" "1"
+1819: E E 0 1 1 2 1 E U  0 E 228.6496832899592 496.2229694606886 256 507
+1820: 0 2 2 "0s" 0 0 0 192 0 0  228.6496832899592 496.2229694606886 1
+1821: 2
+1822: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1823: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1824: 0 2
+1825: LANG:1 9 CT-A3301A
+1826: LANG:31 4 
+1827: 6 398
+1828: "RECTANGLE11259"
+1829: ""
+1830: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+1831:  E E
+1832: 276 0 0 0 0 0
+1833: E E E
+1834: 4
+1835: 2
+1836: LANG:1 0 
+1837: LANG:31 0 
+1838: 
+1839: 2
+1840: "dashclr"N "_Transparent"
+1841: "antiAliased" "0"
+1842: E E 0 1 1 2 1 E 1.253969387755102 0 0.7058823529411763 -53.71434693877553 228.0000000000001 1 E 54 408 163 442
+1843: 6 399
+1844: "RECTANGLE11260"
+1845: ""
+1846: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+1847:  E E
+1848: 277 0 0 0 0 0
+1849: E E E
+1850: 4
+1851: 2
+1852: LANG:1 0 
+1853: LANG:31 0 
+1854: 
+1855: 2
+1856: "dashclr"N "_Transparent"
+1857: "antiAliased" "0"
+1858: E E 0 1 1 2 1 E 1.747772928237835 0 0.7058823529411763 -131.8869873027672 168.5358143257303 1 E 163 492 214 526
+1859: 2 400
+1860: "PRIMITIVE_TEXT2972"
+1861: ""
+1862: 1 67.64968328995917 522.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1863:  E E
+1864: 278 0 0 0 0 0
+1865: E E E
+1866: 0
+1867: 2
+1868: LANG:1 0 
+1869: LANG:31 0 
+1870: 
+1871: 3
+1872: "sizePolicy" "Fixed Fixed"
+1873: "dashclr"N "_Transparent"
+1874: "antiAliased" "1"
+1875: E E 0 1 1 2 1 E U  0 E 67.64968328995917 522.2229694606887 96 533
+1876: 0 2 2 "0s" 0 0 0 192 0 0  67.64968328995917 522.2229694606887 1
+1877: 2
+1878: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1879: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1880: 0 2
+1881: LANG:1 9 CT-A3301A
+1882: LANG:31 3 TAG
+1883: 6 404
+1884: "RECTANGLE11263"
+1885: ""
+1886: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+1887:  E E
+1888: 282 0 0 0 0 0
+1889: E E E
+1890: 4
+1891: 2
+1892: LANG:1 0 
+1893: LANG:31 0 
+1894: 
+1895: 2
+1896: "dashclr"N "_Transparent"
+1897: "antiAliased" "0"
+1898: E E 0 1 1 2 1 E 1.253969387755102 0 1.441176470588235 -53.71434693877551 -45.99999999999989 1 E 54 408 163 442
+1899: 6 405
+1900: "RECTANGLE11264"
+1901: ""
+1902: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+1903:  E E
+1904: 283 0 0 0 0 0
+1905: E E E
+1906: 4
+1907: 2
+1908: LANG:1 0 
+1909: LANG:31 0 
+1910: 
+1911: 2
+1912: "dashclr"N "_Transparent"
+1913: "antiAliased" "0"
+1914: E E 0 1 1 2 1 E 1.747772928237835 0 1.441176470588235 -131.8869873027672 -167.406045751634 1 E 163 492 214 526
+1915: 2 406
+1916: "PRIMITIVE_TEXT2974"
+1917: ""
+1918: 1 81.64968328995917 560.2229694606888 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1919:  E E
+1920: 284 0 0 0 0 0
+1921: E E E
+1922: 0
+1923: 2
+1924: LANG:1 0 
+1925: LANG:31 0 
+1926: 
+1927: 3
+1928: "sizePolicy" "Fixed Fixed"
+1929: "dashclr"N "_Transparent"
+1930: "antiAliased" "1"
+1931: "main()
+1932: {
+1933:   string tag = $DP4;
+1934:   
+1935:   tag = dpSubStr(tag, DPSUB_DP);
+1936: 
+1937:   this.text = tag;
+1938: }" 0
+1939:  E 0 1 1 2 1 E U  0 E 68 560.2229694606888 96 571
+1940: 0 2 2 "0s" 0 0 0 193 0 0  81.64968328995917 560.2229694606888 1
+1941: 2
+1942: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1943: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1944: 0 2
+1945: LANG:1 9 CT-A3301A
+1946: LANG:31 3 TAG
+1947: 2 407
+1948: "PRIMITIVE_TEXT2975"
+1949: ""
+1950: 1 173.6496832899592 522.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+1951:  E E
+1952: 285 0 0 0 0 0
+1953: E E E
+1954: 0
+1955: 2
+1956: LANG:1 0 
+1957: LANG:31 0 
+1958: 
+1959: 3
+1960: "sizePolicy" "Fixed Fixed"
+1961: "dashclr"N "_Transparent"
+1962: "antiAliased" "1"
+1963: E E 0 1 1 2 1 E U  0 E 173.6496832899592 522.2229694606887 219 533
+1964: 0 2 2 "0s" 0 0 0 192 0 0  173.6496832899592 522.2229694606887 1
+1965: 2
+1966: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+1967: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+1968: 0 2
+1969: LANG:1 9 CT-A3301A
+1970: LANG:31 7  
+1971: 1 468 7 "" 7
+1972: 0
+1973: 14 414
+1974: "obj_assset"
+1975: ""
+1976: 1 -32.740932642487 356.9999999999999 E E E 1 E 1 E N "White" E N "Black" E E
+1977:  E E
+1978: 290 0 0 0 0 0
+1979: E E E
+1980: 0
+1981: 2
+1982: LANG:1 0 
+1983: LANG:31 0 
+1984: 
+1985: 1
+1986: "sizePolicy" "Expanding Fixed"
+1987: 2
+1988: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+1989: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+1990: 0  158 598 236 622
+1991: 2 "3.2f" 6 0 0 2 0 -1  E E E
+1992: 6 415
+1993: "RECTANGLE11265"
+1994: ""
+1995: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {40,60,160} E E
+1996:  E E
+1997: 291 0 0 0 0 0
+1998: E E E
+1999: 4
+2000: 2
+2001: LANG:1 0 
+2002: LANG:31 0 
+2003: 
+2004: 2
+2005: "dashclr"N "_Transparent"
+2006: "antiAliased" "0"
+2007: E E 0 1 1 2 1 E 2.096091342263777 0 0.7058823529411763 130.811067517756 228.0000000000001 1 E 54 408 163 442
+2008: 2 416
+2009: "PRIMITIVE_TEXT2977"
+2010: ""
+2011: 1 309.6496832899592 522 E E E 1 E 1 E N {255,255,255} E N "_Transparent" E E
+2012:  E E
+2013: 292 0 0 0 0 0
+2014: E E E
+2015: 0
+2016: 2
+2017: LANG:1 0 
+2018: LANG:31 0 
+2019: 
+2020: 3
+2021: "sizePolicy" "Fixed Fixed"
+2022: "dashclr"N "_Transparent"
+2023: "antiAliased" "1"
+2024: E E 0 1 1 2 1 E U  0 E 309.6496832899592 522 407 533
+2025: 0 2 2 "0s" 0 0 0 192 0 0  309.6496832899592 522 1
+2026: 2
+2027: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+2028: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+2029: 0 2
+2030: LANG:1 9 CT-A3301A
+2031: LANG:31 15 ° ּҰ
+2032: 6 417
+2033: "RECTANGLE11266"
+2034: ""
+2035: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+2036:  E E
+2037: 293 0 0 0 0 0
+2038: E E E
+2039: 4
+2040: 2
+2041: LANG:1 0 
+2042: LANG:31 0 
+2043: 
+2044: 2
+2045: "dashclr"N "_Transparent"
+2046: "antiAliased" "0"
+2047: E E 0 1 1 2 1 E 2.096091342263777 0 1.441176470588235 130.811067517756 -45.99999999999992 1 E 54 408 163 442
+2048: 14 418
+2049: "obj_minvvsp"
+2050: ""
+2051: 1 128.259067357513 301.9999999999999 E E E 1 E 1 E N "White" E N "Black" E E
+2052:  E E
+2053: 294 0 0 0 0 0
+2054: E E E
+2055: 0
+2056: 2
+2057: LANG:1 0 
+2058: LANG:31 0 
+2059: 
+2060: 1
+2061: "sizePolicy" "Expanding Fixed"
+2062: 2
+2063: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+2064: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+2065: 0  319 543 397 567
+2066: 2 "1d" 1 0 0 2 0 -1  E E E
+2067: 2 419
+2068: "PRIMITIVE_TEXT4"
+2069: ""
+2070: 1 247 571 E E E 1 E 1 E N "Red" E N "white" E E
+2071:  E E
+2072: 295 0 0 0 0 0
+2073: E E E
+2074: 0
+2075: 2
+2076: LANG:1 0 
+2077: LANG:31 0 
+2078: 
+2079: 3
+2080: "sizePolicy" "Fixed Fixed"
+2081: "dashclr"N "_Transparent"
+2082: "antiAliased" "1"
+2083: E E 0 1 1 2 1 E U  0 E 247 571 468 587
+2084: 0 2 2 "0s" 0 0 0 192 0 0  247 571 1
+2085: 2
+2086: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+2087: LANG:31 30  ,10,-1,5,75,0,0,0,0,0
+2088: 0 2
+2089: LANG:1 8 MA(105T)
+2090: LANG:31 34 ּ   Է 0~9 
+2091: 14 427
+2092: "obj_lastval"
+2093: ""
+2094: 1 519 -258.5228758169935 E E E 1 E 1 E N "White" E N "Black" E E
+2095:  E E
+2096: 296 0 0 0 0 0
+2097: E E E
+2098: 0
+2099: 2
+2100: LANG:1 0 
+2101: LANG:31 0 
+2102: 
+2103: 1
+2104: "sizePolicy" "Expanding Fixed"
+2105: 2
+2106: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+2107: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+2108: 0  378 44 456 67
+2109: 2 "0.2f" 3 0 0 2 0 -1  E E E
+2110: 6 435
+2111: "RECTANGLE11267"
+2112: ""
+2113: 1 69 602 E E E 1 E 1 E N {0,0,0} E N {95,95,95} E E
+2114:  E E
+2115: 297 0 0 0 0 0
+2116: E E E
+2117: 4
+2118: 2
+2119: LANG:1 0 
+2120: LANG:31 0 
+2121: 
+2122: 2
+2123: "dashclr"N "_Transparent"
+2124: "antiAliased" "0"
+2125: E E 0 1 1 2 1 E 1 0 1 -55 -4.000000000000057 1 E 69 602 206 626
+2126: 2 413
+2127: "PRIMITIVE_TEXT2976"
+2128: ""
+2129: 1 32.75555548339619 603.6801069092485 E E E 1 E 1 E N {200,200,200} E N "_Transparent" E E
+2130:  E E
+2131: 289 0 0 0 0 0
+2132: E E E
+2133: 0
+2134: 2
+2135: LANG:1 0 
+2136: LANG:31 0 
+2137: 
+2138: 3
+2139: "sizePolicy" "Fixed Fixed"
+2140: "dashclr"N "_Transparent"
+2141: "antiAliased" "1"
+2142: E E 0 1 1 2 1 E U  0 E 32.75555548339619 603.6801069092485 130 615
+2143: 0 2 2 "0s" 0 0 0 192 0 0  32.75555548339619 603.6801069092485 1
+2144: 2
+2145: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+2146: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+2147: 0 2
+2148: LANG:1 9 CT-A3301A
+2149: LANG:31 15  
+2150: 6 436
+2151: "RECTANGLE11268"
+2152: ""
+2153: 1 78 597 E E E 1 E 1 E N {0,0,0} E N {95,95,95} E E
+2154:  E E
+2155: 298 0 0 0 0 0
+2156: E E E
+2157: 4
+2158: 2
+2159: LANG:1 0 
+2160: LANG:31 0 
+2161: 
+2162: 2
+2163: "dashclr"N "_Transparent"
+2164: "antiAliased" "0"
+2165: E E 0 1 1 2 1 E 1 0 1 75 0.9999999999999432 1 E 78 597 167 621
+2166: 14 444
+2167: "obj_orplastval"
+2168: ""
+2169: 1 345 -73.52287581699349 E E E 1 E 1 E N "White" E N "Black" E E
+2170:  E E
+2171: 299 0 0 0 0 0
+2172: E E E
+2173: 0
+2174: 2
+2175: LANG:1 0 
+2176: LANG:31 0 
+2177: 
+2178: 1
+2179: "sizePolicy" "Expanding Fixed"
+2180: 2
+2181: LANG:1 22 ??,9,-1,5,50,0,0,0,0,0
+2182: LANG:31 25 Arial,9,-1,5,75,0,0,0,0,0
+2183: 0  204 229 282 252
+2184: 2 "0.2f" 3 0 0 2 0 -1  E E E
+2185: 6 454
+2186: "RECTANGLE11269"
+2187: ""
+2188: 1 54 408 E E E 1 E 1 E N {33,33,33} E N {150,150,150} E E
+2189:  E E
+2190: 301 0 0 0 0 0
+2191: E E E
+2192: 4
+2193: 2
+2194: LANG:1 0 
+2195: LANG:31 0 
+2196: 
+2197: 2
+2198: "dashclr"N "_Transparent"
+2199: "antiAliased" "0"
+2200: E E 0 1 1 2 1 E 3.186210751381298 0 0.7058823529411763 -158.05538057459 -165.9999999999999 1 E 54 408 163 442
+2201: 6 455
+2202: "RECTANGLE11270"
+2203: ""
+2204: 1 163 492 E E E 1 E 1 E N {33,33,33} E N {95,95,95} E E
+2205:  E E
+2206: 302 0 0 0 0 0
+2207: E E E
+2208: 4
+2209: 2
+2210: LANG:1 0 
+2211: LANG:31 0 
+2212: 
+2213: 2
+2214: "dashclr"N "_Transparent"
+2215: "antiAliased" "0"
+2216: E E 0 1 1 2 1 E 2.140530889639596 0 0.7058823529411763 14.13789733449994 -225.4641856742697 1 E 163 492 214 526
+2217: 2 456
+2218: "PRIMITIVE_TEXT2978"
+2219: ""
+2220: 1 125.6496832899592 128.2229694606887 E E E 1 E 1 E N {0,0,0} E N "_Transparent" E E
+2221:  E E
+2222: 303 0 0 0 0 0
+2223: E E E
+2224: 0
+2225: 2
+2226: LANG:1 0 
+2227: LANG:31 0 
+2228: 
+2229: 3
+2230: "sizePolicy" "Fixed Fixed"
+2231: "dashclr"N "_Transparent"
+2232: "antiAliased" "1"
+2233: E E 0 1 1 2 1 E U  0 E 125.6496832899592 128.2229694606887 248 139
+2234: 0 2 2 "0s" 0 0 0 192 0 0  125.6496832899592 128.2229694606887 1
+2235: 2
+2236: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+2237: LANG:31 24 ,9,-1,5,75,0,0,0,0,0
+2238: 0 2
+2239: LANG:1 9 CT-A3301A
+2240: LANG:31 18 ORP   
+2241: 20 461
+2242: "CHECK_BOX1"
+2243: ""
+2244: 1 358 273.1698545359988 E E E 1 E 0 E N "_Transparent" E N "_Transparent" E E
+2245:  E E
+2246: 305 0 0 0 0 0
+2247: E E E
+2248: 0
+2249: 2
+2250: LANG:1 0 
+2251: LANG:31 0 
+2252: 
+2253: 0
+2254: 2
+2255: LANG:1 22 ??,8,-1,5,75,0,0,0,0,0
+2256: LANG:31 30  ,16,-1,5,75,0,0,0,0,0
+2257: 0  409 126 425 142
+2258: 1
+2259: T 
+2260: 2
+2261: LANG:1 3 ???
+2262: LANG:31 6 SELECT
+2263: 
+2264: 0 
+2265: 2
+2266: LANG:1 0 
+2267: LANG:31 0 
+2268: E E
+2269: 0 0 0 0 0
+2270: 0
+2271: EE20 462
+2272: "CHECK_BOX_R1"
+2273: ""
+2274: 1 358 273 E E E 0 E 1 E N "_Transparent" E N "_Transparent" E E
+2275:  E E
+2276: 306 0 0 0 0 0
+2277: E E E
+2278: 0
+2279: 2
+2280: LANG:1 0 
+2281: LANG:31 0 
+2282: 
+2283: 0
+2284: 2
+2285: LANG:1 22 ??,8,-1,5,75,0,0,0,0,0
+2286: LANG:31 30  ,16,-1,5,75,0,0,0,0,0
+2287: 0  409 126 425 142
+2288: 1
+2289: T 
+2290: 2
+2291: LANG:1 3 ???
+2292: LANG:31 6 SELECT
+2293: 
+2294: 0 
+2295: 2
+2296: LANG:1 0 
+2297: LANG:31 0 
+2298: E E
+2299: 0 0 0 0 0
+2300: 0
+2301: "main()
+2302: {
+2303:   dpConnect(\"CB_user_reverse_check_box\", $DP3 + \".cmd.ORP_USE\");
+2304: }
+2305: 
+2306: void CB_user_reverse_check_box(string dp, bool new_value)
+2307: {
+2308:   if(new_value == 1)
+2309:     this.state(0,1);
+2310:   else
+2311:     this.state(0,0);
+2312: }
+2313: 
+2314: " 0
+2315: E6 466
+2316: "RECTANGLE11177"
+2317: ""
+2318: 1 265 18 E E E 1 E 1 E N {52,52,52} E N {255,255,255} E E
+2319:  E E
+2320: 308 0 0 0 0 0
+2321: E E E
+2322: 0
+2323: 2
+2324: LANG:1 0 
+2325: LANG:31 0 
+2326: 
+2327: 2
+2328: "dashclr"N "_Transparent"
+2329: "antiAliased" "0"
+2330: E E 0 1 1 2 1 E 0.9333333333333334 0 1 206.6666666666667 -10 4 "[linear,pad,0.434,1.51,0.434,-0.482,0.0168,{61,61,61},0.983,{161,161,161}]" E 265 18 288 42
+2331: 2 467
+2332: "PRIMITIVE_TEXT2917"
+2333: ""
+2334: 1 459 12 E E E 1 E 1 E N "white" E N "_Window" E E
+2335:  E E
+2336: 309 0 0 0 0 0
+2337: E E E
+2338: 0
+2339: 2
+2340: LANG:1 0 
+2341: LANG:31 0 
+2342: 
+2343: 3
+2344: "sizePolicy" "Fixed Fixed"
+2345: "dashclr"N "_Transparent"
+2346: "antiAliased" "1"
+2347: E E 0 1 1 2 1 E U  0 E 459 12 472 29
+2348: 0 2 2 "0s" 0 0 0 65 0 0  459 12 1
+2349: 2
+2350: LANG:1 25 Gulim,9,-1,5,50,0,0,0,0,0
+2351: LANG:31 25 ,11,-1,5,75,0,0,0,0,0
+2352: 0 2
+2353: LANG:1 1 ?
+2354: LANG:31 1 ?
+2355: 1 471 10 "" 0
+2356: 0
+2357: 0
+2358: LAYER, 1 
+2359: 2
+2360: LANG:1 0 
+2361: LANG:31 0 
+2362: 0
+2363: LAYER, 2 
+2364: 2
+2365: LANG:1 0 
+2366: LANG:31 0 
+2367: 0
+2368: LAYER, 3 
+2369: 2
+2370: LANG:1 0 
+2371: LANG:31 0 
+2372: 0
+2373: LAYER, 4 
+2374: 2
+2375: LANG:1 0 
+2376: LANG:31 0 
+2377: 0
+2378: LAYER, 5 
+2379: 2
+2380: LANG:1 0 
+2381: LANG:31 0 
+2382: 0
+2383: LAYER, 6 
+2384: 2
+2385: LANG:1 0 
+2386: LANG:31 0 
+2387: 0
+2388: LAYER, 7 
+2389: 2
+2390: LANG:1 0 
+2391: LANG:31 0 
+2392: 0
+2393: 3 7 "PANEL_REF1228" -1
+2394: "" ""
+2395: "symbol/SIT_AO/obj_ao.pnl" 309 21 T 286 0.8224604761904764 0 0.816838 -130.2672712698414 506.846402
+2396: 1
+2397: "$DP""$DP4"
+2398: 1 8 "SHAPE_GROUP8" -1
+2399: 2 0 
+2400: 418 419 
+2401: 
+2402: "" ""
+2403: 1 9 "SHAPE_GROUP9" -1
+2404: 4 0 
+2405: 414 435 413 436 
+2406: 
+2407: "" ""
+2408: 3 10 "PANEL_REF88" -1
+2409: "" ""
+2410: "symbol/SIT_ETC/link_help.pnl" 279 14 T 307 0.6818181818181819 0 0.9167407407407407 263.7727272727272 -5.834370370370371
+2411: 1
+2412: "$title""NA2SO3_VALVE"
+2413: 0

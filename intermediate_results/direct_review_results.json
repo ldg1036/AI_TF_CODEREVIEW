@@ -1,0 +1,51 @@
+{
+  "target_file": "C:\\Users\\39145\\Downloads\\Coder_Wincc-main\\CodeReview_Data\\새 폴더\\CA2_Na2SO3_VALVE.pnl",
+  "total_findings": 5,
+  "findings": [
+    {
+      "issue_id": "DIRECT_001",
+      "category": "Event Traffic Optimization",
+      "lines": "36 to 50",
+      "severity": "High",
+      "title": "동일 콜백 함수에 대한 dpConnect 연속 13회 다중 단일 호출",
+      "description": "CB_value_textfield_dpid 콜백 함수에 대해 13개의 DP 요소를 개별 dpConnect로 등록하여 Event Manager 수신 트래픽 부하 유발",
+      "recommendation": "dyn_string 배열을 이용해 dpConnect 1회 호출로 일괄 결합 등록"
+    },
+    {
+      "issue_id": "DIRECT_002",
+      "category": "Resource & Memory Leak",
+      "lines": "2305",
+      "severity": "High",
+      "title": "dpConnect 바인딩 해제(dpDisconnect) 누락",
+      "description": "패널 종결 시 dpDisconnect 해제 처리가 누락되어 패널 재오픈 또는 소멸 시 이벤트 리소스 및 메모리 누수 위험 존재",
+      "recommendation": "패널 Destroy/Close 이벤트에 dpDisconnect 구문 추가"
+    },
+    {
+      "issue_id": "DIRECT_003",
+      "category": "Exception Handling",
+      "lines": "36 to 53",
+      "severity": "Medium",
+      "title": "dpConnect 실행 직후 getLastError 예외 수집 명시적 검증 누락",
+      "description": "dpConnect 호출 직후 getLastError() 수집 없이 dynlen(err)만 검사하여 실제 바인딩 실패 예외 감지 불가",
+      "recommendation": "err = getLastError(); 구문을 dpConnect 호출 바로 다음에 명시적으로 작성"
+    },
+    {
+      "issue_id": "DIRECT_004",
+      "category": "Defensive Programming",
+      "lines": "50, 2305",
+      "severity": "Medium",
+      "title": "Dollar Parameter($DP3) 검증 미비",
+      "description": "$DP3 파라미터가 비어있거나 올바르지 않은 DP 이름일 때의 유효성 검사(isDollarDefined/dpExists) 누락",
+      "recommendation": "isDollarDefined(\"$DP3\") 및 dpExists() 조건문을 통한 방어적 프로그래밍 구현"
+    },
+    {
+      "issue_id": "DIRECT_005",
+      "category": "State & Scope Management",
+      "lines": "98 to 101",
+      "severity": "Low",
+      "title": "전역 dyn_string 변수 초기화(dynClear) 누락",
+      "description": "DYN_ALL_MAP_EDITABLE_VALUES 등 전역 배열 변수가 재호출 시 초기화되지 않아 데이터 누적 오류 가능성 존재",
+      "recommendation": "초기화 함수(MAPP) 시작 시 dynClear() 호출"
+    }
+  ]
+}

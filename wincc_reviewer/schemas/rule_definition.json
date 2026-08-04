@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "rule_definition.json",
+  "title": "RuleDefinition",
+  "description": "룰 정의 스키마 (09_구현착수_패키지_계약.md §4)",
+  "type": "object",
+  "required": ["rule_id", "source_key", "file_types", "checker_type", "enabled", "rule_version"],
+  "properties": {
+    "rule_id": {
+      "type": "string",
+      "description": "전역 유일한 룰 ID"
+    },
+    "source_key": {
+      "type": "string",
+      "description": "체크리스트 행 식별 키 (대분류|중분류|소분류)"
+    },
+    "file_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["CTL", "PNL", "XML"]
+      },
+      "minItems": 1,
+      "description": "대상 파일 타입"
+    },
+    "checker_type": {
+      "type": "string",
+      "enum": ["builtin", "regex", "manual"],
+      "description": "검사 유형"
+    },
+    "enabled": {
+      "type": "boolean",
+      "description": "룰 활성화 여부"
+    },
+    "rule_version": {
+      "type": "string",
+      "description": "룰 버전"
+    },
+    "category": { "type": "string" },
+    "subcategory": { "type": "string" },
+    "check_item": { "type": "string" },
+    "condition": { "type": "string" },
+    "severity": {
+      "type": "string",
+      "enum": ["Critical", "High", "Medium", "Low", "Info"]
+    },
+    "checker_key": { "type": "string" },
+    "pattern": { "type": "string" },
+    "message": { "type": "string" },
+    "fix_hint": { "type": "string" },
+    "autofix_allowed": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

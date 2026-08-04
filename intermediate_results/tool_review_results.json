@@ -1,0 +1,18 @@
+{
+  "target_file": "C:\\Users\\39145\\Downloads\\Coder_Wincc-main\\CodeReview_Data\\새 폴더\\CA2_Na2SO3_VALVE.pnl",
+  "total_violations": 2,
+  "violations": [
+    {
+      "rule_id": "MANUAL_001",
+      "line": 1,
+      "severity": "Info",
+      "message": "Event, Ctrl Manager 이벤트 교환 횟수 최소화: 일괄 dpGet/dpSet 처리 및 값 변경 시에만 dpSet 처리 여부 검토"
+    },
+    {
+      "rule_id": "MANUAL_012",
+      "line": 2305,
+      "severity": "Info",
+      "message": "DP 함수 예외 처리: dpConnect 호출 후 결과 예외 처리 미비"
+    }
+  ]
+}

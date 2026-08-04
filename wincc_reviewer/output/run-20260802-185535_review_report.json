@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "run-20260802-185535",
+  "rule_source": "Client/Server Excel Config",
+  "files": [
+    "C:\\Users\\39145\\Downloads\\Coder_Wincc-main\\CodeReview_Data\\새 폴더\\CA2_Na2SO3_VALVE.pnl"
+  ],
+  "violations": [
+    {
+      "violation_id": "V-MANUAL-001-M1",
+      "rule_id": "MANUAL-001",
+      "file_id": "C:\\Users\\39145\\Downloads\\Coder_Wincc-main\\CodeReview_Data\\새 폴더\\CA2_Na2SO3_VALVE.pnl",
+      "status": "MANUAL_REVIEW",
+      "severity": "Info",
+      "message": "[MANUAL_REVIEW] Event, Ctrl Manager 이벤트 교환 횟수 최소화: 1) 일괄 dpGet/ dpSet 처리가 되었는가? - Event Manager에 처리 요청 이벤트가 많을 수록 부하 상승 2) 값 변경이 있는 경우에만 dpSet 처리하도록 하였는가? - Event Manager에 처리 요청 이벤트가 많을 수록 부하 상승 (EV 부하 최소화) : 동일한 값으로 dpSet 처리는 로직에서 제외 처리",
+      "line_start": 1,
+      "line_end": 1,
+      "snippet": "V 13",
+      "ai_analysis": ""
+    },
+    {
+      "violation_id": "V-MANUAL-012-2305",
+      "rule_id": "MANUAL-012",
+      "file_id": "C:\\Users\\39145\\Downloads\\Coder_Wincc-main\\CodeReview_Data\\새 폴더\\CA2_Na2SO3_VALVE.pnl",
+      "status": "MANUAL_REVIEW",
+      "severity": "Info",
+      "message": "[MANUAL_REVIEW] DP 함수 예외 처리: 1) DP 함수를 호출한 경우 결과에 따라 예외처리를 하였는가? (e.g : dpSet, dpSetTimed, dpGet, dpQuery, dpQueryConnectSinlge)",
+      "line_start": 2305,
+      "line_end": 2305,
+      "snippet": "dpConnect(\\\"CB_user_reverse_check_box\\\", $DP3 + \\\".cmd.ORP_USE\\\");",
+      "ai_analysis": ""
+    }
+  ],
+  "errors": [],
+  "metrics": {
+    "timings_ms": {
+      "total": 91
+    },
+    "cache_hits": {},
+    "cache_misses": {},
+    "file_count": 1,
+    "violation_count": 2,
+    "optional_dependencies": {}
+  },
+  "ruleset_version": "1.0.0",
+  "ruleset_source_sha256": "",
+  "app_version": "0.1.0",
+  "generated_at": "2026-08-02T09:55:35.037065+00:00",
+  "checklist_applicability": [],
+  "stage_status": {}
+}
