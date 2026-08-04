@@ -1,0 +1,102 @@
+profile_version: 1.0.0
+source_excel_sha256: 71ea567acbdf37d04c6e69fa3f52055b7bd6971ef7c41d16ca9af845ecdb6819
+source_sheet: (서버) 코드 리뷰 결과서
+entries:
+- source_key: 성능|시스템 부하 및 성능 최적화|스크립트 Active 동작 조건 확인
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) 스크립트 동작 Active 조건이 맞는 경우에만 Logic 수행 - 이중화(P,S) ...
+- source_key: 성능|시스템 부하 및 성능 최적화|Loop문 내에 처리 조건
+  rule_ids:
+  - CTL_PRF_001
+  automation_mode: auto_full
+  condition_summary: 1) 반복문(while) 내부에 delay 처리를 하였는가? - delay 없이 무한 루프...
+  checker_type: builtin
+  checker_key: ctl.loop_delay
+- source_key: 성능|시스템 부하 및 성능 최적화|Event, Ctrl Manager 이벤트 교환 횟수 최소화
+  rule_ids:
+  - CTL_PRF_002
+  automation_mode: auto_full
+  condition_summary: 1) 일괄 dpGet/ dpSet 처리가 되었는가? - Event Manager에 처리 요...
+  checker_type: builtin
+  checker_key: ctl.batch_dp_ops
+- source_key: 성능|시스템 부하 및 성능 최적화|적절한 DP 처리 함수 사용
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) DP 감시 유형에 맞는 DP 함수를 처리하였는가? - [유형1] 변경 즉시 처리해야하...
+- source_key: 성능|시스템 부하 및 성능 최적화|적절한 DP 처리 함수 사용_2
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 2) 비동기 처리(dpConnect, dpQueryConnectSing) 시, Callba...
+- source_key: 성능|시스템 부하 및 성능 최적화|DP Query 최적화 구현
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) DP Query의 FROM절의 범위를 최소화하여 작성하였는가? - FROM절 범위를 ...
+- source_key: 성능|시스템 부하 및 성능 최적화|Raima DB 증가 방지
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였...
+- source_key: 성능|시스템 부하 및 성능 최적화|메모리 누수 체크
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) 가변 길이(mapping, dyn) 타입의 변수를 재사용 시 Clear 하였는가? -...
+- source_key: DB|DB Query 작성 기준|바인딩 쿼리 처리
+  rule_ids:
+  - CTL_DB_001
+  automation_mode: auto_full
+  condition_summary: 1) DB Query를 바인딩 쿼리로 작성하였는가? - Query Parsing 최소화 및...
+  checker_type: builtin
+  checker_key: ctl.db_query_binding
+- source_key: DB|DB Query 작성 기준|쿼리 주석 처리
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) DB Query에 주석을 추가하였는가? - DB Query에 기능, 날짜, 작성 주체...
+- source_key: DB|DB Query 작성 기준|쿼리 검증
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) 쿼리 검증 결과서를 작성하였는가? - Query 성능 확인 (첨부파일 참고)
+- source_key: DB|예외처리|DB Query Error
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) DB Connection 이 끊긴 경우 Reconnection 처리를 하였는가? 2)...
+- source_key: 공통|예외처리|DP 함수 예외 처리
+  rule_ids:
+  - CTL_ERR_001
+  automation_mode: auto_full
+  condition_summary: '1) DP 함수를 호출한 경우 결과에 따라 예외처리를 하였는가? (e.g : dpSet, ...'
+  checker_type: builtin
+  checker_key: ctl.dp_error_handling
+- source_key: 공통|예외처리|Try, Catch 예외처리
+  rule_ids:
+  - CTL_ERR_002
+  automation_mode: auto_full
+  condition_summary: 1) 함수 내에 Try, Catch 예외 처리가 되어 있는가? 2) 반복문 내에 예외 처리...
+  checker_type: builtin
+  checker_key: ctl.try_catch
+- source_key: 공통|스트립트 개선|스크립트 이력 작성 확인
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) 스크립트 및 라이브러리 버전 이력을 작성하였는가?
+- source_key: 공통|스트립트 개선|명명 규칙 및 코딩 스타일 준수 확인
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) 명칭으로 역할 및 용도를 파악할 수 있는가? 2) 코드 명명 규칙을 준수하였는가? -...
+- source_key: 공통|스트립트 개선|config 항목 정합성 확인
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) config 항목별 처리 로직이 올바른가? - 필수 항목 config → Error ...
+- source_key: 공통|스트립트 개선|하드코딩 지양
+  rule_ids:
+  - CTL_STYLE_001
+  automation_mode: auto_full
+  condition_summary: '1) 하드코딩을 사용하지 않았는가? : Tag, 파라미터 등과 같이 서버별로 변경될 수 있...'
+  checker_type: builtin
+  checker_key: ctl.hardcoding
+- source_key: 공통|스트립트 개선|디버깅용 로그 작성 확인
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) 이력(INFO), 에러(WARN,ERR), 디버깅(DBG1, DBG2) 조건에 맞는 ...
+- source_key: 공통|스트립트 개선|불필요한 코드 지양
+  rule_ids: []
+  automation_mode: manual
+  condition_summary: 1) 불필요한 기능 / 변수 / 연산 등이 없는가? - 필요 없는 기능, 변수, 연산이 있...

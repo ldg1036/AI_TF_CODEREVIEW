@@ -1,0 +1,17 @@
+﻿{
+  "iterations": 5,
+  "timings_ms": [
+    320,
+    311,
+    330,
+    317,
+    331
+  ],
+  "min_ms": 311,
+  "mean_ms": 321,
+  "median_ms": 320,
+  "p95_baseline_ms": 331,
+  "max_ms": 331,
+  "file_count": 8,
+  "violations_count": 209
+}

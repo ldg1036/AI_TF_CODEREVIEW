@@ -1,0 +1,456 @@
+───────────────────────────────────────────────────────────────────────────
+─// [(Panel)] [0] - [Initialize]
+───────────────────────────────────────────────────────────────────────────
+main()
+{
+  dyn_errClass err;
+
+  MAPP();
+
+  PARAMETER_WINDOW_INITIAL(myModuleName(),myPanelName(),
+                           DYN_ALL_MAP_EDITABLE_KEYS,DYN_ALL_MAP_EDITABLE_VALUES,
+                           mappingKeys(MAP_ALERT_PRIO),DYN_ALL_INIT_INVISIBLE);
+  
+  string obj_delaysp = MAP_EDITABLE_VALUE[OBJ_DELAYSP];
+  string obj_interlocksp = MAP_EDITABLE_VALUE[OBJ_INTERLOCKSP];
+  string obj_interlockdbsp = MAP_EDITABLE_VALUE[OBJ_INTERLOCKDBSP];
+  string obj_closesp = MAP_EDITABLE_VALUE[OBJ_CLOSESP];
+  string obj_deadbandsp = MAP_EDITABLE_VALUE[OBJ_DEADBANDSP];
+  string obj_openvvsp = MAP_EDITABLE_VALUE[OBJ_OPENVVSP];
+  string obj_closevvsp = MAP_EDITABLE_VALUE[OBJ_CLOSEVVSP];
+  string obj_minvvsp = MAP_EDITABLE_VALUE[OBJ_MINVVSP];
+  string obj_assset = MAP_EDITABLE_VALUE[OBJ_ASSSET];
+  string dp_lastval = MAP_READONLY_VALUE[OBJ_LASTVAL];
+  string dp_orplastval = MAP_READONLY_VALUE[OBJ_ORPLASTVAL];
+  string obj_orpsp = MAP_READONLY_VALUE[OBJ_ORPSP];
+  string dp_select1 = MAP_CHECK[OBJ_SELECT1];
+
+  dpConnect("CB_value_textfield_dpid", obj_delaysp);
+  dpConnect("CB_value_textfield_dpid", obj_interlocksp);
+  dpConnect("CB_value_textfield_dpid", obj_interlockdbsp);
+  dpConnect("CB_value_textfield_dpid", obj_closesp);
+  dpConnect("CB_value_textfield_dpid", obj_deadbandsp);
+  dpConnect("CB_value_textfield_dpid", obj_openvvsp);
+  dpConnect("CB_value_textfield_dpid", obj_closevvsp);
+  dpConnect("CB_value_textfield_dpid", obj_minvvsp);
+  dpConnect("CB_value_textfield_dpid", obj_assset);
+  dpConnect("CB_value_textfield_dpid", dp_lastval);
+  dpConnect("CB_value_textfield_dpid", dp_orplastval);
+  dpConnect("CB_value_textfield_dpid", obj_orpsp);
+  dpConnect("CB_value_check_box_sp", dp_select1);
+  
+  dpConnect("mode_change",$DP3 + ".value.ORP_MODE_RESULT");
+  
+  err = getLastError();
+  if (dynlen(err) > 0)
+    DebugN("Erro:",err);
+}
+
+void mode_change(string dp, bool mode)
+{
+  if(mode)
+  {
+    setMultiValue("bg_PID", "backCol", "{166,166,166}",
+                  "line_PID", "visible", FALSE,
+                  "bg_ORP", "backCol", "STD_value_invalid",
+                  "line_ORP", "visible", TRUE);
+  }
+  else
+  {
+    setMultiValue("bg_PID", "backCol", "STD_value_invalid",
+                  "line_PID", "visible", TRUE,
+                  "bg_ORP", "backCol", "{166,166,166}",
+                  "line_ORP", "visible", FALSE);
+  }
+}
+
+
+
+
+
+
+───────────────────────────────────────────────────────────────────────────
+─// [(Panel)] [0] - [, FALSE);
+  }
+}
+
+
+
+
+]
+───────────────────────────────────────────────────────────────────────────
+
+string OBJ_ORPSP = "obj_orpsp";
+string OBJ_DELAYSP = "obj_delaysp";
+string OBJ_INTERLOCKSP = "obj_interlocksp";
+string OBJ_INTERLOCKDBSP = "obj_interlockdbsp";
+string OBJ_CLOSESP = "obj_closesp";
+string OBJ_DEADBANDSP = "obj_deadbandsp";
+string OBJ_OPENVVSP = "obj_openvvsp";
+string OBJ_CLOSEVVSP = "obj_closevvsp";
+string OBJ_MINVVSP = "obj_minvvsp";
+string OBJ_ASSSET = "obj_assset";
+string OBJ_MODE = "obj_mode";
+string OBJ_LASTVAL = "obj_lastval";
+string OBJ_ORPLASTVAL = "obj_orplastval";
+string OBJ_SELECT1 = "CHECK_BOX1";
+
+
+dyn_string DYN_ALL_MAP_EDITABLE_VALUES; // DP ELEMENT 값 EX: TI_001A.CMD.PVSOURCE -  EDIT 가능 속성 - 배열저장
+dyn_string DYN_ALL_MAP_EDITABLE_KEYS;  // DPE Object Name - 배열저장
+dyn_string DYN_ALL_MAP_EDITABLE_DESC;  // MSG BOX DESCRIPTION - TEXT OBJ - 배열저장
+dyn_string DYN_ALL_INIT_INVISIBLE;  // COMBO BOX INVISIBLE - 배열저장
+
+mapping MAP_SHAPE_TYPE;  // 화면  object type 명기 (ex : text, combo box, radio box .... 등등)
+mapping MAP_EDITABLE_ALM;  // ALARM VALUE DPE 지정
+mapping MAP_EDITABLE_VALUE;  // TEXT OBJ  DPE 지정
+mapping MAP_ALERT_BOOL;  // BIT TYPE ALARM DPE 지정
+mapping MAP_READONLY_VALUE;  // READ ONLY DPE 지정
+mapping MAP_ALERT_PRIO;  // CASCADE OBJ - ALARM PRIO DPE 지정
+mapping MAP_ALERT_COMBO_PRIO;  // COMBO BOX OBJ - ALARM PRIO DPE 지정
+mapping MAP_EDITABLE_DESC;  // DPE Object Name 지정
+mapping MAP_RADIO; // 입력 / 센서구분 DPE 지정
+mapping MAP_CHECK; // CHECK BOX OBJECT DPE 지정
+mapping MAP_DEPEND_VALUE;  //의존성이 있는 경우 : 수동 모드 일때 수동값 필드가 ON되는 경우
+mapping MAP_VALUE_BOOL;  // BIT TYPE VALUE DPE 지정
+
+void MAPP()
+{
+  string caption, PTS;
+
+  MAP_SHAPE_TYPE["TEXT_FIELD"] = 1;
+  MAP_SHAPE_TYPE["COMBO_BOX"] = 2;
+  MAP_SHAPE_TYPE["RADIO_BOX"] = 3;
+  MAP_SHAPE_TYPE["CASCADE_BOX"] = 4;
+  MAP_SHAPE_TYPE["CHECK_BOX"] = 5;
+  
+// **************************************** check box ***************************************************
+  
+  MAP_CHECK[OBJ_SELECT1] = $DP3 + ".cmd.ORP_USE";
+  MAP_EDITABLE_DESC[OBJ_SELECT1] = "ORP 제어 사용 여부";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_SELECT1);  
+  
+
+// ****************************** text ****************************************
+  
+  MAP_EDITABLE_VALUE[OBJ_DELAYSP] = $DP3 + ".cmd.ORP_MODE_DELAY";
+//   getValue("text_pressdelay","text",caption);
+  MAP_EDITABLE_DESC[OBJ_DELAYSP] = "PID <-> ORP 모드 전환 Delay";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_DELAYSP);
+  
+  MAP_EDITABLE_VALUE[OBJ_INTERLOCKSP] = $DP3 + ".cmd.ORP_INTERLOCK_SP";
+//   getValue("text_pressdelay","text",caption);
+  MAP_EDITABLE_DESC[OBJ_INTERLOCKSP] = "ORP INTERLOCK 설정값";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_INTERLOCKSP);
+  
+  MAP_EDITABLE_VALUE[OBJ_INTERLOCKDBSP] = $DP3 + ".cmd.ORP_INTERLOCK_DB";
+//   getValue("text_pressdelay","text",caption);
+  MAP_EDITABLE_DESC[OBJ_INTERLOCKDBSP] = "ORP INTERLOCK DEADBAND";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_INTERLOCKDBSP);
+  
+  MAP_EDITABLE_VALUE[OBJ_CLOSESP] = $DP3 + ".cmd.ORP_CLOSE_RUN_SP";
+//   getValue("text_pressdelay","text",caption);
+  MAP_EDITABLE_DESC[OBJ_CLOSESP] = "ORP CLOSE 동작 설정값";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_CLOSESP);
+  
+  MAP_EDITABLE_VALUE[OBJ_DEADBANDSP] = $DP3 + ".cmd.ORP_CLOSE_DB";
+//   getValue("text_pressdelay","text",caption);
+  MAP_EDITABLE_DESC[OBJ_DEADBANDSP] = "ORP CLOSE 동작 DEADBAND";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_DEADBANDSP);
+  
+  MAP_EDITABLE_VALUE[OBJ_OPENVVSP] = $DP3 + ".cmd.ORP_OPEN_SP";
+//   getValue("text_pressdelay","text",caption);
+  MAP_EDITABLE_DESC[OBJ_OPENVVSP] = "V/V OPEN 개도 설정값";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_OPENVVSP);
+  
+  MAP_EDITABLE_VALUE[OBJ_CLOSEVVSP] = $DP3 + ".cmd.ORP_CLOSE_SP";
+//   getValue("text_pressdelay","text",caption);
+  MAP_EDITABLE_DESC[OBJ_CLOSEVVSP] = "V/V CLOSE 개도 설정값";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_CLOSEVVSP);
+  
+  MAP_EDITABLE_VALUE[OBJ_MINVVSP] = $DP5 + ".cmd.LOLM_SP";
+//   getValue("main","text",caption);
+  MAP_EDITABLE_DESC[OBJ_MINVVSP] = "Na2SO3 V/V 최소개도";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_MINVVSP);
+  
+  MAP_EDITABLE_VALUE[OBJ_ASSSET] = $DP6 + ".cmd.AMPLO_SP";
+//   getValue("text_pressset","text",caption);
+  MAP_EDITABLE_DESC[OBJ_ASSSET] = "FAN 전류하한 설정값";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_ASSSET);
+  
+  
+  //radio 객체    
+  MAP_RADIO[OBJ_MODE] = $DP3 + ".cmd.ORP_INTERLOCK_USE";
+//   getValue("text_mode","text",caption);
+  MAP_EDITABLE_DESC[OBJ_MODE] = "ORP INTERLOCK 사용/미사용";
+  dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_MODE);
+  
+  // read only mapping
+  MAP_READONLY_VALUE[OBJ_LASTVAL] = $DP1 + "_SEL.value.PV_LAST";
+  MAP_READONLY_VALUE[OBJ_ORPLASTVAL] = $DP2 + "_SEL.value.PV_LAST";
+  MAP_READONLY_VALUE[OBJ_ORPSP] = $DP3 + ".cmd.ORP_MODE_SP";
+
+  string map_value,map_key;
+  bool bool_haskey;
+  
+  for(int i=1;i<=dynlen(DYN_ALL_MAP_EDITABLE_KEYS);i++)
+  {
+    map_key = DYN_ALL_MAP_EDITABLE_KEYS[i];
+  //알람설정
+    bool_haskey = mappingHasKey(MAP_EDITABLE_ALM,map_key);
+  
+    if(bool_haskey)
+    {
+      map_value = MAP_EDITABLE_ALM[map_key];
+      dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+      dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+      continue;
+    }
+    //알람 Prio설정
+    bool_haskey = mappingHasKey(MAP_ALERT_COMBO_PRIO,map_key);
+  
+    if(bool_haskey)
+    {
+      map_value = MAP_ALERT_COMBO_PRIO[map_key];
+      dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+      dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+      continue;
+    }
+    //기타 설정값
+    bool_haskey = mappingHasKey(MAP_EDITABLE_VALUE,map_key);    
+    if(bool_haskey)
+    {  
+      map_value = MAP_EDITABLE_VALUE[map_key];
+      dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+      dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+      continue;
+    }
+    bool_haskey = mappingHasKey(MAP_ALERT_PRIO,map_key);    
+    if(bool_haskey)
+    {  
+      map_value = MAP_ALERT_PRIO[map_key];
+      dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+      dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+      continue;
+    }
+    bool_haskey = mappingHasKey(MAP_RADIO,map_key);    
+    if(bool_haskey)
+    {  
+      map_value = MAP_RADIO[map_key];
+      dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+      dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+      continue;
+    }
+    bool_haskey = mappingHasKey(MAP_CHECK,map_key);  
+    if(bool_haskey)
+    {  
+      map_value = MAP_CHECK[map_key];
+      dynAppend(DYN_ALL_MAP_EDITABLE_VALUES,map_value);
+      dynAppend(DYN_ALL_MAP_EDITABLE_DESC,MAP_EDITABLE_DESC[map_key]);
+      continue;
+    }
+  }  
+}
+
+
+
+
+
+
+
+
+
+
+
+───────────────────────────────────────────────────────────────────────────
+─// [close_btn] [152] - [main]
+───────────────────────────────────────────────────────────────────────────
+main(bool enter)
+{
+  if(enter)
+    this.fill("[pattern,[fit,png,base/마우스 위/button_over.png]]");
+  else
+    this.fill("[pattern,[fit,png,base/기본/button.png]]");
+}
+
+
+───────────────────────────────────────────────────────────────────────────
+─// [RECTANGLE11047] [156] - [main]
+───────────────────────────────────────────────────────────────────────────
+main(bool enter)
+{
+  if(enter)
+    edit_button.fill("[pattern,[fit,jpg,btn/para/mouseover_para.jpg]]");
+  else
+    edit_button.fill("[pattern,[fit,jpg,btn/para/normal_para.jpg]]");
+}
+
+───────────────────────────────────────────────────────────────────────────
+─// [sizePolicy] [3] - [main]
+───────────────────────────────────────────────────────────────────────────
+main()
+{
+  if (user_permission < 5){
+    if(mod_text.text=="수정"){
+
+      MODIFY_ACTION_BTN(myModuleName(),myPanelName(),
+                        MAP_DEPEND_VALUE,DYN_ALL_MAP_EDITABLE_KEYS,
+                        DYN_ALL_MAP_EDITABLE_VALUES,mappingKeys(MAP_ALERT_PRIO),
+                        DYN_ALL_INIT_INVISIBLE);
+      }
+    
+  }else if (user_permission == 5)
+  {
+   ChildPanelOn("vision/login.pnl",
+      "",
+      makeDynString(),650,150);
+  }
+  
+  if(EDITMODE)
+  {
+    bool check_tmp1;
+
+    getValue("CHECK_BOX_R1","state",0,check_tmp1);
+    
+    setMultiValue("CHECK_BOX1","state",0,check_tmp1,
+                  "CHECK_BOX1","visible",true,
+                  "CHECK_BOX_R1","visible",false);
+  }
+  else
+  {
+    setMultiValue("CHECK_BOX1","visible",false,
+                  "CHECK_BOX_R1","visible",true);
+  }
+}
+
+
+
+
+
+───────────────────────────────────────────────────────────────────────────
+─// [sizePolicy] [3] - [main]
+───────────────────────────────────────────────────────────────────────────
+main()
+{  
+  string euhi,eulo,err_msg,all_err_msg;
+  float dp_hh,dp_hi,dp_lo,dp_ll,alm_value,alm_chg_value;
+  dyn_float dyn_dp_alm_value,dyn_cur_alm_value,dyn_chg_alm_value;
+  dyn_string dyn_sort_cur_alm_value,dyn_obj,dyn_error_msg;
+  int error_idx;
+  mapping map_sort_alm_value;
+  anytype tmp;
+
+  float r_interlockdbsp;
+  float r_deadbandsp;
+  bool check_tmp1, check_tmp_R1;
+
+  getMultiValue("obj_interlockdbsp","text",r_interlockdbsp,
+                "obj_deadbandsp","text",r_deadbandsp,
+                "CHECK_BOX_R1","state",0,check_tmp_R1,
+                "CHECK_BOX1","state",0,check_tmp1);
+  
+  if( r_interlockdbsp < 0 )
+  {
+    err_msg = "제약조건 위반: INTERLOCK DEADBAND 설정범위 (0 이상)\\n";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+  
+  if( r_deadbandsp < 0 )
+  {
+    err_msg = "제약조건 위반: CLOSE DEADBAND 설정범위 (0 이상)\\n";
+    dynAppend(dyn_error_msg,err_msg);
+  }
+
+  // 정상상태 변경값 적용
+  if(dynlen(dyn_error_msg) == 0)
+    APPLY_ACTION_BTN_PP(POPUP_MSG_FILENAME,DYN_ALL_MAP_EDITABLE_DESC,
+                   DYN_ALL_MAP_EDITABLE_KEYS,DYN_ALL_MAP_EDITABLE_VALUES,
+                   mappingKeys(MAP_ALERT_PRIO),DYN_ALL_INIT_INVISIBLE);
+  // 제약조건 위반의 경우
+  else                        
+  {
+    for(int i=1;i<=dynlen(dyn_error_msg) ; i++)
+    {
+      all_err_msg += dyn_error_msg[i];
+    }
+    
+      ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,"err",
+             makeDynString("$text:"+all_err_msg));
+      PARAMETER_WINDOW_INITIAL(myModuleName(),myPanelName(),
+                               DYN_ALL_MAP_EDITABLE_KEYS,DYN_ALL_MAP_EDITABLE_VALUES,
+                               mappingKeys(MAP_ALERT_PRIO),DYN_ALL_INIT_INVISIBLE);
+  }
+  
+  setMultiValue("CHECK_BOX1","visible",FALSE,
+                "CHECK_BOX_R1","visible",TRUE);
+}
+
+
+
+
+───────────────────────────────────────────────────────────────────────────
+─// [sizePolicy] [3] - [main]
+───────────────────────────────────────────────────────────────────────────
+main()
+{
+  PanelOffReturn(makeDynFloat(0),makeDynString("FALSE"));  
+}
+
+───────────────────────────────────────────────────────────────────────────
+─// [sizePolicy] [3] - [main]
+───────────────────────────────────────────────────────────────────────────
+main()
+{
+  string tag = $DP4;
+  
+  tag = dpSubStr(tag, DPSUB_DP);
+
+  this.text = tag;
+}
+
+───────────────────────────────────────────────────────────────────────────
+─// [RECTANGLE11048] [157] - [main]
+───────────────────────────────────────────────────────────────────────────
+main(bool enter)
+{
+  if(enter)
+    app_button.fill("[pattern,[fit,jpg,btn/para/mouseover_para.jpg]]");
+  else
+    app_button.fill("[pattern,[fit,jpg,btn/para/normal_para.jpg]]");
+}
+
+───────────────────────────────────────────────────────────────────────────
+─// [RECTANGLE7] [158] - [main]
+───────────────────────────────────────────────────────────────────────────
+main(bool enter)
+{
+  if(enter)
+    close_btn.fill("[pattern,[fit,jpg,btn/para/mouseover_para.jpg]]");
+  else
+    close_btn.fill("[pattern,[fit,jpg,btn/para/normal_para.jpg]]");
+}
+
+───────────────────────────────────────────────────────────────────────────
+─// [main()
+{
+  dpConnect(\] [0] - [main]
+───────────────────────────────────────────────────────────────────────────
+main()
+{
+  dpConnect("CB_user_reverse_check_box", $DP3 + ".cmd.ORP_USE");
+}
+
+void CB_user_reverse_check_box(string dp, bool new_value)
+{
+  if(new_value == 1)
+    this.state(0,1);
+  else
+    this.state(0,0);
+}
+
+
+
+───────────────────────────────────────────────────────────────────────────
+─// [dashclr] [2] - [Script]
+───────────────────────────────────────────────────────────────────────────
+[linear,pad,0.434,1.51,0.434,-0.482,0.0168,{61,61,61},0.983,{161,161,161}]

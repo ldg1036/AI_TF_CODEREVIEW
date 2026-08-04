@@ -1,0 +1,15 @@
+{
+  "comparison_summary": {
+    "tool_detected_count": 2,
+    "direct_detected_count": 5,
+    "common_detected_count": 2,
+    "tool_only_count": 0,
+    "direct_only_count": 3
+  },
+  "evaluation": {
+    "tool_strengths": "빠른 자동 검사 speed, 엑셀 룰 세트 기반 정량적 기준 제시, 수천 개 파일 일괄 처리 용이",
+    "tool_weaknesses": "키워드 정규식 기반 정적 탐지로 심치 맥락 파악 부족, 수동 검토(MANUAL_REVIEW) 라벨링 위주로 구체적 코드 가이드 미비",
+    "direct_strengths": "구문 맥락(Context) 및 데이터 흐름 이해, 메모리/이벤트 트래픽/방어 프로그래밍 등 심층 결함 도출, 구체적 개선 코드 제시",
+    "direct_weaknesses": "인간/LLM 직접 리뷰 특성상 대규모 파일셋 전수 검사 시 시간 소요 및 일관성 유지를 위한 하부 시스템 필요"
+  }
+}

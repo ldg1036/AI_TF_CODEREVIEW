@@ -1,0 +1,59 @@
+# WinCC OA 코드 리뷰 자동화 도구 — 설정 파일
+# 이 파일은 config/settings.yaml에 위치합니다.
+
+# 앱 기본 설정
+app:
+  version: "0.1.0"
+  log_level: "INFO"
+
+# 코드리뷰 결과서 파일 경로
+# 08_ADR_실제_Excel_양식_계약.md 기준
+rule_sources:
+  client:
+    path: "config/(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx"
+    sheet_name: "(클라이언트) 코드 리뷰 결과서"
+    file_types: ["pnl", "xml"]
+  server:
+    path: "config/(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx"
+    sheet_name: "(서버) 코드 리뷰 결과서"
+    file_types: ["ctl"]
+
+# Excel 구조 계약 (08_ADR 기준, 변경 시 ADR 갱신 필요)
+excel_structure:
+  header_row: 17
+  data_start_row: 18
+  data_columns: "B:H"
+  client_data_rows: [18, 32]
+  server_data_rows: [18, 37]
+
+# AI 설정 — 사내 로컬 AI 서버 (vLLM, Ollama 등 OpenAI 호환 HTTP API)
+ai:
+  enabled: true
+  provider: "local"  # local, gemini, mock
+  timeout_seconds: 60
+  max_retries: 3
+  local_server:
+    host: "127.0.0.1"
+    port: 8000
+    api_key: ""
+    endpoint: "/v1/chat/completions"
+    model_id: "sane_local_llm"
+
+# 자동수정 설정
+autofix:
+  enabled: false
+
+# WinMerge 설정
+winmerge:
+  enabled: false
+  fallback_to_difflib: true
+
+# 출력 설정
+output:
+  default_dir: "./output"
+  formats: ["json", "html"]
+
+# 레거시 매핑 프로파일 경로
+legacy_mapping:
+  client: "config/legacy_mapping/client.yaml"
+  server: "config/legacy_mapping/server.yaml"

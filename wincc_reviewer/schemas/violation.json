@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "violation.json",
+  "title": "Violation",
+  "description": "위반 사항 스키마 (09_구현착수_패키지_계약.md §4)",
+  "type": "object",
+  "required": ["violation_id", "rule_id", "file_id", "status", "severity", "message"],
+  "properties": {
+    "violation_id": {
+      "type": "string",
+      "description": "위반 고유 ID"
+    },
+    "rule_id": {
+      "type": "string",
+      "description": "위반된 룰 ID"
+    },
+    "file_id": {
+      "type": "string",
+      "description": "대상 파일 식별자"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["FAIL", "MANUAL_REVIEW", "ERROR"],
+      "description": "위반 상태"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["Critical", "High", "Medium", "Low", "Info"],
+      "description": "심각도"
+    },
+    "message": {
+      "type": "string",
+      "description": "위반 메시지"
+    },
+    "line_start": {
+      "type": ["integer", "null"],
+      "description": "시작 라인"
+    },
+    "line_end": {
+      "type": ["integer", "null"],
+      "description": "끝 라인"
+    },
+    "snippet": {
+      "type": "string",
+      "description": "코드 스니펫"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,210 @@
+﻿file_name,rule_id,severity,line_number,detected_message,actual_code_line,validity,verification_reason
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,36,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield_dpid\"", obj_delaysp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,37,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield_dpid\"", obj_interlocksp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,38,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield_dpid\"", obj_interlockdbsp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,39,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield_dpid\"", obj_closesp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,40,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield_dpid\"", obj_deadbandsp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,41,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield_dpid\"", obj_openvvsp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,42,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield_dpid\"", obj_closevvsp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,43,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield_dpid\"", obj_minvvsp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,44,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield_dpid\"", obj_assset);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,45,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield_dpid\"", dp_lastval);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,46,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield_dpid\"", dp_orplastval);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,47,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield_dpid\"", obj_orpsp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,48,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_check_box_sp\"", dp_select1);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,50,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""mode_change\"",$DP3 + \"".value.ORP_MODE_RESULT\"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_RES_001,Medium,2305,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_user_reverse_check_box\"", $DP3 + \"".cmd.ORP_USE\"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE.pnl,CTL_ERR_002,Medium,2305,"[CTL_ERR_002] 위반: Try, Catch 예외처리","dpConnect(\""CB_user_reverse_check_box\"", $DP3 + \"".cmd.ORP_USE\"");",VALID,예외 처리 구문 미사용 확인
+CA2_Na2SO3_VALVE_pnl.txt,MANUAL-005,Info,40,"[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가","dpConnect(""CB_value_check_box_sp"", dp_select1);",VALID,룰 검사 기준 부합
+CA2_Na2SO3_VALVE_pnl.txt,MANUAL-005,Info,28,"[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가","dpConnect(""CB_value_textfield_dpid"", obj_delaysp);",VALID,룰 검사 기준 부합
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,28,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield_dpid"", obj_delaysp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,29,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield_dpid"", obj_interlocksp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,30,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield_dpid"", obj_interlockdbsp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,31,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield_dpid"", obj_closesp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,32,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield_dpid"", obj_deadbandsp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,33,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield_dpid"", obj_openvvsp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,34,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield_dpid"", obj_closevvsp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,35,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield_dpid"", obj_minvvsp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,36,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield_dpid"", obj_assset);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,37,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield_dpid"", dp_lastval);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,38,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield_dpid"", dp_orplastval);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,39,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield_dpid"", obj_orpsp);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,40,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_check_box_sp"", dp_select1);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,42,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""mode_change"",$DP3 + "".value.ORP_MODE_RESULT"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,436,[CTL_RES_001] 위반: 메모리 누수 체크,dpConnect(\] [0] - [main],VALID,메모리 또는 DP 접속 해제 쌍 미비
+CA2_Na2SO3_VALVE_pnl.txt,CTL_RES_001,Medium,440,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_user_reverse_check_box"", $DP3 + "".cmd.ORP_USE"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+GoldenTime_todo (2).ctl.txt,MANUAL-005,Info,80,"[MANUAL_REVIEW] 적절한 DP 처리 함수 사용: 2) 비동기 처리(dpConnect, dpQueryConnectSing) 시, Callback함수의 병목 요소는 없는가? - Callback함수 내 이벤트 처리의 병목 발생 요소 최소화 : delay() 사용 지양 : 처리 시간 소요되는 작업은 별도 스레드/큐 사용 필요","dpConnect(""CB_ChangeActiveCondition"", manager_dpname + "".Action.ActiveCondition"");",VALID,룰 검사 기준 부합
+PitPumpEWSAlarm.ctl,CTL_PRF_001,Medium,1038,[CTL_PRF_001] 위반: Loop문 내에 처리 조건,while(true),VALID,룰 검사 기준 부합
+PitPumpEWSAlarm.ctl,CTL_PRF_001,Medium,1511,[CTL_PRF_001] 위반: Loop문 내에 처리 조건,while(true),VALID,룰 검사 기준 부합
+PitPumpEWSAlarm.ctl,CTL_PRF_001,Medium,1615,[CTL_PRF_001] 위반: Loop문 내에 처리 조건,while(true),VALID,룰 검사 기준 부합
+PitPumpEWSAlarm.ctl,MANUAL-005,Info,170,"[MANUAL_REVIEW] 적절한 DP 처리 함수 사용: 2) 비동기 처리(dpConnect, dpQueryConnectSing) 시, Callback함수의 병목 요소는 없는가? - Callback함수 내 이벤트 처리의 병목 발생 요소 최소화 : delay() 사용 지양 : 처리 시간 소요되는 작업은 별도 스레드/큐 사용 필요","dpConnect(""CB_ChangeActiveCondition"", manager_dpname + "".Action.ActiveCondition"");",VALID,룰 검사 기준 부합
+PitPumpEWSAlarm.ctl,CTL_ERR_002,Medium,968,"[CTL_ERR_002] 위반: Try, Catch 예외처리",int MonthMaxCountReset(string dp),VALID,예외 처리 구문 미사용 확인
+PitPumpEWSAlarm.ctl,CTL_ERR_002,Medium,1323,"[CTL_ERR_002] 위반: Try, Catch 예외처리",,VALID,예외 처리 구문 미사용 확인
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,833,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.CANCEL_BIT\"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,834,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.ALMRESET_BIT\"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,835,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.HOLD_BIT\"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1019,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.START_BIT\"",bitstart);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1020,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.HOLD_BIT\"",bithold);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1021,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.ALMRESET_BIT\"",bitalmreset);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1022,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.CANCEL_BIT\"",bitcancel);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1023,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.AB_START\"",abstart);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1040,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.AB_START\"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1042,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.AB_START\"",true);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1045,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.START_BIT\"",0);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1054,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.HOLD_RESET\"",1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1056,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.HOLD_BIT\"",0);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1065,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.AL_RESET\"",1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1067,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.ALMRESET_BIT\"",0);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1076,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.CANCEL\"",1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1078,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.CANCEL_BIT\"",0);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1186,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP  + \"".cmd.AUTOSEL.SEL1\"",cur_value[1]);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1187,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP  + \"".cmd.AUTOSEL.SEL2\"",cur_value[2]);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1188,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP  + \"".cmd.AUTOSEL.SEL3\"",cur_value[3]);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1189,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP  + \"".cmd.AUTOSEL.SEL4\"",cur_value[4]);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,1190,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP  + \"".cmd.AUTOSEL.SEL5\"",cur_value[5]);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3539,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701A_ZV.PVLAST\"",ST1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3540,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR\"",LOOP1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3541,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701A_MVD_I.PVLAST\"",PV1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3542,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701A_MVD_TOT.PVLAST\"",TOT1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3608,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701B_ZV.PVLAST\"",ST1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3609,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR\"",LOOP1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3610,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701B_MVD_I.PVLAST\"",PV1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3611,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701B_MVD_TOT.PVLAST\"",TOT1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3678,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701C_ZV.PVLAST\"",ST1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3679,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR\"",LOOP1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3680,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701C_MVD_I.PVLAST\"",PV1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3681,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701C_MVD_TOT.PVLAST\"",TOT1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3799,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.AUTOSEL.SEL1\"",value1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3800,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.AUTOSEL.SEL2\"",value2);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3801,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.AUTOSEL.SEL3\"",value3);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3802,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.AUTOSEL.SEL4\"",value4);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,3803,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.AUTOSEL.SEL5\"",value5);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,4433,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.HOLD_BIT\"",chkbit);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,4434,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".alert.PROCESS_HOLD\"",proc_hold);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,4440,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.HOLD_BIT\"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,4445,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.HOLD_BIT\"",true);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,4493,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.CANCEL_BIT\"",chkbit);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,4499,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.CANCEL_BIT\"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,4504,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.CANCEL_BIT\"",true);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,4545,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + \"".cmd.ALMRESET_BIT\"",chkbit);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,4551,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.ALMRESET_BIT\"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,4556,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + \"".cmd.ALMRESET_BIT\"",true);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,5158,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701D_ZV.PVLAST\"",ST1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,5159,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR\"",LOOP1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,5160,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701D_MVD_I.PVLAST\"",PV1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,5161,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701D_MVD_TOT.PVLAST\"",TOT1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,5228,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701E_ZV.PVLAST\"",ST1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,5229,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR\"",LOOP1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,5230,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701E_MVD_I.PVLAST\"",PV1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_PRF_002,Medium,5231,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(\""C1_HVAC:T1_HGB_C2701E_MVD_TOT.PVLAST\"",TOT1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,53,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield\"",dp_press_set1);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,55,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield\"",dp_press_set1_max);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,56,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield\"",dp_press_set1_min);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,58,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_check_box\"",$SetDP + \"".cmd.AUTOSEL.SEL1\"",$SetDP + \"".cmd.AUTOSEL.SEL2\"",$SetDP + \"".cmd.AUTOSEL.SEL3\"",$SetDP + \"".cmd.AUTOSEL.SEL4\"",$SetDP + \"".cmd.AUTOSEL.SEL5\"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,70,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield\"",dp_hz_set1);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,72,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield\"",dp_fan_vib_hilm);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,74,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield\"",dp_ad_open_tm_set);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,75,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield\"",dp_ad_open_tmlm);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,76,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_textfield\"",dp_ad_open_lm);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,81,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_value_check_box\"",dp_fan_vib_invalidity);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,3257,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""EP_setBackColorCB\"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,3306,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""EP_setBackColorCB\"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,3355,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""EP_setBackColorCB\"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,3786,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_check_autoAB\"",$SetDP + \"".cmd.AUTOSEL.SEL1\"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,3787,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_check_autoAB\"",$SetDP + \"".cmd.AUTOSEL.SEL2\"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,3788,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_check_autoAB\"",$SetDP + \"".cmd.AUTOSEL.SEL3\"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,3789,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_check_autoAB\"",$SetDP + \"".cmd.AUTOSEL.SEL4\"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,3790,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""CB_check_autoAB\"",$SetDP + \"".cmd.AUTOSEL.SEL5\"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,4153,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""EP_setBackColorCB\"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,4238,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""EP_setBackColorCB\"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,4322,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""EP_setBackColorCB\"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,5017,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""EP_setBackColorCB\"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_RES_001,Medium,5066,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(\""EP_setBackColorCB\"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl,CTL_ERR_002,Medium,1106,"[CTL_ERR_002] 위반: Try, Catch 예외처리","ChildPanelOnCentralModal(POPUP_ERR_MSG_FILENAME,\""err\"",",VALID,예외 처리 구문 미사용 확인
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,432,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.CANCEL_BIT"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,433,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.ALMRESET_BIT"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,434,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.HOLD_BIT"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,597,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.START_BIT"",bitstart);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,598,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.HOLD_BIT"",bithold);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,599,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.ALMRESET_BIT"",bitalmreset);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,600,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.CANCEL_BIT"",bitcancel);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,601,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.AB_START"",abstart);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,618,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.AB_START"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,620,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.AB_START"",true);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,623,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.START_BIT"",0);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,632,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.HOLD_RESET"",1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,634,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.HOLD_BIT"",0);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,643,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.AL_RESET"",1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,645,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.ALMRESET_BIT"",0);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,654,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.CANCEL"",1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,656,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.CANCEL_BIT"",0);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,764,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP  + "".cmd.AUTOSEL.SEL1"",cur_value[1]);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,765,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP  + "".cmd.AUTOSEL.SEL2"",cur_value[2]);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,766,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP  + "".cmd.AUTOSEL.SEL3"",cur_value[3]);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,767,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP  + "".cmd.AUTOSEL.SEL4"",cur_value[4]);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,768,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP  + "".cmd.AUTOSEL.SEL5"",cur_value[5]);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,972,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701A_ZV.PVLAST"",ST1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,973,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR"",LOOP1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,974,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701A_MVD_I.PVLAST"",PV1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,975,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701A_MVD_TOT.PVLAST"",TOT1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1012,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701B_ZV.PVLAST"",ST1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1013,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR"",LOOP1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1014,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701B_MVD_I.PVLAST"",PV1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1015,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701B_MVD_TOT.PVLAST"",TOT1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1053,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701C_ZV.PVLAST"",ST1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1054,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR"",LOOP1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1055,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701C_MVD_I.PVLAST"",PV1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1056,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701C_MVD_TOT.PVLAST"",TOT1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1102,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.AUTOSEL.SEL1"",value1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1103,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.AUTOSEL.SEL2"",value2);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1104,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.AUTOSEL.SEL3"",value3);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1105,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.AUTOSEL.SEL4"",value4);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1106,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.AUTOSEL.SEL5"",value5);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1368,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701D_ZV.PVLAST"",ST1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1369,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR"",LOOP1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1370,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701D_MVD_I.PVLAST"",PV1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1371,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701D_MVD_TOT.PVLAST"",TOT1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1409,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701E_ZV.PVLAST"",ST1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1410,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_DPT_C2HG01NLOGIC.alert.LOOPERR"",LOOP1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1411,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701E_MVD_I.PVLAST"",PV1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1412,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet(""C1_HVAC:T1_HGB_C2701E_MVD_TOT.PVLAST"",TOT1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1522,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.HOLD_BIT"",chkbit);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1523,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".alert.PROCESS_HOLD"",proc_hold);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1529,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.HOLD_BIT"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1534,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.HOLD_BIT"",true);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1567,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.CANCEL_BIT"",chkbit);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1573,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.CANCEL_BIT"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1578,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.CANCEL_BIT"",true);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1604,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpGet($SetDP + "".cmd.ALMRESET_BIT"",chkbit);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1610,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.ALMRESET_BIT"",false);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_PRF_002,Medium,1615,"[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화","dpSet($SetDP + "".cmd.ALMRESET_BIT"",true);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,MANUAL-005,Info,1089,"[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가","dpConnect(""CB_check_autoAB"",$SetDP + "".cmd.AUTOSEL.SEL1"");",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,MANUAL-005,Info,876,"[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가","dpConnect(""EP_setBackColorCB"",",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,MANUAL-005,Info,49,"[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가","dpConnect(""CB_value_textfield"",dp_press_set1);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,MANUAL-005,Info,77,"[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가","dpConnect(""CB_value_check_box"",dp_fan_vib_invalidity);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,MANUAL-005,Info,54,"[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가","dpConnect(""CB_check_box"",$SetDP + "".cmd.AUTOSEL.SEL1"",$SetDP + "".cmd.AUTOSEL.SEL2"",$SetDP + "".cmd.AUTOSEL.SEL3"",$SetDP + "".cmd.AUTOSEL.SEL4"",$SetDP + "".cmd.AUTOSEL.SEL5"");",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,MANUAL-005,Info,60,"[MANUAL_REVIEW] Raima DB 증가 방지: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였는가? - dpSetTimed를 사용하지 않을 경우 설정 값에 대한 변경 이력이 Raima에 기록되어 Raima DB 증가","//   dpConnect(""CB_value_ractangle_sp"",dpL_hang1_cx);",VALID,룰 검사 기준 부합
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,49,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield"",dp_press_set1);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,51,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield"",dp_press_set1_max);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,52,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield"",dp_press_set1_min);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,54,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_check_box"",$SetDP + "".cmd.AUTOSEL.SEL1"",$SetDP + "".cmd.AUTOSEL.SEL2"",$SetDP + "".cmd.AUTOSEL.SEL3"",$SetDP + "".cmd.AUTOSEL.SEL4"",$SetDP + "".cmd.AUTOSEL.SEL5"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,66,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield"",dp_hz_set1);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,68,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield"",dp_fan_vib_hilm);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,70,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield"",dp_ad_open_tm_set);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,71,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield"",dp_ad_open_tmlm);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,72,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_textfield"",dp_ad_open_lm);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,77,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_value_check_box"",dp_fan_vib_invalidity);",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,876,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""EP_setBackColorCB"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,911,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""EP_setBackColorCB"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,946,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""EP_setBackColorCB"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,1089,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_check_autoAB"",$SetDP + "".cmd.AUTOSEL.SEL1"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,1090,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_check_autoAB"",$SetDP + "".cmd.AUTOSEL.SEL2"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,1091,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_check_autoAB"",$SetDP + "".cmd.AUTOSEL.SEL3"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,1092,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_check_autoAB"",$SetDP + "".cmd.AUTOSEL.SEL4"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,1093,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""CB_check_autoAB"",$SetDP + "".cmd.AUTOSEL.SEL5"");",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,1153,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""EP_setBackColorCB"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,1196,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""EP_setBackColorCB"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,1266,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""EP_setBackColorCB"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,1307,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""EP_setBackColorCB"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_RES_001,Medium,1342,[CTL_RES_001] 위반: 메모리 누수 체크,"dpConnect(""EP_setBackColorCB"",",VALID,메모리 또는 DP 접속 해제 쌍 미비
+POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt,CTL_ERR_002,Medium,691,"[CTL_ERR_002] 위반: Try, Catch 예외처리",,VALID,예외 처리 구문 미사용 확인

@@ -1,0 +1,710 @@
+﻿{
+  "summary": {
+    "total_violations": 209,
+    "mismapping_count": 0,
+    "true_positive_count": 125,
+    "context_except_or_fp_count": 84,
+    "rule_fp_stats": {
+      "CTL_RES_001": {
+        "total": 77,
+        "tp": 0,
+        "context_except_or_fp": 77
+      },
+      "CTL_ERR_002": {
+        "total": 5,
+        "tp": 5,
+        "context_except_or_fp": 0
+      },
+      "MANUAL-005": {
+        "total": 10,
+        "tp": 10,
+        "context_except_or_fp": 0
+      },
+      "CTL_PRF_001": {
+        "total": 3,
+        "tp": 3,
+        "context_except_or_fp": 0
+      },
+      "CTL_PRF_002": {
+        "total": 114,
+        "tp": 107,
+        "context_except_or_fp": 7
+      }
+    }
+  },
+  "mismapping_details": [],
+  "fp_details": [
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 36,
+      "snippet": "dpConnect(\\\"CB_value_textfield_dpid\\\", obj_delaysp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 37,
+      "snippet": "dpConnect(\\\"CB_value_textfield_dpid\\\", obj_interlocksp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 38,
+      "snippet": "dpConnect(\\\"CB_value_textfield_dpid\\\", obj_interlockdbsp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 39,
+      "snippet": "dpConnect(\\\"CB_value_textfield_dpid\\\", obj_closesp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 40,
+      "snippet": "dpConnect(\\\"CB_value_textfield_dpid\\\", obj_deadbandsp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 41,
+      "snippet": "dpConnect(\\\"CB_value_textfield_dpid\\\", obj_openvvsp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 42,
+      "snippet": "dpConnect(\\\"CB_value_textfield_dpid\\\", obj_closevvsp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 43,
+      "snippet": "dpConnect(\\\"CB_value_textfield_dpid\\\", obj_minvvsp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 44,
+      "snippet": "dpConnect(\\\"CB_value_textfield_dpid\\\", obj_assset);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 45,
+      "snippet": "dpConnect(\\\"CB_value_textfield_dpid\\\", dp_lastval);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 46,
+      "snippet": "dpConnect(\\\"CB_value_textfield_dpid\\\", dp_orplastval);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 47,
+      "snippet": "dpConnect(\\\"CB_value_textfield_dpid\\\", obj_orpsp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 48,
+      "snippet": "dpConnect(\\\"CB_value_check_box_sp\\\", dp_select1);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 50,
+      "snippet": "dpConnect(\\\"mode_change\\\",$DP3 + \\\".value.ORP_MODE_RESULT\\\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 2305,
+      "snippet": "dpConnect(\\\"CB_user_reverse_check_box\\\", $DP3 + \\\".cmd.ORP_USE\\\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 28,
+      "snippet": "dpConnect(\"CB_value_textfield_dpid\", obj_delaysp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 29,
+      "snippet": "dpConnect(\"CB_value_textfield_dpid\", obj_interlocksp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 30,
+      "snippet": "dpConnect(\"CB_value_textfield_dpid\", obj_interlockdbsp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 31,
+      "snippet": "dpConnect(\"CB_value_textfield_dpid\", obj_closesp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 32,
+      "snippet": "dpConnect(\"CB_value_textfield_dpid\", obj_deadbandsp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 33,
+      "snippet": "dpConnect(\"CB_value_textfield_dpid\", obj_openvvsp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 34,
+      "snippet": "dpConnect(\"CB_value_textfield_dpid\", obj_closevvsp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 35,
+      "snippet": "dpConnect(\"CB_value_textfield_dpid\", obj_minvvsp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 36,
+      "snippet": "dpConnect(\"CB_value_textfield_dpid\", obj_assset);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 37,
+      "snippet": "dpConnect(\"CB_value_textfield_dpid\", dp_lastval);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 38,
+      "snippet": "dpConnect(\"CB_value_textfield_dpid\", dp_orplastval);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 39,
+      "snippet": "dpConnect(\"CB_value_textfield_dpid\", obj_orpsp);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 40,
+      "snippet": "dpConnect(\"CB_value_check_box_sp\", dp_select1);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 42,
+      "snippet": "dpConnect(\"mode_change\",$DP3 + \".value.ORP_MODE_RESULT\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 436,
+      "snippet": "dpConnect(\\] [0] - [main]",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "CA2_Na2SO3_VALVE_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 440,
+      "snippet": "dpConnect(\"CB_user_reverse_check_box\", $DP3 + \".cmd.ORP_USE\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_PRF_002",
+      "line": 833,
+      "snippet": "dpSet($SetDP + \\\".cmd.CANCEL_BIT\\\",false);",
+      "classification_type": "Potential Over-detection (분기문 내 단건 호출)",
+      "reason": "조건문(if/else/case) 분기 내부의 단건 호출 (동시 실행 배치 호출이 아닌 분기 호출 가능성)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_PRF_002",
+      "line": 4440,
+      "snippet": "dpSet($SetDP + \\\".cmd.HOLD_BIT\\\",false);",
+      "classification_type": "Potential Over-detection (분기문 내 단건 호출)",
+      "reason": "조건문(if/else/case) 분기 내부의 단건 호출 (동시 실행 배치 호출이 아닌 분기 호출 가능성)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 53,
+      "snippet": "dpConnect(\\\"CB_value_textfield\\\",dp_press_set1);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 55,
+      "snippet": "dpConnect(\\\"CB_value_textfield\\\",dp_press_set1_max);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 56,
+      "snippet": "dpConnect(\\\"CB_value_textfield\\\",dp_press_set1_min);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 58,
+      "snippet": "dpConnect(\\\"CB_check_box\\\",$SetDP + \\\".cmd.AUTOSEL.SEL1\\\",$SetDP + \\\".cmd.AUTOSEL.SEL2\\\",$SetDP + \\\".cmd.AUTOSEL.SEL3\\\",$SetDP + \\\".cmd.AUTOSEL.SEL4\\\",$SetDP + \\\".cmd.AUTOSEL.SEL5\\\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 70,
+      "snippet": "dpConnect(\\\"CB_value_textfield\\\",dp_hz_set1);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 72,
+      "snippet": "dpConnect(\\\"CB_value_textfield\\\",dp_fan_vib_hilm);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 74,
+      "snippet": "dpConnect(\\\"CB_value_textfield\\\",dp_ad_open_tm_set);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 75,
+      "snippet": "dpConnect(\\\"CB_value_textfield\\\",dp_ad_open_tmlm);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 76,
+      "snippet": "dpConnect(\\\"CB_value_textfield\\\",dp_ad_open_lm);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 81,
+      "snippet": "dpConnect(\\\"CB_value_check_box\\\",dp_fan_vib_invalidity);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 3257,
+      "snippet": "dpConnect(\\\"EP_setBackColorCB\\\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 3306,
+      "snippet": "dpConnect(\\\"EP_setBackColorCB\\\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 3355,
+      "snippet": "dpConnect(\\\"EP_setBackColorCB\\\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 3786,
+      "snippet": "dpConnect(\\\"CB_check_autoAB\\\",$SetDP + \\\".cmd.AUTOSEL.SEL1\\\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 3787,
+      "snippet": "dpConnect(\\\"CB_check_autoAB\\\",$SetDP + \\\".cmd.AUTOSEL.SEL2\\\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 3788,
+      "snippet": "dpConnect(\\\"CB_check_autoAB\\\",$SetDP + \\\".cmd.AUTOSEL.SEL3\\\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 3789,
+      "snippet": "dpConnect(\\\"CB_check_autoAB\\\",$SetDP + \\\".cmd.AUTOSEL.SEL4\\\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 3790,
+      "snippet": "dpConnect(\\\"CB_check_autoAB\\\",$SetDP + \\\".cmd.AUTOSEL.SEL5\\\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 4153,
+      "snippet": "dpConnect(\\\"EP_setBackColorCB\\\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 4238,
+      "snippet": "dpConnect(\\\"EP_setBackColorCB\\\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 4322,
+      "snippet": "dpConnect(\\\"EP_setBackColorCB\\\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 5017,
+      "snippet": "dpConnect(\\\"EP_setBackColorCB\\\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+      "rule_id": "CTL_RES_001",
+      "line": 5066,
+      "snippet": "dpConnect(\\\"EP_setBackColorCB\\\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_PRF_002",
+      "line": 434,
+      "snippet": "dpSet($SetDP + \".cmd.HOLD_BIT\",false);",
+      "classification_type": "Potential Over-detection (분기문 내 단건 호출)",
+      "reason": "조건문(if/else/case) 분기 내부의 단건 호출 (동시 실행 배치 호출이 아닌 분기 호출 가능성)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_PRF_002",
+      "line": 1522,
+      "snippet": "dpGet($SetDP + \".cmd.HOLD_BIT\",chkbit);",
+      "classification_type": "Potential Over-detection (분기문 내 단건 호출)",
+      "reason": "조건문(if/else/case) 분기 내부의 단건 호출 (동시 실행 배치 호출이 아닌 분기 호출 가능성)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_PRF_002",
+      "line": 1523,
+      "snippet": "dpGet($SetDP + \".alert.PROCESS_HOLD\",proc_hold);",
+      "classification_type": "Potential Over-detection (분기문 내 단건 호출)",
+      "reason": "조건문(if/else/case) 분기 내부의 단건 호출 (동시 실행 배치 호출이 아닌 분기 호출 가능성)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_PRF_002",
+      "line": 1567,
+      "snippet": "dpGet($SetDP + \".cmd.CANCEL_BIT\",chkbit);",
+      "classification_type": "Potential Over-detection (분기문 내 단건 호출)",
+      "reason": "조건문(if/else/case) 분기 내부의 단건 호출 (동시 실행 배치 호출이 아닌 분기 호출 가능성)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_PRF_002",
+      "line": 1604,
+      "snippet": "dpGet($SetDP + \".cmd.ALMRESET_BIT\",chkbit);",
+      "classification_type": "Potential Over-detection (분기문 내 단건 호출)",
+      "reason": "조건문(if/else/case) 분기 내부의 단건 호출 (동시 실행 배치 호출이 아닌 분기 호출 가능성)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 49,
+      "snippet": "dpConnect(\"CB_value_textfield\",dp_press_set1);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 51,
+      "snippet": "dpConnect(\"CB_value_textfield\",dp_press_set1_max);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 52,
+      "snippet": "dpConnect(\"CB_value_textfield\",dp_press_set1_min);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 54,
+      "snippet": "dpConnect(\"CB_check_box\",$SetDP + \".cmd.AUTOSEL.SEL1\",$SetDP + \".cmd.AUTOSEL.SEL2\",$SetDP + \".cmd.AUTOSEL.SEL3\",$SetDP + \".cmd.AUTOSEL.SEL4\",$SetDP + \".cmd.AUTOSEL.SEL5\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 66,
+      "snippet": "dpConnect(\"CB_value_textfield\",dp_hz_set1);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 68,
+      "snippet": "dpConnect(\"CB_value_textfield\",dp_fan_vib_hilm);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 70,
+      "snippet": "dpConnect(\"CB_value_textfield\",dp_ad_open_tm_set);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 71,
+      "snippet": "dpConnect(\"CB_value_textfield\",dp_ad_open_tmlm);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 72,
+      "snippet": "dpConnect(\"CB_value_textfield\",dp_ad_open_lm);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 77,
+      "snippet": "dpConnect(\"CB_value_check_box\",dp_fan_vib_invalidity);",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 876,
+      "snippet": "dpConnect(\"EP_setBackColorCB\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 911,
+      "snippet": "dpConnect(\"EP_setBackColorCB\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 946,
+      "snippet": "dpConnect(\"EP_setBackColorCB\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 1089,
+      "snippet": "dpConnect(\"CB_check_autoAB\",$SetDP + \".cmd.AUTOSEL.SEL1\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 1090,
+      "snippet": "dpConnect(\"CB_check_autoAB\",$SetDP + \".cmd.AUTOSEL.SEL2\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 1091,
+      "snippet": "dpConnect(\"CB_check_autoAB\",$SetDP + \".cmd.AUTOSEL.SEL3\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 1092,
+      "snippet": "dpConnect(\"CB_check_autoAB\",$SetDP + \".cmd.AUTOSEL.SEL4\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 1093,
+      "snippet": "dpConnect(\"CB_check_autoAB\",$SetDP + \".cmd.AUTOSEL.SEL5\");",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 1153,
+      "snippet": "dpConnect(\"EP_setBackColorCB\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 1196,
+      "snippet": "dpConnect(\"EP_setBackColorCB\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 1266,
+      "snippet": "dpConnect(\"EP_setBackColorCB\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 1307,
+      "snippet": "dpConnect(\"EP_setBackColorCB\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    },
+    {
+      "file_name": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+      "rule_id": "CTL_RES_001",
+      "line": 1342,
+      "snippet": "dpConnect(\"EP_setBackColorCB\",",
+      "classification_type": "Contextual Exception (컨텍스트 예외)",
+      "reason": "UI 패널 스크립트 내 dpConnect 호출 (화면 종료 시 자동 해제되는 컨텍스트 예외 허용 대상)"
+    }
+  ]
+}
