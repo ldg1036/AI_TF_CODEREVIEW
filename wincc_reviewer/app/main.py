@@ -144,6 +144,16 @@ def _setup_logging(level: str, log_dir: Path | None = None) -> None:
     )
 
 
+def _get_default_output_dir() -> Path:
+    """CWD 위치와 무관하게 최상위 프로젝트 output 디렉터리를 탐색 및 결정합니다."""
+    cwd = Path.cwd()
+    if (cwd / "wincc_reviewer").exists():
+        return cwd / "output"
+    if cwd.name == "wincc_reviewer" and cwd.parent.exists():
+        return cwd.parent / "output"
+    return cwd / "output"
+
+
 def main(argv: list[str] | None = None) -> int:
     """
     메인 진입점.
@@ -154,7 +164,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
 
-    output_dir = args.output or Path("./output")
+    output_dir = args.output or _get_default_output_dir()
     log_dir = output_dir / "logs"
     _setup_logging(args.log_level, log_dir=log_dir)
 
@@ -189,7 +199,7 @@ def main(argv: list[str] | None = None) -> int:
     # 7. 리포트 생성 (JSON/HTML)
 
     # 파이프라인 설정 구성
-    output_dir = args.output or Path("./output")
+    output_dir = args.output or _get_default_output_dir()
     config = PipelineConfig(
         input_path=args.input,
         rule_source=args.rule_source,

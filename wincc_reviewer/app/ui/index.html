@@ -479,9 +479,12 @@
                 <button class="btn-btn" onclick="openFileDialog('file')">📄 파일 선택</button>
             </div>
 
-            <div style="font-size: 0.85rem; color: var(--subtext);">
+            <div style="font-size: 0.85rem; color: var(--subtext); display: flex; flex-direction: column; gap: 8px;">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                     <input type="checkbox" id="chkNoAi" checked> AI 심층 리뷰 비활성화 (no ai)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="chkExtractScriptsOnly" checked> PNL/XML 스크립트만 추출하여 리뷰
                 </label>
             </div>
 
@@ -613,8 +616,11 @@
                         </div>
                     </div>
 
-                    <h3 style="color: var(--c-ok); font-size: 1rem; margin-bottom: 12px;">2. 자동 수정 및 기타 옵션</h3>
-                    <div style="margin-bottom: 24px;">
+                    <h3 style="color: var(--c-ok); font-size: 1rem; margin-bottom: 12px;">2. 파서 및 기타 옵션</h3>
+                    <div style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="cfgExtractScriptsOnly"> PNL/XML 검사 시 레이아웃 노드를 제외하고 순수 스크립트만 추출하여 리뷰
+                        </label>
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                             <input type="checkbox" id="cfgAutofixEnabled"> AI 자동 수정본 (autofix) 생성 허용
                         </label>
@@ -654,6 +660,21 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Popup for Builtin Diff Viewer -->
+    <div id="diffModal" class="modal-backdrop" style="display:none; z-index: 2000;">
+        <div class="modal-box" style="width: 80%; max-width: 1000px;">
+            <div class="modal-header">
+                <div>
+                    <span style="font-size: 1.1rem; font-weight: bold; color: var(--accent);">🔍 내장 Diff 뷰어 (WinMerge 미설치 대체)</span>
+                </div>
+                <button class="btn-btn" onclick="document.getElementById('diffModal').style.display='none'" style="padding: 4px 12px; background: var(--border);">✕ 닫기</button>
+            </div>
+            <div class="modal-body" style="background: #1e1e1e; padding: 16px;">
+                <pre id="diffViewerContent" style="color: #d4d4d4; font-family: 'Consolas', 'Courier New', monospace; white-space: pre-wrap; font-size: 0.95rem; margin: 0; line-height: 1.5;"></pre>
+            </div>
+        </div>
+    </div>
         </main>
     </div>
 
@@ -664,6 +685,7 @@
         <span class="status-chip loading" id="chip-winmerge" data-label="WinMerge">⏳ WinMerge</span>
         <span class="status-chip loading" id="chip-ruleset" data-label="룰셋 파일">⏳ 룰셋 파일</span>
         <span class="status-chip loading" id="chip-ai" data-label="AI 서버">⏳ AI 서버</span>
+        <span class="status-chip" id="chip-ai-progress" style="display: none; background-color: var(--accent); color: var(--bg-dark); font-weight: bold; box-shadow: 0 0 8px var(--accent-glow);">🤖 AI 심층 리뷰 진행 중...</span>
         <button id="status-refresh-btn" onclick="loadSystemStatus()" title="환경 상태 재진단">🔄 재진단</button>
     </div>
 
@@ -682,6 +704,32 @@
             }
         }
 
+        window.onAiReviewComplete = function(res) {
+            const aiChip = document.getElementById('chip-ai-progress');
+            if (aiChip) aiChip.style.display = 'none';
+            
+            if (res.success) {
+                // Render HTML
+                const doc = document.getElementById('reportFrame').contentWindow.document;
+                doc.open();
+                doc.write(res.html_content);
+                doc.close();
+
+                // Render JSON
+                const jsonEl = document.getElementById('jsonViewer');
+                if (jsonEl) {
+                    jsonEl.innerText = JSON.stringify(res.report, null, 2);
+                }
+
+                // Render Summary Tab
+                renderSummaryTab(res.report);
+                
+                alert("🤖 AI 심층 리뷰가 완료되었습니다!\n결과가 화면에 업데이트되었습니다.");
+            } else {
+                alert("백그라운드 AI 리뷰 중 오류가 발생했습니다:\n" + res.error);
+            }
+        };
+
         async function startReview() {
             if (!currentPath) {
                 alert("검사 대상 파일 또는 디렉터리를 먼저 선택해 주세요.");
@@ -690,11 +738,15 @@
 
             document.getElementById('loader').style.display = 'flex';
             document.getElementById('reportFrame').style.display = 'none';
+            
+            const aiChip = document.getElementById('chip-ai-progress');
+            if (aiChip) aiChip.style.display = 'none';
 
             try {
                 if (window.pywebview && window.pywebview.api) {
                     const res = await window.pywebview.api.run_review(currentPath, {
-                        no_ai: document.getElementById('chkNoAi').checked
+                        no_ai: document.getElementById('chkNoAi').checked,
+                        extract_scripts_only: document.getElementById('chkExtractScriptsOnly').checked
                     });
 
                     document.getElementById('loader').style.display = 'none';
@@ -715,6 +767,11 @@
 
                         // Render Summary Tab
                         renderSummaryTab(res.report);
+                        
+                        // AI 대기 상태 처리
+                        if (res.ai_pending) {
+                            if (aiChip) aiChip.style.display = 'inline-block';
+                        }
                     } else {
                         alert("리뷰 실행 실패: " + res.error);
                     }
@@ -981,7 +1038,8 @@
                 alert("pywebview 브리지가 필요합니다.");
                 return;
             }
-            const res = await window.pywebview.api.get_file_content(filePath);
+            const isExtractOnly = document.getElementById('chkExtractScriptsOnly') ? document.getElementById('chkExtractScriptsOnly').checked : true;
+            const res = await window.pywebview.api.get_file_content(filePath, isExtractOnly);
             if (!res.success) {
                 alert("코드 읽기 실패: " + res.error);
                 return;
@@ -1018,16 +1076,16 @@
                 alert("비교할 파일 정보가 없습니다.");
                 return;
             }
-            const origContent = rawCodeLines.join('\n');
-            const modContent = "// [AI Auto-fix Applied by WinCC OA Reviewer]\n" + origContent;
 
             try {
-                const res = await window.pywebview.api.open_in_winmerge(currentModalFilePath, modContent);
+                // modContent를 빈 값으로 넘겨 백엔드(api.py)가 실제 .autofixed 파일 또는 AI 추천 코드를 기반으로 생성하도록 함
+                const res = await window.pywebview.api.open_in_winmerge(currentModalFilePath, "");
                 if (res.success) {
                     if (res.mode === "winmerge") {
                         alert("✨ " + res.message);
                     } else {
-                        alert("✨ " + res.message + "\n\n[Diff 내역]\n" + (res.diff_text || "변경 없음"));
+                        document.getElementById('diffViewerContent').innerText = res.diff_text || "변경 없음";
+                        document.getElementById('diffModal').style.display = 'flex';
                     }
                 } else {
                     alert("비교 실행 실패: " + res.error);
@@ -1234,6 +1292,7 @@
                 currentLoadedSettings = res.settings || {};
                 const ai = currentLoadedSettings.ai || {};
                 const localSrv = ai.local_server || {};
+                const parser = currentLoadedSettings.parser || {};
                 const autofix = currentLoadedSettings.autofix || {};
 
                 const elEnabled = document.getElementById('cfgAiEnabled');
@@ -1245,6 +1304,7 @@
                 const elEndpoint = document.getElementById('cfgAiEndpoint');
                 const elTimeout = document.getElementById('cfgAiTimeout');
                 const elAutofix = document.getElementById('cfgAutofixEnabled');
+                const elExtract = document.getElementById('cfgExtractScriptsOnly');
 
                 if (elEnabled) elEnabled.checked = !!ai.enabled;
                 if (elProvider) elProvider.value = ai.provider || 'local';
@@ -1254,6 +1314,7 @@
                 if (elEndpoint) elEndpoint.value = localSrv.endpoint || '/v1/chat/completions';
                 if (elTimeout) elTimeout.value = ai.timeout_seconds || 60;
                 if (elAutofix) elAutofix.checked = !!autofix.enabled;
+                if (elExtract) elExtract.checked = parser.extract_scripts_only !== false;
 
                 await refreshModelList(localSrv.model_id || 'sane_local_llm');
 
@@ -1329,6 +1390,7 @@
             if (!currentLoadedSettings.ai) currentLoadedSettings.ai = {};
             if (!currentLoadedSettings.ai.local_server) currentLoadedSettings.ai.local_server = {};
             if (!currentLoadedSettings.autofix) currentLoadedSettings.autofix = {};
+            if (!currentLoadedSettings.parser) currentLoadedSettings.parser = {};
 
             const elEnabled = document.getElementById('cfgAiEnabled');
             const elProvider = document.getElementById('cfgAiProvider');
@@ -1339,6 +1401,7 @@
             const elEndpoint = document.getElementById('cfgAiEndpoint');
             const elTimeout = document.getElementById('cfgAiTimeout');
             const elAutofix = document.getElementById('cfgAutofixEnabled');
+            const elExtract = document.getElementById('cfgExtractScriptsOnly');
 
             currentLoadedSettings.ai.enabled = elEnabled ? elEnabled.checked : true;
             currentLoadedSettings.ai.provider = elProvider ? elProvider.value : 'local';
@@ -1351,6 +1414,7 @@
             currentLoadedSettings.ai.local_server.model_id = elModel ? elModel.value.trim() : 'sane_local_llm';
 
             currentLoadedSettings.autofix.enabled = elAutofix ? elAutofix.checked : false;
+            currentLoadedSettings.parser.extract_scripts_only = elExtract ? elExtract.checked : true;
 
             const inputPathEl = document.getElementById('cfgSettingsPath');
             const customPath = inputPathEl ? inputPathEl.value.trim() : null;

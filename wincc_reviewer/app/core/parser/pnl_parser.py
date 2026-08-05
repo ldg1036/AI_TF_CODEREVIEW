@@ -50,6 +50,9 @@ class PNLParser(Parser):
 
     SUPPORTED_ENCODINGS = ["utf-8-sig", "utf-8", "cp949", "euc-kr", "latin1"]
 
+    def __init__(self, extract_scripts_only: bool = True) -> None:
+        self.extract_scripts_only = extract_scripts_only
+
     # 텍스트 기반 PNL 이벤트 핸들러 정규식 패턴 (XML 파싱 실패 시 폴백)
     EVENT_PATTERN = re.compile(
         r"(?:shape|panel)\s*:\s*([a-zA-Z0-9_]+)[\s\S]*?event\s*:?\s*([a-zA-Z0-9_]+)[\s\S]*?\{([\s\S]*?)\}",
@@ -104,6 +107,8 @@ class PNLParser(Parser):
             # XML 노드 순회
             for elem in root.iter():
                 tag = elem.tag.lower() if elem.tag else ""
+                attrib_name = elem.attrib.get("name", "").lower()
+                attrib_event = elem.attrib.get("event", "").lower()
 
                 # 도형 정보 추출 (e.g. <shape name="Button1" type="RECTANGLE">)
                 if tag in ("shape", "primitive"):
@@ -113,9 +118,15 @@ class PNLParser(Parser):
                         PNLShapeInfo(name=shape_name, shape_type=shape_type, properties=dict(elem.attrib))
                     )
 
-                # 이벤트 스크립트 추출 (e.g. <script event="Initialize">...</script>)
-                if "script" in tag or "event" in tag:
-                    event_name = elem.attrib.get("event", elem.attrib.get("name", "UnknownEvent"))
+                # 컨테이너 노드 스킵 (<scripts>, <events>, <shapes>)
+                if tag in ("scripts", "events", "shapes", "primitives", "panel"):
+                    continue
+
+                # 이벤트 스크립트 추출 (<script>, <event>, <prop name="script"> 등)
+                if tag in ("script", "event") or "script" in attrib_name or "event" in attrib_name or attrib_event:
+                    event_name = elem.attrib.get("event", elem.attrib.get("name", elem.attrib.get("id", "")))
+                    if not event_name:
+                        event_name = tag.capitalize() if tag else "ScriptEvent"
                     parent_name = elem.attrib.get("shape", "Panel")
                     script_text = elem.text.strip() if elem.text else ""
 
@@ -131,7 +142,7 @@ class PNLParser(Parser):
             # XML 파싱 실패 시 텍스트 파싱 폴백 진행
             xml_parsed_success = False
 
-        # 3. XML 파싱 실패 시 텍스트/정규식 폴백 진행
+        # 3. XML 파싱 실패 시 텍스트/정규식 폴백 진행 (중첩 중괄호 균형 탐색 적용)
         if not xml_parsed_success:
             try:
                 # 텍스트 내 shape 키워드 수집
@@ -140,22 +151,53 @@ class PNLParser(Parser):
                     sname = sm.group(1)
                     metadata.shapes.append(PNLShapeInfo(name=sname, shape_type="generic"))
 
-                # 텍스트 내 event 키워드 및 블록 수집
-                event_matches = re.finditer(r"\b(Initialize|Click|RightClick|PanelClose|Scope)\s*\(\s*\)\s*\{([^}]+)\}", content)
-                for em in event_matches:
-                    ename = em.group(1)
-                    ebody = em.group(2).strip()
-                    line_no = content[: em.start()].count("\n") + 1
-                    metadata.event_handlers.append(
-                        PNLEventHandlerInfo(
-                            event_name=ename,
-                            shape_name="Panel",
-                            script_body=ebody,
-                            line_number=line_no,
-                        )
-                    )
+                # 텍스트 내 스크립트 함수 및 이벤트 블록 중첩 중괄호 추출
+                matches = list(re.finditer(r"\b([a-zA-Z0-9_]+)\s*\([^)]*\)\s*\{", content))
+                for match in matches:
+                    func_name = match.group(1)
+                    if func_name.lower() in ("shape", "panel", "prop", "layer", "v", "cb"):
+                        continue
+
+                    start_idx = match.end() - 1
+                    brace_count = 0
+                    end_idx = start_idx
+                    for i in range(start_idx, len(content)):
+                        char = content[i]
+                        if char == "{":
+                            brace_count += 1
+                        elif char == "}":
+                            brace_count -= 1
+                            if brace_count == 0:
+                                end_idx = i
+                                break
+
+                    if end_idx > start_idx:
+                        body = content[start_idx + 1:end_idx].strip()
+                        if body:
+                            line_no = content[: match.start()].count("\n") + 1
+                            metadata.event_handlers.append(
+                                PNLEventHandlerInfo(
+                                    event_name=func_name,
+                                    shape_name="Panel",
+                                    script_body=body,
+                                    line_number=line_no,
+                                )
+                            )
             except Exception as e:
                 return create_failed_parse(path, f"PNL 텍스트 파싱 처리 중 실패: {e}")
+
+        # 4. UI 노드/레이아웃 정보 제외 및 순수 이벤트 스크립트만 정제 결합
+        if self.extract_scripts_only:
+            # 수집된 핸들러 및 스크립트/주석 라인 정제
+            cleaned_lines = []
+            for line in content.splitlines():
+                l_str = line.strip()
+                if re.match(r"^</?[a-zA-Z0-9_]+[^>]*>$", l_str) or re.match(r"^\d+\s+\d+", l_str) or l_str.startswith("V ") or l_str.startswith("CB ") or (l_str.startswith("shape ") and not l_str.endswith("{")):
+                    continue
+                cleaned_lines.append(line)
+            pure_script_content = "\n".join(cleaned_lines)
+        else:
+            pure_script_content = content
 
         parse_status = ParseStatus(
             status=ParseStatusType.PARSED,
@@ -169,10 +211,11 @@ class PNLParser(Parser):
             original_sha256=file_sha256,
             detected_encoding=detected_encoding,
             newline_style=newline_style,
-            content=content,
+            content=pure_script_content,
             metadata={
                 "shapes": [s.__dict__ for s in metadata.shapes],
                 "event_handlers": [e.__dict__ for e in metadata.event_handlers],
                 "is_xml_format": xml_parsed_success,
+                "raw_content": content,
             },
         )
