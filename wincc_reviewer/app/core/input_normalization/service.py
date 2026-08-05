@@ -51,24 +51,25 @@ class NormalizationService:
         return ext, cls.PARSER_MAP.get(ext)
 
     @classmethod
-    def normalize_and_parse(cls, path: Path) -> ParsedFile:
+    def normalize_and_parse(cls, path: Path, extract_scripts_only: bool = True) -> ParsedFile:
         """
         파일을 확장자에 맞춰 자동 파싱하고 정규화 메타데이터를 기록합니다. (mtime 기반 캐싱 지원)
 
         Args:
             path: 파싱 및 정규화 대상 파일 경로
+            extract_scripts_only: PNL/XML에서 스크립트만 정제 파싱할지 여부
 
         Returns:
             ParsedFile IR
         """
         path = Path(path)
 
-        # mtime 기반 파싱 캐시 탐색
+        # mtime 기반 파싱 캐시 탐색 (옵션 키 추가)
         cache_key = None
         if path.exists():
             try:
                 mtime = path.stat().st_mtime
-                cache_key = (str(path.resolve()), mtime)
+                cache_key = (str(path.resolve()), mtime, extract_scripts_only)
                 if cache_key in cls._CACHE:
                     logger.debug("파싱 캐시 적중(Cache Hit): %s", path)
                     return cls._CACHE[cache_key]
@@ -90,8 +91,12 @@ class NormalizationService:
                 ),
             )
 
-        # 파서 실행
-        parser = parser_cls()
+        # 파서 실행 (PNL, XML 파서인 경우 extract_scripts_only 주입)
+        if parser_cls in (PNLParser, XMLParser):
+            parser = parser_cls(extract_scripts_only=extract_scripts_only)
+        else:
+            parser = parser_cls()
+            
         parsed = parser.parse(path)
 
         # canonical 정보 생성 및 기록

@@ -30,13 +30,22 @@ from app.core.rules.rule_engine import RuleEngine
 logger = logging.getLogger(__name__)
 
 
+def _resolve_default_output_dir() -> Path:
+    cwd = Path.cwd()
+    if (cwd / "wincc_reviewer").exists():
+        return cwd / "output"
+    if cwd.name == "wincc_reviewer" and cwd.parent.exists():
+        return cwd.parent / "output"
+    return cwd / "output"
+
+
 @dataclass
 class PipelineConfig:
     """파이프라인 실행 설정."""
 
     input_path: Path | None = None
     rule_source: Path | None = None
-    output_dir: Path = field(default_factory=lambda: Path("./output"))
+    output_dir: Path = field(default_factory=_resolve_default_output_dir)
     no_ai: bool = True  # AI는 기본 OFF (09_구현착수 §7)
     no_autofix: bool = True  # 자동수정은 기본 OFF (TRD §5.5)
     enable_autofix: bool = False  # 옵션: 자동수정 제안 및 적용
@@ -44,6 +53,7 @@ class PipelineConfig:
     target_ruleset: str = "auto"  # 'auto', 'client', 'server'
     max_ai_reviews: int | None = 10  # AI API 요청 건수 제한 (Rate limit 방어)
     use_cache: bool = True  # Phase 2: SHA256 해시 기반 점진적 검사 캐시 활성화
+    extract_scripts_only: bool = True  # PNL/XML에서 레이아웃 노드를 제외하고 스크립트만 정제 파싱
 
     log_level: str = "INFO"
 
@@ -229,7 +239,7 @@ class Pipeline:
                 continue
 
             # 캐시 미스 -> 실제 파싱 및 정규화 수행
-            parsed = NormalizationService.normalize_and_parse(file_path)
+            parsed = NormalizationService.normalize_and_parse(file_path, extract_scripts_only=self.config.extract_scripts_only)
             parsed_files.append(parsed)
 
             # 적용할 타겟 룰셋 라우팅 (client/server)
@@ -259,15 +269,49 @@ class Pipeline:
             logger.info("점진적 검사 캐시: 총 %d개 중 %d개 파일 캐시 히트 (재 파싱 스킵)", len(files), cache_hits)
 
 
-        # 3.5. AI 2차 심층 리뷰 연동 (Gemini 3.6 Pro - 비동기 병렬 처리)
+        # 3.5. AI 2차 심층 리뷰 연동 (비동기 병렬 처리)
+        ai_provider = None
         if not self.config.no_ai and all_violations:
+            import yaml
             import concurrent.futures
             from app.core.ai.domain_rag import WinCCDomainRAG
             from app.core.ai.gemini_provider import GeminiAIProvider
+            from app.core.ai.local_provider import LocalAIProvider, LocalAIConfig
             from app.core.ai.provider_base import AIRequest
 
-            ai_provider = GeminiAIProvider()
-            logger.info("Gemini 3.6 Pro AI 2차 심층 리뷰를 병렬 실행합니다 (대상 위반: %d건)", len(all_violations))
+            ai_provider_type = "gemini"
+            local_cfg = LocalAIConfig()
+            
+            # settings.yaml을 읽어 AI 프로바이더 결정
+            config_dir = self._get_project_config_dir()
+            settings_path = config_dir / "settings.yaml"
+            if settings_path.exists():
+                try:
+                    with open(settings_path, "r", encoding="utf_8_sig") as f:
+                        settings = yaml.safe_load(f)
+                        if isinstance(settings, dict) and "ai" in settings:
+                            ai_settings = settings["ai"]
+                            ai_provider_type = str(ai_settings.get("provider", "gemini")).lower()
+                            if "local_server" in ai_settings:
+                                ls = ai_settings["local_server"]
+                                local_cfg = LocalAIConfig(
+                                    host=str(ls.get("host", "127.0.0.1")),
+                                    port=int(ls.get("port", 8000)),
+                                    api_key=str(ls.get("api_key", "")),
+                                    endpoint=str(ls.get("endpoint", "/v1/chat/completions")),
+                                    model_id=str(ls.get("model_id", "sane_local_llm")),
+                                    timeout_seconds=int(ai_settings.get("timeout_seconds", 60)),
+                                    max_retries=int(ai_settings.get("max_retries", 3)),
+                                )
+                except Exception as e:
+                    logger.error("settings.yaml AI 설정 로딩 실패, 기본 Gemini 사용: %s", e)
+
+            if ai_provider_type == "local":
+                ai_provider = LocalAIProvider(local_cfg)
+                logger.info("로컬 AI (%s:%s, 모델: %s) 2차 심층 리뷰를 병렬 실행합니다 (대상 위반: %d건)", local_cfg.host, local_cfg.port, local_cfg.model_id, len(all_violations))
+            else:
+                ai_provider = GeminiAIProvider()
+                logger.info("Gemini AI 2차 심층 리뷰를 병렬 실행합니다 (대상 위반: %d건)", len(all_violations))
 
             targets = all_violations if self.config.max_ai_reviews is None else all_violations[:self.config.max_ai_reviews]
 
@@ -322,7 +366,7 @@ class Pipeline:
             FalsePositiveFilter.filter_violations(
                 all_violations,
                 parsed_files_map=parsed_files_map,
-                ai_provider=self.ai_provider if self.config.enable_ai else None,
+                ai_provider=ai_provider if not self.config.no_ai else None,
             )
         except Exception as exc:
             logger.warning("AI 허위 경보(False Positive) 필터링 실행 중 오류: %s", exc)

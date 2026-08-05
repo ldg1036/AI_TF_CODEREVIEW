@@ -42,6 +42,9 @@ class XMLParser(Parser):
     SUPPORTED_ENCODINGS = ["utf-8-sig", "utf-8", "cp949", "euc-kr", "latin1"]
     MAX_NODES_TO_COLLECT = 1000
 
+    def __init__(self, extract_scripts_only: bool = True) -> None:
+        self.extract_scripts_only = extract_scripts_only
+
     def parse(self, path: Path) -> ParsedFile:
         """
         .xml 파일을 파싱하여 ParsedFile IR을 생성합니다.
@@ -107,6 +110,17 @@ class XMLParser(Parser):
         except Exception as e:
             return create_failed_parse(path, f"XML 파싱 처리 중 실패: {e}")
 
+        # XML 내 스크립트 노드 텍스트 정제 추출
+        script_blocks = []
+        if self.extract_scripts_only and metadata.nodes:
+            for n in metadata.nodes:
+                tag_lower = n.tag.lower()
+                if any(kw in tag_lower for kw in ["script", "code", "event", "handler"]):
+                    if n.text:
+                        script_blocks.append(f"// ===== XML Script Node: <{n.tag}> =====\n{n.text}\n")
+
+        pure_script_content = "\n".join(script_blocks) if (self.extract_scripts_only and script_blocks) else content
+
         parse_status = ParseStatus(
             status=ParseStatusType.PARSED,
             file=str(path),
@@ -119,10 +133,11 @@ class XMLParser(Parser):
             original_sha256=file_sha256,
             detected_encoding=detected_encoding,
             newline_style=newline_style,
-            content=content,
+            content=pure_script_content,
             metadata={
                 "root_tag": metadata.root_tag,
                 "total_nodes": metadata.total_nodes,
                 "nodes": [n.__dict__ for n in metadata.nodes],
+                "raw_content": content,
             },
         )

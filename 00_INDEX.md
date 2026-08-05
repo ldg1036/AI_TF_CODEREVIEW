@@ -33,13 +33,14 @@
 - **엑셀 단일 원천 및 내장 Rule Compiler**: 사용자는 YAML/JSON 룰 파일을 편집하지 않고 Client/Server 체크리스트형 엑셀만 수정합니다. 앱 내부 `ExcelRuleCompiler`가 기존 체크리스트 열과 선택적 기술 메타데이터를 검증·정규화·캐시하며, 오류 발생 시 직전 정상 룰셋을 유지합니다. `RuleDefinitions` 시트는 선택적인 대량 룰 관리 방식입니다.
 - 본 문서는 초안이며, 실제 조직의 의사결정(배포 OS, 보안 정책, 팀 리소스 등)에 따라 조정이 필요합니다.
 
-## 구현 완료 현황 요약 (Phase 1 ~ 17 / v2.0 Release)
+## 구현 완료 현황 요약 (Phase 1 ~ 20 / v2.1 Release)
 
-* **핵심 엔진**: CTL/XML/PNL 파서, SHA256 증분 캐시(`review_cache.json`), 고도화 정적 룰 체커 6종 및 AST 도메인 분석 엔진
+* **핵심 엔진 및 정제 파서**: CTL/XML/PNL 파서, PNL/XML 스크립트 전용 정제 파서(`extract_scripts_only`), SHA256 증분 캐시(`review_cache.json`), 고도화 정적 룰 체커 6종 및 AST 도메인 분석 엔진
+* **로컬 AI 및 비동기 파이프라인**: `settings.yaml` 연동 Ollama/OpenAI API 호환 로컬 AI 프로바이더(`LocalAIProvider`) 2차 심층 리뷰 연동, 1차 정적 리뷰 결과(1~3초) 즉시 표시 후 백그라운드 스레드에서 비동기 AI 분석 구동 및 완료 팝업/자동 UI 갱신 이벤트 연동
 * **AI 오탐 필터링 및 자율 최적화**: 도메인 안전 컨텍스트(안전 주석, SCADA 래퍼) 기반 허위 경보(False Positive) 필터링 및 신뢰도 점수 산출(`FalsePositiveFilter`), 오탐 피드백 지속 학습 기반 엑셀 룰 카탈로그 제외 키워드 자율 추천 엔진(`RuleOptimizer`)
+* **내장 Diff 뷰어 모달 및 실제 AI 코드 합성**: WinMerge 미설치 시 전용 내장 Diff 뷰어 모달(`diffModal`) 렌더링, AI 분석 내 마크다운 코드 블록 및 AI 가이드 주석 파싱 후 원본 라인 위치에 안전하게 합성하여 실제 AI 보정 코드와의 그린/레드 unified diff 출력 기능 고도화
 * **아키텍처 가시성 및 트렌드**: 심각도별 가중치 합산에 기반한 소스 파일별 기술 부채 핫스팟 히트맵 카드 및 직전 릴리스 대비 결함 퇴보 감시 트렌드 대시보드(`HotspotCalculator`)
-* **통합 리포트 및 GUI 안전성**: JSON, HTML(히트맵 카드, 위반 필터 바, WinMerge 1-Click Diff 연동), CSV, Excel, PDF 5개 포맷 내보내기 완결, 다이얼로그 ESC 취소 누수 방지 및 실시간 환경 자가 진단 상태 바 내장
-* **동적 파이프라인**: Excel/YAML 룰셋 및 `checker_registry.py` 파이썬 체커 함수 동적 로딩 100% 실증
+* **통합 리포트 및 GUI 안전성**: JSON, HTML, CSV, Excel, PDF 5개 포맷 내보내기 완결, 다이얼로그 ESC 취소 누수 방지, 실시간 환경 자가 진단 상태 바, 메인 사이드바 및 환경설정 탭 내 PNL/XML 스크립트만 추출 토글 옵션 수신 및 실시간 연동
 * **품질 게이트 검증 수치**: CLI, Core, UI, API, Report, Cache, Hotspot, Optimizer 등 전체 **177개 회귀 테스트 100% 통과 (0 Error, 0 Failure)**
 
 
