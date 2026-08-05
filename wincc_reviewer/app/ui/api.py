@@ -112,12 +112,15 @@ class JSApi:
         opts = options or {}
         output_dir = Path(opts.get("output_dir", "./output"))
         no_ai = opts.get("no_ai", True)
+        extract_scripts_only = opts.get("extract_scripts_only", True)
 
         try:
+            # 1. 먼저 정적 분석만 수행하기 위해 강제로 no_ai=True로 설정
             config = PipelineConfig(
                 input_path=path,
                 output_dir=output_dir,
-                no_ai=no_ai,
+                no_ai=True,
+                extract_scripts_only=extract_scripts_only,
             )
 
             pipeline = Pipeline(config)
@@ -127,15 +130,55 @@ class JSApi:
             html_content = HTMLReportBuilder.render_html(report)
 
             self._last_report = report
+            
+            # 2. 사용자가 AI 분석을 요청했다면 백그라운드 스레드에서 AI 처리 진행
+            if not no_ai:
+                import threading
+                threading.Thread(target=self._run_ai_background, args=(path, output_dir, extract_scripts_only), daemon=True).start()
+
             return {
                 "success": True,
                 "report": report_dict,
                 "html_content": html_content,
+                "ai_pending": not no_ai,
             }
 
         except Exception as e:
             logger.error("UI 파이프라인 실행 중 오류 발생: %s", e, exc_info=True)
             return {"success": False, "error": str(e)}
+            
+    def _run_ai_background(self, path: Path, output_dir: Path, extract_scripts_only: bool = True) -> None:
+        """백그라운드 스레드에서 AI 분석을 실행하고 UI에 알립니다."""
+        import json
+        try:
+            logger.info("백그라운드 AI 심층 리뷰를 시작합니다: %s", path)
+            config = PipelineConfig(
+                input_path=path,
+                output_dir=output_dir,
+                no_ai=False,
+                extract_scripts_only=extract_scripts_only,
+            )
+            pipeline = Pipeline(config)
+            # 캐시가 존재하므로 정적 파싱은 즉시 통과하고, AI 리뷰 블록이 실행됨
+            report = pipeline.run()
+            
+            report_dict = ReportBuilder.to_dict(report)
+            html_content = HTMLReportBuilder.render_html(report)
+            
+            self._last_report = report
+            
+            if self._window:
+                res = {
+                    "success": True,
+                    "report": report_dict,
+                    "html_content": html_content,
+                }
+                self._window.evaluate_js(f"if(window.onAiReviewComplete) {{ window.onAiReviewComplete({json.dumps(res)}); }}")
+        except Exception as e:
+            logger.error("백그라운드 AI 실행 중 오류 발생: %s", e, exc_info=True)
+            if self._window:
+                res = {"success": False, "error": str(e)}
+                self._window.evaluate_js(f"if(window.onAiReviewComplete) {{ window.onAiReviewComplete({json.dumps(res)}); }}")
 
     def export_report(self, format_type: str, options: dict[str, Any] | None = None) -> dict[str, Any]:
         """
@@ -199,12 +242,13 @@ class JSApi:
             logger.error("리포트 Export 중 오류 발생: %s", e, exc_info=True)
             return {"success": False, "error": str(e)}
 
-    def get_file_content(self, file_path: str) -> dict[str, Any]:
+    def get_file_content(self, file_path: str, extract_scripts_only: bool = True) -> dict[str, Any]:
         """
-        요청된 파일의 전체 소스 코드 텍스트를 읽어서 반환합니다.
+        요청된 파일의 소스 코드 텍스트를 읽어서 반환합니다. (extract_scripts_only 적용 시 PNL/XML 정제 스크립트 반환)
 
         Args:
             file_path: 파일 경로
+            extract_scripts_only: 스크립트만 정제하여 읽을지 여부
 
         Returns:
             {"success": True, "content": str, "file_path": str}
@@ -214,7 +258,13 @@ class JSApi:
             return {"success": False, "error": f"파일을 찾을 수 없습니다: {file_path}"}
 
         try:
-            # 다국어 인코딩 시도 (utf-8-sig, utf-8, cp949)
+            if extract_scripts_only and path.suffix.lower() in (".pnl", ".xml"):
+                from app.core.input_normalization.service import NormalizationService
+                parsed = NormalizationService.normalize_and_parse(path, extract_scripts_only=True)
+                if parsed and parsed.content:
+                    return {"success": True, "content": parsed.content, "file_path": str(path)}
+
+            # 원본 다국어 인코딩 읽기
             content = ""
             for enc in ["utf-8-sig", "utf-8", "cp949", "euc-kr", "latin1"]:
                 try:
@@ -803,8 +853,34 @@ class JSApi:
             if not orig_path.exists():
                 return {"success": False, "error": f"원본 파일을 찾을 수 없습니다: {original_file_path}"}
 
-            import subprocess
+            from app.core.autofix.engine import AutofixEngine
             from app.core.diff.winmerge_runner import WinMergeRunner
+
+            autofix_file = orig_path.with_suffix(orig_path.suffix + ".autofixed")
+            real_modified_text = ""
+
+            if autofix_file.exists():
+                for enc in ["utf-8-sig", "utf-8", "cp949", "euc-kr"]:
+                    try:
+                        real_modified_text = autofix_file.read_text(encoding=enc)
+                        break
+                    except UnicodeDecodeError:
+                        continue
+            elif hasattr(self, "_last_report") and self._last_report:
+                file_violations = [v for v in self._last_report.violations if str(v.file_id) == str(orig_path) or Path(str(v.file_id)).name == orig_path.name]
+                if file_violations:
+                    engine = AutofixEngine(enabled=True)
+                    generated_path, ok = engine.apply_autofix(orig_path, file_violations)
+                    if ok and generated_path.exists():
+                        for enc in ["utf-8-sig", "utf-8", "cp949", "euc-kr"]:
+                            try:
+                                real_modified_text = generated_path.read_text(encoding=enc)
+                                break
+                            except UnicodeDecodeError:
+                                continue
+
+            if real_modified_text:
+                modified_text = real_modified_text
 
             runner = WinMergeRunner()
             temp_dir = Path(tempfile.gettempdir()) / "wincc_reviewer_diff"
