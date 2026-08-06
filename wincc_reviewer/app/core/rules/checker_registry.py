@@ -1178,6 +1178,34 @@ def check_duplicated_code(parsed: ParsedFile, rule: RuleDefinition) -> list[Viol
     return violations
 
 
+def check_scada_security_exec(parsed_file: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """SCADA 외부 프로세스 시스템 명령 실행 패턴 감지 체커."""
+    violations: list[Violation] = []
+    lines = parsed_file.raw_content.splitlines() if parsed_file.raw_content else []
+    unsafe_patterns = [r"\bsystem\s*\(", r"\bpopen\s*\(", r"\bexec\s*\(", r"\bCreateProcess\s*\("]
+
+    for idx, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if stripped.startswith("//") or stripped.startswith("/*"):
+            continue
+        for pat in unsafe_patterns:
+            if re.search(pat, line):
+                violations.append(
+                    Violation(
+                        rule_id=rule.rule_id if rule else "SCADA_SEC_001",
+                        file_path=str(parsed_file.file_path),
+                        line_number=idx,
+                        severity=SeverityLevel.CRITICAL,
+                        message="SCADA 스크립트 내 검증되지 않은 외부 시스템 프로세스 실행 함수 감지 (명령 주입 위험)",
+                        snippet=line.strip(),
+                        status=ViolationStatus.OPEN,
+                        confidence_score=0.95,
+                    )
+                )
+                break
+    return violations
+
+
 # 기본 내장 체커 등록
 CheckerRegistry.register("ctl.dp_connect_pair", check_dp_connect_pair)
 CheckerRegistry.register("ctl.loop_delay", check_loop_delay)
@@ -1195,6 +1223,8 @@ CheckerRegistry.register("ctl.callback_error_handling", check_callback_error_han
 CheckerRegistry.register("ctl.global_scope_shadowing", check_global_scope_shadowing)
 CheckerRegistry.register("ctl.magic_number", check_magic_number)
 CheckerRegistry.register("ctl.duplicated_code", check_duplicated_code)
+CheckerRegistry.register("ctl.scada_security_exec", check_scada_security_exec)
+
 
 
 

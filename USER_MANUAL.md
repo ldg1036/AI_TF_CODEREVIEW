@@ -11,24 +11,27 @@
 * GUI 엔진: pywebview (기본 내장 웹뷰 이용, 별도 웹서버 불필요)
 
 ### 2) 실행 방법
-* 터미널 환경에서 실행: `python -m app.main`
+* 터미널 환경에서 실행: `python -m app.main --input-path "c:/path/to/script.ctl"`
+* CI CD 빌드 실패 제어 실행: `python -m app.main --input-path "c:/path/to/script.ctl" --fail-on-severity High`
 * 데스크톱 그래픽 인터페이스 실행: `python wincc_reviewer/app/ui/app.py`
 * 도움말 확인: `python -m app.main --help`
+
 
 ## 3. 화면 구성 및 주요 기능 설명
 * 좌측 패널: 검사 대상 디렉토리 및 파일 트리 선택 (CTL, PNL, XML 자동 감지)
 * 우측 패널:
   * 위반 목록 탭: 검출된 룰 ID, 심각도(Critical / High / Medium / Low / Info), 라인 번호 및 미준수 소스 코드 조각 표시
-  * AI 가이드 탭: Gemini 3.6 Pro 심층 리뷰 및 수정 가이드 확인
-  * 구조 리뷰 탭: 함수 청킹 기반 전체 설계 구조 품질 진단
+  * AI 가이드 탭: Gemini 및 로컬 AI 심층 리뷰 및 1문단 종합 가이드 요약문 확인
+  * 구조 리뷰 탭: 함수 단위 순환 복잡도(Cyclomatic Complexity) 및 최대 중첩 깊이 진단
   * Diff 탭: 원본 파일과 AI 자동 수정본 간의 차이 비교
   * Errors 탭: 파싱 실패 또는 미지원 파일 목록 및 오류 원인 분리 표시
   * 환경 설정 탭: 프로그램 UI 내에서 사내 로컬 AI 서버 IP, 포트, API 키 및 자동 수정 사용 여부를 편집하고 `config/settings.yaml`에 실시간 저장
 
-## 4. 엑셀 룰 카탈로그 변경 및 룰 커스터마이징
-* 룰 수정 원천: `config` 디렉토리 내 Client 및 Server 엑셀 양식 파일만 수정합니다.
-* 자동 변경 감지: 엑셀 파일이 저장되면 시스템이 SHA256 해시 변경을 감지하고 내부 룰셋을 즉시 재컴파일합니다.
-* 오류 롤백: 엑셀 문법 오류나 필수 컬럼 누락 시 기존 정상 룰셋이 유지됩니다.
+## 4. 엑셀 룰 카탈로그 및 동적 파서 안내
+* 동적 헤더 탐지 지원: 엑셀 파일 상단 1~30행을 자동으로 동적 스캔하여 대분류, 중분류, 소분류, 검증조건 열 위치를 탐지하므로 서식 변경에 유연하게 대응합니다.
+* 보안 API 키 환경변수 지원: `WINCC_AI_API_KEY` 및 `LOCAL_AI_API_KEY` 환경변수를 설정 시 자동 연동되며 API 키 및 원본 코드 스니펫은 로그에 자동 마스킹 처리됩니다.
+* SCADA 특화 보안 체커: `system()`, `popen()`, `exec()` 등 외부 명령 주입 위험을 자동 적발합니다.
+* 위험 수용 이력 관리: 오탐 및 위험 수용 승인 건은 `ACCEPTED_RISK` 상태 및 승인자 이력으로 투명하게 추적됩니다.
 
 ## 5. 프로그램 UI 내 환경 설정 (settings.yaml) 동적 변경 및 저장 경로 사용자 정의 방법
 * 우측 상단의 `⚙️ 환경 설정 (settings.yaml)` 탭을 클릭하여 현재 로드된 설정 파일 경로와 AI 프로바이더 옵션을 조회할 수 있습니다.
@@ -56,3 +59,4 @@
   * 실행 아이디 (`run_id`)
   * 대상 파일 SHA256 해시 및 인코딩
   * 발생한 표준 오류 코드 및 오류 로그
+

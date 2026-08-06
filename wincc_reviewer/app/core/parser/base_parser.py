@@ -25,10 +25,13 @@ class ParsedFile:
     original_sha256: str = ""
     canonical_sha256: str | None = None
     detected_encoding: str = ""
+    encoding_confidence: float = 1.0
+    encoding_warning: str = ""
     newline_style: str = ""
     # IR 데이터는 파일 타입별 서브클래스에서 확장
     content: str = ""
     metadata: dict = field(default_factory=dict)
+
 
 
 @runtime_checkable

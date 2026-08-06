@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<panel name="MainPanel">
+    <shapes>
+        <shape name="BtnSubmit" type="PUSH_BUTTON" />
+    </shapes>
+    <scripts>
+        <script event="Click" shape="BtnSubmit">
+            dpSet("System1:Pump1.Cmd", 1);
+        </script>
+    </scripts>
+</panel>

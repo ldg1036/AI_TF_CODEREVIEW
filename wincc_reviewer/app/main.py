@@ -115,6 +115,12 @@ def _build_parser() -> argparse.ArgumentParser:
         help="설정 파일 경로 (기본: config/settings.yaml)",
     )
 
+    parser.add_argument(
+        "--fail-on-severity",
+        choices=["Critical", "High", "Medium", "Low", "Info", "critical", "high", "medium", "low", "info"],
+        help="지정한 심각도 이상의 결함이 존재하면 exit code 1로 종료합니다.",
+    )
+
     return parser
 
 
@@ -216,6 +222,17 @@ def main(argv: list[str] | None = None) -> int:
     try:
         pipeline = Pipeline(config)
         report = pipeline.run()
+        logger.info("코드 리뷰 성공적으로 완료. 리포트 저장 위치: %s", output_dir)
+
+        if args.fail_on_severity:
+            sev_map = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+            target_rank = sev_map.get(str(args.fail_on_severity).lower(), 1)
+            for v in getattr(report, "violations", []):
+                v_sev = str(getattr(v, "severity", "info")).lower()
+                v_rank = sev_map.get(v_sev, 4)
+                if v_rank <= target_rank:
+                    logger.error("[BUILD FAIL] 지정 임계치(%s) 이상 심각도 결함 감지로 exit code 1 반환", args.fail_on_severity)
+                    return 1
 
         # CLI 성공 리포트 요약 출력
         print("\n==========================================")

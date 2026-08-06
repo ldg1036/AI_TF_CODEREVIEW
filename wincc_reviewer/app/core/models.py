@@ -33,6 +33,8 @@ class ViolationStatus(StrEnum):
     FAIL = "FAIL"
     MANUAL_REVIEW = "MANUAL_REVIEW"
     ERROR = "ERROR"
+    ACCEPTED_RISK = "ACCEPTED_RISK"
+
 
 
 class SeverityLevel(StrEnum):
