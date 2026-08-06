@@ -314,7 +314,28 @@ class Pipeline:
                 ai_provider = GeminiAIProvider()
                 logger.info("Gemini AI 2차 심층 리뷰를 병렬 실행합니다 (대상 위반: %d건)", len(all_violations))
 
-            targets = all_violations if self.config.max_ai_reviews is None else all_violations[:self.config.max_ai_reviews]
+            # 심각도(Critical > High > Medium > Low) 우선순위로 정렬하여 AI 리뷰 대상 선정
+            severity_order = {
+                SeverityLevel.CRITICAL: 0,
+                SeverityLevel.HIGH: 1,
+                SeverityLevel.MEDIUM: 2,
+                SeverityLevel.LOW: 3,
+                SeverityLevel.INFO: 4,
+            }
+            sorted_violations = sorted(
+                all_violations,
+                key=lambda item: severity_order.get(item.severity, 5)
+            )
+
+            max_limit = self.config.max_ai_reviews
+            if max_limit is not None and len(sorted_violations) > max_limit:
+                targets = sorted_violations[:max_limit]
+                unreviewed = sorted_violations[max_limit:]
+                for uv in unreviewed:
+                    uv.ai_analysis = "[AI UNREVIEWED: max limit exceeded]"
+            else:
+                targets = sorted_violations
+
             ai_failed_count = 0
 
             def _run_single_ai_review(v):
@@ -342,6 +363,7 @@ class Pipeline:
 
             if ai_failed_count > 0:
                 logger.warning("[AI FALLBACK NOTICE] 총 %d건의 위반 항목에서 AI 서버 폴백이 활성화되었습니다.", ai_failed_count)
+
 
 
 
