@@ -14,13 +14,14 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
 from app.core.input_normalization.service import NormalizationService
-from app.core.models import Metrics, ReviewReport, Violation
+from app.core.models import Metrics, ReviewReport, SeverityLevel, Violation
 from app.core.parser.base_parser import ParsedFile
 from app.core.report.html_report_builder import HTMLReportBuilder
 from app.core.report.report_builder import ReportBuilder
