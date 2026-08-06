@@ -297,8 +297,9 @@
             font-weight: bold;
         }
 
-        .view-pane { display: none; }
-        .view-pane.active { display: block; }
+        .view-pane { display: none !important; }
+        .view-pane.active { display: block !important; }
+        .view-pane.active#summaryTab { display: flex !important; flex-direction: column; height: 100%; }
 
         /* Iframe viewer */
         iframe {
@@ -520,7 +521,7 @@
                 <iframe id="reportFrame" src="about:blank"></iframe>
             </div>
 
-            <div class="view-pane" id="summaryTab" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="view-pane" id="summaryTab">
                 <div class="filter-bar" id="severityFilterBar">
                     <span style="font-weight: bold; font-size: 0.8rem; color: var(--subtext); margin-right: 4px;">🔍 필터:</span>
                     <div class="filter-chip active" onclick="toggleSeverityFilter(this, 'ALL')">전체</div>
