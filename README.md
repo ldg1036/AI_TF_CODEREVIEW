@@ -21,7 +21,31 @@ Siemens WinCC OA 제어 시스템에서 사용되는 **CTL, PNL, XML** 스크립
 
 ---
 
-## 🚀 2단계: 설치 및 준비하기 (Quick Setup)
+## 📂 2단계: 프로젝트 디렉토리 및 폴더 구조 (Directory Structure)
+
+```
+📁 AI_TF_CODEREVIEW (Project Root)
+├── 📁 wincc_reviewer/              # 코드 리뷰 자동화 도구 코어
+│   ├── 📁 app/
+│   │   ├── main.py                 # CLI 실행 진입점 및 파이프라인 컨트롤러
+│   │   ├── 📁 ui/                  # pywebview 데스크톱 GUI 및 JS 바인딩
+│   │   ├── 📁 core/                # 파이프라인, 파서, 룰 엔진, AI, 리포트 생성기
+│   │   └── 📁 rules/               # SCADA 보안 체커 및 내장 정적 감지 체커
+│   ├── 📁 tests/                   # 193개 유닛 테스트 수트 및 픽스처
+│   └── pyproject.toml              # 프로젝트 패키지 셋팅 및 의존성 명세
+├── 📁 config/                      # Client/Server 엑셀 룰 카탈로그 및 settings.yaml
+├── 📁 scripts/                     # Precision/Recall 실측 평가 및 데이터 익명화 스크립트
+├── 📁 interim_reports/             # 60종의 단계별 개발 및 검증 보고서
+├── 📁 intermediate_results/        # 장기 품질 트렌드 DB 및 평가 결과 데이터
+├── 📁 .github/workflows/          # CI/CD 자동화 파이프라인 (test.yml, release.yml)
+├── DEVELOPMENT_ONBOARDING_GUIDE.md # 신규 개발자 인수인계 가이드
+├── USER_MANUAL.md                  # 사용자 및 운영 매뉴얼
+└── README.md                       # 프로젝트 대표 안내서
+```
+
+---
+
+## 🚀 3단계: 설치 및 준비하기 (Quick Setup)
 
 ### 📌 시스템 요구사항
 * **운영체제**: Windows 10 또는 Windows 11 (64비트 전용)
@@ -45,7 +69,7 @@ pip install -e ".[dev]"
 
 ---
 
-## 💻 3단계: 실행하고 결과 확인하기 (Usage)
+## 💻 4단계: 실행하고 결과 확인하기 (Usage)
 
 ### 방법 A. 그래픽 화면(GUI)으로 편하게 실행하기 (권장)
 ```bash
@@ -65,7 +89,7 @@ python -m app.main --input "wincc_reviewer/tests/fixtures/ctl/broken_dp_connect.
 
 ---
 
-## ✨ 4단계: 핵심 기능 들여다보기 (Features)
+## ✨ 5단계: 핵심 기능 들여다보기 (Features)
 
 * **⚡ 동적 엑셀 룰 파서 (`find_header_and_columns`)**: 엑셀 서식이 바뀌어도 1~30행을 동적 스캔하여 열 위치 자동 인식
 * **🛡️ SCADA 전용 보안 체커 (`CheckScadaSecurityExec`)**: `system()`, `popen()`, `exec()` 등 위험 코드 `CRITICAL` 적발
@@ -98,7 +122,7 @@ python -m app.main --input "wincc_reviewer/tests/fixtures/ctl/broken_dp_connect.
 
 ---
 
-## 📊 5단계: 검증 지표 및 회귀 테스트 (Metrics)
+## 📊 6단계: 검증 지표 및 회귀 테스트 (Metrics)
 
 | 검증 항목 | 검증 결과 지표 | 비고 |
 |---|---|---|
@@ -109,7 +133,7 @@ python -m app.main --input "wincc_reviewer/tests/fixtures/ctl/broken_dp_connect.
 
 ---
 
-## ❓ 6단계: 자주 묻는 질문 (FAQ)
+## ❓ 7단계: 자주 묻는 질문 (FAQ)
 
 ### Q1. AI 심층 리뷰 API 키를 어디에 설정하나요?
 환경변수에 `WINCC_AI_API_KEY` 또는 `LOCAL_AI_API_KEY` 값을 등록하거나, GUI 화면의 `⚙️ 환경 설정` 탭에서 기입하시면 됩니다.
