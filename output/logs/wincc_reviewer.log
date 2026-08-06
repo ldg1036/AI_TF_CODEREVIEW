@@ -677,3 +677,140 @@
 2026-08-07 00:52:55,064 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
 2026-08-07 00:52:55,064 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
 2026-08-07 00:52:55,067 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-137\test_js_api_run_review_success0\out\run-20260807-005255_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-137\test_js_api_run_review_success0\out\run-20260807-005255_review_report.html
+2026-08-07 00:56:12,002 [INFO] app.main: 입력 경로: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures
+2026-08-07 00:56:12,002 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures
+2026-08-07 00:56:12,004 [INFO] app.core.pipeline: 수집된 대상 파일: 4개
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,073 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,076 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 4개 중 0개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-07 00:56:12,080 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:12,086 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:12,086 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:12,088 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\Downloads\클로드prd\output\run-20260807-005612_review_report.json, HTML=C:\Users\39145\Downloads\클로드prd\output\run-20260807-005612_review_report.html
+2026-08-07 00:56:12,088 [INFO] app.main: 코드 리뷰 성공적으로 완료. 리포트 저장 위치: C:\Users\39145\Downloads\클로드prd\output
+2026-08-07 00:56:12,088 [ERROR] app.main: [BUILD FAIL] 지정 임계치(Info) 이상 심각도 결함 감지로 exit code 1 반환
+2026-08-07 00:56:12,092 [INFO] app.main: 입력 경로: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures
+2026-08-07 00:56:12,092 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures
+2026-08-07 00:56:12,094 [INFO] app.core.pipeline: 수집된 대상 파일: 4개
+2026-08-07 00:56:12,156 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 4개 중 4개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-07 00:56:12,160 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:12,166 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:12,166 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:12,170 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\Downloads\클로드prd\output\run-20260807-005612_review_report.json, HTML=C:\Users\39145\Downloads\클로드prd\output\run-20260807-005612_review_report.html
+2026-08-07 00:56:12,170 [INFO] app.main: 코드 리뷰 성공적으로 완료. 리포트 저장 위치: C:\Users\39145\Downloads\클로드prd\output
+2026-08-07 00:56:12,178 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\ctl\positive\valid_script.ctl
+2026-08-07 00:56:12,178 [INFO] app.core.pipeline: 수집된 대상 파일: 1개
+2026-08-07 00:56:12,249 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 1개 중 1개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-07 00:56:12,256 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:12,262 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:12,262 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:12,266 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_golden_positive_ctl0\run-20260807-005612_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_golden_positive_ctl0\run-20260807-005612_review_report.html
+2026-08-07 00:56:12,279 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\ctl\negative\leak_script.ctl
+2026-08-07 00:56:12,279 [INFO] app.core.pipeline: 수집된 대상 파일: 1개
+2026-08-07 00:56:12,346 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 1개 중 0개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-07 00:56:12,351 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:12,357 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:12,357 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:12,357 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_golden_negative_ctl0\run-20260807-005612_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_golden_negative_ctl0\run-20260807-005612_review_report.html
+2026-08-07 00:56:12,398 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,398 [INFO] app.core.pipeline: 수집된 대상 파일: 1개
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: C:\Users\39145\Downloads\클로드prd\wincc_reviewer\tests\fixtures\xml\negative\broken_syntax.xml
+2026-08-07 00:56:12,450 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 1개 중 0개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-07 00:56:12,472 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:12,478 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:12,478 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:12,480 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_golden_negative_xml0\run-20260807-005612_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_golden_negative_xml0\run-20260807-005612_review_report.html
+2026-08-07 00:56:12,514 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_miss_and_save_on_fi0\scripts
+2026-08-07 00:56:12,515 [INFO] app.core.pipeline: 수집된 대상 파일: 1개
+2026-08-07 00:56:12,581 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 1개 중 0개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-07 00:56:12,587 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:12,591 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:12,593 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:12,595 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_miss_and_save_on_fi0\out\run-20260807-005612_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_miss_and_save_on_fi0\out\run-20260807-005612_review_report.html
+2026-08-07 00:56:12,607 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_hit_on_second_run_w0\scripts
+2026-08-07 00:56:12,608 [INFO] app.core.pipeline: 수집된 대상 파일: 1개
+2026-08-07 00:56:12,668 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 1개 중 0개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-07 00:56:12,674 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:12,680 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:12,680 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:12,683 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_hit_on_second_run_w0\out\run-20260807-005612_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_hit_on_second_run_w0\out\run-20260807-005612_review_report.html
+2026-08-07 00:56:12,683 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_hit_on_second_run_w0\scripts
+2026-08-07 00:56:12,683 [INFO] app.core.pipeline: 수집된 대상 파일: 1개
+2026-08-07 00:56:12,753 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 1개 중 1개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-07 00:56:12,759 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:12,765 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:12,765 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:12,769 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_hit_on_second_run_w0\out\run-20260807-005612_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_hit_on_second_run_w0\out\run-20260807-005612_review_report.html
+2026-08-07 00:56:12,773 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_invalidation_when_f0\scripts
+2026-08-07 00:56:12,774 [INFO] app.core.pipeline: 수집된 대상 파일: 1개
+2026-08-07 00:56:12,833 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 1개 중 0개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-07 00:56:12,833 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:12,849 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:12,850 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:12,852 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_invalidation_when_f0\out\run-20260807-005612_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_invalidation_when_f0\out\run-20260807-005612_review_report.html
+2026-08-07 00:56:12,853 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_invalidation_when_f0\scripts
+2026-08-07 00:56:12,853 [INFO] app.core.pipeline: 수집된 대상 파일: 1개
+2026-08-07 00:56:12,917 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 1개 중 0개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-07 00:56:12,934 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:12,935 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:12,935 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:12,935 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_invalidation_when_f0\out\run-20260807-005612_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_cache_invalidation_when_f0\out\run-20260807-005612_review_report.html
+2026-08-07 00:56:12,958 [INFO] app.core.input_normalization.service: 지원하지 않는 확장자 스킵: C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_normalize_unsupported_fil0\notes.txt (.txt)
+2026-08-07 00:56:12,984 [INFO] app.core.ai.local_provider: 로컬 AI 리뷰 요청 성공 (시도 횟수: 1): url=http://127.0.0.1:8000/v1/chat/completions
+2026-08-07 00:56:12,985 [WARNING] app.core.ai.local_provider: 로컬 AI 요청 HTTP 오류 (시도 1/2): HTTP 오류 (500): Internal Error
+2026-08-07 00:56:13,986 [WARNING] app.core.ai.local_provider: 로컬 AI 요청 HTTP 오류 (시도 2/2): HTTP 오류 (500): Internal Error
+2026-08-07 00:56:13,986 [ERROR] app.core.ai.local_provider: 로컬 AI 서버 연동 최종 실패: url=http://127.0.0.1:8000/v1/chat/completions, error=HTTP 오류 (500): Internal Error
+2026-08-07 00:56:14,018 [WARNING] app.core.report.pdf_report_builder: ReportLab 미설치로 인하여 텍스트 포맷 PDF 파일을 생성합니다.
+2026-08-07 00:56:14,037 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_pipeline_run_with_sample_0\inputs
+2026-08-07 00:56:14,037 [INFO] app.core.pipeline: 수집된 대상 파일: 2개
+2026-08-07 00:56:14,111 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 2개 중 0개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-07 00:56:14,116 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:14,123 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:14,123 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:14,126 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_pipeline_run_with_sample_0\outputs\run-20260807-005614_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_pipeline_run_with_sample_0\outputs\run-20260807-005614_review_report.html
+2026-08-07 00:56:14,838 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\AppData\Local\Temp\tmpyfiliwi_.pnl
+2026-08-07 00:56:14,839 [INFO] app.core.pipeline: 수집된 대상 파일: 1개
+2026-08-07 00:56:14,989 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:14,997 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:14,998 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:15,001 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\Downloads\클로드prd\output\run-20260807-005614_review_report.json, HTML=C:\Users\39145\Downloads\클로드prd\output\run-20260807-005614_review_report.html
+2026-08-07 00:56:15,158 [WARNING] app.core.rules.rule_engine: 파싱 실패 파일 스킵: broken.ctl
+2026-08-07 00:56:15,217 [INFO] app.main: AI 오탐 피드백 기반 룰 카탈로그 자율 최적화 추천 엔진을 실행합니다...
+2026-08-07 00:56:15,223 [INFO] app.ui.api: UI를 통한 설정 갱신 완료: path=C:\Users\39145\AppData\Local\Temp\tmp6q1yjm4b\settings.yaml
+2026-08-07 00:56:17,320 [INFO] app.ui.api: 로컬 AI 서버가 연결되지 않아 오프라인 기본 모델 목록을 사용합니다: <urlopen error [WinError 10061] 대상 컴퓨터에서 연결을 거부했으므로 연결하지 못했습니다>
+2026-08-07 00:56:17,326 [INFO] app.ui.api: UI를 통한 설정 갱신 완료: path=C:\Users\39145\AppData\Local\Temp\tmpr0u6aevd\custom_dir\my_settings.yaml
+2026-08-07 00:56:17,358 [INFO] app.main: pywebview 데스크톱 GUI 모드를 시작합니다. (CLI 도움말은 --help 참조)
+2026-08-07 00:56:18,021 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_js_api_run_review_success0\script.ctl
+2026-08-07 00:56:18,021 [INFO] app.core.pipeline: 수집된 대상 파일: 1개
+2026-08-07 00:56:18,101 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 1개 중 0개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-07 00:56:18,107 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-07 00:56:18,110 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-07 00:56:18,110 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-07 00:56:18,110 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_js_api_run_review_success0\out\run-20260807-005618_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-138\test_js_api_run_review_success0\out\run-20260807-005618_review_report.html
