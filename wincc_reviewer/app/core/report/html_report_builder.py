@@ -190,25 +190,36 @@ class HTMLReportBuilder:
                 new_cnt = ts.get("new_count", 0)
                 res_cnt = ts.get("resolved_count", 0)
                 unc_cnt = ts.get("unchanged_count", 0)
+                total_t = new_cnt + res_cnt + unc_cnt
+                p_new = round((new_cnt / total_t) * 100, 1) if total_t > 0 else 0
+                p_res = round((res_cnt / total_t) * 100, 1) if total_t > 0 else 0
+                p_unc = round((unc_cnt / total_t) * 100, 1) if total_t > 0 else 0
+
                 trend_html = f"""
                 <section class="section" style="margin-top: 16px;">
-                    <h2>📈 릴리스 품질 트렌드 및 퇴보(Regression) 분석</h2>
+                    <h2>📈 릴리스 품질 트렌드 및 퇴보(Regression) 분석 (이전 Run 대비 Diff 시각화)</h2>
                     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                         <div class="metric-card" style="flex: 1; min-width: 150px; border-left: 4px solid var(--c-critical);">
                             <div class="metric-title">신규 유입 결함 (New)</div>
-                            <div class="metric-value warn">{new_cnt}</div>
+                            <div class="metric-value warn">{new_cnt} <span style="font-size: 0.7em;">({p_new}%)</span></div>
                         </div>
                         <div class="metric-card" style="flex: 1; min-width: 150px; border-left: 4px solid #a6e3a1;">
                             <div class="metric-title">해결된 결함 (Fixed)</div>
-                            <div class="metric-value ok">{res_cnt}</div>
+                            <div class="metric-value ok">{res_cnt} <span style="font-size: 0.7em;">({p_res}%)</span></div>
                         </div>
                         <div class="metric-card" style="flex: 1; min-width: 150px; border-left: 4px solid var(--accent);">
                             <div class="metric-title">기존 잔존 결함 (Persistent)</div>
-                            <div class="metric-value">{unc_cnt}</div>
+                            <div class="metric-value">{unc_cnt} <span style="font-size: 0.7em;">({p_unc}%)</span></div>
                         </div>
+                    </div>
+                    <div style="height: 12px; background: #313244; border-radius: 6px; overflow: hidden; display: flex; margin-top: 12px;">
+                        <div style="width: {p_new}%; background: var(--c-critical);" title="신규 {new_cnt}건"></div>
+                        <div style="width: {p_res}%; background: #a6e3a1;" title="해결 {res_cnt}건"></div>
+                        <div style="width: {p_unc}%; background: var(--accent);" title="잔존 {unc_cnt}건"></div>
                     </div>
                 </section>
                 """
+
 
         # 2. Violations 테이블 HTML
         violation_rows = ""
