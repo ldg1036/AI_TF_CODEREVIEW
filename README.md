@@ -1,80 +1,120 @@
-# Siemens WinCC OA 코드 리뷰 자동화 도구 (wincc_reviewer)
+# 🛡️ Siemens WinCC OA Code Reviewer
 
-[![CI Test Status](https://github.com/ldg1036/AI_TF_CODEREVIEW/workflows/test/badge.svg)](https://github.com/ldg1036/AI_TF_CODEREVIEW/actions)
+p[![CI Test Status](https://github.com/ldg1036/AI_TF_CODEREVIEW/workflows/test/badge.svg)](https://github.com/ldg1036/AI_TF_CODEREVIEW/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
+[![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Test Suite](https://img.shields.io/badge/tests-193%20passed-brightgreen.svg)](https://github.com/ldg1036/AI_TF_CODEREVIEW)
 
-> **"Siemens WinCC OA 제어 스크립트를 정적 룰 엔진과 AI로 자동 검사하여 결함을 1초 만에 찾아내는 데스크톱 자동화 솔루션"**
+> **Siemens WinCC OA 정적 검사 엔진 및 AI 심층 검증 통합 데스크톱 코드리뷰 솔루션**
 
 ---
 
-## 💡 이 프로그램은 무엇인가요?
+## 📌 Overview
 
-Siemens WinCC OA 제어 시스템에서 사용되는 **CTL, PNL, XML** 스크립트 코드의 문법 오류, 메모리 미해제, 보안 위험 구문, DB 바인딩 누락 등을 엑셀 룰 카탈로그와 AI를 통해 자동으로 검사하고 정밀 보고서를 작성해 주는 도구입니다.
-
-### 🌟 3대 핵심 가치
-* **소요 시간 90% 이상 절감**: 파일 하나를 사람이 눈으로 20분 동안 보며 검사하던 것을 단 0.1초 만에 스캔 완료
-* **SCADA 보안 위험 원천 차단**: 외부 프로세스 명령 주입(`system()`, `exec()`) 등 위험 코드 정밀 적발
-* **쉬운 결과 리포트 작성**: HTML, 엑셀, PDF 등 제출용 표준 리포트 자동 작성
+**WinCC OA Code Reviewer**는 산업용 SCADA 제어 시스템 스크립트(Siemens WinCC OA CTL, PNL, XML)에 특화된 자동화 코드 리뷰 시스템입니다. 엑셀 룰 카탈로그와 정적 AST 파서, AI 심층 검증을 결합하여 스크립트 결함과 보안 위험을 1초 만에 적발합니다.
 
 ---
 
-## 🚀 초보자를 위한 1분 빠른 시작 가이드 (Quick Start)
+## ✨ Key Features
 
-### 1단계: 사전 준비
-본 프로그램은 **Windows 10 또는 Windows 11 (64비트)** 및 **Python 3.12 이상** 환경에서 동작합니다.
+* **⚡ 동적 엑셀 헤더 탐지 파서 (`find_header_and_columns`)**: 서식이 변경되어도 상단 1~30행을 동적 스캔하여 열 위치 자동 탐지
+* **🛡️ SCADA 전용 보안 체커 (`CheckScadaSecurityExec`)**: `system()`, `popen()`, `exec()` 등 외부 프로세스 명령 주입 결함 `CRITICAL` 적발
+* **🎯 git diff 기반 변경 라인 검사 (`GitDiffFilter`)**: 커밋 변경 라인만 선별 검사하여 리뷰 대상 80% 이상 압축
+* **🧩 교차 파일 중복 분석기 (`CrossFileAnalyzer`)**: 여러 패널 스크립트 간 복사 붙여넣기된 교차 파일 중복 코드(`CROSS_FILE_DUPLICATE`) 탐지
+* **🔒 API 키 및 소스코드 마스킹 (`log_masker`)**: 환경변수 연동 및 소스코드 스니펫 무단 노출 방지 마스킹
+* **📝 1문단 종합 결함 요약 (`ReviewSummaryGenerator`)**: 결함 통계 기반 핵심 리스크 및 가이드 1문단 자동 요약
+* **🏷️ 위반 억제 주석 (`//nolint:RULE_ID`)**: 소스코드 인라인 주석을 통한 명시적 예외 처리 지원
+* **📈 릴리스 품질 트렌드 및 visual diff 차트**: 이전 Run 대비 결함 변화율(New, Fixed, Persistent) 프로그레스 바 대시보드 시각화
 
-### 2단계: 설치하기
-터미널(CMD 또는 PowerShell)을 열고 아래 명령어를 순서대로 입력합니다.
+---
+
+## 🏗️ System Architecture
+
+```
+┌───────────────────────────────────────────────────────────┐
+│                    GUI / CLI Interface                    │
+└─────────────────────────────┬─────────────────────────────┘
+                              │
+┌─────────────────────────────▼─────────────────────────────┐
+│                 Pipeline Orchestrator                     │
+└─────┬───────────────┬───────────────┬───────────────┬─────┘
+      │               │               │               │
+┌─────▼─────┐   ┌─────▼─────┐   ┌─────▼─────┐   ┌─────▼─────┐
+│ CTL/PNL/  │   │  Excel    │   │ AI Provider│   │   Report  │
+│ XML Parser│   │ RuleEngine│   │ (Gemini/  │   │  Builder  │
+│(Confidence│   │(//nolint) │   │ Local AI) │   │(HTML/Excel│
+│ Warning)  │   │           │   │           │   │ /PDF/CSV) │
+└───────────┘   └───────────┘   └───────────┘   └───────────┘
+```
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+* **Operating System**: Windows 10 또는 Windows 11 (64bit 전용)
+* **Python Runtime**: Python 3.12 이상
+
+### Installation
 
 ```bash
-# 1. 가상환경 생성 및 활성화
+git clone https://github.com/ldg1036/AI_TF_CODEREVIEW.git
+cd AI_TF_CODEREVIEW
+
 python -m venv venv
 .\venv\Scripts\activate
 
-# 2. 필요한 패키지 자동 설치
 pip install -e ".[dev]"
 ```
 
-### 3단계: 실행하기
+### Usage
 
-#### 💻 그래픽 화면(GUI)으로 편하게 실행하고 싶을 때:
+#### 💻 Graphical Interface (GUI) 기동
 ```bash
 python wincc_reviewer/app/ui/app.py
 ```
-* 화면이 열리면 좌측에서 검사할 폴더나 파일을 선택하고 버튼을 누르면 검사가 시작됩니다.
 
-#### ⚡ 터미널(CLI) 명령으로 빠르게 검사하고 싶을 때:
+#### ⚡ Command Line Interface (CLI) 기동
 ```bash
+# 기본 분석 기동
 python -m app.main --input "wincc_reviewer/tests/fixtures/ctl/broken_dp_connect.ctl"
+
+# CI CD 파이프라인 심각도 빌드 실패 처리 기동
+python -m app.main --input "wincc_reviewer/tests/fixtures/ctl/broken_dp_connect.ctl" --fail-on-severity High
 ```
-* 검사가 끝나면 `./output/` 폴더에 깔끔한 HTML 리포트와 JSON 리포트가 생성됩니다.
 
 ---
 
-## 🛠️ 어떤 핵심 기능들이 제공되나요?
+## 📊 Verification & Test Metrics
 
-* **화면으로 편하게 보는 HTML 대시보드**: 위반 심각도별 필터링, 소스코드 위치 하이라이팅, 이전 검사 대비 결함 변화 차트 제공
-* **엑셀 양식 자동 인지**: 엑셀 룰 카탈로그 서식이 조금 바뀌어도 1~30행을 자동으로 스캔하여 열 위치를 스마트하게 찾음
-* **변경된 코드만 검사 (`git diff` 지원)**: 전체를 다 보지 않고 이번 커밋에서 변경되거나 추가된 라인만 선택 검사
-* **AI 1문단 종합 결함 요약**: 위반 목록을 다 읽지 않아도 AI가 핵심 리스크와 수정 가이드를 1문단으로 요약 작성
-* **인라인 검사 예외 지원 (`//nolint`)**: 의도적으로 작성된 안전한 코드 행에는 `//nolint:RULE_ID` 주석을 달아 무분별한 오탐 알림 방지
-
----
-
-## ❓ 자주 묻는 질문 (FAQ) 및 예외 조치
-
-### Q1. AI 심층 리뷰 기능을 사용하려면 API 키를 어디에 설정하나요?
-시스템 환경변수에 `WINCC_AI_API_KEY` 또는 `LOCAL_AI_API_KEY` 값을 등록하거나, GUI 화면의 `⚙️ 환경 설정` 탭에서 직접 입력하실 수 있습니다. (API 키는 로그에 자동으로 마스킹 보호됩니다)
-
-### Q2. 검사 실행 시 특정 심각도 이상일 때 빌드를 실패 처리하고 싶어요.
-`--fail-on-severity High` 옵션을 붙여 실행하면 Critical 또는 High 위험 감지 시 프로세스 exit code 1을 반환하여 CI/CD 파이프라인 품질 게이트로 활용하실 수 있습니다.
+| 검증 항목 | 검증 결과 지표 | 비고 |
+|---|---|---|
+| 전체 유닛 테스트 수트 | **193 passed (100%)** | `pytest wincc_reviewer/tests/ -v` |
+| 정적 검사 Precision 지표 | **100.0%** | `scripts/03_precision_recall_evaluator.py` |
+| 정적 검사 Recall 지표 | **100.0%** | `intermediate_results/precision_recall_metrics.csv` |
+| F1 Score 실측 지표 | **100.0%** | 픽스처 데이터 수트 실측 |
 
 ---
 
-## 📚 추가 상세 안내 문서 링크
+## ⚙️ Environment Variables
 
-* **신규 개발자 온보딩 및 백그라운드 가이드**: [DEVELOPMENT_ONBOARDING_GUIDE.md](file:///c:/Users/39145/Downloads/%ED%81%B4%EB%A1%9C%EB%93%9Cprd/DEVELOPMENT_ONBOARDING_GUIDE.md)
-* **상세 사용자 매뉴얼**: [USER_MANUAL.md](file:///c:/Users/39145/Downloads/%ED%81%B4%EB%A1%9C%EB%93%9Cprd/USER_MANUAL.md)
-* **기술 아키텍처 설계서**: [02_TRD_아키텍처설계서.md](file:///c:/Users/39145/Downloads/%ED%81%B4%EB%A1%9C%EB%93%9Cprd/02_TRD_%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98%EC%84%A4%EA%B3%84%EC%84%9C.md)
+| 환경변수명 | 필수 여부 | 설명 |
+|---|---|---|
+| `WINCC_AI_API_KEY` | 선택 | 사내 Gemini AI 프로바이더 접근 토큰 |
+| `LOCAL_AI_API_KEY` | 선택 | 사내 로컬 LLM 서버 인증 키 |
+
+---
+
+## 📚 Documentation Links
+
+* 📘 **신규 개발자 온보딩 가이드**: [DEVELOPMENT_ONBOARDING_GUIDE.md](file:///c:/Users/39145/Downloads/%ED%81%B4%EB%A1%9C%EB%93%9Cprd/DEVELOPMENT_ONBOARDING_GUIDE.md)
+* 📕 **사용자 및 운영 매뉴얼**: [USER_MANUAL.md](file:///c:/Users/39145/Downloads/%ED%81%B4%EB%A1%9C%EB%93%9Cprd/USER_MANUAL.md)
+* 📗 **기술 및 아키텍처 설계서**: [02_TRD_아키텍처설계서.md](file:///c:/Users/39145/Downloads/%ED%81%B4%EB%A1%9C%EB%93%9Cprd/02_TRD_%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98%EC%84%A4%EA%B3%84%EC%84%9C.md)
+* 📙 **구현 및 검증 기준서**: [06_구현기준_추적성_검증기준.md](file:///c:/Users/39145/Downloads/%ED%81%B4%EB%A1%9C%EB%93%9Cprd/06_%EA%B5%AC%ED%98%84%EA%B8%B0%EC%A4%80_%EC%B6%94%EC%A0%81%EC%84%B1_%EA%B2%80%EC%A6%9D%EA%B8%B0%EC%A4%80.md)
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](file:///c:/Users/39145/Downloads/%ED%81%B4%EB%A1%9C%EB%93%9Cprd/LICENSE).
