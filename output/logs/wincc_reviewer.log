@@ -132,3 +132,15 @@
 2026-08-06 23:56:06,895 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
 2026-08-06 23:56:06,897 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
 2026-08-06 23:56:06,898 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-129\test_js_api_run_review_success0\out\run-20260806-235606_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-129\test_js_api_run_review_success0\out\run-20260806-235606_review_report.html
+2026-08-06 23:59:26,329 [INFO] app.main: AI 오탐 피드백 기반 룰 카탈로그 자율 최적화 추천 엔진을 실행합니다...
+2026-08-06 23:59:26,335 [INFO] app.ui.api: UI를 통한 설정 갱신 완료: path=C:\Users\39145\AppData\Local\Temp\tmp4rqouy7p\settings.yaml
+2026-08-06 23:59:28,410 [INFO] app.ui.api: 로컬 AI 서버가 연결되지 않아 오프라인 기본 모델 목록을 사용합니다: <urlopen error [WinError 10061] 대상 컴퓨터에서 연결을 거부했으므로 연결하지 못했습니다>
+2026-08-06 23:59:28,416 [INFO] app.ui.api: UI를 통한 설정 갱신 완료: path=C:\Users\39145\AppData\Local\Temp\tmpptno6g5c\custom_dir\my_settings.yaml
+2026-08-06 23:59:28,448 [INFO] app.main: pywebview 데스크톱 GUI 모드를 시작합니다. (CLI 도움말은 --help 참조)
+2026-08-06 23:59:29,165 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-130\test_js_api_run_review_success0\script.ctl
+2026-08-06 23:59:29,165 [INFO] app.core.pipeline: 수집된 대상 파일: 1개
+2026-08-06 23:59:29,277 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 1개 중 0개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-06 23:59:29,283 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-06 23:59:29,290 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-06 23:59:29,290 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-06 23:59:29,294 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-130\test_js_api_run_review_success0\out\run-20260806-235929_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-130\test_js_api_run_review_success0\out\run-20260806-235929_review_report.html
