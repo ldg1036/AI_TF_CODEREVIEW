@@ -11,9 +11,11 @@
 * GUI 엔진: pywebview (기본 내장 웹뷰 이용, 별도 웹서버 불필요)
 
 ### 2) 실행 방법
-* 터미널 환경에서 실행: `python -m app.main`
+* 터미널 환경에서 실행: `python -m app.main --input-path "c:/path/to/script.ctl"`
+* CI CD 빌드 실패 제어 실행: `python -m app.main --input-path "c:/path/to/script.ctl" --fail-on-severity High`
 * 데스크톱 그래픽 인터페이스 실행: `python wincc_reviewer/app/ui/app.py`
 * 도움말 확인: `python -m app.main --help`
+
 
 ## 3. 화면 구성 및 주요 기능 설명
 * 좌측 패널: 검사 대상 디렉토리 및 파일 트리 선택 (CTL, PNL, XML 자동 감지)
