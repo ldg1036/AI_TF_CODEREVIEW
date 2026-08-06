@@ -239,14 +239,15 @@ class RuleEngine:
                         message=f"[unsupported_checker] 내장 체커가 등록되지 않았습니다: '{rule.checker_key}'",
                     )
                 )
-                return violations
+                return cls._filter_nolint_suppressed(parsed, violations)
 
             checker_fn = CheckerRegistry.get(rule.checker_key)
             if checker_fn:
                 try:
-                    return checker_fn(parsed, rule)
+                    res_violations = checker_fn(parsed, rule)
+                    return cls._filter_nolint_suppressed(parsed, res_violations)
                 except Exception as e:
-                    logger.error("내장 체커 실행 중 오류 발생 (%s): %e", rule.checker_key, e)
+                    logger.error("내장 체커 실행 중 오류 발생 (%s): %s", rule.checker_key, e)
                     violations.append(
                         Violation(
                             violation_id=f"V-{rule.rule_id}-ERR",
@@ -257,7 +258,7 @@ class RuleEngine:
                             message=f"체커 실행 오류: {e}",
                         )
                     )
-            return violations
+            return cls._filter_nolint_suppressed(parsed, violations)
 
         # 5. REGEX 처리
         if rule.checker_type == CheckerType.REGEX:
@@ -268,7 +269,6 @@ class RuleEngine:
                 matches = list(re.finditer(rule.pattern, parsed.content, re.MULTILINE))
                 for match in matches:
                     snippet = match.group(0)
-                    # 라인 위치 계산
                     line_start = parsed.content[: match.start()].count("\n") + 1
                     line_end = parsed.content[: match.end()].count("\n") + 1
 
@@ -296,7 +296,34 @@ class RuleEngine:
                         message=f"정규식 검사 실행 오류: {e}",
                     )
                 )
+            return cls._filter_nolint_suppressed(parsed, violations)
+
+        return cls._filter_nolint_suppressed(parsed, violations)
+
+    @classmethod
+    def _filter_nolint_suppressed(cls, parsed: ParsedFile, violations: list[Violation]) -> list[Violation]:
+        """//nolint 인라인 억제 주석이 존재하는 행의 결함을 필터링합니다."""
+        if not violations or not parsed.content:
             return violations
+
+        lines = parsed.content.splitlines()
+        filtered = []
+        for v in violations:
+            line_no = v.line_start or 1
+            suppressed = False
+            check_indices = [line_no - 1, line_no - 2]
+            for idx in check_indices:
+                if 0 <= idx < len(lines):
+                    line_str = lines[idx]
+                    if "//nolint" in line_str or "/*nolint" in line_str:
+                        if f"nolint:{v.rule_id}" in line_str or "//nolint" in line_str:
+                            suppressed = True
+                            logger.info("인라인 //nolint 주석으로 위반 억제됨: rule=%s, file=%s", v.rule_id, parsed.file_path)
+                            break
+            if not suppressed:
+                filtered.append(v)
+        return filtered
+
 
         return []
 

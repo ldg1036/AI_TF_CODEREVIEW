@@ -294,10 +294,11 @@ class Pipeline:
                             ai_provider_type = str(ai_settings.get("provider", "gemini")).lower()
                             if "local_server" in ai_settings:
                                 ls = ai_settings["local_server"]
+                                env_key = os.environ.get("WINCC_AI_API_KEY") or os.environ.get("LOCAL_AI_API_KEY")
                                 local_cfg = LocalAIConfig(
                                     host=str(ls.get("host", "127.0.0.1")),
                                     port=int(ls.get("port", 8000)),
-                                    api_key=str(ls.get("api_key", "")),
+                                    api_key=env_key or str(ls.get("api_key", "")),
                                     endpoint=str(ls.get("endpoint", "/v1/chat/completions")),
                                     model_id=str(ls.get("model_id", "sane_local_llm")),
                                     timeout_seconds=int(ai_settings.get("timeout_seconds", 60)),
@@ -313,9 +314,32 @@ class Pipeline:
                 ai_provider = GeminiAIProvider()
                 logger.info("Gemini AI 2차 심층 리뷰를 병렬 실행합니다 (대상 위반: %d건)", len(all_violations))
 
-            targets = all_violations if self.config.max_ai_reviews is None else all_violations[:self.config.max_ai_reviews]
+            # 심각도(Critical > High > Medium > Low) 우선순위로 정렬하여 AI 리뷰 대상 선정
+            severity_order = {
+                SeverityLevel.CRITICAL: 0,
+                SeverityLevel.HIGH: 1,
+                SeverityLevel.MEDIUM: 2,
+                SeverityLevel.LOW: 3,
+                SeverityLevel.INFO: 4,
+            }
+            sorted_violations = sorted(
+                all_violations,
+                key=lambda item: severity_order.get(item.severity, 5)
+            )
+
+            max_limit = self.config.max_ai_reviews
+            if max_limit is not None and len(sorted_violations) > max_limit:
+                targets = sorted_violations[:max_limit]
+                unreviewed = sorted_violations[max_limit:]
+                for uv in unreviewed:
+                    uv.ai_analysis = "[AI UNREVIEWED: max limit exceeded]"
+            else:
+                targets = sorted_violations
+
+            ai_failed_count = 0
 
             def _run_single_ai_review(v):
+                nonlocal ai_failed_count
                 try:
                     enriched_context = WinCCDomainRAG.build_domain_prompt(v.snippet or "", v.message, [v.rule_id])
                     req = AIRequest(
@@ -326,11 +350,21 @@ class Pipeline:
                     ai_resp = ai_provider.review(req)
                     if ai_resp.is_success:
                         v.ai_analysis = ai_resp.content
+                    else:
+                        ai_failed_count += 1
+                        v.ai_analysis = "[AI FALLBACK] AI 서버 응답 미수신으로 정적 룰 검사 결과만으로 대체함."
                 except Exception as e:
-                    logger.debug("AI 심층 리뷰 병렬 호출 예외: %s", e)
+                    ai_failed_count += 1
+                    logger.warning("[AI FALLBACK] AI 서버 연동 실패. 정적 분석 룰 검사 결과만으로 진행합니다. (원인: %s)", e)
+                    v.ai_analysis = "[AI FALLBACK] AI 서버 연동 실패로 정적 룰 검사 결과만으로 대체함."
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
                 list(executor.map(_run_single_ai_review, targets))
+
+            if ai_failed_count > 0:
+                logger.warning("[AI FALLBACK NOTICE] 총 %d건의 위반 항목에서 AI 서버 폴백이 활성화되었습니다.", ai_failed_count)
+
+
 
 
 
