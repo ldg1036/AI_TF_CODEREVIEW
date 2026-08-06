@@ -103,16 +103,23 @@ class CTLParser(Parser):
 
         content = None
         detected_encoding = ""
-        for enc in self.SUPPORTED_ENCODINGS:
+        encoding_confidence = 1.0
+        encoding_warning = ""
+
+        for idx, enc in enumerate(self.SUPPORTED_ENCODINGS):
             try:
                 content = raw_bytes.decode(enc)
                 detected_encoding = enc
+                if idx > 1:
+                    encoding_confidence = 0.65
+                    encoding_warning = f"[ENCODING WARNING] 비표준 인코딩({enc})이 감지되었습니다. 한글 및 주석 글자 깨짐 여부를 점검하십시오."
                 break
             except (UnicodeDecodeError, ValueError):
                 continue
 
         if content is None:
             return create_failed_parse(path, "지원되는 인코딩으로 디코딩에 실패했습니다.")
+
 
         # 줄바꿈 스타일 감지
         newline_style = "\r\n" if "\r\n" in content else "\n"
@@ -176,6 +183,8 @@ class CTLParser(Parser):
                 parse_status=parse_status,
                 original_sha256=file_sha256,
                 detected_encoding=detected_encoding,
+                encoding_confidence=encoding_confidence,
+                encoding_warning=encoding_warning,
                 newline_style=newline_style,
                 content=content,
                 metadata={
