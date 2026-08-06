@@ -71,6 +71,13 @@ wincc_reviewer/
 python scripts/04_anonymize_dataset.py
 ```
 
+### 5.3 사내 Open WebUI 및 타 IP 로컬 AI 연동 5대 설정 파라미터
+1. **Host**: 사내 Open WebUI 서버 IP 주소 (예: `10.100.20.15` 또는 `192.168.1.100`)
+2. **Port**: Open WebUI 서비스 포트 `3000` (또는 `8080`, `80`, `443`)
+3. **Endpoint**: OpenAI 호환 엔드포인트인 `/v1/chat/completions` (또는 `/api/chat/completions`)
+4. **API Key**: Open WebUI 계정에서 발급받은 API 키 (요청 시 `Authorization: Bearer <API_KEY>` 자동 전송)
+5. **Model ID**: Open WebUI 가동 모델명 (예: `llama3:8b`, `qwen2.5:72b` 등) 및 `🔄 모델 조회` 버튼을 통한 자동 갱신 지원
+
 ## 6. 테스트, 회귀 검증 및 CI CD 워크플로우
 
 ### 6.1 회귀 테스트 전수 실행
