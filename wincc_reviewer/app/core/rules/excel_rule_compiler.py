@@ -40,6 +40,12 @@ class RuleCompileResult:
     manual_review_count: int
     automated_count: int
     unmapped_count: int = 0
+    automation_coverage_pct: float = 0.0
+
+    def __post_init__(self):
+        if self.total_count > 0:
+            self.automation_coverage_pct = round((self.automated_count / self.total_count) * 100.0, 2)
+
 
 
 class ExcelRuleCompiler:
