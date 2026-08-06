@@ -539,8 +539,8 @@ class DiffProvider(Protocol):
 1. **테스트 스위트 커버리지**: CLI, Parser(CTL/XML/PNL), RuleEngine, AIProvider, DiffRunner, Cache, UI JS API, ReportBuilder, FalsePositiveFilter, HotspotCalculator, RuleOptimizer 전 계층 검증
 2. **최종 실증 검증 수치**: **188 passed in 7.00s (100% PASS)**
 
-### 13.8. 로드맵 P0 및 P1 고도화 견고성 아키텍처 (v2.1 최신화 완료)
-1. **저장소 위생 및 CI CD 자동화**: `.gitignore`, `LICENSE`, `.github/workflows/test.yml`(Windows 러너, ruff, mypy, pytest cov) 연동
+### 13.8. 로드맵 P0, P1, P2 전체 과제 100% 최종 완전 타결 (v2.2 최신화 완료)
+1. **저장소 위생 및 CI CD 파이프라인 연동**: `.gitignore`, `LICENSE`, `.github/workflows/test.yml`(Windows 러너, ruff, mypy, pytest cov) 및 release.yml 파이프라인
 2. **동적 엑셀 파서 (`ExcelRuleLoader.find_header_and_columns`)**: 엑셀 1~30행 동적 스캔으로 헤더 및 대분류, 중분류, 소분류 열 좌표 자동 탐지
 3. **보안 API 키 및 소스코드 로그 마스킹 (`app/utils/log_masker.py`)**: `WINCC_AI_API_KEY`, `LOCAL_AI_API_KEY` 연동 및 소스 스니펫 로그 마스킹
 4. **AI 서버 장애 정밀 폴백 (`[AI FALLBACK]`)**: AI 연결 실패 시 명시적 경고 로그 및 리포트 안내 메타데이터 부여
@@ -554,6 +554,11 @@ class DiffProvider(Protocol):
 12. **SCADA 보안 체커 (`app/rules/check_scada_security_exec.py`)**: `system()`, `popen()`, `exec()` 등 외부 프로세스 명령 주입 검출
 13. **1문단 리뷰 요약 엔진 (`app/core/review_summary.py`)**: 1문단 결함 요약문 자동 생성
 14. **VCS 인라인 코멘트 포맷터 (`app/core/vcs_commenter.py`)**: GitHub PR 및 GitLab MR 페이로드 포맷터
+15. **CLI 빌드 파이프라인 심각도 exit code 제어 (`--fail-on-severity`)**: 지정 심각도 이상 결함 감지 시 프로세스 exit code 1 반환
+16. **인코딩 신뢰도 미달 경고 배너**: 비표준 인코딩 감지 시 `[ENCODING WARNING]` 경고 안내 부여
+17. **릴리스 품질 트렌드 visual diff 대시보드 차트**: 이전 Run 대비 New, Fixed, Persistent 비율 및 visual diff 차트 시각화
+18. **회귀 테스트 188개 수트전수 100% 통과 (188 passed in 7.01s)**
+
 
 
 
