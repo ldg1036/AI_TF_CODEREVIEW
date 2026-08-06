@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+wincc_reviewer/build/
+wincc_reviewer/dist/
+wincc_reviewer/*.exe
+output/*.json
+output/*.html
+output/logs/
+cache/*.json
+.venv/
