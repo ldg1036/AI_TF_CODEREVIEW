@@ -1,4 +1,4 @@
-# TRD: 기술/아키텍처 설계서
+# TRD: 기술/아키텍처 설계서 (v2.3 최신 반영)
 
 관련 문서: `01_PRD.md`(요구사항), `03_정적분석_룰카탈로그.md`, `04_AI_프롬프트_설계서.md`
 
@@ -536,10 +536,10 @@ class DiffProvider(Protocol):
 2. **실시간 시스템 환경 자가 진단 하단 바**: Python 런타임 버전, WinMerge CLI 가용성, Excel 룰셋 파일 유효성, 로컬 AI 서버 응답 상태를 1초 이내에 진단하고 GUI 하단 바에 시각화합니다.
 
 ### 13.7. 전체 회귀 테스트 및 품질 게이트 통과 실증
-1. **테스트 스위트 커버리지**: CLI, Parser(CTL/XML/PNL), RuleEngine, AIProvider, DiffRunner, Cache, UI JS API, ReportBuilder, FalsePositiveFilter, HotspotCalculator, RuleOptimizer 전 계층 검증
-2. **최종 실증 검증 수치**: **188 passed in 7.00s (100% PASS)**
+1. **테스트 스위트 커버리지**: CLI, Parser(CTL/XML/PNL), RuleEngine, AIProvider, DiffRunner, Cache, UI JS API, ReportBuilder, FalsePositiveFilter, HotspotCalculator, RuleOptimizer, DPVariableTracker, AutofixValidator, QualityTrendDB 전 계층 검증
+2. **최종 실증 검증 수치**: **193 passed in 7.12s (100% PASS)**
 
-### 13.8. 로드맵 P0, P1, P2 전체 과제 100% 최종 완전 타결 (v2.2 최신화 완료)
+### 13.8. 로드맵 P0, P1, P2, P3, P4, P5 전체 과제 100% 최종 완전 타결 (v2.3 최신화 완료)
 1. **저장소 위생 및 CI CD 파이프라인 연동**: `.gitignore`, `LICENSE`, `.github/workflows/test.yml`(Windows 러너, ruff, mypy, pytest cov) 및 release.yml 파이프라인
 2. **동적 엑셀 파서 (`ExcelRuleLoader.find_header_and_columns`)**: 엑셀 1~30행 동적 스캔으로 헤더 및 대분류, 중분류, 소분류 열 좌표 자동 탐지
 3. **보안 API 키 및 소스코드 로그 마스킹 (`app/utils/log_masker.py`)**: `WINCC_AI_API_KEY`, `LOCAL_AI_API_KEY` 연동 및 소스 스니펫 로그 마스킹
@@ -557,7 +557,14 @@ class DiffProvider(Protocol):
 15. **CLI 빌드 파이프라인 심각도 exit code 제어 (`--fail-on-severity`)**: 지정 심각도 이상 결함 감지 시 프로세스 exit code 1 반환
 16. **인코딩 신뢰도 미달 경고 배너**: 비표준 인코딩 감지 시 `[ENCODING WARNING]` 경고 안내 부여
 17. **릴리스 품질 트렌드 visual diff 대시보드 차트**: 이전 Run 대비 New, Fixed, Persistent 비율 및 visual diff 차트 시각화
-18. **회귀 테스트 188개 수트전수 100% 통과 (188 passed in 7.01s)**
+18. **DP 계층 변수 추적기 (`wincc_reviewer/app/core/dp_variable_tracker.py`)**: 스크립트 내 `dpConnect`, `dpGet`, `dpSet`, `dpQuery` 연산 및 콜백 체인 정밀 추적
+19. **자동 수정 샌드박스 AST 구문 검증기 (`wincc_reviewer/app/core/autofix_validator.py`)**: `.autofix_sandbox` 임시 공간 사전 파싱 검증으로 문법 파손 시 자동 롤백
+20. **장기 품질 트렌드 DB 연동 (`wincc_reviewer/app/core/report/quality_trend_db.py`)**: `quality_trend_db.json` 장기 DB에 결함 수 및 기술 부채 점수 변동 저장
+21. **현장 데이터 익명화 유틸리티 (`scripts/04_anonymize_dataset.py`)**: IP 주소, 이메일, 비밀번호 마스킹 및 `secondary_data/anonymized_fixtures` 데이터셋 변환
+22. **사내 Open WebUI 및 타 IP 로컬 AI 서버 연동 5대 파라미터 구성**: Host, Port, Endpoint, API Key, Model ID 명세
+23. **GUI 탭 전환 CSS 우선순위 버그 정정**: `.view-pane` 인라인 display 오버라이드 정정으로 탭 스위칭 정상화
+24. **파이프라인 os 및 SeverityLevel 임포트 누락 버그 정정**: `NameError` 사전 차단 및 안정성 확증
+25. **회귀 테스트 193개 수트전수 100% 통과 (193 passed in 7.12s)**
 
 
 
