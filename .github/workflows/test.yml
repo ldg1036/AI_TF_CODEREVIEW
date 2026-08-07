@@ -1,25 +1,21 @@
 name: test
+
 on: [push, pull_request]
+
 jobs:
   test:
     runs-on: windows-latest
     steps:
-      [
-        {
-          name: Checkout code,
-          uses: actions/checkout@v4
-        },
-        {
-          name: Set up Python,
-          uses: actions/setup-python@v5,
-          with: { python_version: "3.12" }
-        },
-        {
-          name: Install dependencies,
-          run: pip install pytest pytest_cov ruff mypy PyYAML openpyxl
-        },
-        {
-          name: Run tests with coverage,
-          run: pytest wincc_reviewer/tests/
-        }
-      ]
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pytest pytest_cov ruff mypy PyYAML openpyxl
+
+      - name: Run tests with coverage
+        run: pytest wincc_reviewer/tests/
