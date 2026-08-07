@@ -1,4 +1,4 @@
-﻿app:
+app:
   version: 0.1.0
   log_level: INFO
 rule_sources:
@@ -29,11 +29,11 @@ ai:
   timeout_seconds: 300
   max_retries: 3
   local_server:
-    host: 127.0.0.1
-    port: 11434
-    api_key: ''
-    endpoint: /v1/chat/completions
-    model_id: qwen2.5-coder:3b
+    host: 192.168.134.199
+    port: 8080
+    api_key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNiNTI1MjRlLWViZjAtNGQ2Ni1hOTFiLWU0ODA2MWJkZDRiMyIsImV4cCI6MTc4NzIxMTQ3NywianRpIjoiNDU4ZDhlOTUtZDQ3OC00M2Q5LTkwNTMtMTFiNjgxYjdjN2RjIn0.-AP5HkEE4XEcsNmqWvSBPfK2qAMRQc0n_t8mQSBoIkM
+    endpoint: /api/chat/completions
+    model_id: gemma4:31b
 autofix:
   enabled: true
 winmerge:
@@ -47,3 +47,5 @@ output:
 legacy_mapping:
   client: config/legacy_mapping/client.yaml
   server: config/legacy_mapping/server.yaml
+parser:
+  extract_scripts_only: true
