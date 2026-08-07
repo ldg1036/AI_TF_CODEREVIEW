@@ -19,7 +19,7 @@ jobs:
         },
         {
           name: Install dependencies,
-          run: pip install pytest pytest_cov ruff mypy PyYAML openpyxl
+          run: pip install pytest pytest_cov ruff mypy PyYAML openpyxl pyinstaller
         },
         {
           name: Build PyInstaller binary,
