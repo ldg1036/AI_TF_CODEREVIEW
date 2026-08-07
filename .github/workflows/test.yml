@@ -16,7 +16,7 @@ jobs:
         },
         {
           name: Install dependencies,
-          run: pip install pytest pytest_cov ruff mypy
+          run: pip install pytest pytest_cov ruff mypy PyYAML openpyxl
         },
         {
           name: Run tests with coverage,
