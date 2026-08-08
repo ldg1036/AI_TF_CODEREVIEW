@@ -1,4 +1,1 @@
-main()
-{
-  dpDisconnect("on_change", "Panel_Temp.:_online.._value");
-}
+main() { dpDisconnect("on_change", "Temp.:_online.._value"); }

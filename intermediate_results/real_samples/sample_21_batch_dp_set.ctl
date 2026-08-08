@@ -1,6 +1,1 @@
-void batch_update()
-{
-  dyn_string dps = makeDynString("P1.:_original.._value", "P2.:_original.._value");
-  dyn_anytype vals = makeDynAnytype(10, 20);
-  dpSetWait(dps, vals);
-}
+void batch() { dyn_string d = makeDynString("P1", "P2"); dyn_anytype v = makeDynAnytype(1, 2); dpSetWait(d, v); }

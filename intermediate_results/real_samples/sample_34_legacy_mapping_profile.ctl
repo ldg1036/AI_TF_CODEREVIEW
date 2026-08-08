@@ -1,4 +1,1 @@
-void legacy_call()
-{
-  dpGet("LegacyDP.:_online.._value", g_counter);
-}
+void legacy() { dpGet("LegacyDP", g_counter); }

@@ -1,4 +1,1 @@
-main()
-{
-  addSymbol(myModuleName(), myPanelName(), "objects/valve_faceplate.pnl", "Valve_1", makeDynString("$dpName:Valve_1"), 10, 20, 0, 1.0, 1.0);
-}
+main() { addSymbol(myModuleName(), myPanelName(), "faceplate.pnl", "V1", makeDynString("$dp:V1"), 10, 20, 0, 1.0, 1.0); }

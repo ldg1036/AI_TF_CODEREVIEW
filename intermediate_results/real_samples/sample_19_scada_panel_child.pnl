@@ -1,4 +1,1 @@
-main()
-{
-  ChildPanelOnCentral("dialogs/confirm.pnl", "Confirm Dialog", makeDynString("$msg:Save Changes?"));
-}
+main() { ChildPanelOnCentral("confirm.pnl", "Dialog", makeDynString("$msg:Save?")); }

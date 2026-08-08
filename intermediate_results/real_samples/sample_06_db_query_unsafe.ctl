@@ -1,5 +1,1 @@
-void execute_unsafe_db(string input_val)
-{
-  string sql = "SELECT * FROM logs WHERE user = '" + input_val + "'";
-  dbExecuteQuery(sql);
-}
+void unsafe_db(string input_val) { string s = "SELECT * FROM users WHERE name='" + input_val + "'"; dbExecuteQuery(s); }

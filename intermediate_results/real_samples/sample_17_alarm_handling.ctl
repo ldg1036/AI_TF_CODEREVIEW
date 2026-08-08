@@ -1,7 +1,1 @@
-void handle_alarm(string dp, time t, int state)
-{
-  if (state > 1)
-  {
-    dpSet("Alarm_Summary.:_original.._value", state);
-  }
-}
+void alarm_cb(string dp, time t, int state) { if(state>1) dpSet("Alarm.:_original.._value", state); }
