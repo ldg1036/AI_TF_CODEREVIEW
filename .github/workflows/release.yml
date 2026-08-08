@@ -36,27 +36,3 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/WinCC_OA_Code_Reviewer.zip
-      [
-        {
-          name: Checkout code,
-          uses: actions/checkout@v4
-        },
-        {
-          name: Set up Python,
-          uses: actions/setup-python@v5,
-          with: { python_version: "3.12" }
-        },
-        {
-          name: Install dependencies,
-          run: pip install pytest pytest_cov ruff mypy PyYAML openpyxl
-        },
-        {
-          name: Build PyInstaller binary,
-          run: pyinstaller --onedir --name wincc_reviewer wincc_reviewer/app/main.py
-        },
-        {
-          name: Create GitHub Release,
-          uses: softprops/action-gh-release@v1,
-          with: { files: "dist/wincc_reviewer/*" }
-        }
-      ]

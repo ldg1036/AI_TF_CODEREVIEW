@@ -1,10 +1,8 @@
 ﻿Metric_Name,Metric_Value,Unit_Description
 Total_Files_Scanned,210,개 파일
-Total_Elapsed_Time,0.6375,초
-Average_Time_Per_File,3.04,ms/파일
-P50_Duration,2.88,ms
-P95_Duration,3.49,ms
-P99_Duration,3.95,ms
-Peak_Memory_Usage,48.34,MB
-Detected_Violations,140,건
-Precision_Rate,100.0,%
+FileSize_StdDev,572.17,Bytes
+P50_Quantile_Ms,1.59,ms
+P95_Quantile_Ms,2.6,ms
+P99_Quantile_Ms,14.53,ms
+Calculated_Precision,30.69,%
+Calculated_Recall,42.47,%
