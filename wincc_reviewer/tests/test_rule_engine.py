@@ -81,7 +81,7 @@ class TestRuleEngine:
             file_path=Path("sample.ctl"),
             file_type="ctl",
             parse_status=ParseStatus(status=ParseStatusType.PARSED),
-            content="main() {}",
+            content="main() { dpConnect('cb', 'tag'); }",
         )
         manual_rule = RuleDefinition(
             rule_id="MANUAL-001",

@@ -70,7 +70,7 @@ def generate_diverse_dataset(num_files: int = 210) -> tuple[list[Path], dict[str
 
         elif file_type == "pnl":
             if i % 4 == 0:
-                script_body = f"main() {{ dpGet(\"Tag_PNL_{i}\", val); }}"
+                script_body = f"main() {{ float v; dpGet(\"Tag_PNL_{i}\", v); }}"
                 expected_rules.append("CTL_ERR_001")
             else:
                 script_body = f"main() {{ int a = {i}; }}"

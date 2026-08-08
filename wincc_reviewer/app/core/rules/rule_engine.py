@@ -78,19 +78,18 @@ class RuleEngine:
         # 룰 ID 및 구문 세부 특성에 맞춘 정밀 정규식/키워드 매칭
         pattern = None
         if "MANUAL-001" in r_id or "active 동작" in text:
-            pattern = r"\b(isredundantactive|scriptactive|activecondition|isactive)\b"
+            pattern = r"\b(dpconnect|dpquery|isredundantactive|scriptactive|activecondition|isactive)\b"
         elif "MANUAL-018" in r_id or "하드코딩" in text:
             pattern = r"\b(http://|https://|[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\b"
 
         if pattern:
             for idx, line in enumerate(lines, start=1):
-                # 주석 행 제외
                 l_strip = line.strip()
                 if l_strip.startswith("//") or l_strip.startswith("/*") or l_strip.startswith("#"):
                     continue
                 if re.search(pattern, line, re.IGNORECASE):
                     matches.append((idx, l_strip))
-                    break  # 룰당 가장 대표적인 실제 구문 라인 1개 매칭
+                    break
 
         return matches
 
@@ -142,18 +141,11 @@ class RuleEngine:
                     if not has_control_logic:
                         return []
 
-                    # PNL 또는 스크립트에서 이벤트 교환/DP 처리 관련 구문 추출
+                    # PNL 또는 스크립트에서 이벤트 교환/DP 처리 관련 구문 정밀 추출
                     matched_lines = cls._find_keyword_lines(parsed.content, rule)
                     if not matched_lines:
-                        # 소스 코드에서 주석 및 XML 구조 태그를 제외한 첫 번째 실제 스크립트 코드 행 찾기
-                        code_lines = [
-                            (i, l.strip()) for i, l in enumerate(parsed.content.splitlines(), start=1)
-                            if l.strip() and not l.strip().startswith(("//", "/*", "#", "<?xml", "<panel", "<prop", "<shape", "<primitive"))
-                        ]
-                        if not code_lines:
-                            # 실제 스크립트 코드가 없는 순수 UI XML PNL 구조 등은 오진 없이 PASS
-                            return []
-                        matched_lines = [code_lines[0]]
+                        # 해당되는 키워드 구문이 없으면 오탐 없이 PASS 처리
+                        return []
 
                     l_no = matched_lines[0][0]
                     snip = matched_lines[0][1]
