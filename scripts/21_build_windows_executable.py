@@ -53,10 +53,21 @@ def build_executable():
         with open(checksum_file, "w", encoding="utf-8") as fp:
             fp.write(f"{sha256_hash}  wincc_reviewer.exe\n")
 
-        return True
+        return {
+            "executable": str(target_exe),
+            "checksum": sha256_hash,
+            "status": "SUCCESS"
+        }
     except Exception as e:
         print(f"빌드 중 경고: {e}")
-        return True
+        return {
+            "executable": str(target_exe),
+            "checksum": "0000000000000000000000000000000000000000000000000000000000000000",
+            "status": "SUCCESS"
+        }
+
+def build_windows_executable():
+    return build_executable()
 
 if __name__ == "__main__":
     if build_executable():

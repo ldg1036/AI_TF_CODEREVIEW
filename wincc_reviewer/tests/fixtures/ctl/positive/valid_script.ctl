@@ -2,6 +2,7 @@
 void cbTemp(string dp, anytype val)
 {
     // Temperature callback handler
+    int err = getLastError();
 }
 
 void main()
