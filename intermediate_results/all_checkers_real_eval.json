@@ -1,0 +1,153 @@
+﻿[
+  {
+    "checker_key": "ctl.dp_connect_pair",
+    "detected_count": 41,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": [
+      {
+        "file": "CA2_Na2SO3_VALVE.pnl",
+        "line": 35,
+        "message": "[INFO] CTL_RES_001 — PNL 화면 초기화 이벤트 내 dpConnect 호출입니다. 화면 종료 시 자동 해제되어 메모리 누수 위험은 낮으나, 명시적 dpDisconnect 작성을 통한 자원 해제를 권장합니다."
+      },
+      {
+        "file": "CA2_Na2SO3_VALVE.pnl",
+        "line": 36,
+        "message": "[INFO] CTL_RES_001 — PNL 화면 초기화 이벤트 내 dpConnect 호출입니다. 화면 종료 시 자동 해제되어 메모리 누수 위험은 낮으나, 명시적 dpDisconnect 작성을 통한 자원 해제를 권장합니다."
+      },
+      {
+        "file": "CA2_Na2SO3_VALVE.pnl",
+        "line": 37,
+        "message": "[INFO] CTL_RES_001 — PNL 화면 초기화 이벤트 내 dpConnect 호출입니다. 화면 종료 시 자동 해제되어 메모리 누수 위험은 낮으나, 명시적 dpDisconnect 작성을 통한 자원 해제를 권장합니다."
+      }
+    ]
+  },
+  {
+    "checker_key": "ctl.batch_dp_ops",
+    "detected_count": 114,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": [
+      {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+        "line": 763,
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화"
+      },
+      {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+        "line": 764,
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화"
+      },
+      {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+        "line": 765,
+        "message": "[CTL_PRF_002] 위반: Event, Ctrl Manager 이벤트 교환 횟수 최소화"
+      }
+    ]
+  },
+  {
+    "checker_key": "ctl.try_catch",
+    "detected_count": 2,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": [
+      {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2.pnl",
+        "line": 1039,
+        "message": "[CTL_ERR_002] 위반: Try, Catch 예외처리"
+      },
+      {
+        "file": "POP_CTRL_AUTOBACKUP_HGB_C2_2_pnl.txt",
+        "line": 691,
+        "message": "[CTL_ERR_002] 위반: Try, Catch 예외처리"
+      }
+    ]
+  },
+  {
+    "checker_key": "ctl.loop_delay",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.dead_code_unused",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.scada_security_exec",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.hardcoded_ip",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.sql_injection",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.deprecated_func",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.global_var_prefix",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.uninitialized_var",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.recursion_check",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.cyclomatic_complexity",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.cross_file_duplication",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.unbounded_array",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.file_handle_leak",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.missing_error_handling",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  },
+  {
+    "checker_key": "ctl.redundancy_active_check",
+    "detected_count": 0,
+    "status": "PASS (No False Positives Detected)",
+    "sample_violations": []
+  }
+]

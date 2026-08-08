@@ -223,6 +223,8 @@ class HTMLReportBuilder:
 
         # 2. Violations 테이블 HTML
         violation_rows = ""
+        REAL_VERIFIED_RULES = {"CTL_ERR_002", "CTL_PRF_001", "CTL_PRF_002", "CTL_RES_001", "MANUAL-005", "CTL-AST-CFA-001", "CTL-AST-CFA-003"}
+
         for v in report.violations:
 
             rule_id = cls._escape(v.rule_id)
@@ -230,6 +232,11 @@ class HTMLReportBuilder:
             msg = cls._escape(v.message)
             line = f"L{v.line_start}" if v.line_start else "-"
             snippet = cls._escape(v.snippet) if v.snippet else ""
+
+            if rule_id in REAL_VERIFIED_RULES:
+                rule_confidence_badge = '<span class="badge" style="background: rgba(166, 227, 161, 0.2); color: #a6e3a1; border: 1px solid #a6e3a1;" title="실물 WinCC OA 소스코드로 오탐 완화 검증이 완료된 룰입니다.">✓ 실물검증완료</span>'
+            else:
+                rule_confidence_badge = '<span class="badge" style="background: rgba(249, 226, 175, 0.2); color: #f9e2af; border: 1px solid #f9e2af;" title="픽스처 테스트만 수행된 룰로 실물 적용 시 수동 확인이 필요할 수 있습니다.">⚠️ 픽스처검증</span>'
 
             sev_val = v.severity.value if isinstance(v.severity, SeverityLevel) else str(v.severity)
             stat_val = v.status.value if isinstance(v.status, ViolationStatus) else str(v.status)
@@ -287,7 +294,7 @@ class HTMLReportBuilder:
             <tr class="v-row" data-sev="{sev_val}" data-stat="{stat_val}" style="cursor: pointer;" onclick="if(window.parent && window.parent.openCodeViewer){{ window.parent.openCodeViewer('{cls._escape(v.file_id).replace('\\', '\\\\')}', {v.line_start or 1}, '{rule_id}'); }}" title="클릭하여 소스 코드 및 위반 라인 팝업 열기">
                 <td><span class="badge {stat_class}">{stat_val}</span></td>
                 <td><span class="badge {sev_class}">{sev_val}</span></td>
-                <td><strong>{rule_id}</strong></td>
+                <td><strong>{rule_id}</strong><br/>{rule_confidence_badge}</td>
                 <td class="file-path">{file_id} <span class="line-no" style="color: var(--accent); font-weight: bold;">{line} 🔍</span></td>
                 <td>
                     <div class="v-msg">{msg}</div>
@@ -594,6 +601,11 @@ class HTMLReportBuilder:
                 <div>App Version: v{app_version}</div>
             </div>
         </header>
+
+        <div class="notice-banner" style="background: rgba(250, 179, 135, 0.15); border: 1px solid var(--c-high); border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; color: #fab387;">
+            <strong>📢 사내 체크리스트 정적 분석 자동화 커버리지 고지:</strong> Client 33.3% / Server 30.0%<br/>
+            <span style="font-size: 0.85rem; opacity: 0.9;">* 본 정적 검사 통과 항목 외 약 70%의 검토 항목(MANUAL_REVIEW)은 리뷰어가 직접 수동 검증해야 합니다.</span>
+        </div>
 
         <div class="metrics-grid">
             <div class="metric-card">

@@ -1,25 +1,36 @@
 name: test
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
 jobs:
   test:
     runs-on: windows-latest
+
     steps:
-      [
-        {
-          name: Checkout code,
-          uses: actions/checkout@v4
-        },
-        {
-          name: Set up Python,
-          uses: actions/setup-python@v5,
-          with: { python_version: "3.12" }
-        },
-        {
-          name: Install dependencies,
-          run: pip install pytest pytest_cov ruff mypy
-        },
-        {
-          name: Run tests with coverage,
-          run: pytest wincc_reviewer/tests/
-        }
-      ]
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install pytest pytest-cov ruff mypy
+
+      - name: Run tests with coverage
+        run: |
+          python -m pytest wincc_reviewer/tests/ --cov=wincc_reviewer/app --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml

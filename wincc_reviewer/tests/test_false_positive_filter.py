@@ -83,7 +83,7 @@ class TestFalsePositiveFilter:
         assert conf == 0.95
         assert fp_prob == 0.05
         assert is_fp is False
-        assert "[진성 위반 검증]" in reason
+        assert "[정적 패턴 분석]" in reason
 
     def test_filter_violations_batch(self):
         """5. filter_violations 일괄 처리 및 Violation 객체 속성 바인딩 검증."""

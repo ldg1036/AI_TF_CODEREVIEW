@@ -304,6 +304,7 @@ class Pipeline:
                                     model_id=str(ls.get("model_id", "sane_local_llm")),
                                     timeout_seconds=int(ai_settings.get("timeout_seconds", 60)),
                                     max_retries=int(ai_settings.get("max_retries", 3)),
+                                    temperature=float(ai_settings.get("temperature", 0.2)),
                                 )
                 except Exception as e:
                     logger.error("settings.yaml AI 설정 로딩 실패, 기본 Gemini 사용: %s", e)

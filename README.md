@@ -13,10 +13,10 @@
 
 Siemens WinCC OA 제어 시스템에서 사용되는 **CTL, PNL, XML** 스크립트 코드의 문법 오류, 메모리 누수, 보안 위험 구문, DB 바인딩 누락 등을 엑셀 룰 카탈로그와 AI를 통해 자동으로 검사하고 정밀 보고서를 작성해 주는 도구입니다.
 
-### 3대 핵심 가치
+### 3대 핵심 가치 및 안정성 보장
 * **시간 90% 이상 절감**: 사람이 파일 하나를 20분 동안 눈으로 보며 검사하던 것을 단 0.1초 만에 스캔 완료
-* **SCADA 보안 위험 원천 차단**: 외부 프로세스 명령 주입(`system()`, `exec()`) 등 위험 코드 정밀 적발
-* **제출용 표준 리포트 작성**: HTML, 엑셀, PDF 등 표준 결과 리포트 자동 생성
+* **SCADA 보안 및 데이터 유출 원천 차단**: 외부 프로세스 명령 주입(`system()`, `exec()`) 등 위험 코드 정밀 적발 및 외부 AI 전송 기본 차단 보안 가드레일(`ALLOW_EXTERNAL_AI`) 탑재
+* **투명한 커버리지 및 신뢰도 고지**: 정적 분석 자동화 커버리지(Client 33.3% / Server 30.0%) 상시 명시 및 실물 오탐 검증 완료 룰 신뢰도 배지(`✓ 실물검증완료`) 표기
 
 ---
 
@@ -56,6 +56,12 @@ cd AI_TF_CODEREVIEW
 python -m venv venv
 .\venv\Scripts\activate
 
+# 기본 설치 방법 (requirements.txt 이용)
+pip install -r requirements.txt
+
+# 개발자/테스트 패키지 포함 설치 방법 (requirements-dev.txt 또는 editable 이용)
+pip install -r requirements-dev.txt
+# 또는
 pip install -e ".[dev]"
 ```
 

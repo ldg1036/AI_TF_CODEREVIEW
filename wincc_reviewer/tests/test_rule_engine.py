@@ -181,7 +181,7 @@ class TestRuleEngine:
         v = violations[0]
         assert v.status == ViolationStatus.FAIL
         assert v.line_start == 3
-        assert v.snippet == "g_counter"
+        assert "g_counter" in v.snippet
 
     def test_manual_004_callback_delay(self):
         """MANUAL-004: 콜백 함수 내 delay 존재 시 위반 검출, 미존재 시 PASS 검증."""

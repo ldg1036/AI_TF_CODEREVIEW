@@ -1,0 +1,22 @@
+# WinCC OA Code Reviewer : 실제 운영 환경 필수 베이스 패키지 명세서
+
+# 1. 엑셀 룰 카탈로그(xlsx) 로딩, 동적 파싱 및 엑셀 내보내기 런타임
+openpyxl>=3.1.0,<4.0.0
+
+# 2. 데스크톱 GUI 아키텍처 렌더링 및 Python UI API 동적 바인딩
+pywebview>=5.0.0,<6.0.0
+
+# 3. 사내 로컬 AI (OpenWebUI, Ollama) 및 클라우드 AI (Gemini) 비동기 HTTP 통신
+httpx>=0.27.0,<1.0.0
+
+# 4. config/settings.yaml 파일 읽기, 쓰기 및 사용자 환경설정 관리
+pyyaml>=6.0.0,<7.0.0
+
+# 5. 다국어 파일 인코딩 (EUC-KR, CP949, UTF-8) 자동 감지 보조 런타임
+charset-normalizer>=3.3.0,<4.0.0
+
+# 6. HTML 및 리포트 템플릿 동적 렌더링 엔진
+jinja2>=3.1.0,<4.0.0
+
+# 7. 파이썬 호환성 및 하이브리드 타입 어노테이션 지원
+typing-extensions>=4.10.0,<5.0.0

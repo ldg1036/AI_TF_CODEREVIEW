@@ -256,6 +256,7 @@ Diff 기능은 AI가 생성한 수정본뿐 아니라 사용자가 선택한 임
 | 항목 | 기본 결정값 |
 |---|---|
 | 지원 OS | Windows 10/11 64-bit |
+| WinCC OA 지원 버전 (DEC-01) | 3.17 ~ 3.20 (공식 지원 확정) |
 | Python | 3.12 |
 | 입력 형식 | `.ctl`, `.pnl`, `.xml` |
 | GUI | `pywebview` + HTML/CSS/Vanilla JS |
