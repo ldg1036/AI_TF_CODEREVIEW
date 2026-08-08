@@ -201,7 +201,6 @@ def check_loop_delay(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation
             continue
 
         start_pos = header_end + brace_match.end() - 1
-        start_line = content[:start_pos].count('\n') + 1
 
         # 중괄호 스택 파싱으로 루프 바디 끝 위치 획득
         brace_count = 0
@@ -1146,10 +1145,10 @@ def check_duplicated_code(parsed: ParsedFile, rule: RuleDefinition) -> list[Viol
     block_size = 5
 
     clean_lines = [(idx, line.split("//")[0].strip()) for idx, line in enumerate(lines, start=1)]
-    meaningful = [(idx, l) for idx, l in clean_lines if l and l not in ("{", "}")]
+    meaningful = [(idx, line_text) for idx, line_text in clean_lines if line_text and line_text not in ("{", "}")]
 
     for i in range(len(meaningful) - block_size + 1):
-        block_lines = tuple(l for _, l in meaningful[i : i + block_size])
+        block_lines = tuple(line_text for _, line_text in meaningful[i : i + block_size])
         block_start_line = meaningful[i][0]
         block_str = "\n".join(block_lines)
 

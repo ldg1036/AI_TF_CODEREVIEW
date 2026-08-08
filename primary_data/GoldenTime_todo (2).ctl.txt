@@ -1,4 +1,4 @@
-//-----------------------------------------------------------
+﻿//-----------------------------------------------------------
 // v1.0 (2026.01.28)
 // v1.01 (2026.02.02)
 // 코드리뷰 1차 반영, dpSet 일괄처리
@@ -13,7 +13,7 @@
 // configuration path & filename
 //---------------------------------------------
 string script_path;
-string config_filename = "config/config.GoldenTime";
+string config_filename = "config/config.ANONYMIZED_TAG";
 
 //---------------------------------------------
 // general option
@@ -22,7 +22,7 @@ const string g_script_release_version = "v1.0";
 const string g_script_release_date = "2026.01.28";
 
 // [Global Variables]
-string g_script_name = "GoldenTime";
+string g_script_name = "ANONYMIZED_TAG";
 string manager_dpname = "";
 string ScriptActive_Condition = "ACTIVE";
 
@@ -40,7 +40,7 @@ mapping g_lastValidUsageMap;
 // return value : void
 // date         : 2026-01-28
 // script by    :
-// brief        : GoldenTime main
+// brief        : ANONYMIZED_TAG main
 //*******************************************************************************
 void main()
 {
@@ -102,7 +102,7 @@ void main()
             exit();
         }
 
-        writeLog(g_script_name, "---- Complete : GoldenTime Script --------", LV_INFO);
+        writeLog(g_script_name, "---- Complete : ANONYMIZED_TAG Script --------", LV_INFO);
     }
     catch
     {
@@ -287,7 +287,7 @@ void GoldenTimeCalculation()
 
 //*******************************************************************************
 // name         : processAndSave
-// argument     : 그룹명, 최근 평균 Level, N-Level DP, 사용량 DP, GoldenTime DP, 마진율
+// argument     : 그룹명, 최근 평균 Level, N-Level DP, 사용량 DP, ANONYMIZED_TAG DP, 마진율
 // return value : void
 // date         : 2026-02-02
 // developed by :
@@ -337,18 +337,18 @@ void processAndSave(string group, float currentAvg, string nLvlDP, string useDP,
             }
 
             float remaining = currentAvg - margin;
-            float goldenTime = remaining / finalUsageToApply;
+            float ANONYMIZED_TAG = remaining / finalUsageToApply;
 
             // dpSet 일괄 처리 (Code Review v.1)
             if(dpSet(nLvlDP + PVLAST, currentAvg,
                      useDP  + PVLAST, finalUsageToApply,
-                     gtDP   + PVLAST, goldenTime) != 0)
+                     gtDP   + PVLAST, ANONYMIZED_TAG) != 0)
             {
                 writeLog(g_script_name, "Batch dpSet Failed for Group: " + group, LV_WARN);
             }
             else
             {
-                writeLog(g_script_name, "[" + group + "] GT: " + goldenTime + " (Usage: " + finalUsageToApply + ")", LV_INFO);
+                writeLog(g_script_name, "[" + group + "] GT: " + ANONYMIZED_TAG + " (Usage: " + finalUsageToApply + ")", LV_INFO);
             }
 
             dynRemove(buffer, 1);

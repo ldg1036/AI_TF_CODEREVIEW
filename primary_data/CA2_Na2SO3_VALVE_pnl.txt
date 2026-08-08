@@ -1,4 +1,4 @@
-───────────────────────────────────────────────────────────────────────────
+﻿───────────────────────────────────────────────────────────────────────────
 ─// [(Panel)] [0] - [Initialize]
 ───────────────────────────────────────────────────────────────────────────
 main()
@@ -170,7 +170,7 @@ void MAPP()
   
   MAP_EDITABLE_VALUE[OBJ_MINVVSP] = $DP5 + ".cmd.LOLM_SP";
 //   getValue("main","text",caption);
-  MAP_EDITABLE_DESC[OBJ_MINVVSP] = "Na2SO3 V/V 최소개도";
+  MAP_EDITABLE_DESC[OBJ_MINVVSP] = "ANONYMIZED_TAG V/V 최소개도";
   dynAppend(DYN_ALL_MAP_EDITABLE_KEYS,OBJ_MINVVSP);
   
   MAP_EDITABLE_VALUE[OBJ_ASSSET] = $DP6 + ".cmd.AMPLO_SP";

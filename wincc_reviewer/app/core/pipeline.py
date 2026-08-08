@@ -284,7 +284,7 @@ class Pipeline:
 
             ai_provider_type = "gemini"
             local_cfg = LocalAIConfig()
-            
+
             # settings.yaml을 읽어 AI 프로바이더 결정
             config_dir = self._get_project_config_dir()
             settings_path = config_dir / "settings.yaml"

@@ -15,6 +15,8 @@ class DatasetAnonymizer:
     EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b")
     SECRET_PATTERN = re.compile(r'(?i)(password|secret|apikey|token|auth)\s*[:=]\s*["\']([^"\']+)["\']')
 
+    TAG_PATTERN = re.compile(r"\b(CA2|Na2SO3|HGB_C2_2|PitPump|GoldenTime|POP_CTRL_AUTOBACKUP)\b", re.IGNORECASE)
+
     @classmethod
     def anonymize_text(cls, text: str) -> str:
         """입력 텍스트 내의 민감한 데이터 영역을 마스킹합니다."""
@@ -34,6 +36,9 @@ class DatasetAnonymizer:
 
         text = cls.SECRET_PATTERN.sub(replace_secret, text)
 
+        # 4. 현장 설비명/태그명 마스킹
+        text = cls.TAG_PATTERN.sub("ANONYMIZED_TAG", text)
+
         return text
 
     @classmethod
@@ -46,7 +51,7 @@ class DatasetAnonymizer:
         stats = {"processed_files": 0, "anonymized_items": 0}
 
         for file_path in input_dir.rglob("*"):
-            if file_path.is_file() and file_path.suffix.lower() in [".ctl", ".pnl", ".xml", ".json"]:
+            if file_path.is_file() and file_path.suffix.lower() in [".ctl", ".pnl", ".xml", ".json", ".txt"]:
                 try:
                     raw_content = file_path.read_text(encoding="utf-8", errors="ignore")
                     anon_content = cls.anonymize_text(raw_content)
@@ -64,7 +69,9 @@ class DatasetAnonymizer:
 
 
 if __name__ == "__main__":
-    src = Path("wincc_reviewer/tests/fixtures")
-    dst = Path("secondary_data/anonymized_fixtures")
+    import sys
+
+    src = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("wincc_reviewer/tests/fixtures")
+    dst = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("secondary_data/anonymized_fixtures")
     res = DatasetAnonymizer.process_directory(src, dst)
     print("익명화 처리 완료 결과:", json.dumps(res, indent=2))

@@ -39,3 +39,7 @@ addopts = "-v --tb=short"
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["BLE001", "G201", "S110", "PIE810", "E501"]
