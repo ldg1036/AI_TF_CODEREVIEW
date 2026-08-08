@@ -151,7 +151,7 @@ class ASTControlFlowChecker:
                     if "}" in curr_line:
                         brace_count -= curr_line.count("}")
 
-                    if re.search(r"\b(break|return|exit)\b", curr_line):
+                    if re.search(r"\b(break|return|exit|delay|waitfor|dpwaitfor)\b", curr_line, re.IGNORECASE):
                         has_exit = True
                         break
 

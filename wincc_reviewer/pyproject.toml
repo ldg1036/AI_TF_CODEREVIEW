@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wincc-reviewer"
-version = "0.1.0"
+version = "1.0.0-rc1"
 description = "WinCC OA 코드 리뷰 자동화 도구"
 readme = "README.md"
 requires-python = ">=3.12"

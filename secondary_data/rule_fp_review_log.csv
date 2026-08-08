@@ -1,0 +1,4 @@
+Rule_ID,False_Positive_Case,Resolution_Decision,Approved_By,Review_Date
+CTL-AST-CFA-003,while(true) 내 waitFor/delay 관용구 오탐,화이트리스트 예외처리 반영 완료,ldg1036,2026-08-08
+CTL-ERR-001,사용자 정의 예외 처리 래퍼 함수 매칭,AST 문맥 윈도우 정제 반영 완료,ldg1036,2026-08-08
+MANUAL-001,주석 및 제어문 없는 파일 무조건 지적,키워드 정밀 매칭 정제 반영 완료,ldg1036,2026-08-08
