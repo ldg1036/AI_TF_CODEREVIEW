@@ -1,3 +1,2 @@
-Rule_ID,Source_File,Line_Number,Detected_Snippet,FP_Reason_Category,Reviewer_Notes
-CTL_ERR_001,real_pilot_ctl_0012.ctl,45,dpGet("Tag_12.val", val);,False_Positive_Custom_Function,사용자 정의 에러 처리 래퍼 함수 사용 구문
-CTL_RES_001,real_pilot_pnl_0005.pnl,12,dpConnect("workCB", "Tag_5");,False_Positive_PNL_Init_Context,PNL 화면 종료시 자동 해제 이벤트 컨텍스트
+sample_id,rule_id,false_positive_reason,reviewer,action_taken
+web_wincc_samples.ctl,ctl.dp_connect_pair,main 함수 내 파라미터 바인딩 dpConnect 정상 관용구,lead_reviewer,whitelisted

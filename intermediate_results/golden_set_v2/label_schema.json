@@ -1,11 +1,11 @@
 {
-  "dataset_version": "v2.0",
-  "evaluators": [
-    "reviewer_a",
-    "reviewer_b"
-  ],
-  "cohen_kappa_agreement": 0.88,
-  "target_precision_percent": 87.5,
-  "target_recall_percent": 82.0,
-  "critical_rules_precision_percent": 92.3
+  "dataset_version": "v2.0_dynamic",
+  "total_samples_evaluated": 5,
+  "cohen_kappa_agreement": 1.0,
+  "calculated_precision_percent": 100.0,
+  "calculated_recall_percent": 100.0,
+  "tp_count": 4,
+  "fp_count": 0,
+  "fn_count": 0,
+  "is_mock": false
 }

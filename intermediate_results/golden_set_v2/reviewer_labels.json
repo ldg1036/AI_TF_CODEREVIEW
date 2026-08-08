@@ -1,0 +1,44 @@
+{
+  "dataset_info": {
+    "version": "v2.0",
+    "description": "독립 검토자 2인이 판정한 원본 라벨셋",
+    "evaluators": ["reviewer_human_a", "reviewer_human_b"]
+  },
+  "sample_evaluations": [
+    {
+      "sample_id": "sample_001.ctl",
+      "rule_id": "ctl.loop_delay",
+      "reviewer_a_decision": true,
+      "reviewer_b_decision": true,
+      "ground_truth": true
+    },
+    {
+      "sample_id": "sample_002.ctl",
+      "rule_id": "ctl.dp_connect_pair",
+      "reviewer_a_decision": false,
+      "reviewer_b_decision": false,
+      "ground_truth": false
+    },
+    {
+      "sample_id": "sample_003.pnl",
+      "rule_id": "ctl.hardcoding",
+      "reviewer_a_decision": true,
+      "reviewer_b_decision": true,
+      "ground_truth": true
+    },
+    {
+      "sample_id": "sample_004.ctl",
+      "rule_id": "ctl.file_handle_leak",
+      "reviewer_a_decision": true,
+      "reviewer_b_decision": true,
+      "ground_truth": true
+    },
+    {
+      "sample_id": "sample_005.xml",
+      "rule_id": "ctl.sql_injection_risk",
+      "reviewer_a_decision": true,
+      "reviewer_b_decision": true,
+      "ground_truth": true
+    }
+  ]
+}
