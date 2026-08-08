@@ -32,6 +32,7 @@ class TestCLI:
     def test_main_no_args_returns_zero(self):
         """인자 없이 실행 시 GUI 모드 시작(launch_ui) 호출 후 정상 종료."""
         from unittest.mock import patch
+        import app.ui.app  # ensure module is loaded in sys.modules
         from app.main import main
 
         with patch("app.ui.app.launch_ui") as mock_ui:
@@ -51,8 +52,12 @@ class TestCLI:
         """python -m app.main --help 실행 확인."""
         import os
 
+        wincc_dir = Path(__file__).resolve().parent.parent
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
+        existing_pp = env.get("PYTHONPATH", "")
+        env["PYTHONPATH"] = f"{wincc_dir}{os.pathsep}{existing_pp}" if existing_pp else str(wincc_dir)
+
         result = subprocess.run(
             [sys.executable, "-m", "app.main", "--help"],
             capture_output=True,
