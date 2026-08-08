@@ -54,6 +54,20 @@ class LocalAIProvider(AIProvider):
             endpoint = f"/{endpoint}"
         return f"{host}:{self.config.port}{endpoint}"
 
+    def health_check(self, check_timeout: float = 2.0) -> bool:
+        """
+        로컬 AI 서버 사전 헬스체크를 수행합니다.
+        빠른 폴백을 위해 지정된 짧은 타임아웃(기본 2초)으로 연결 가능 여부를 확인합니다.
+        """
+        url = self._build_url()
+        try:
+            req = Request(url, headers={"User-Agent": "WinCC-OA-Reviewer-HealthCheck"}, method="GET")
+            with urlopen(req, timeout=check_timeout) as resp:
+                return resp.status < 400
+        except Exception as e:
+            logger.debug("로컬 AI 헬스체크 실패 (빠른 폴백 전환): %s", e)
+            return False
+
     def review(self, request: AIRequest) -> AIResponse:
         """
         로컬 AI 서버에 코드 리뷰를 요청합니다.

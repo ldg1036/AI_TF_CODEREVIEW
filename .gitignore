@@ -9,3 +9,4 @@ output/*.html
 output/logs/
 cache/*.json
 .venv/
+intermediate_results/large_scale_dataset/
