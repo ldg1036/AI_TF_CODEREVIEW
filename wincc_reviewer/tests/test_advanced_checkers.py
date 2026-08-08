@@ -13,12 +13,16 @@ from app.core.rules.checker_registry import (
     check_callback_error_handling,
     check_dp_in_loop,
     check_dpe_hardcoding,
+    check_file_handle_leak,
     check_global_scope_shadowing,
+    check_pnl_scope_leak,
+    check_sql_injection_risk,
+    check_uninitialized_var,
 )
 
 
 class TestAdvancedCheckers:
-    """고도화 정적 분석 체커 4종 검증."""
+    """고도화 정적 분석 체커 4종 및 신규 체커 검증."""
 
     @pytest.fixture
     def mock_rule(self) -> RuleDefinition:
@@ -111,3 +115,72 @@ void run() {
         violations = check_global_scope_shadowing(parsed, mock_rule)
         assert len(violations) == 1
         assert "gCount" in violations[0].message
+
+    def test_file_handle_leak_detection(self, mock_rule: RuleDefinition):
+        code = """void load() {
+    file f = fopen("config.txt", "r");
+    // missing fclose
+}
+"""
+        parsed = ParsedFile(
+            file_path=Path("test.ctl"),
+            file_type="ctl",
+            parse_status=ParseStatus(status=ParseStatusType.PARSED, file="test.ctl"),
+            original_sha256="abc",
+            detected_encoding="utf-8",
+            newline_style="\n",
+            content=code,
+        )
+        violations = check_file_handle_leak(parsed, mock_rule)
+        assert len(violations) == 1
+
+    def test_sql_injection_risk_detection(self, mock_rule: RuleDefinition):
+        code = """void query(string user_input) {
+    dpQuery("SELECT '_online.._value' FROM 'Tag' WHERE _dpe = " + user_input);
+}
+"""
+        parsed = ParsedFile(
+            file_path=Path("test.ctl"),
+            file_type="ctl",
+            parse_status=ParseStatus(status=ParseStatusType.PARSED, file="test.ctl"),
+            original_sha256="abc",
+            detected_encoding="utf-8",
+            newline_style="\n",
+            content=code,
+        )
+        violations = check_sql_injection_risk(parsed, mock_rule)
+        assert len(violations) == 1
+
+    def test_uninitialized_var_detection(self, mock_rule: RuleDefinition):
+        code = """void process() {
+    int totalCount;
+    int y = totalCount + 10;
+}
+"""
+        parsed = ParsedFile(
+            file_path=Path("test.ctl"),
+            file_type="ctl",
+            parse_status=ParseStatus(status=ParseStatusType.PARSED, file="test.ctl"),
+            original_sha256="abc",
+            detected_encoding="utf-8",
+            newline_style="\n",
+            content=code,
+        )
+        violations = check_uninitialized_var(parsed, mock_rule)
+        assert len(violations) == 1
+
+    def test_pnl_scope_leak_detection(self, mock_rule: RuleDefinition):
+        code = """global dyn_string g_panelState;
+"""
+        parsed = ParsedFile(
+            file_path=Path("test.pnl"),
+            file_type="pnl",
+            parse_status=ParseStatus(status=ParseStatusType.PARSED, file="test.pnl"),
+            original_sha256="abc",
+            detected_encoding="utf-8",
+            newline_style="\n",
+            content=code,
+        )
+        violations = check_pnl_scope_leak(parsed, mock_rule)
+        assert len(violations) == 1
+

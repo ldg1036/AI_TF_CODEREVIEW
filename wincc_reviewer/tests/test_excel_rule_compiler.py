@@ -44,8 +44,8 @@ class TestExcelRuleCompiler:
 
         assert res.total_count == 15
         assert len(res.rules) == 15
-        assert res.manual_review_count == 10
-        assert res.automated_count == 5
+        assert res.manual_review_count == 3
+        assert res.automated_count == 12
         assert res.unmapped_count == 0
         assert res.profile_version == "1.0.0"
         assert res.file_sha256 != ""
@@ -61,8 +61,8 @@ class TestExcelRuleCompiler:
 
         assert res.total_count == 20
         assert len(res.rules) == 20
-        assert res.manual_review_count == 14
-        assert res.automated_count == 6
+        assert res.manual_review_count == 6
+        assert res.automated_count == 14
         assert res.unmapped_count == 0
 
     def test_compile_sha256_mismatch(self, client_excel_path: Path, tmp_path: Path):

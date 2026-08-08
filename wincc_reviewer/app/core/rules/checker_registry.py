@@ -1210,6 +1210,121 @@ def check_scada_security_exec(parsed_file: ParsedFile, rule: RuleDefinition) -> 
     return violations
 
 
+def check_file_handle_leak(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """fopen 호출 시 fclose 자원 해제 누락 리크를 검사합니다."""
+    violations: list[Violation] = []
+    content = parsed.content
+    lines = content.splitlines()
+
+    if "fopen(" in content.lower() and "fclose(" not in content.lower():
+        for idx, line in enumerate(lines, start=1):
+            if "fopen(" in line.lower():
+                violations.append(
+                    Violation(
+                        violation_id=f"V-{rule.rule_id}-{idx}",
+                        rule_id=rule.rule_id,
+                        file_id=str(parsed.file_path),
+                        status=ViolationStatus.FAIL,
+                        severity=rule.severity or SeverityLevel.HIGH,
+                        message=rule.message or "fopen() 파일 핸들 오픈 후 fclose() 누락 자원 누수 위험",
+                        line_start=idx,
+                        line_end=idx,
+                        snippet=line.strip(),
+                    )
+                )
+    return violations
+
+
+def check_sql_injection_risk(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """동적 문자열 조합 기반 쿼리 실행 보안 위험을 검사합니다."""
+    violations: list[Violation] = []
+    lines = parsed.content.splitlines()
+
+    for idx, line in enumerate(lines, start=1):
+        line_strip = line.strip()
+        if line_strip.startswith("//") or line_strip.startswith("/*"):
+            continue
+        if re.search(r"\b(dpQuery|dbOpenNames)\s*\([^\)]*\+", line, re.IGNORECASE):
+            violations.append(
+                Violation(
+                    violation_id=f"V-{rule.rule_id}-{idx}",
+                    rule_id=rule.rule_id,
+                    file_id=str(parsed.file_path),
+                    status=ViolationStatus.FAIL,
+                    severity=rule.severity or SeverityLevel.CRITICAL,
+                    message=rule.message or "동적 문자열 동기 결합 SQL/dpQuery 보안 바인딩 미흡 위험",
+                    line_start=idx,
+                    line_end=idx,
+                    snippet=line_strip,
+                )
+            )
+    return violations
+
+
+def check_uninitialized_var(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """초기화되지 않은 변수가 참조/사용되는 구문을 검사합니다."""
+    violations: list[Violation] = []
+    lines = parsed.content.splitlines()
+    var_decl_pattern = re.compile(
+        r'^\s*(?:int|string|bool|float|dyn_\w+|time|mapping)\s+([a-zA-Z_]\w*)\s*;'
+    )
+
+    for idx, line in enumerate(lines, start=1):
+        clean_line = line.split("//")[0]
+        match = var_decl_pattern.search(clean_line)
+        if match:
+            var_name = match.group(1)
+            usage_pattern = re.compile(r'\b' + re.escape(var_name) + r'\b')
+            for _, next_line in enumerate(lines[idx:], start=idx + 1):
+                c_next = next_line.split("//")[0]
+                if usage_pattern.search(c_next):
+                    if not re.search(r'\b' + re.escape(var_name) + r'\s*=(?!=)', c_next):
+                        violations.append(
+                            Violation(
+                                violation_id=f"V-{rule.rule_id}-{idx}",
+                                rule_id=rule.rule_id,
+                                file_id=str(parsed.file_path),
+                                status=ViolationStatus.FAIL,
+                                severity=rule.severity or SeverityLevel.HIGH,
+                                message=rule.message or f"변수 '{var_name}'(이)가 초기화 값 설정 없이 참조되었습니다.",
+                                line_start=idx,
+                                line_end=idx,
+                                snippet=line.strip(),
+                            )
+                        )
+                    break
+    return violations
+
+
+def check_pnl_scope_leak(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """PNL 패널 스코프 변수 누수 및 모듈 스코프 이탈 참조 구문을 검사합니다."""
+    violations: list[Violation] = []
+    lines = parsed.content.splitlines()
+    scope_leak_pattern = re.compile(r'\b(global\s+dyn_\w+|global\s+mapping)\s+([a-zA-Z_]\w*)', re.IGNORECASE)
+
+    file_type_lower = (parsed.file_type or "").lower().lstrip(".")
+    if file_type_lower in ("pnl", "xml"):
+        for idx, line in enumerate(lines, start=1):
+            clean_line = line.split("//")[0]
+            match = scope_leak_pattern.search(clean_line)
+            if match:
+                var_name = match.group(2)
+                violations.append(
+                    Violation(
+                        violation_id=f"V-{rule.rule_id}-{idx}",
+                        rule_id=rule.rule_id,
+                        file_id=str(parsed.file_path),
+                        status=ViolationStatus.FAIL,
+                        severity=rule.severity or SeverityLevel.MEDIUM,
+                        message=rule.message or f"PNL 패널 내 동적 스코프 전역 변수 '{var_name}' 선언으로 메모리 누수 위험이 있습니다.",
+                        line_start=idx,
+                        line_end=idx,
+                        snippet=line.strip(),
+                    )
+                )
+    return violations
+
+
 # 기본 내장 체커 등록
 CheckerRegistry.register("ctl.dp_connect_pair", check_dp_connect_pair)
 CheckerRegistry.register("ctl.loop_delay", check_loop_delay)
@@ -1228,6 +1343,11 @@ CheckerRegistry.register("ctl.global_scope_shadowing", check_global_scope_shadow
 CheckerRegistry.register("ctl.magic_number", check_magic_number)
 CheckerRegistry.register("ctl.duplicated_code", check_duplicated_code)
 CheckerRegistry.register("ctl.scada_security_exec", check_scada_security_exec)
+CheckerRegistry.register("ctl.file_handle_leak", check_file_handle_leak)
+CheckerRegistry.register("ctl.sql_injection_risk", check_sql_injection_risk)
+CheckerRegistry.register("ctl.uninitialized_var", check_uninitialized_var)
+CheckerRegistry.register("ctl.pnl_scope_leak", check_pnl_scope_leak)
+
 
 
 
