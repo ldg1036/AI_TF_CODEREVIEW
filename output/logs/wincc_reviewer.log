@@ -2314,3 +2314,10 @@
 2026-08-08 21:11:58,717 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
 2026-08-08 21:11:58,717 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
 2026-08-08 21:11:58,721 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-151\test_js_api_run_review_success0\out\run-20260808-211158_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-151\test_js_api_run_review_success0\out\run-20260808-211158_review_report.html
+2026-08-08 21:12:12,468 [INFO] app.core.pipeline: 파이프라인 실행 시작: input=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-152\test_js_api_run_review_success0\script.ctl
+2026-08-08 21:12:12,468 [INFO] app.core.pipeline: 수집된 대상 파일: 1개
+2026-08-08 21:12:12,541 [INFO] app.core.pipeline: 점진적 검사 캐시: 총 1개 중 0개 파일 캐시 히트 (재 파싱 스킵)
+2026-08-08 21:12:12,547 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [client]: 총 15항목 (매핑:5, 수동:10)
+2026-08-08 21:12:12,553 [INFO] app.core.rules.applicability_mapper: 적용성 매핑 분석 완료 [server]: 총 20항목 (매핑:6, 수동:14)
+2026-08-08 21:12:12,553 [INFO] app.core.pipeline: 체크리스트 적용성 매핑 정보 35건 탑재 완료
+2026-08-08 21:12:12,556 [INFO] app.core.pipeline: 리포트 저장 완료: JSON=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-152\test_js_api_run_review_success0\out\run-20260808-211212_review_report.json, HTML=C:\Users\39145\AppData\Local\Temp\pytest-of-39145\pytest-152\test_js_api_run_review_success0\out\run-20260808-211212_review_report.html
