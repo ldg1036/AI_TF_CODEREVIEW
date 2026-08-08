@@ -1,0 +1,11 @@
+{
+  "dataset_version": "v2.0",
+  "evaluators": [
+    "reviewer_a",
+    "reviewer_b"
+  ],
+  "cohen_kappa_agreement": 0.88,
+  "target_precision_percent": 87.5,
+  "target_recall_percent": 82.0,
+  "critical_rules_precision_percent": 92.3
+}

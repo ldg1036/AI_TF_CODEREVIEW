@@ -71,3 +71,14 @@ class TestRuleOptimizerAndCLI:
 
         captured = capsys.readouterr()
         assert "AI 룰 카탈로그 자율 최적화 추천 리포트" in captured.out
+
+    def test_is_rule_approved_for_exclusion(self, tmp_path: Path):
+        approved_file = tmp_path / "approved_rules.json"
+        approved_file.write_text(
+            '{"approved_fp_exclusions": [{"rule_id": "CTL_AST_CFA_003"}]}',
+            encoding="utf-8"
+        )
+        optimizer = RuleOptimizer(approved_path=approved_file)
+        assert optimizer.is_rule_approved_for_exclusion("CTL_AST_CFA_003") is True
+        assert optimizer.is_rule_approved_for_exclusion("UNAPPROVED_RULE") is False
+

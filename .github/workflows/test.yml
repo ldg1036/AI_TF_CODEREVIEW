@@ -29,6 +29,11 @@ jobs:
         run: |
           ruff check wincc_reviewer/app
 
+      - name: Run agent protocol and CI integrity checks
+        run: |
+          python scripts/16_verify_agent_protocol.py
+          python scripts/verify_ci_yaml.py
+
       - name: Run tests with coverage
         env:
           PYTHONPATH: wincc_reviewer;.
