@@ -1,67 +1,40 @@
-# WinCC OA 코드 리뷰 자동화 도구 사용자 매뉴얼
+# WinCC OA Code Reviewer 사용자 매뉴얼 및 운영 가이드
 
-## 1. 개요
-* 본 매뉴얼은 WinCC OA 스크립트(CTL, PNL, XML)를 엑셀 룰 카탈로그에 기반하여 자동 검사하고 심층 리뷰 결과를 산출하는 데스크톱 애플리케이션의 사용법과 조치 가이드를 제공합니다.
+> 본 매뉴얼은 WinCC OA Code Reviewer 정적 분석 및 AI 2차 코드 리뷰 도구를 사용하는 개발자, 리뷰어, 시스템 관리자를 위한 사용자 운영 가이드입니다.
 
-## 2. 기본 설치 및 실행 방법
+## 1. 개요 및 핵심 기능
 
-### 1) 시스템 요구사항
-* 운영체제: Windows 10 또는 Windows 11 (64비트)
-* Python: 버전 3.12 이상
-* GUI 엔진: pywebview (기본 내장 웹뷰 이용, 별도 웹서버 불필요)
+WinCC OA Code Reviewer는 SCADA 및 제어 시스템 스크립트(.ctl, .pnl, .xml)를 분석하여 안전성 위반, 메모리 누수, 무한 루프, 하드코딩 등의 결함을 자동으로 감지합니다.
 
-### 2) 실행 방법
-* 터미널 환경에서 실행: `python -m app.main --input-path "c:/path/to/script.ctl"`
-* CI CD 빌드 실패 제어 실행: `python -m app.main --input-path "c:/path/to/script.ctl" --fail-on-severity High`
-* 데스크톱 그래픽 인터페이스 실행: `python wincc_reviewer/app/ui/app.py`
-* 도움말 확인: `python -m app.main --help`
+* 정적 분석 룰 체커: 21개 내장 체커 및 동적 엑셀 룰 카탈로그 지원
+* AST 문맥 분석: CtrlASTParser 기반 주석 및 예외처리 구문 정밀 판별로 오탐 차단
+* 엑셀 스키마 린트: ExcelSchemaLinter 통한 셀 좌표 유효성 사전 검사
+* AI 2차 리뷰: 로컬 LLM 폴백, AIQueueCacheManager 동시성 큐 및 TTL 캐싱 지원
 
+## 2. 프로그램 실행 가이드
 
-## 3. 화면 구성 및 주요 기능 설명
-* 리포트 상단 고지 배너: `📢 사내 체크리스트 정적 분석 자동화 커버리지 고지: Client 33.3% / Server 30.0% (나머지 ~70%는 사람 직접 검토 필수)` 문구를 출력하여 자동 통과에 대한 오해를 방지합니다.
-* 룰별 신뢰도 배지 표기:
-  * **`✓ 실물검증완료`**: primary_data 실물 WinCC OA 소스코드로 오탐 완화 검증이 완료된 정밀 룰.
-  * **`⚠️ 픽스처검증`**: 픽스처 테스트만 수행된 룰로 검출 시 수동 검토가 권장되는 룰.
-* 좌측 패널: 검사 대상 디렉토리 및 파일 트리 선택 (CTL, PNL, XML 자동 감지)
-* 우측 패널:
-  * 위반 목록 탭: 검출된 룰 ID, 심각도(Critical / High / Medium / Low / Info), 라인 번호, 룰 신뢰도 배지 및 미준수 소스 코드 조각 표시
-  * AI 가이드 탭: Gemini 및 로컬 AI 심층 리뷰 및 1문단 종합 가이드 요약문 확인 (단일 AI 호출 및 앞뒤 10줄 윈도우 스니펫 기반)
-  * 구조 리뷰 탭: 함수 단위 순환 복잡도(Cyclomatic Complexity) 및 최대 중첩 깊이 진단
-  * Diff 탭: 원본 파일과 AI 자동 수정본 간의 차이 비교
-  * Errors 탭: 파싱 실패 또는 미지원 파일 목록 및 오류 원인 분리 표시
-  * 환경 설정 탭: 사내 로컬 AI 서버 IP, 포트, API 키 및 자동 수정 사용 여부를 편집하고 `config/settings.yaml`에 실시간 저장 (외부 AI 전송은 ALLOW_EXTERNAL_AI 보안 승인 시에만 허용)
+### CLI 명령어 사용법
 
-## 4. 엑셀 룰 카탈로그 및 동적 파서 안내
-* 동적 헤더 탐지 지원: 엑셀 파일 상단 1~30행을 자동으로 동적 스캔하여 대분류, 중분류, 소분류, 검증조건 열 위치를 탐지하므로 서식 변경에 유연하게 대응합니다.
-* 보안 API 키 환경변수 지원: `WINCC_AI_API_KEY` 및 `LOCAL_AI_API_KEY` 환경변수를 설정 시 자동 연동되며 API 키 및 원본 코드 스니펫은 로그에 자동 마스킹 처리됩니다.
-* SCADA 특화 보안 체커: `system()`, `popen()`, `exec()` 등 외부 명령 주입 위험을 자동 적발합니다.
-* 위험 수용 이력 관리: 오탐 및 위험 수용 승인 건은 `ACCEPTED_RISK` 상태 및 승인자 이력으로 투명하게 추적됩니다.
+```bash
+# 기본 소스 디렉토리 검사 (HTML 및 JSON 리포트 동시 생성)
+python wincc_reviewer/app/main.py --input primary_data/ --output output/
 
-## 5. 프로그램 UI 내 환경 설정 (settings.yaml) 동적 변경 및 저장 경로 사용자 정의 방법
-* 우측 상단의 `⚙️ 환경 설정 (settings.yaml)` 탭을 클릭하여 현재 로드된 설정 파일 경로와 AI 프로바이더 옵션을 조회할 수 있습니다.
-* **설정 저장 경로 사용자 정의**: 상단의 `📁 설정 파일(settings.yaml) 저장경로 사용자 정의` 입력창에서 원하는 YAML 파일 경로를 직접 기입하거나 **`📂 경로 찾기`** 버튼을 눌러 파일 시스템에서 자유롭게 선택할 수 있습니다.
-* 다른 폴더의 설정 파일을 선택한 뒤 **`🔄 해당 경로 로드`** 버튼을 누르면 해당 파일의 설정을 화면에 즉시 불러옵니다.
-* 모델 명(Model ID) 선택은 수동 텍스트 입력이 아닌, AI 제공자 및 로컬 AI 서버에 연결되어 동적으로 로드되는 **콤보박스 리스트**에서 선택하는 방식입니다.
-* 사내 로컬 AI 서버 호스트 IP(예: `10.100.20.15` 또는 `192.168.1.100`), 포트 번호(Open WebUI 기본 `3000`), 엔드포인트(`/v1/chat/completions`), API 키 입력 후 **`🔄 모델 조회`** 버튼을 누르면 서버에 즉시 연결하여 사용 가능한 모델 목록이 콤보박스에 최신화됩니다.
-* 사내 Open WebUI 연동 시 사내 서버 IP 및 Port(3000), Bearer API Key를 지정하시면 사내 로컬 AI 서버 기반 심층 리뷰를 바로 이용하실 수 있습니다.
-* 변경된 설정을 확인하고 `💾 설정 저장하기` 버튼을 누르면 사용자가 지정한 저장 경로의 YAML 파일에 즉시 반영되며, 좌측 패널의 AI 심층 리뷰 체크박스와도 양방향 동기화됩니다.
+# AI 2차 리뷰 옵션 포함 구동
+python wincc_reviewer/app/main.py --input primary_data/ --use-ai
 
-## 6. 단계별 오류 코드 및 원인별 조치 가이드
+# 오탐 추천 룰 카탈로그 리포트 출력
+python wincc_reviewer/app/main.py --suggest-rules
+```
 
-| 오류 코드 | 주요 원인 및 영향 | 조치 가이드 |
-|---|---|---|
-| `RULE_SCHEMA_INVALID` | 엑셀 룰 필수 열 누락 또는 구조 오류 | 엑셀 양식 컬럼(`rule_id`, `checker_type` 등)이 올바른지 확인하십시오. |
-| `CHECKER_NOT_FOUND` | 미등록 내장 체커 키 입력 | `checker_key`가 체커 레지스트리에 등록된 키인지 대조하십시오. |
-| `PARSE_FAILED` | CTL 또는 XML 문법 파손 및 인코딩 파싱 오류 | 해당 파일은 Error 탭에 격리되며 나머지 파일 검사는 정상 진행됩니다. |
-| `NORMALIZE_FAILED` | 텍스트 정규화 변환 실패 | 대상 파일이 암호화된 바이너리가 아닌지 확인하십시오. |
-| `AI_SCHEMA_INVALID` | AI 응답 JSON 스키마 오류 | 자동 수정을 금지하고 기본 정적 분석 결과만 표시합니다. |
-| `DIFF_FAILED` | WinMerge CLI 실행 실패 | 시스템 내장 `difflib` 안전 폴백 모드로 자동 전환됩니다. |
-| `MAPPING_INCOMPLETE` | 체크리스트 항목과 실행 룰 연결 누락 | 해당 룰 항목이 수동 검토(MANUAL_REVIEW) 모드로 분류됩니다. |
+### GUI 사용자 인터페이스 사용법
 
-## 7. 운영 문의 및 오류 신고 절차
-* 오류 신고 시 기재 항목:
-  * 애플리케이션 버전 및 실행 OS
-  * 실행 아이디 (`run_id`)
-  * 대상 파일 SHA256 해시 및 인코딩
-  * 발생한 표준 오류 코드 및 오류 로그
+1. wincc_reviewer/app/ui/api.py 기반 웹 UI 또는 데스크톱 윈도우 실행
+2. 검사 대상 폴더(primary_data 또는 사용자 코드 경로) 선택 후 리뷰 시작 클릭
+3. 검사 결과 요약 카드 및 파일 트리 위반 목록 확인
+4. HTML 리포트 내보내기 또는 JSON 리포트 저장 클릭
 
+## 3. 검증 및 프로토콜 검수 가이드
+
+* 바이브코딩 R1 R2 프로토콜 검사: python scripts/16_verify_agent_protocol.py
+* 코드베이스 AST 변수 선언 검사: python scripts/23_inspect_code_variables_and_functions.py
+* 전체 218개 유닛 테스트 수트 구동: python -m pytest wincc_reviewer/tests
