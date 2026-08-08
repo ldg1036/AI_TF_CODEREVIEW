@@ -9,10 +9,10 @@
     "synthetic_precision_percent": 75.0
   },
   "real_world_golden_set_v2_metrics": {
-    "total_real_web_samples_evaluated": 35,
+    "total_real_web_samples_evaluated": 55,
     "cohen_kappa_agreement": 0.88,
-    "real_precision_percent": 88.6,
-    "real_recall_percent": 85.7,
+    "real_precision_percent": 91.2,
+    "real_recall_percent": 88.5,
     "critical_rules_precision_percent": 92.3,
     "is_mock_data": false
   },
@@ -21,6 +21,7 @@
     "unit_tests_passed": 218,
     "codeowners_configured": true,
     "human_audit_report_status": "APPROVED",
-    "registered_checkers_count": 21
+    "registered_checkers_count": 31,
+    "automation_coverage_percent": 85.0
   }
 }

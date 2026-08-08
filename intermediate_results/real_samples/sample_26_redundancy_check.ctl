@@ -1,7 +1,1 @@
-void check_redundancy()
-{
-  if (isRedundantActive())
-  {
-    DebugN("Active node running");
-  }
-}
+void check_red() { if(isRedundantActive()) DebugN("Active"); }

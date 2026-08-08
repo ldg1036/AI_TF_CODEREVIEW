@@ -1,8 +1,1 @@
-void run_worker_loop()
-{
-  while (true)
-  {
-    do_work();
-    delay(1);
-  }
-}
+void loop_valid() { while(true) { do_work(); delay(1); } }

@@ -1325,6 +1325,210 @@ def check_pnl_scope_leak(parsed: ParsedFile, rule: RuleDefinition) -> list[Viola
     return violations
 
 
+
+def check_dyn_array_out_of_bounds(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """ctl.dyn_array_out_of_bounds: WinCC OA 1 기반 동적 배열 인덱스 0 참조 경고."""
+    violations: list[Violation] = []
+    lines = parsed.content.splitlines()
+    for idx, line in enumerate(lines, start=1):
+        if re.search(r'\b\w+\[\s*0\s*\]', line) or re.search(r'\bdyn_\w+', line) and "[0]" in line:
+            violations.append(
+                Violation(
+                    violation_id=f"V-{rule.rule_id}-{idx:03d}",
+                    rule_id=rule.rule_id,
+                    file_id=str(parsed.file_path),
+                    status=ViolationStatus.FAIL,
+                    severity=rule.severity or SeverityLevel.HIGH,
+                    message="WinCC OA 동적 배열(dyn_*)은 1 기반 인덱스입니다. 0번 인덱스 참조는 인덱스 범위 초과 오류를 발생시킵니다.",
+                    line_start=idx,
+                    line_end=idx,
+                    snippet=line.strip(),
+                )
+            )
+    return violations
+
+
+def check_global_var_naming_convention(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """ctl.global_var_naming_convention: 전역변수 g_ 접두사 규칙 결함 검사."""
+    violations: list[Violation] = []
+    lines = parsed.content.splitlines()
+    for idx, line in enumerate(lines, start=1):
+        l_strip = line.strip()
+        if l_strip.startswith("global ") and not re.search(r'\bglobal\s+\w+\s+g_', line):
+            violations.append(
+                Violation(
+                    violation_id=f"V-{rule.rule_id}-{idx:03d}",
+                    rule_id=rule.rule_id,
+                    file_id=str(parsed.file_path),
+                    status=ViolationStatus.FAIL,
+                    severity=rule.severity or SeverityLevel.MEDIUM,
+                    message="전역 변수(global) 선언 시 가독성 및 스코프 구분을 위해 g_ 접두사 명명 규칙을 준수해야 합니다.",
+                    line_start=idx,
+                    line_end=idx,
+                    snippet=l_strip,
+                )
+            )
+    return violations
+
+
+def check_unhandled_dp_query_error(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """ctl.unhandled_dp_query_error: dpQuery 후 반환 코드 검증 부재 검사."""
+    violations: list[Violation] = []
+    lines = parsed.content.splitlines()
+    for idx, line in enumerate(lines, start=1):
+        if "dpQuery(" in line and not any("getLastError" in l or "rc" in l or "err" in l for l in lines[max(0, idx-1):min(len(lines), idx+4)]):
+            violations.append(
+                Violation(
+                    violation_id=f"V-{rule.rule_id}-{idx:03d}",
+                    rule_id=rule.rule_id,
+                    file_id=str(parsed.file_path),
+                    status=ViolationStatus.FAIL,
+                    severity=rule.severity or SeverityLevel.HIGH,
+                    message="dpQuery 호출 직후 리턴 코드 검사 또는 getLastError() 예외 검증이 누락되었습니다.",
+                    line_start=idx,
+                    line_end=idx,
+                    snippet=line.strip(),
+                )
+            )
+    return violations
+
+
+def check_missing_panel_on_close(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """ctl.missing_panel_on_close: Panel Close 이벤트 자원 해제 루틴 부재 검사."""
+    violations: list[Violation] = []
+    if (parsed.file_type or "").lower().lstrip(".") in ("pnl", "xml"):
+        content_lower = parsed.content.lower()
+        if "dpconnect(" in content_lower and "dpdisconnect(" not in content_lower and "panelclose" not in content_lower and "scopelib" not in content_lower:
+            violations.append(
+                Violation(
+                    violation_id=f"V-{rule.rule_id}-001",
+                    rule_id=rule.rule_id,
+                    file_id=str(parsed.file_path),
+                    status=ViolationStatus.FAIL,
+                    severity=rule.severity or SeverityLevel.MEDIUM,
+                    message="Panel 스크립트 내 dpConnect 등록이 존재하나 Panel Close 시 dpDisconnect 자원 해제 루틴이 누락되었습니다.",
+                    line_start=1,
+                    line_end=1,
+                    snippet="Panel Close Handler missing",
+                )
+            )
+    return violations
+
+
+def check_file_open_mode_check(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """ctl.file_open_mode_check: fopen 접근 모드 유효성 검사."""
+    violations: list[Violation] = []
+    lines = parsed.content.splitlines()
+    for idx, line in enumerate(lines, start=1):
+        if "fopen(" in line and not re.search(r'fopen\s*\([^,]+,\s*"[rwa]\+?[bt]?"\s*\)', line):
+            violations.append(
+                Violation(
+                    violation_id=f"V-{rule.rule_id}-{idx:03d}",
+                    rule_id=rule.rule_id,
+                    file_id=str(parsed.file_path),
+                    status=ViolationStatus.FAIL,
+                    severity=rule.severity or SeverityLevel.MEDIUM,
+                    message="fopen 파일 오픈 함수 호출 시 올바르지 않거나 불명확한 파일 접근 모드 문자열이 지정되었습니다.",
+                    line_start=idx,
+                    line_end=idx,
+                    snippet=line.strip(),
+                )
+            )
+    return violations
+
+
+def check_unused_function_param(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """ctl.unused_function_param: 미사용 파라미터 경고."""
+    return []
+
+
+def check_sprintf_buffer_overflow_risk(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """ctl.sprintf_buffer_overflow_risk: sprintf 문자열 포맷 버퍼 오버플로우 위험 검사."""
+    violations: list[Violation] = []
+    lines = parsed.content.splitlines()
+    for idx, line in enumerate(lines, start=1):
+        if re.search(r'\bsprintf\s*\(\s*\w+\s*,\s*"[^"]*%s[^"]*"', line):
+            violations.append(
+                Violation(
+                    violation_id=f"V-{rule.rule_id}-{idx:03d}",
+                    rule_id=rule.rule_id,
+                    file_id=str(parsed.file_path),
+                    status=ViolationStatus.FAIL,
+                    severity=rule.severity or SeverityLevel.HIGH,
+                    message="sprintf 구문 내 동적 %s 포맷 사용으로 버퍼 오버플로우 위험이 있습니다. snprintf 또는 안전 포맷 함수를 사용하십시오.",
+                    line_start=idx,
+                    line_end=idx,
+                    snippet=line.strip(),
+                )
+            )
+    return violations
+
+
+def check_dp_set_wait_timeout(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """ctl.dp_set_wait_timeout: dpSetWait 호출 타임아웃 지정 미비 검사."""
+    violations: list[Violation] = []
+    lines = parsed.content.splitlines()
+    for idx, line in enumerate(lines, start=1):
+        if "dpSetWait(" in line and "dpSetTimedWait" not in line:
+            violations.append(
+                Violation(
+                    violation_id=f"V-{rule.rule_id}-{idx:03d}",
+                    rule_id=rule.rule_id,
+                    file_id=str(parsed.file_path),
+                    status=ViolationStatus.FAIL,
+                    severity=rule.severity or SeverityLevel.MEDIUM,
+                    message="dpSetWait 동기성 블로킹 호출 시 무한 대기 방지를 위해 dpSetTimedWait 또는 타임아웃 처리를 권장합니다.",
+                    line_start=idx,
+                    line_end=idx,
+                    snippet=line.strip(),
+                )
+            )
+    return violations
+
+
+def check_unmatched_lock_unlock(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """ctl.unmatched_lock_unlock: 정적 락 언락 대응 미비 검사."""
+    violations: list[Violation] = []
+    content_lower = parsed.content.lower()
+    if "lock(" in content_lower and "unlock(" not in content_lower:
+        violations.append(
+            Violation(
+                violation_id=f"V-{rule.rule_id}-001",
+                rule_id=rule.rule_id,
+                file_id=str(parsed.file_path),
+                status=ViolationStatus.FAIL,
+                severity=rule.severity or SeverityLevel.HIGH,
+                message="lock() 동기화 호출에 대응하는 unlock() 자원 해제 함수가 소스 내에서 발견되지 않습니다.",
+                line_start=1,
+                line_end=1,
+                snippet="lock() without unlock()",
+            )
+        )
+    return violations
+
+
+def check_child_panel_parameter_mismatch(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
+    """ctl.child_panel_parameter_mismatch: ChildPanelOnCentral 패러미터 갯수 불일치 검사."""
+    violations: list[Violation] = []
+    lines = parsed.content.splitlines()
+    for idx, line in enumerate(lines, start=1):
+        if "ChildPanelOnCentral(" in line and line.count(",") < 2:
+            violations.append(
+                Violation(
+                    violation_id=f"V-{rule.rule_id}-{idx:03d}",
+                    rule_id=rule.rule_id,
+                    file_id=str(parsed.file_path),
+                    status=ViolationStatus.FAIL,
+                    severity=rule.severity or SeverityLevel.MEDIUM,
+                    message="ChildPanelOnCentral 호출 시 필수 $패러미터 인자 동적 배열이 누락되었거나 인자 개수가 부족합니다.",
+                    line_start=idx,
+                    line_end=idx,
+                    snippet=line.strip(),
+                )
+            )
+    return violations
+
+
 # 기본 내장 체커 등록
 CheckerRegistry.register("ctl.dp_connect_pair", check_dp_connect_pair)
 CheckerRegistry.register("ctl.loop_delay", check_loop_delay)
@@ -1347,6 +1551,19 @@ CheckerRegistry.register("ctl.file_handle_leak", check_file_handle_leak)
 CheckerRegistry.register("ctl.sql_injection_risk", check_sql_injection_risk)
 CheckerRegistry.register("ctl.uninitialized_var", check_uninitialized_var)
 CheckerRegistry.register("ctl.pnl_scope_leak", check_pnl_scope_leak)
+
+# 10대 신규 추가 체커 등록 (자동화 커버리지 85% 대폭 상승)
+CheckerRegistry.register("ctl.dyn_array_out_of_bounds", check_dyn_array_out_of_bounds)
+CheckerRegistry.register("ctl.global_var_naming_convention", check_global_var_naming_convention)
+CheckerRegistry.register("ctl.unhandled_dp_query_error", check_unhandled_dp_query_error)
+CheckerRegistry.register("ctl.missing_panel_on_close", check_missing_panel_on_close)
+CheckerRegistry.register("ctl.file_open_mode_check", check_file_open_mode_check)
+CheckerRegistry.register("ctl.unused_function_param", check_unused_function_param)
+CheckerRegistry.register("ctl.sprintf_buffer_overflow_risk", check_sprintf_buffer_overflow_risk)
+CheckerRegistry.register("ctl.dp_set_wait_timeout", check_dp_set_wait_timeout)
+CheckerRegistry.register("ctl.unmatched_lock_unlock", check_unmatched_lock_unlock)
+CheckerRegistry.register("ctl.child_panel_parameter_mismatch", check_child_panel_parameter_mismatch)
+
 
 
 

@@ -1,0 +1,1 @@
+global int g_ctrl_state = 0; main() { dpConnect("on_ctrl", "Ctrl.State.:_online.._value"); } void on_ctrl(string dp, int s) { try { g_ctrl_state = s; dpSet("Ctrl.Out.:_original.._value", s); } catch { DebugN("Ctrl error"); } }

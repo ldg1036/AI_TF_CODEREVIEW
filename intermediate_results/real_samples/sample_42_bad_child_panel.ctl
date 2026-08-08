@@ -1,0 +1,1 @@
+main() { ChildPanelOnCentral("popup.pnl"); }

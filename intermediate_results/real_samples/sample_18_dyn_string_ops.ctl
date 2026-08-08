@@ -1,8 +1,1 @@
-void process_tags()
-{
-  dyn_string tags = makeDynString("Tag1", "Tag2", "Tag3");
-  for (int i = 1; i <= dynlen(tags); i++)
-  {
-    DebugN("Processing tag:", tags[i]);
-  }
-}
+void dyn_ops() { dyn_string tags = makeDynString("T1", "T2"); for(int i=1; i<=dynlen(tags); i++) DebugN(tags[i]); }

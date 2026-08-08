@@ -1,7 +1,1 @@
-void run_infinite_loop()
-{
-  while (true)
-  {
-    do_work();
-  }
-}
+void loop_missing() { while(true) { do_work(); } }

@@ -1,5 +1,1 @@
-void execute_safe_db()
-{
-  string sql = "SELECT user_id, role FROM users WHERE active = 1";
-  dbExecuteQuery(sql);
-}
+void safe_db() { string s = "SELECT id FROM users"; dbExecuteQuery(s); }
