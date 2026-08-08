@@ -14,7 +14,14 @@ def check_git_diff():
     R1 Diff 증빙 검사
     """
     try:
-        res = subprocess.run(["git", "diff", "--stat"], capture_output=True, text=True, check=True)
+        res = subprocess.run(
+            ["git", "diff", "--stat"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="ignore",
+            check=True
+        )
         diff_output = res.stdout.strip()
         print("R1 Diff 증빙 검사 결과:")
         if diff_output:
