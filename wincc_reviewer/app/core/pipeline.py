@@ -310,8 +310,13 @@ class Pipeline:
                     logger.error("settings.yaml AI 설정 로딩 실패, 기본 Gemini 사용: %s", e)
 
             if ai_provider_type == "local":
-                ai_provider = LocalAIProvider(local_cfg)
-                logger.info("로컬 AI (%s:%s, 모델: %s) 2차 심층 리뷰를 병렬 실행합니다 (대상 위반: %d건)", local_cfg.host, local_cfg.port, local_cfg.model_id, len(all_violations))
+                local_provider_inst = LocalAIProvider(local_cfg)
+                if not local_provider_inst.health_check(check_timeout=2.0):
+                    logger.warning("로컬 AI 사전 헬스체크 실패 (서버 미가동): 빠른 폴백 모드로 정적 분석만 진행합니다.")
+                    ai_provider = None
+                else:
+                    ai_provider = local_provider_inst
+                    logger.info("로컬 AI 사전 헬스체크 성공! (%s:%s, 모델: %s) 2차 심층 리뷰를 실행합니다.", local_cfg.host, local_cfg.port, local_cfg.model_id)
             else:
                 ai_provider = GeminiAIProvider()
                 logger.info("Gemini AI 2차 심층 리뷰를 병렬 실행합니다 (대상 위반: %d건)", len(all_violations))
