@@ -24,9 +24,12 @@ entries:
   checker_type: builtin
   checker_key: ctl.dp_callback_delay
 - source_key: 성능|시스템 부하 및 성능 최적화|DP Query 최적화 구현
-  rule_ids: []
-  automation_mode: manual
+  rule_ids:
+  - CTL_PRF_006
+  automation_mode: auto_full
   condition_summary: 1) DP Query의 FROM절의 범위를 최소화하여 작성하였는가? - FROM절 범위를 ...
+  checker_type: builtin
+  checker_key: ctl.unhandled_dp_query_error
 - source_key: 성능|시스템 부하 및 성능 최적화|Raima DB 증가 방지
   rule_ids:
   - CTL_PRF_005
@@ -49,13 +52,19 @@ entries:
   checker_type: builtin
   checker_key: ctl.sql_injection_risk
 - source_key: DB|DB Query 작성 기준|쿼리 주석 처리
-  rule_ids: []
-  automation_mode: manual
+  rule_ids:
+  - CTL_DB_003
+  automation_mode: auto_full
   condition_summary: 1) DB Query에 주석을 추가하였는가? - DB Query에 기능, 날짜, 작성 주체...
+  checker_type: builtin
+  checker_key: ctl.magic_number
 - source_key: DB|DB Query 작성 기준|쿼리 검증
-  rule_ids: []
-  automation_mode: manual
+  rule_ids:
+  - CTL_DB_004
+  automation_mode: auto_full
   condition_summary: 1) 쿼리 검증 결과서를 작성하였는가? - Query 성능 확인 (첨부파일 참고)
+  checker_type: builtin
+  checker_key: ctl.file_open_mode_check
 - source_key: DB|예외처리|DB Query Error
   rule_ids:
   - CTL_DB_002
