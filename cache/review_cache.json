@@ -1,12 +1,12 @@
 {
-  "C:\\Users\\39145\\AppData\\Local\\Temp\\pytest-of-39145\\pytest-139\\test_js_api_run_review_success0\\script.ctl": {
+  "C:\\Users\\39145\\AppData\\Local\\Temp\\pytest-of-39145\\pytest-144\\test_js_api_run_review_success0\\script.ctl": {
     "sha256": "2c29049fc0fdc9f0447644715207bbf0ccd4682bd387475d1f07faf3278905cb",
     "file_type": "ctl",
     "violations": [
       {
         "violation_id": "V-MANUAL-001-M1",
         "rule_id": "MANUAL-001",
-        "file_id": "C:\\Users\\39145\\AppData\\Local\\Temp\\pytest-of-39145\\pytest-139\\test_js_api_run_review_success0\\script.ctl",
+        "file_id": "C:\\Users\\39145\\AppData\\Local\\Temp\\pytest-of-39145\\pytest-144\\test_js_api_run_review_success0\\script.ctl",
         "status": "MANUAL_REVIEW",
         "severity": "Info",
         "message": "[MANUAL_REVIEW] 스크립트 Active 동작 조건 확인: 1) 스크립트 동작 Active 조건이 맞는 경우에만 Logic 수행 - 이중화(P,S) 프로젝트 환경에서 Passive 서버의 중복 실행으로 문제될 수 있는 구문은 Active 조건 처리 필요 e.g) DB 중복 데이터 저장, dpSet 중복 실행 등",

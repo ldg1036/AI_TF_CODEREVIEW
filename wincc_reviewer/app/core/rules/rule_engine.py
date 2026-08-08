@@ -27,6 +27,15 @@ class RuleEngine:
     CLIENT_EXTENSIONS = {".pnl", ".xml"}
     SERVER_EXTENSIONS = {".ctl"}
 
+    @staticmethod
+    def _extract_window_snippet(content: str, line_start: int, window: int = 10) -> str:
+        """위반 발생 라인을 기준으로 앞뒤 N줄(기본 10줄) 윈도우 스니펫을 추출합니다."""
+        lines = content.splitlines()
+        idx = max(0, line_start - 1)
+        start_idx = max(0, idx - window)
+        end_idx = min(len(lines), idx + window + 1)
+        return "\n".join(lines[start_idx:end_idx])
+
     @classmethod
     def determine_target_ruleset(cls, file_path: Path, override_target: str | None = None) -> str:
         """
@@ -268,9 +277,9 @@ class RuleEngine:
             try:
                 matches = list(re.finditer(rule.pattern, parsed.content, re.MULTILINE))
                 for match in matches:
-                    snippet = match.group(0)
                     line_start = parsed.content[: match.start()].count("\n") + 1
                     line_end = parsed.content[: match.end()].count("\n") + 1
+                    window_snippet = cls._extract_window_snippet(parsed.content, line_start, window=10)
 
                     violations.append(
                         Violation(
@@ -279,10 +288,10 @@ class RuleEngine:
                             file_id=str(parsed.file_path),
                             status=ViolationStatus.FAIL,
                             severity=rule.severity or SeverityLevel.MEDIUM,
-                            message=rule.message or f"[{rule.rule_id}] 정규식 패턴 위반 매칭: {snippet}",
+                            message=rule.message or f"[{rule.rule_id}] 정규식 패턴 위반 매칭",
                             line_start=line_start,
                             line_end=line_end,
-                            snippet=snippet[:100],
+                            snippet=window_snippet,
                         )
                     )
             except Exception as e:

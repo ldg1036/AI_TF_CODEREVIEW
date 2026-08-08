@@ -86,12 +86,12 @@ class FalsePositiveFilter:
                         "[오류 복구 핸들러] 오류 복구 및 예외 처리 구문(getLastError/try-catch)이 동반되어 안전 맥락으로 분류됩니다.",
                     )
 
-        # 4. 일반 정적 검사 위반 항목 (진짜 위반 True Positive 가능성 높음)
+        # 4. 일반 정적 검사 위반 항목
         return (
             0.95,
             0.05,
             False,
-            "[진성 위반 검증] 도메인 보호 로직이나 안전 예외 주석이 확인되지 않아 실제 위반(Confidence: 95%)으로 판정합니다.",
+            "[정적 패턴 분석] 도메인 예외 주석 및 안전 래퍼가 미확인되어 위반 가능성이 높습니다.",
         )
 
     @staticmethod
@@ -113,30 +113,33 @@ class FalsePositiveFilter:
     ) -> list[Violation]:
         """
         위반 목록 전체에 대해 허위 경보 필터링 및 신뢰도 점수를 부여합니다.
+        AI 2차 중복 호출을 제거하고 1차 AI 리뷰 응답(판정: 문제없음/위반)을 합성합니다.
 
         Args:
             violations: 정적 분석으로 탐지된 위반 사항 목록
             parsed_files_map: file_id -> ParsedFile 매핑
-            ai_provider: 선택적 AI Provider (온프레미스/클라우드 LLM)
+            ai_provider: 선택적 AI Provider (사용하지 않음, 호환성 유지용)
         """
         for v in violations:
             parsed = parsed_files_map.get(v.file_id) if parsed_files_map else None
             conf, fp_prob, is_fp, reason = cls.analyze_domain_context(v, parsed)
 
+            # 1차 AI 분석 결과(v.ai_analysis)의 판정 문구 파싱 및 통합
+            ai_text = getattr(v, "ai_analysis", "") or ""
+            if "판정: 문제없음" in ai_text or "판정:문제없음" in ai_text or "문제없음" in ai_text.splitlines()[0] if ai_text else False:
+                conf = 0.10
+                fp_prob = 0.90
+                is_fp = True
+                reason = "🤖 AI 심층 검증: 본 항목에 대해 '문제없음'으로 최종 판정하여 오탐(False Positive)으로 조정합니다."
+            elif "판정: 위반" in ai_text or "판정:위반" in ai_text:
+                if not is_fp:
+                    conf = 0.95
+                    fp_prob = 0.05
+                    reason = "🤖 AI 심층 검증: AI 및 도메인 정적 분석 결과 모두 '위반 확정'으로 판정합니다."
+
             v.confidence_score = conf
             v.false_positive_probability = fp_prob
             v.is_false_positive = is_fp
             v.ai_verification_reason = reason
-
-            # AI Provider 리뷰가 명확히 주입되었고 진짜 위반일 경우 LLM 검증 메시지 보강
-            if ai_provider and not is_fp:
-                try:
-                    from app.core.ai.provider_base import AIRequest
-                    req = AIRequest(code=v.snippet, rule_id=v.rule_id, context=v.message)
-                    res = ai_provider.review(req)
-                    if res.is_success and res.content:
-                        v.ai_analysis = res.content
-                except Exception:
-                    pass
 
         return violations

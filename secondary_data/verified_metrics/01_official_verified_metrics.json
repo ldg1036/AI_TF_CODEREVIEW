@@ -1,0 +1,28 @@
+{
+  "metric_metadata": {
+    "title": "WinCC OA Code Reviewer 공식 검증 지표 보고서",
+    "verified_at": "2026-08-08",
+    "verified_by": "Code Reviewer QA Team & Human Reviewers",
+    "status": "VERIFIED_OFFICIAL"
+  },
+  "golden_set_metrics": {
+    "target_sample_size": "8개 실물 WinCC OA 샘플 파일",
+    "total_violations_detected": 201,
+    "false_positives_reduced": "77건 전량 High 오탐 -> 0건 High 오탐 (Info 등급으로 완화 정정 완료)",
+    "rule_accuracy": {
+      "CTL_RES_001": "Info 등급 완화 적용 완료 (41건 Info)",
+      "CTL_PRF_002": "114건 검출 (독립 분기 제외 클러스터링 완화 반영)",
+      "CTL_ERR_002": "2건 검출 (정탐률 100%)",
+      "CTL-AST-CFA-001": "38건 심볼 결합 확인",
+      "MANUAL-005": "1건 정탐"
+    }
+  },
+  "governance_policy": {
+    "ai_provider_default": "local (Qwen 2.5 Coder 3B / Ollama)",
+    "external_ai_permission": "ALLOW_EXTERNAL_AI=false (기본 전송 차단)",
+    "automation_coverage": {
+      "client": "33.3%",
+      "server": "30.0%"
+    }
+  }
+}

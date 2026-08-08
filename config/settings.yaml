@@ -1,4 +1,4 @@
-﻿app:
+app:
   version: 0.1.0
   log_level: INFO
 rule_sources:
@@ -26,6 +26,7 @@ excel_structure:
 ai:
   enabled: true
   provider: local
+  allow_external_ai: false
   timeout_seconds: 300
   max_retries: 3
   local_server:
