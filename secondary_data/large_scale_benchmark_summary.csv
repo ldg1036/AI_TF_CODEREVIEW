@@ -1,8 +1,8 @@
 ﻿Metric_Name,Metric_Value,Unit_Description
 Total_Files_Scanned,210,개 파일
 FileSize_StdDev,572.3,Bytes
-P50_Quantile_Ms,1.99,ms
-P95_Quantile_Ms,8.11,ms
-P99_Quantile_Ms,16.18,ms
+P50_Quantile_Ms,1.49,ms
+P95_Quantile_Ms,7.23,ms
+P99_Quantile_Ms,14.84,ms
 Calculated_Precision,75.0,%
 Calculated_Recall,80.0,%

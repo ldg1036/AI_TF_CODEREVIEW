@@ -21,25 +21,40 @@ entries:
   checker_type: builtin
   checker_key: ctl.batch_dp_ops
 - source_key: 성능|시스템 부하 및 성능 최적화|적절한 DP 처리 함수 사용
-  rule_ids: []
-  automation_mode: manual
+  rule_ids:
+  - CTL_PRF_003
+  automation_mode: auto_full
   condition_summary: 1) DP 감시 유형에 맞는 DP 함수를 처리하였는가? - [유형1] 변경 즉시 처리해야하...
+  checker_type: builtin
+  checker_key: ctl.dp_async
 - source_key: 성능|시스템 부하 및 성능 최적화|적절한 DP 처리 함수 사용_2
-  rule_ids: []
-  automation_mode: manual
+  rule_ids:
+  - CTL_PRF_004
+  automation_mode: auto_full
   condition_summary: 2) 비동기 처리(dpConnect, dpQueryConnectSing) 시, Callba...
+  checker_type: builtin
+  checker_key: ctl.dp_callback_delay
 - source_key: 성능|시스템 부하 및 성능 최적화|DP Query 최적화 구현
-  rule_ids: []
-  automation_mode: manual
+  rule_ids:
+  - CTL_SEC_002
+  automation_mode: auto_full
   condition_summary: 1) DP Query의 FROM절의 범위를 최소화하여 작성하였는가? - FROM절 범위를 ...
+  checker_type: builtin
+  checker_key: ctl.sql_injection_risk
 - source_key: 성능|시스템 부하 및 성능 최적화|Raima DB 증가 방지
-  rule_ids: []
-  automation_mode: manual
+  rule_ids:
+  - CTL_PRF_005
+  automation_mode: auto_full
   condition_summary: 1) DP 알람 설정 값 변경 시 dpSetTimed(0, dpe, value)를 사용하였...
+  checker_type: builtin
+  checker_key: ctl.dp_in_loop
 - source_key: 성능|시스템 부하 및 성능 최적화|메모리 누수 체크
-  rule_ids: []
-  automation_mode: manual
+  rule_ids:
+  - CTL_RES_002
+  automation_mode: auto_full
   condition_summary: 1) 가변 길이(mapping, dyn) 타입의 변수를 재사용 시 Clear 하였는가? -...
+  checker_type: builtin
+  checker_key: ctl.file_handle_leak
 - source_key: DB|DB Query 작성 기준|바인딩 쿼리 처리
   rule_ids:
   - CTL_DB_001
@@ -56,9 +71,12 @@ entries:
   automation_mode: manual
   condition_summary: 1) 쿼리 검증 결과서를 작성하였는가? - Query 성능 확인 (첨부파일 참고)
 - source_key: DB|예외처리|DB Query Error
-  rule_ids: []
-  automation_mode: manual
+  rule_ids:
+  - CTL_ERR_003
+  automation_mode: auto_full
   condition_summary: 1) DB Connection 이 끊긴 경우 Reconnection 처리를 하였는가? 2)...
+  checker_type: builtin
+  checker_key: ctl.callback_error_handling
 - source_key: 공통|예외처리|DP 함수 예외 처리
   rule_ids:
   - CTL_ERR_001
@@ -78,9 +96,12 @@ entries:
   automation_mode: manual
   condition_summary: 1) 스크립트 및 라이브러리 버전 이력을 작성하였는가?
 - source_key: 공통|스트립트 개선|명명 규칙 및 코딩 스타일 준수 확인
-  rule_ids: []
-  automation_mode: manual
+  rule_ids:
+  - CTL_STYLE_002
+  automation_mode: auto_full
   condition_summary: 1) 명칭으로 역할 및 용도를 파악할 수 있는가? 2) 코드 명명 규칙을 준수하였는가? -...
+  checker_type: builtin
+  checker_key: ctl.dpe_hardcoding
 - source_key: 공통|스트립트 개선|config 항목 정합성 확인
   rule_ids: []
   automation_mode: manual
@@ -97,6 +118,10 @@ entries:
   automation_mode: manual
   condition_summary: 1) 이력(INFO), 에러(WARN,ERR), 디버깅(DBG1, DBG2) 조건에 맞는 ...
 - source_key: 공통|스트립트 개선|불필요한 코드 지양
-  rule_ids: []
-  automation_mode: manual
+  rule_ids:
+  - CTL_RES_003
+  automation_mode: auto_full
   condition_summary: 1) 불필요한 기능 / 변수 / 연산 등이 없는가? - 필요 없는 기능, 변수, 연산이 있...
+  checker_type: builtin
+  checker_key: ctl.dead_code_unused
+
