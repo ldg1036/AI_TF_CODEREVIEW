@@ -25,6 +25,10 @@ jobs:
           pip install -e ".[dev]"
           pip install pytest pytest-cov ruff mypy PyYAML openpyxl
 
+      - name: Run lint check
+        run: |
+          ruff check wincc_reviewer/app
+
       - name: Run tests with coverage
         env:
           PYTHONPATH: wincc_reviewer;.

@@ -273,11 +273,13 @@ class Pipeline:
         # 3.5. AI 2차 심층 리뷰 연동 (비동기 병렬 처리)
         ai_provider = None
         if not self.config.no_ai and all_violations:
-            import yaml
             import concurrent.futures
+
+            import yaml
+
             from app.core.ai.domain_rag import WinCCDomainRAG
             from app.core.ai.gemini_provider import GeminiAIProvider
-            from app.core.ai.local_provider import LocalAIProvider, LocalAIConfig
+            from app.core.ai.local_provider import LocalAIConfig, LocalAIProvider
             from app.core.ai.provider_base import AIRequest
 
             ai_provider_type = "gemini"

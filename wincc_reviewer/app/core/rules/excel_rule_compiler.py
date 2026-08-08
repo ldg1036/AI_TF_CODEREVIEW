@@ -13,20 +13,19 @@ Excel 파서(ExcelRuleLoader)의 파싱 결과와 승인된 레거시 매핑 프
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 from app.core.models import CheckerType, RuleDefinition, SeverityLevel
-from app.core.rules.excel_rule_loader import ExcelRuleLoader, RawExcelRow
+from app.core.rules.excel_rule_loader import ExcelRuleLoader
 
 
 class ExcelCompileError(Exception):
     """Excel 룰 컴파일 오류 예외."""
 
-    pass
 
 
 @dataclass

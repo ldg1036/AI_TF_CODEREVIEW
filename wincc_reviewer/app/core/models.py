@@ -13,7 +13,6 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any
 
-
 # ────────────────────────────────────────────
 # Enum 정의
 # ────────────────────────────────────────────

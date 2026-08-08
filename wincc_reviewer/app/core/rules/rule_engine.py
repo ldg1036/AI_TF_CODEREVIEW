@@ -14,7 +14,14 @@ import logging
 import re
 from pathlib import Path
 
-from app.core.models import CheckerType, ParseStatusType, RuleDefinition, SeverityLevel, Violation, ViolationStatus
+from app.core.models import (
+    CheckerType,
+    ParseStatusType,
+    RuleDefinition,
+    SeverityLevel,
+    Violation,
+    ViolationStatus,
+)
 from app.core.parser.base_parser import ParsedFile
 from app.core.rules.checker_registry import CheckerRegistry
 

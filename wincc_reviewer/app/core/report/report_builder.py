@@ -15,7 +15,13 @@ from pathlib import Path
 from typing import Any
 
 from app import __version__
-from app.core.models import Metrics, ParseStatus, ParseStatusType, ReviewReport, Violation
+from app.core.models import (
+    Metrics,
+    ParseStatus,
+    ParseStatusType,
+    ReviewReport,
+    Violation,
+)
 from app.core.parser.base_parser import ParsedFile
 
 

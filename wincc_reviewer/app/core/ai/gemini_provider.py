@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any
 
 from app.core.ai.provider_base import AIProvider, AIRequest, AIResponse
 

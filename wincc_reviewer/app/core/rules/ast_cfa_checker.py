@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any
 
 from app.core.models import ParseStatusType, SeverityLevel, Violation, ViolationStatus
 from app.core.parser.base_parser import ParsedFile
