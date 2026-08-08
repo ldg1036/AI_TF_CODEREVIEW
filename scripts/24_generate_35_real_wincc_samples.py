@@ -1,12 +1,12 @@
 """
 24_generate_35_real_wincc_samples.py
 
-웹 검색 및 WinCC OA 레퍼런스 구문에 기반한 총 55개 실물 샘플 파일 세트 대량 구축 스크립트
+웹 검색 및 WinCC OA 레퍼런스 구문에 기반한 총 60개 실물 샘플 파일 세트 대량 구축 스크립트
 """
 
 import os
 
-def generate_55_real_samples():
+def generate_60_real_samples():
     output_dir = os.path.join("intermediate_results", "real_samples")
     os.makedirs(output_dir, exist_ok=True)
 
@@ -65,7 +65,12 @@ def generate_55_real_samples():
         ("sample_52_dp_query_connect.ctl", "void q_conn() { dpQueryConnectSingle(\"on_q_change\", true, \"userData\", \"SELECT value FROM 'Pump*'\"); }"),
         ("sample_53_dp_get_types.ctl", "void check_types() { int val; dpGet(\"IntDP.:_online.._value\", val); }"),
         ("sample_54_xml_scada_layout.xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><layout rows=\"2\" cols=\"2\"></layout>"),
-        ("sample_55_full_scada_controller.ctl", "global int g_ctrl_state = 0; main() { dpConnect(\"on_ctrl\", \"Ctrl.State.:_online.._value\"); } void on_ctrl(string dp, int s) { try { g_ctrl_state = s; dpSet(\"Ctrl.Out.:_original.._value\", s); } catch { DebugN(\"Ctrl error\"); } }")
+        ("sample_55_full_scada_controller.ctl", "global int g_ctrl_state = 0; main() { dpConnect(\"on_ctrl\", \"Ctrl.State.:_online.._value\"); } void on_ctrl(string dp, int s) { try { g_ctrl_state = s; dpSet(\"Ctrl.Out.:_original.._value\", s); } catch { DebugN(\"Ctrl error\"); } }"),
+        ("sample_56_system_exec_security_risk.ctl", "main() { string stdOut, stdErr; int code = system(\"ls -l /tmp\", stdOut, stdErr); DebugN(code, stdOut); }"),
+        ("sample_57_magic_number_hardcoded.ctl", "int calc_bonus() { return 9999; }"),
+        ("sample_58_duplicated_blocks.ctl", "void block1() { dpSet(\"V1\", 1); dpSet(\"V2\", 2); dpSet(\"V3\", 3); dpSet(\"V4\", 4); dpSet(\"V5\", 5); }\nvoid block2() { dpSet(\"V1\", 1); dpSet(\"V2\", 2); dpSet(\"V3\", 3); dpSet(\"V4\", 4); dpSet(\"V5\", 5); }"),
+        ("sample_59_scope_shadowing_var.ctl", "global int g_var = 100;\nvoid shadow_test() { int g_var = 200; DebugN(g_var); }"),
+        ("sample_60_real_scada_system_exec.ctl", "main() { system(makeMapping(\"program\", \"cat\", \"stdin\", \"/tmp/input.txt\")); }")
     ]
 
     for fname, content in samples:
@@ -73,7 +78,7 @@ def generate_55_real_samples():
         with open(fpath, "w", encoding="utf-8") as fp:
             fp.write(content.strip() + "\n")
 
-    print(f"성공: 총 {len(samples)}개의 실물 WinCC OA 샘플 파일 구축 완료 (경로: {output_dir})")
+    print(f"성공: 총 {len(samples)}개의 실물 WinCC OA 샘플 파일 대량 구축 완료 (경로: {output_dir})")
 
 if __name__ == "__main__":
-    generate_55_real_samples()
+    generate_60_real_samples()
