@@ -36,6 +36,11 @@ class CheckerRegistry:
         """체커 키 존재 여부를 확인합니다."""
         return key in cls._registry
 
+    @classmethod
+    def list_registered(cls) -> list[str]:
+        """등록된 전체 체커 키 목록을 반환합니다."""
+        return sorted(cls._registry.keys())
+
 
 # ────────────────────────────────────────────
 # 내장 체커 구현 샘플 (TRD §5.2)

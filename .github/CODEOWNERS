@@ -1,0 +1,19 @@
+# WinCC OA Code Reviewer 거버넌스 CODEOWNERS 파일 (IMP 11 명세 구현)
+# 신뢰성에 직결되는 핵심 경로 변경 시 지정된 사람 리뷰어(@ldg1036)의 승인을 강제합니다.
+
+# 전체 기본 소유자
+* @ldg1036
+
+# 정적 분석 룰 엔진 및 파서
+wincc_reviewer/app/core/rules/ @ldg1036
+wincc_reviewer/app/core/parser/ @ldg1036
+
+# AI 연동 및 헬스체크
+wincc_reviewer/app/core/ai/ @ldg1036
+
+# CI/CD 파이프라인 워크플로우
+.github/workflows/ @ldg1036
+
+# 무결성 검증 및 벤치마크 스크립트
+scripts/verify_*.py @ldg1036
+scripts/15_run_large_scale_benchmark.py @ldg1036
