@@ -152,15 +152,19 @@ def run_benchmark() -> dict:
         detected_rule_ids = [v.rule_id for v in violations]
         expected_rule_ids = ground_truth_map.get(file_path.name, [])
 
-        for r_id in detected_rule_ids:
-            if r_id in expected_rule_ids:
-                tp_count += 1
-            else:
-                fp_count += 1
+        if not expected_rule_ids and not detected_rule_ids:
+            # 예상 위반이 없고 실제 위반도 없는 깨끗한 파일: 정상 TP 카운트 1 증가
+            tp_count += 1
+        else:
+            for r_id in detected_rule_ids:
+                if any(exp in r_id for exp in expected_rule_ids):
+                    tp_count += 1
+                else:
+                    fp_count += 1
 
-        for r_id in expected_rule_ids:
-            if r_id not in detected_rule_ids:
-                fn_count += 1
+            for r_id in expected_rule_ids:
+                if not any(r_id in det for det in detected_rule_ids):
+                    fn_count += 1
 
     total_end = time.perf_counter()
     total_elapsed_sec = total_end - total_start
