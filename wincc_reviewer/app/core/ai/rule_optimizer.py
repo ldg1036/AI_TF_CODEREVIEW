@@ -45,10 +45,29 @@ class RuleOptimizer:
     """AI 오탐 피드백 학습 및 엑셀 룰 카탈로그 자율 최적화 엔진."""
 
     DEFAULT_LOG_PATH = Path("config/fp_feedback_log.json")
+    DEFAULT_APPROVED_PATH = Path("config/approved_fp_rules.json")
 
-    def __init__(self, log_path: Path | None = None):
+    def __init__(self, log_path: Path | None = None, approved_path: Path | None = None):
         self.log_path = log_path or self.DEFAULT_LOG_PATH
+        self.approved_path = approved_path or self.DEFAULT_APPROVED_PATH
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    def is_rule_approved_for_exclusion(self, rule_id: str) -> bool:
+        """
+        사람 검토자의 사전 승인 파일(approved_fp_rules.json)과 대조하여 승인 여부를 검증합니다.
+        """
+        if not self.approved_path.exists():
+            return False
+        try:
+            with open(self.approved_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                approved_list = data.get("approved_fp_exclusions", [])
+                for item in approved_list:
+                    if item.get("rule_id") == rule_id:
+                        return True
+        except Exception:
+            return False
+        return False
 
     def _load_records(self) -> list[FeedbackRecord]:
         if not self.log_path.exists():

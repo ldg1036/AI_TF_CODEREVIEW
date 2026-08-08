@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "approved_fp_exclusions": [
+    {
+      "rule_id": "CTL_AST_CFA_003",
+      "reason": "이용자 승인: WinCC OA 특화 대기 루프 구문 관용구 적용",
+      "approved_by": "lead_reviewer",
+      "approval_date": "2026-08-09"
+    }
+  ]
+}

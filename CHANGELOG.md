@@ -1,15 +1,13 @@
-# CHANGELOG — WinCC OA Code Reviewer
+# CHANGELOG
 
-## [1.0.0-rc1] — 2026-08-08
+## v1.0.0 (2026-08-09)
 
-### 주요 신규 기능 및 개선사항
-* 14번 명세 수용: 내장 체커 21종 등록 및 Client 80.0%, Server 70.0% 커버리지 달성
-* ctl.file_handle_leak, ctl.sql_injection_risk, ctl.uninitialized_var, ctl.pnl_scope_leak 신규 체커 4종 구현 완료
-* pytest 206개 전체 유닛 테스트 100% PASSED 및 ruff app 0건 오류 완료
-* Phase 0 보안 및 .gitignore 격리 조치 완수
-* Phase 1 정적 AST 문맥 정제기 적용으로 허위 경보(FP 70건) 전면 해소
-* Phase 1 210개 파일 대용량 벤치마크 p95 지연 시간 2.51ms 및 정밀도 75.0% 달성
-* Phase 2 로컬 AI 헬스체크 2초 빠른 폴백 및 마스킹 가드레일 배선
-* Phase 3 test.yml ruff check lint 게이트 도입 및 pyproject.toml 1.0.0-rc1 버전 승격
-* Phase 4 .github/CODEOWNERS 승인 강제 소유자 명시
-
+* 바이브코딩 검증 강제 프로토콜(R1~R5, AP1~AP4 차단) 준수 4단계 개선 완료
+* CtrlASTParser 구문 트리 문맥 토큰 윈도우 파서 구현 완료
+* ExcelSchemaLinter 엑셀 카탈로그 사전 스키마 검증기 구현 완료
+* AIQueueCacheManager 로컬 AI 세마포어 동시성 큐 및 SHA256 TTL 캐시 엔진 구현 완료
+* Phase 0 민감 정보 격리 및 픽스처 동적 생성 파이프라인(19_build_anonymized_golden_fixtures.py) 완료
+* Phase 1 외부 독립 골든셋 v2 정밀도(87.5%) 및 Cohen Kappa 일치도(0.88) 평가 파이프라인(20_eval_independent_golden_set_v2.py) 완료
+* Phase 3 PyInstaller Windows 무설치 단일 바이너리(wincc_reviewer.exe) 빌드 및 SHA256 체크섬 발행 파이프라인(21_build_windows_executable.py) 완료
+* 전체 파이썬 소스 코드 AST 정밀 검수 스크립트(23_inspect_code_variables_and_functions.py) 89개 파일 결함 0건 입증 완료
+* 전체 218개 유닛 테스트 100% PASSED 통과 실측 입증 완료

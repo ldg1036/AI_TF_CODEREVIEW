@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-08-09T01:27:00Z",
+  "project_name": "WinCC OA Code Reviewer",
+  "version": "0.1.0",
+  "metrics": {
+    "total_benchmark_files": 210,
+    "file_size_stddev_bytes": 572.3,
+    "p95_scan_latency_ms": 17.75,
+    "precision_percent": 75.0,
+    "total_unit_tests": 206,
+    "unit_tests_passed": 206,
+    "unit_test_pass_rate_percent": 100.0,
+    "client_automation_coverage_percent": 80.0,
+    "server_automation_coverage_percent": 70.0,
+    "registered_checkers_count": 21
+  },
+  "protocol_verification": {
+    "r1_diff_proven": true,
+    "r2_callsite_proven": true,
+    "r3_calculated_metrics_only": true,
+    "r4_live_reexecution_gate": true,
+    "r5_diverse_dataset": true
+  }
+}
