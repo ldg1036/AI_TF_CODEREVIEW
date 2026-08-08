@@ -1,0 +1,13 @@
+{
+  "evaluation_timestamp": "2026-08-08 20:58:44",
+  "total_files_scanned": 210,
+  "total_elapsed_seconds": 0.6375,
+  "avg_time_per_file_ms": 3.04,
+  "p50_duration_ms": 2.88,
+  "p95_duration_ms": 3.49,
+  "p99_duration_ms": 3.95,
+  "memory_peak_mb": 48.34,
+  "total_violations_detected": 140,
+  "sample_precision_rate_percent": 100.0,
+  "sample_recall_rate_percent": 100.0
+}
