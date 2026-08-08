@@ -64,8 +64,11 @@ class TestPipelineIntegration:
         """09_구현착수 게이트: python -m app.main --input ... --no-ai CLI 실행 검증."""
         input_dir, output_dir = sample_files
 
+        wincc_dir = Path(__file__).resolve().parent.parent
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
+        existing_pp = env.get("PYTHONPATH", "")
+        env["PYTHONPATH"] = f"{wincc_dir}{os.pathsep}{existing_pp}" if existing_pp else str(wincc_dir)
 
         result = subprocess.run(
             [
