@@ -12,11 +12,10 @@ import difflib
 import json
 import logging
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import Any
-
-
 
 from app.core.pipeline import Pipeline, PipelineConfig
 from app.core.report.html_report_builder import HTMLReportBuilder
@@ -441,8 +440,6 @@ class JSApi:
             }
         """
         import sys
-        import shutil
-        import json
         import urllib.request
 
         result: dict[str, Any] = {"success": True}

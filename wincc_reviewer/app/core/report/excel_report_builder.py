@@ -6,7 +6,6 @@ openpyxl을 사용하여 납품용 Excel 종합 검수 명세서를 생성합니
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side

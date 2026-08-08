@@ -8,9 +8,9 @@ from app.core.rules.applicability_mapper import (
 from app.core.rules.ast_cfa_checker import ASTControlFlowChecker
 
 __all__ = [
+    "ASTControlFlowChecker",
     "ApplicabilityItem",
     "ApplicabilityMapper",
     "ApplicabilityReport",
-    "ASTControlFlowChecker",
 ]
 

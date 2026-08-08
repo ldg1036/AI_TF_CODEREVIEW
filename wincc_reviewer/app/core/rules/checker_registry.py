@@ -8,7 +8,7 @@ IR(ParsedFile)과 RuleDefinition을 입력받아 list[Violation]을 반환합니
 from __future__ import annotations
 
 import re
-from typing import Callable
+from collections.abc import Callable
 
 from app.core.models import RuleDefinition, SeverityLevel, Violation, ViolationStatus
 from app.core.parser.base_parser import ParsedFile

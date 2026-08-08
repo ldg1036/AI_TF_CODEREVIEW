@@ -5,7 +5,6 @@ GitHub PR 및 GitLab MR 인라인 리뷰 코멘트 포맷터 모듈.
 from __future__ import annotations
 
 from typing import Any
-from app.core.models import Violation
 
 
 class VCSCommenter:

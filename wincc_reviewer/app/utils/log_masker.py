@@ -2,7 +2,6 @@
 로그 및 출력 마스킹 유틸리티 모듈.
 """
 
-import re
 
 def mask_api_key(api_key: str | None) -> str:
     """

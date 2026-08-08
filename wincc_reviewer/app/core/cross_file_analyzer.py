@@ -6,7 +6,8 @@ from __future__ import annotations
 
 import hashlib
 from typing import Any
-from app.core.models import Violation, SeverityLevel, ViolationStatus
+
+from app.core.models import SeverityLevel, Violation, ViolationStatus
 
 
 class CrossFileAnalyzer:

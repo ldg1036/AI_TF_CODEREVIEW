@@ -9,7 +9,6 @@ Autofix 안전 엔진 (TRD §5.5 & 08_ADR 계약 준수).
 from __future__ import annotations
 
 import logging
-import shutil
 from pathlib import Path
 
 from app.core.models import Violation

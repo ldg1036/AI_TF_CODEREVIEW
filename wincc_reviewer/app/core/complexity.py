@@ -51,8 +51,7 @@ class ComplexityAnalyzer:
         for char in code:
             if char == "{":
                 current_depth += 1
-                if current_depth > max_depth:
-                    max_depth = current_depth
+                max_depth = max(max_depth, current_depth)
             elif char == "}":
                 if current_depth > 0:
                     current_depth -= 1

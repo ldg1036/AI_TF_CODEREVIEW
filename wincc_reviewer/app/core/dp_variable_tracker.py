@@ -6,7 +6,7 @@ CTL 스크립트 및 PNL 구조에서 dpConnect, dpSet, dpGet, dpQuery 구문의
 
 import logging
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 

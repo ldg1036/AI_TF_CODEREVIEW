@@ -10,9 +10,13 @@ from __future__ import annotations
 import html
 from pathlib import Path
 
-from app.core.models import ParseStatusType, ReviewReport, SeverityLevel, ViolationStatus
+from app.core.models import (
+    ParseStatusType,
+    ReviewReport,
+    SeverityLevel,
+    ViolationStatus,
+)
 from app.core.report.hotspot_calculator import HotspotCalculator
-
 
 
 class HTMLReportBuilder:
