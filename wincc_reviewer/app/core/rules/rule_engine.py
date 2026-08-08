@@ -261,7 +261,7 @@ class RuleEngine:
                     )
             return cls._filter_nolint_suppressed(parsed, violations)
 
-        # 5. REGEX 처리
+        # 5. REGEX 처리 (주석 제외 및 AST 문맥 검수 적용)
         if rule.checker_type == CheckerType.REGEX:
             if not rule.pattern:
                 return []
