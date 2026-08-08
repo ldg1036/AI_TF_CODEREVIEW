@@ -46,7 +46,7 @@ class NormalizationService:
             return ".pnl", PNLParser
         if name_lower.endswith(".xml") or ".xml." in name_lower or name_lower.endswith("_xml.txt"):
             return ".xml", XMLParser
-        
+
         ext = path.suffix.lower()
         return ext, cls.PARSER_MAP.get(ext)
 
@@ -96,7 +96,7 @@ class NormalizationService:
             parser = parser_cls(extract_scripts_only=extract_scripts_only)
         else:
             parser = parser_cls()
-            
+
         parsed = parser.parse(path)
 
         # canonical 정보 생성 및 기록

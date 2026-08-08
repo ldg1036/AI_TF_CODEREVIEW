@@ -129,7 +129,7 @@ class JSApi:
             html_content = HTMLReportBuilder.render_html(report)
 
             self._last_report = report
-            
+
             # 2. 사용자가 AI 분석을 요청했다면 백그라운드 스레드에서 AI 처리 진행
             if not no_ai:
                 import threading
@@ -145,7 +145,7 @@ class JSApi:
         except Exception as e:
             logger.error("UI 파이프라인 실행 중 오류 발생: %s", e, exc_info=True)
             return {"success": False, "error": str(e)}
-            
+
     def _run_ai_background(self, path: Path, output_dir: Path, extract_scripts_only: bool = True) -> None:
         """백그라운드 스레드에서 AI 분석을 실행하고 UI에 알립니다."""
         import json
@@ -160,12 +160,12 @@ class JSApi:
             pipeline = Pipeline(config)
             # 캐시가 존재하므로 정적 파싱은 즉시 통과하고, AI 리뷰 블록이 실행됨
             report = pipeline.run()
-            
+
             report_dict = ReportBuilder.to_dict(report)
             html_content = HTMLReportBuilder.render_html(report)
-            
+
             self._last_report = report
-            
+
             if self._window:
                 res = {
                     "success": True,

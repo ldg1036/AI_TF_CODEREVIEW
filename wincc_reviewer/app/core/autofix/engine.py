@@ -81,7 +81,7 @@ class AutofixEngine:
                         + "\n".join([f"// {line}" for line in suggested_code.splitlines()])
                         + "\n// =============================================\n"
                     )
-                    
+
                     # 위반 위치(Line)가 명확하면 해당 라인 바로 아래/위에 추가
                     if v.line_start and 1 <= v.line_start <= len(modified_lines):
                         idx = v.line_start - 1
@@ -102,7 +102,7 @@ class AutofixEngine:
                     applied_changes = True
 
             final_content = "".join(ai_guides) + "".join(modified_lines)
-            
+
             if not applied_changes:
                 final_content = f"// [WinCC OA Reviewer - 자동 검사 완료]\n// 위반 항목: {len(violations)}건 (AI 추천 코드 생성 대기중)\n\n" + content
 
