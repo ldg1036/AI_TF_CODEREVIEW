@@ -17,4 +17,4 @@ class TestEvalIndependentGoldenSetV2:
         metrics = mod.evaluate_independent_golden_set_v2()
         assert metrics is not None
         assert metrics["cohen_kappa_agreement"] >= 0.85
-        assert metrics["target_precision_percent"] >= 85.0
+        assert metrics["calculated_precision_percent"] >= 85.0

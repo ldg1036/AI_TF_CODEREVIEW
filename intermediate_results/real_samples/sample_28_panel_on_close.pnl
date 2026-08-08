@@ -1,0 +1,4 @@
+main()
+{
+  dpDisconnect("on_change", "Panel_Temp.:_online.._value");
+}
