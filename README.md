@@ -3,7 +3,7 @@
 [![CI Test Status](https://github.com/ldg1036/AI_TF_CODEREVIEW/workflows/test/badge.svg)](https://github.com/ldg1036/AI_TF_CODEREVIEW/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
-[![Test Suite](https://img.shields.io/badge/tests-199%20passed-brightgreen.svg)](https://github.com/ldg1036/AI_TF_CODEREVIEW)
+[![Test Suite](https://img.shields.io/badge/tests-202%20passed-brightgreen.svg)](https://github.com/ldg1036/AI_TF_CODEREVIEW)
 
 > **Siemens WinCC OA 제어 스크립트를 정적 룰 엔진과 AI로 자동 검사하여 결함을 1초 만에 적발하는 통합 코드리뷰 솔루션**
 
@@ -16,7 +16,7 @@ Siemens WinCC OA 제어 시스템에서 사용되는 **CTL, PNL, XML** 스크립
 ### 3대 핵심 가치 및 안정성 보장
 * **시간 90% 이상 절감**: 210개 파일 대용량 스캔 기준 p95 지연 시간 2.51ms, 전체 풀 스캔 0.42초 만에 완수
 * **SCADA 보안 및 데이터 유출 원천 차단**: 외부 프로세스 명령 주입(`system()`, `exec()`) 등 위험 코드 정밀 적발 및 외부 AI 전송 기본 차단 보안 가드레일(`ALLOW_EXTERNAL_AI`) 탑재
-* **투명한 커버리지 및 실측 수치 고지**: 11번 바이브코딩 지침서(R3, R5) 준수 210개 파일 다양성 벤치마크 실측 정밀도 75.0% 및 199개 유닛 테스트 100% 통과
+* **거버넌스 및 실측 무결성 고지**: .github/CODEOWNERS 브랜치 보호 거버넌스 적용, 커버리지 주장 검증기(verify_coverage_claim.py) 및 202개 유닛 테스트 100% 통과
 
 ---
 
@@ -26,16 +26,16 @@ Siemens WinCC OA 제어 시스템에서 사용되는 **CTL, PNL, XML** 스크립
 AI_TF_CODEREVIEW (Project Root)
 ├── wincc_reviewer/                # 코드 리뷰 자동화 도구 코어
 │   ├── app/                       # CLI 실행 진입점, 파서, 룰 엔진, AI, GUI
-│   ├── tests/                     # 199개 유닛 테스트 수트 및 회귀 게이트
+│   ├── tests/                     # 202개 유닛 테스트 수트 및 거버넌스 회귀 게이트
 │   └── pyproject.toml             # 프로젝트 패키지 셋팅 및 의존성 명세
 ├── config/                        # Client/Server 엑셀 룰 카탈로그 및 settings.yaml
-├── scripts/                       # 210개 파일 대용량 벤치마크 및 무결성 검증 스크립트
+├── scripts/                       # 210개 파일 대용량 벤치마크 및 커버리지 검증기(verify_coverage_claim.py)
 ├── interim_reports/               # 단계별 개발 및 검증 보고서
 ├── intermediate_results/          # 대규모 벤치마크 metrics.json 및 ground_truth.json
-├── .github/workflows/            # CI/CD 자동화 파이프라인 (test.yml, release.yml)
-├── DEVELOPMENT_ONBOARDING_GUIDE.md # 신규 개발자 인수인계 가이드
-├── USER_MANUAL.md                  # 사용자 및 운영 매뉴얼
+├── secondary_data/                # 실물 오탐 정밀 구조화 로그(real_world_fp_log.csv)
+├── .github/                       # CI/CD 자동화 파이프라인 (test.yml, release.yml) 및 CODEOWNERS
 ├── 11_바이브코딩_실행_지침서_기능_검증_강제_프로토콜.md # 바이브코딩 검증 강제 프로토콜
+├── 12_실사용_신뢰성_확대_개발문서_남은_3대_한계_해소.md # 실사용 신뢰성 확대 명세
 └── README.md                       # 프로젝트 대표 안내서
 ```
 
