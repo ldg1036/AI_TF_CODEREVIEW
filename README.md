@@ -20,6 +20,7 @@ WinCC OA Code Reviewer는 시멘스 WinCC OA(Open Architecture) 산업용 제어
 * 데이터베이스 및 SCADA 안전성 확보: 동적 SQL 결합, dpConnect 미해제 경고
 * **하이브리드 파이프라인 구축**: Tree-sitter C++ AST(스코프 분석) + 정규식 폴백(PNL 괄호 균형 탐색) + Domain RAG(AI 가상함수 차단) 구조를 결합하여 **99.2% 실측 정밀도 및 100% 유닛 테스트 커버리지** 달성
 * **정적 분석 엔진 핵심 6대 약점 전면 해소 (V2 Update)**: "전역 면죄부 오탐 방지", "콜백 중첩 괄호 분석", "미사용 파라미터 검출 상향", "동적 배열 접근 구분", "임시 디버그 로그 차단" 등을 달성하여 프로덕션 레벨 신뢰도 확보.
+* **리뷰 신뢰성 및 UX 고도화 (Phase 17)**: SSOT(Single Source of Truth) 기반 정밀도 데이터 일원화, 리포트 내 5회 이상 반복 위반 자동 그룹핑(Alert Fatigue 완화), 과거 정밀도 툴팁, 인라인 오탐 신고 기능(🚨) 추가
 * 코드 리뷰 자동화: 33개 내장 룰 체커와 엑셀 룰 카탈로그를 기반으로 리포트 자동 생성
 
 ---
@@ -78,6 +79,12 @@ pip install -e ".[dev]"
 ```bash
 # primary_data 폴더의 샘플 코드를 정적 분석하여 리포트 생성
 python wincc_reviewer/app/main.py --input primary_data/ --output output/
+
+# (옵션) 벤치마크 전용 고속 모드 (실측 지표 산출용)
+python wincc_reviewer/app/main.py --input primary_data/ --benchmark-mode
+
+# (옵션) 100% 딥 리뷰 모드 (모든 항목 AI 리뷰)
+python wincc_reviewer/app/main.py --input primary_data/ --accuracy-mode
 ```
 구동이 완료되면 `output/` 폴더에 세련된 HTML 리포트와 JSON 리포트가 자동으로 생성됩니다.
 
