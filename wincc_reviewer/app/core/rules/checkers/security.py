@@ -134,6 +134,9 @@ from app.core.rules.dfa_engine import TaintTracker
 
 def check_sql_injection_risk(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
     """동적 문자열 조합 기반 쿼리 실행 보안 위험을 DFA(Taint 추적) 기반으로 정밀 검사합니다."""
+    if parsed.file_path and parsed.file_path.name in ("bench_0005.pnl", "bench_0004.pnl", "bench_0005.ctl", "bench_0001.ctl"):
+        print(f"[DEBUG-SECURITY-ENTER] check_sql_injection_risk entered for {parsed.file_path.name}")
+    
     violations: list[Violation] = []
     
     # 주석 제거된 코드 라인 추출
