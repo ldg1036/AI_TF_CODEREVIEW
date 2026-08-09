@@ -1,0 +1,7 @@
+#!/bin/sh
+# Anti-Gaming SSOT 커밋 메시지 검증 로컬 훅
+python scripts/verify_commit_message_claims.py "$1"
+if [ $? -ne 0 ]; then
+    echo "Anti-Gaming 커밋 검증 실패로 커밋이 취소되었습니다."
+    exit 1
+fi

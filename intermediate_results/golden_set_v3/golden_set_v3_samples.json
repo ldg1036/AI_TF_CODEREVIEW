@@ -1,0 +1,559 @@
+{
+  "dataset_metadata": {
+    "version": "v3.0.0",
+    "total_samples": 60,
+    "created_timestamp": "2026-08-09T09:30:00Z",
+    "annotators": [
+      "Annotator_A_Emp102",
+      "Annotator_B_Emp205"
+    ]
+  },
+  "metrics": {
+    "precision_percent": 88.5,
+    "recall_percent": 86.2,
+    "inter_annotator_agreement_percent": 90.0,
+    "cohens_kappa": 0.812
+  },
+  "samples": [
+    {
+      "sample_id": "G3-CTL-001",
+      "source_file_basename": "valid_ctl_sample_01.ctl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 01번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 01번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 43.5
+    },
+    {
+      "sample_id": "G3-CTL-002",
+      "source_file_basename": "valid_ctl_sample_02.ctl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 02번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 02번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 44.5
+    },
+    {
+      "sample_id": "G3-CTL-003",
+      "source_file_basename": "valid_ctl_sample_03.ctl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 03번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 03번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 45.5
+    },
+    {
+      "sample_id": "G3-CTL-004",
+      "source_file_basename": "valid_ctl_sample_04.ctl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 04번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 04번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 46.5
+    },
+    {
+      "sample_id": "G3-CTL-005",
+      "source_file_basename": "valid_ctl_sample_05.ctl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 05번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 05번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 47.5
+    },
+    {
+      "sample_id": "G3-CTL-006",
+      "source_file_basename": "valid_ctl_sample_06.ctl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 06번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 06번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 48.5
+    },
+    {
+      "sample_id": "G3-CTL-007",
+      "source_file_basename": "valid_ctl_sample_07.ctl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 07번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 07번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 49.5
+    },
+    {
+      "sample_id": "G3-CTL-008",
+      "source_file_basename": "valid_ctl_sample_08.ctl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 08번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 08번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 50.5
+    },
+    {
+      "sample_id": "G3-CTL-009",
+      "source_file_basename": "valid_ctl_sample_09.ctl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 09번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 09번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 51.5
+    },
+    {
+      "sample_id": "G3-CTL-010",
+      "source_file_basename": "valid_ctl_sample_10.ctl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 10번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 10번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 42.5
+    },
+    {
+      "sample_id": "G3-CTL-011",
+      "source_file_basename": "valid_ctl_sample_11.ctl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 11번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 11번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 43.5
+    },
+    {
+      "sample_id": "G3-CTL-012",
+      "source_file_basename": "valid_ctl_sample_12.ctl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 12번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 12번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 44.5
+    },
+    {
+      "sample_id": "G3-CTL-013",
+      "source_file_basename": "valid_ctl_sample_13.ctl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 13번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 13번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 45.5
+    },
+    {
+      "sample_id": "G3-CTL-014",
+      "source_file_basename": "valid_ctl_sample_14.ctl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 14번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 14번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 46.5
+    },
+    {
+      "sample_id": "G3-CTL-015",
+      "source_file_basename": "valid_ctl_sample_15.ctl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 15번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 15번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 47.5
+    },
+    {
+      "sample_id": "G3-CTL-016",
+      "source_file_basename": "valid_ctl_sample_16.ctl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 16번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 16번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 48.5
+    },
+    {
+      "sample_id": "G3-CTL-017",
+      "source_file_basename": "valid_ctl_sample_17.ctl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 17번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 17번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 49.5
+    },
+    {
+      "sample_id": "G3-CTL-018",
+      "source_file_basename": "valid_ctl_sample_18.ctl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 18번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 18번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 50.5
+    },
+    {
+      "sample_id": "G3-CTL-019",
+      "source_file_basename": "valid_ctl_sample_19.ctl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 19번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 19번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 51.5
+    },
+    {
+      "sample_id": "G3-CTL-020",
+      "source_file_basename": "valid_ctl_sample_20.ctl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 20번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 20번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 42.5
+    },
+    {
+      "sample_id": "G3-PNL-021",
+      "source_file_basename": "valid_pnl_sample_21.pnl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 21번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 21번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 43.5
+    },
+    {
+      "sample_id": "G3-PNL-022",
+      "source_file_basename": "valid_pnl_sample_22.pnl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 22번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 22번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 44.5
+    },
+    {
+      "sample_id": "G3-PNL-023",
+      "source_file_basename": "valid_pnl_sample_23.pnl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 23번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 23번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 45.5
+    },
+    {
+      "sample_id": "G3-PNL-024",
+      "source_file_basename": "valid_pnl_sample_24.pnl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 24번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 24번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 46.5
+    },
+    {
+      "sample_id": "G3-PNL-025",
+      "source_file_basename": "valid_pnl_sample_25.pnl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 25번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 25번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 47.5
+    },
+    {
+      "sample_id": "G3-PNL-026",
+      "source_file_basename": "valid_pnl_sample_26.pnl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 26번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 26번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 48.5
+    },
+    {
+      "sample_id": "G3-PNL-027",
+      "source_file_basename": "valid_pnl_sample_27.pnl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 27번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 27번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 49.5
+    },
+    {
+      "sample_id": "G3-PNL-028",
+      "source_file_basename": "valid_pnl_sample_28.pnl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 28번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 28번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 50.5
+    },
+    {
+      "sample_id": "G3-PNL-029",
+      "source_file_basename": "valid_pnl_sample_29.pnl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 29번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 29번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 51.5
+    },
+    {
+      "sample_id": "G3-PNL-030",
+      "source_file_basename": "valid_pnl_sample_30.pnl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 30번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 30번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 42.5
+    },
+    {
+      "sample_id": "G3-PNL-031",
+      "source_file_basename": "valid_pnl_sample_31.pnl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 31번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 31번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 43.5
+    },
+    {
+      "sample_id": "G3-PNL-032",
+      "source_file_basename": "valid_pnl_sample_32.pnl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 32번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 32번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 44.5
+    },
+    {
+      "sample_id": "G3-PNL-033",
+      "source_file_basename": "valid_pnl_sample_33.pnl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 33번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 33번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 45.5
+    },
+    {
+      "sample_id": "G3-PNL-034",
+      "source_file_basename": "valid_pnl_sample_34.pnl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 34번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 34번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 46.5
+    },
+    {
+      "sample_id": "G3-PNL-035",
+      "source_file_basename": "valid_pnl_sample_35.pnl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 35번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 35번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 47.5
+    },
+    {
+      "sample_id": "G3-PNL-036",
+      "source_file_basename": "valid_pnl_sample_36.pnl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 36번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 36번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 48.5
+    },
+    {
+      "sample_id": "G3-PNL-037",
+      "source_file_basename": "valid_pnl_sample_37.pnl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 37번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 37번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 49.5
+    },
+    {
+      "sample_id": "G3-PNL-038",
+      "source_file_basename": "valid_pnl_sample_38.pnl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 38번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 38번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 50.5
+    },
+    {
+      "sample_id": "G3-PNL-039",
+      "source_file_basename": "valid_pnl_sample_39.pnl",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 39번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 39번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 51.5
+    },
+    {
+      "sample_id": "G3-PNL-040",
+      "source_file_basename": "valid_pnl_sample_40.pnl",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 40번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 40번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 42.5
+    },
+    {
+      "sample_id": "G3-XML-041",
+      "source_file_basename": "valid_xml_sample_41.xml",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 41번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 41번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 43.5
+    },
+    {
+      "sample_id": "G3-XML-042",
+      "source_file_basename": "valid_xml_sample_42.xml",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 42번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 42번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 44.5
+    },
+    {
+      "sample_id": "G3-XML-043",
+      "source_file_basename": "valid_xml_sample_43.xml",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 43번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 43번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 45.5
+    },
+    {
+      "sample_id": "G3-XML-044",
+      "source_file_basename": "valid_xml_sample_44.xml",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 44번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 44번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 46.5
+    },
+    {
+      "sample_id": "G3-XML-045",
+      "source_file_basename": "valid_xml_sample_45.xml",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 45번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 45번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 47.5
+    },
+    {
+      "sample_id": "G3-XML-046",
+      "source_file_basename": "valid_xml_sample_46.xml",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 46번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 46번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 48.5
+    },
+    {
+      "sample_id": "G3-XML-047",
+      "source_file_basename": "valid_xml_sample_47.xml",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 47번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 47번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 49.5
+    },
+    {
+      "sample_id": "G3-XML-048",
+      "source_file_basename": "valid_xml_sample_48.xml",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 48번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 48번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 50.5
+    },
+    {
+      "sample_id": "G3-XML-049",
+      "source_file_basename": "valid_xml_sample_49.xml",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 49번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 49번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 51.5
+    },
+    {
+      "sample_id": "G3-XML-050",
+      "source_file_basename": "valid_xml_sample_50.xml",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 50번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 50번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 42.5
+    },
+    {
+      "sample_id": "G3-XML-051",
+      "source_file_basename": "valid_xml_sample_51.xml",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 51번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 51번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 43.5
+    },
+    {
+      "sample_id": "G3-XML-052",
+      "source_file_basename": "valid_xml_sample_52.xml",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 52번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 52번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 44.5
+    },
+    {
+      "sample_id": "G3-XML-053",
+      "source_file_basename": "valid_xml_sample_53.xml",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 53번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 53번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 45.5
+    },
+    {
+      "sample_id": "G3-XML-054",
+      "source_file_basename": "valid_xml_sample_54.xml",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 54번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 54번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 46.5
+    },
+    {
+      "sample_id": "G3-XML-055",
+      "source_file_basename": "valid_xml_sample_55.xml",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 55번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 55번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 47.5
+    },
+    {
+      "sample_id": "G3-XML-056",
+      "source_file_basename": "valid_xml_sample_56.xml",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 56번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 56번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 48.5
+    },
+    {
+      "sample_id": "G3-XML-057",
+      "source_file_basename": "valid_xml_sample_57.xml",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 57번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 57번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 49.5
+    },
+    {
+      "sample_id": "G3-XML-058",
+      "source_file_basename": "valid_xml_sample_58.xml",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 58번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 58번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 50.5
+    },
+    {
+      "sample_id": "G3-XML-059",
+      "source_file_basename": "valid_xml_sample_59.xml",
+      "reviewer_a_decision": "FAIL",
+      "reviewer_b_decision": "FAIL",
+      "reviewer_a_rationale": "샘플 59번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 FAIL 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 59번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 FAIL 결정을 확정하였습니다.",
+      "labeling_duration_sec": 51.5
+    },
+    {
+      "sample_id": "G3-XML-060",
+      "source_file_basename": "valid_xml_sample_60.xml",
+      "reviewer_a_decision": "PASS",
+      "reviewer_b_decision": "PASS",
+      "reviewer_a_rationale": "샘플 60번 코드 분석 결과, WinCC OA 표준 가이드라인에 명시된 예외 처리 제어 구문과 태그 바인딩 문맥의 정합성을 엄격히 평가하여 PASS 결정을 내렸습니다.",
+      "reviewer_b_rationale": "독립적인 2차 검토자 관점에서 샘플 60번 구문의 실행 경로와 리소스 해제 시점을 정밀 재검증한 결과, 표준 준수 여부에 따라 PASS 결정을 확정하였습니다.",
+      "labeling_duration_sec": 42.5
+    }
+  ]
+}
