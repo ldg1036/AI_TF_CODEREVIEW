@@ -195,15 +195,6 @@ def main(argv: list[str] | None = None) -> int:
             logger.error("GUI 모드 실행 실패 (CLI 사용법: python -m app.main --help): %s", e)
             return 1
 
-    # TODO: Phase 2+ 에서 실제 파이프라인 실행 구현
-    # 1. 설정 로드 (config/settings.yaml)
-    # 2. 룰 컴파일 (Excel → RuleDefinition[])
-    # 3. 파일 수집 및 파싱 (PNL/CTL/XML → IR)
-    # 4. 정적 룰 검사 (IR → Violation[])
-    # 5. (옵션) AI 리뷰 (Violation → AIGuide)
-    # 6. (옵션) WinMerge Diff
-    # 7. 리포트 생성 (JSON/HTML)
-
     # 파이프라인 설정 구성
     output_dir = args.output or _get_default_output_dir()
     config = PipelineConfig(

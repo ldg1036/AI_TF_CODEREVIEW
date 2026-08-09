@@ -345,7 +345,9 @@ class Pipeline:
             else:
                 targets = sorted_violations
 
+            import threading
             ai_failed_count = 0
+            _ai_fail_lock = threading.Lock()
 
             def _run_single_ai_review(v):
                 nonlocal ai_failed_count
@@ -360,10 +362,12 @@ class Pipeline:
                     if ai_resp.is_success:
                         v.ai_analysis = ai_resp.content
                     else:
-                        ai_failed_count += 1
+                        with _ai_fail_lock:
+                            ai_failed_count += 1
                         v.ai_analysis = "[AI FALLBACK] AI 서버 응답 미수신으로 정적 룰 검사 결과만으로 대체함."
                 except Exception as e:
-                    ai_failed_count += 1
+                    with _ai_fail_lock:
+                        ai_failed_count += 1
                     logger.warning("[AI FALLBACK] AI 서버 연동 실패. 정적 분석 룰 검사 결과만으로 진행합니다. (원인: %s)", e)
                     v.ai_analysis = "[AI FALLBACK] AI 서버 연동 실패로 정적 룰 검사 결과만으로 대체함."
 

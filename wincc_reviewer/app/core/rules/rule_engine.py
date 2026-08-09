@@ -332,9 +332,6 @@ class RuleEngine:
                 filtered.append(v)
         return filtered
 
-
-        return []
-
     @classmethod
     def execute(cls, parsed: ParsedFile, rules: list[RuleDefinition]) -> list[Violation]:
         """

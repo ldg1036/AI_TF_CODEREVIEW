@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import hashlib
 import re
+
+from app.utils.encoding import SUPPORTED_ENCODINGS, decode_bytes_with_fallback
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -60,7 +62,7 @@ def calculate_file_sha256(file_path: Path) -> str:
 class CTLParser(Parser):
     """CTL 파일 파서 구현체."""
 
-    SUPPORTED_ENCODINGS = ["utf-8-sig", "utf-8", "cp949", "euc-kr", "latin1"]
+    # 인코딩 목록은 app.utils.encoding.SUPPORTED_ENCODINGS 사용
 
     # CTRL 타입 키워드 정규식
     TYPE_PATTERN = r"(?:void|int|float|string|bool|char|mapping|dyn_int|dyn_float|dyn_string|dyn_bool|dyn_mapping|unsigned|long|time|anytype)"
@@ -101,24 +103,14 @@ class CTLParser(Parser):
 
         file_sha256 = hashlib.sha256(raw_bytes).hexdigest()
 
-        content = None
-        detected_encoding = ""
-        encoding_confidence = 1.0
-        encoding_warning = ""
-
-        for idx, enc in enumerate(self.SUPPORTED_ENCODINGS):
-            try:
-                content = raw_bytes.decode(enc)
-                detected_encoding = enc
-                if idx > 1:
-                    encoding_confidence = 0.65
-                    encoding_warning = f"[ENCODING WARNING] 비표준 인코딩({enc})이 감지되었습니다. 한글 및 주석 글자 깨짐 여부를 점검하십시오."
-                break
-            except (UnicodeDecodeError, ValueError):
-                continue
-
-        if content is None:
+        try:
+            content, detected_encoding, encoding_confidence = decode_bytes_with_fallback(raw_bytes)
+        except UnicodeDecodeError:
             return create_failed_parse(path, "지원되는 인코딩으로 디코딩에 실패했습니다.")
+
+        encoding_warning = ""
+        if encoding_confidence < 1.0:
+            encoding_warning = f"[ENCODING WARNING] 비표준 인코딩({detected_encoding})이 감지되었습니다. 한글 및 주석 글자 깨짐 여부를 점검하십시오."
 
 
         # 줄바꿈 스타일 감지

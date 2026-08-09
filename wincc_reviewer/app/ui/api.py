@@ -20,6 +20,7 @@ from typing import Any
 from app.core.pipeline import Pipeline, PipelineConfig
 from app.core.report.html_report_builder import HTMLReportBuilder
 from app.core.report.report_builder import ReportBuilder
+from app.utils.encoding import read_text_with_fallback
 
 logger = logging.getLogger(__name__)
 
@@ -142,9 +143,12 @@ class JSApi:
                 "ai_pending": not no_ai,
             }
 
+        except (FileNotFoundError, PermissionError, ValueError, RuntimeError) as e:
+            logger.error("UI 파이프라인 실행 중 알려진 오류 발생 (%s): %s", type(e).__name__, e, exc_info=True)
+            return {"success": False, "error": f"[{type(e).__name__}] {e}"}
         except Exception as e:
-            logger.error("UI 파이프라인 실행 중 오류 발생: %s", e, exc_info=True)
-            return {"success": False, "error": str(e)}
+            logger.error("UI 파이프라인 실행 중 예상치 못한 오류 발생: %s", e, exc_info=True)
+            return {"success": False, "error": f"시스템 오류가 발생했습니다: {e}"}
 
     def _run_ai_background(self, path: Path, output_dir: Path, extract_scripts_only: bool = True) -> None:
         """백그라운드 스레드에서 AI 분석을 실행하고 UI에 알립니다."""
@@ -236,9 +240,11 @@ class JSApi:
 
             return {"success": True, "saved_path": str(out_path)}
 
-
+        except (FileNotFoundError, PermissionError, ValueError, OSError) as e:
+            logger.error("리포트 내보내기 중 I/O 또는 형식 오류 발생 (%s): %s", type(e).__name__, e, exc_info=True)
+            return {"success": False, "error": f"내보내기 실패: {e}"}
         except Exception as e:
-            logger.error("리포트 Export 중 오류 발생: %s", e, exc_info=True)
+            logger.error("리포트 Export 중 예상치 못한 오류 발생: %s", e, exc_info=True)
             return {"success": False, "error": str(e)}
 
     def get_file_content(self, file_path: str, extract_scripts_only: bool = True) -> dict[str, Any]:
@@ -264,17 +270,14 @@ class JSApi:
                     return {"success": True, "content": parsed.content, "file_path": str(path)}
 
             # 원본 다국어 인코딩 읽기
-            content = ""
-            for enc in ["utf-8-sig", "utf-8", "cp949", "euc-kr", "latin1"]:
-                try:
-                    content = path.read_text(encoding=enc)
-                    break
-                except UnicodeDecodeError:
-                    continue
+            content = read_text_with_fallback(path)
 
             return {"success": True, "content": content, "file_path": str(path)}
+        except (FileNotFoundError, UnicodeDecodeError, PermissionError, OSError) as e:
+            logger.error("파일 내용 읽기 실패 (%s): %s", type(e).__name__, e)
+            return {"success": False, "error": f"파일 읽기 오류 ({type(e).__name__}): {e}"}
         except Exception as e:
-            logger.error("파일 내용 읽기 실패: %s", e)
+            logger.error("파일 내용 읽기 중 예상치 못한 오류 발생: %s", e, exc_info=True)
             return {"success": False, "error": str(e)}
 
     def _resolve_settings_path(self, custom_path: str | None = None) -> Path:
@@ -857,24 +860,20 @@ class JSApi:
             real_modified_text = ""
 
             if autofix_file.exists():
-                for enc in ["utf-8-sig", "utf-8", "cp949", "euc-kr"]:
-                    try:
-                        real_modified_text = autofix_file.read_text(encoding=enc)
-                        break
-                    except UnicodeDecodeError:
-                        continue
+                try:
+                    real_modified_text = read_text_with_fallback(autofix_file)
+                except (UnicodeDecodeError, FileNotFoundError):
+                    pass
             elif hasattr(self, "_last_report") and self._last_report:
                 file_violations = [v for v in self._last_report.violations if str(v.file_id) == str(orig_path) or Path(str(v.file_id)).name == orig_path.name]
                 if file_violations:
                     engine = AutofixEngine(enabled=True)
                     generated_path, ok = engine.apply_autofix(orig_path, file_violations)
                     if ok and generated_path.exists():
-                        for enc in ["utf-8-sig", "utf-8", "cp949", "euc-kr"]:
-                            try:
-                                real_modified_text = generated_path.read_text(encoding=enc)
-                                break
-                            except UnicodeDecodeError:
-                                continue
+                        try:
+                            real_modified_text = read_text_with_fallback(generated_path)
+                        except (UnicodeDecodeError, FileNotFoundError):
+                            pass
 
             if real_modified_text:
                 modified_text = real_modified_text
@@ -897,13 +896,10 @@ class JSApi:
                 except Exception as ex:
                     logger.warning("WinMerge 실행 실패 -> builtin Diff로 전환합니다: %s", ex)
 
-            orig_text = ""
-            for enc in ["utf-8-sig", "utf-8", "cp949", "euc-kr"]:
-                try:
-                    orig_text = orig_path.read_text(encoding=enc)
-                    break
-                except UnicodeDecodeError:
-                    continue
+            try:
+                orig_text = read_text_with_fallback(orig_path)
+            except (UnicodeDecodeError, FileNotFoundError):
+                orig_text = ""
 
             diff_res = self.get_code_diff(orig_text, modified_text)
             return {
