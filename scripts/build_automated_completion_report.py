@@ -5,16 +5,28 @@ pytest, verify_agent_protocol.py, PyInstaller exe 검증 스크립트 실행 결
 실시간 캡처하여 검증 가능하고 정직한 자동화 완료 보고서를 생성합니다.
 """
 
+import io
 import sys
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
+if hasattr(sys.stdout, "buffer"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
 base_dir = Path(__file__).resolve().parent.parent
 
 def run_command_capture(cmd: list[str]) -> tuple[int, str]:
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, cwd=base_dir, timeout=120)
+        res = subprocess.run(
+            cmd,
+            cwd=base_dir,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=120
+        )
         output = (res.stdout or "") + ("\n" + res.stderr if res.stderr else "")
         return res.returncode, output.strip()
     except Exception as e:
