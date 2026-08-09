@@ -52,14 +52,25 @@ def verify_coverage_claim():
         try:
             with open(ssot_path, "r", encoding="utf-8") as f:
                 ssot_data = json.load(f)
+            
+            needs_update = False
             if "test_and_governance_metrics" in ssot_data:
-                ssot_data["test_and_governance_metrics"]["registered_checkers_count"] = checker_count
-                ssot_data["test_and_governance_metrics"]["automation_coverage_percent"] = overall_coverage
-            if "single_source_of_truth_metadata" in ssot_data:
-                ssot_data["single_source_of_truth_metadata"]["last_updated_timestamp"] = datetime.now(timezone.utc).isoformat()
-            with open(ssot_path, "w", encoding="utf-8") as f:
-                json.dump(ssot_data, f, ensure_ascii=False, indent=2)
-            print("single_source_metrics.json 실측 데이터 자동 동기화 완료")
+                old_checkers = ssot_data["test_and_governance_metrics"].get("registered_checkers_count")
+                old_coverage = ssot_data["test_and_governance_metrics"].get("automation_coverage_percent")
+                
+                if old_checkers != checker_count or old_coverage != overall_coverage:
+                    ssot_data["test_and_governance_metrics"]["registered_checkers_count"] = checker_count
+                    ssot_data["test_and_governance_metrics"]["automation_coverage_percent"] = overall_coverage
+                    needs_update = True
+                    
+            if needs_update:
+                if "single_source_of_truth_metadata" in ssot_data:
+                    ssot_data["single_source_of_truth_metadata"]["last_updated_timestamp"] = datetime.now(timezone.utc).isoformat()
+                with open(ssot_path, "w", encoding="utf-8") as f:
+                    json.dump(ssot_data, f, ensure_ascii=False, indent=2)
+                print("single_source_metrics.json 실측 데이터 자동 동기화 완료")
+            else:
+                print("single_source_metrics.json 실측 데이터 변동 없음 (타임스탬프 갱신 생략)")
         except Exception as e:
             print(f"single_source_metrics.json 동기화 중 경고: {e}")
 
