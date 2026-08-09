@@ -136,6 +136,7 @@ class PNLParser(Parser):
             xml_parsed_success = False
 
         # 3. XML 파싱 실패 시 텍스트/정규식 폴백 진행 (중첩 중괄호 균형 탐색 적용)
+        script_regions: list[tuple[int, int]] = []
         if not xml_parsed_success:
             try:
                 # 텍스트 내 shape 키워드 수집
@@ -167,7 +168,12 @@ class PNLParser(Parser):
                     if end_idx > start_idx:
                         body = content[start_idx + 1:end_idx].strip()
                         if body:
-                            line_no = content[: match.start()].count("\n") + 1
+                            # 라인 번호 추출 (0-indexed)
+                            start_line = content[:match.start()].count("\n")
+                            end_line = content[:end_idx + 1].count("\n")
+                            script_regions.append((start_line, end_line))
+                            
+                            line_no = start_line + 1
                             metadata.event_handlers.append(
                                 PNLEventHandlerInfo(
                                     event_name=func_name,
@@ -179,16 +185,27 @@ class PNLParser(Parser):
             except Exception as e:
                 return create_failed_parse(path, f"PNL 텍스트 파싱 처리 중 실패: {e}")
 
-        # 4. UI 노드/레이아웃 정보 제외 및 순수 이벤트 스크립트만 정제 결합
+        # 4. UI 노드/레이아웃 정보 제외 및 순수 이벤트 스크립트만 정제 결합 (화이트리스트 라인 보존)
         if self.extract_scripts_only:
-            # 수집된 핸들러 및 스크립트/주석 라인 정제
-            cleaned_lines = []
-            for line in content.splitlines():
-                l_str = line.strip()
-                if re.match(r"^</?[a-zA-Z0-9_]+[^>]*>$", l_str) or re.match(r"^\d+\s+\d+", l_str) or l_str.startswith("V ") or l_str.startswith("CB ") or (l_str.startswith("shape ") and not l_str.endswith("{")):
-                    continue
-                cleaned_lines.append(line)
-            pure_script_content = "\n".join(cleaned_lines)
+            lines = content.splitlines()
+            if xml_parsed_success:
+                # XML 기반일 경우 노드 단위 결합
+                script_blocks = []
+                for handler in metadata.event_handlers:
+                    script_blocks.append(f"// ===== Event: {handler.event_name} =====\n{handler.script_body}\n")
+                pure_script_content = "\n".join(script_blocks)
+            else:
+                # 텍스트 폴백 기반일 경우 라인 번호 보존을 위해 스크립트 영역 외에는 빈 줄(Empty line)로 치환 (PNL 래퍼 태그 클리닝)
+                preserved_lines = [""] * len(lines)
+                for (start_line, end_line) in script_regions:
+                    for i in range(start_line, min(end_line + 1, len(lines))):
+                        line_text = lines[i]
+                        # PNL 전용 프리픽스 E"main() -> main() 클리닝
+                        line_text = re.sub(r'^\s*E"([a-zA-Z0-9_]+\s*\()', r'\1', line_text)
+                        # PNL 전용 서픽스 }" 0 -> } 클리닝
+                        line_text = re.sub(r'\}\"\s*\d+.*$', '}', line_text)
+                        preserved_lines[i] = line_text
+                pure_script_content = "\n".join(preserved_lines)
         else:
             pure_script_content = content
 

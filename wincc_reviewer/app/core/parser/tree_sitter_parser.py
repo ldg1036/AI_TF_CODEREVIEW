@@ -43,15 +43,34 @@ class TreeSitterASTParser:
     def __init__(self, language: str = "cpp") -> None:
         self.language = language
         self.ts_available = False
+        self.parser = None
         self._init_tree_sitter()
 
     def _init_tree_sitter(self) -> None:
         """Tree sitter 엔진 초기화 모듈."""
         try:
-            import tree_sitter  # type: ignore
+            import tree_sitter
+            import tree_sitter_cpp
+            
+            try:
+                # v0.22+ API
+                self.ts_language = tree_sitter.Language(tree_sitter_cpp.language())
+            except TypeError:
+                # v0.21 API
+                self.ts_language = tree_sitter.Language(tree_sitter_cpp.language(), "cpp")
+            
+            self.parser = tree_sitter.Parser()
+            self.parser.set_language(self.ts_language)
             self.ts_available = True
-        except ImportError:
+        except Exception as e:
             self.ts_available = False
+            self.parser = None
+
+    def get_raw_tree(self, content: str) -> Any:
+        """순수 tree-sitter Tree 객체를 반환합니다."""
+        if not self.ts_available or not self.parser:
+            return None
+        return self.parser.parse(bytes(content, "utf8"))
 
     def parse_code_to_ast(self, content: str) -> list[ASTNodeInfo]:
         """
@@ -64,6 +83,35 @@ class TreeSitterASTParser:
             list[ASTNodeInfo]: 추출된 구문 노드 목록
         """
         nodes: list[ASTNodeInfo] = []
+        
+        # 1. Tree-sitter가 사용 가능하면 순회하여 노드를 생성합니다.
+        if self.ts_available and self.parser:
+            tree = self.parser.parse(bytes(content, "utf8"))
+            
+            def traverse(node, parent_ast: ASTNodeInfo | None = None):
+                # 0-indexed line to 1-indexed line
+                line_start = node.start_point[0] + 1
+                line_end = node.end_point[0] + 1
+                
+                ast_node = ASTNodeInfo(
+                    node_type=node.type,
+                    text=node.text.decode("utf8") if node.text else "",
+                    line_start=line_start,
+                    line_end=line_end,
+                    parent=parent_ast
+                )
+                nodes.append(ast_node)
+                
+                if parent_ast:
+                    parent_ast.children.append(ast_node)
+                    
+                for child in node.children:
+                    traverse(child, ast_node)
+                    
+            traverse(tree.root_node)
+            return nodes
+
+        # 2. Fallback: 기존 정규식 기반 로직
         lines = content.splitlines()
 
         in_multi_comment = False
@@ -151,8 +199,9 @@ class TreeSitterASTParser:
         scopes: list[ScopeInfo] = []
         ast_nodes = self.parse_code_to_ast(content)
 
+        # ts가 가능할 때는 function_definition 노드를 찾음
         for node in ast_nodes:
-            if node.node_type == "Comment":
+            if node.node_type in ("comment", "Comment"):
                 scopes.append(
                     ScopeInfo(
                         scope_type="comment",
@@ -161,13 +210,15 @@ class TreeSitterASTParser:
                         line_end=node.line_end,
                     )
                 )
-            elif node.node_type == "FunctionDeclaration":
+            elif node.node_type in ("function_definition", "FunctionDeclaration"):
+                # tree-sitter 사용 시 함수 이름 추출 로직 (단순화: text를 사용)
+                name = node.text if node.node_type == "FunctionDeclaration" else "function"
                 scopes.append(
                     ScopeInfo(
                         scope_type="function",
-                        name=node.text,
+                        name=name,
                         line_start=node.line_start,
-                        line_end=node.line_start + 50,  # 추정 범위
+                        line_end=node.line_end,  # tree-sitter는 끝 줄을 정확히 안다 (fallback은 start+50이지만 여기선 node.line_end 사용)
                         has_error_handler="getLastError" in content,
                         has_safe_wrapper="safeDp" in content,
                     )
