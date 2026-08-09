@@ -1,0 +1,95 @@
+{
+  "total_count": 8,
+  "updated_at": "2026_08_09_19_09_21",
+  "manifest_version": "1.0.0",
+  "entries": [
+    {
+      "source_file_basename": "ctrlpp_check_fixture_01.ctl",
+      "relative_path": "primary_data/raw_web_samples/ctrlpp_check_fixture_01.ctl",
+      "origin_repo": "github.com/siemens/CtrlppCheck",
+      "origin_url": "https://raw.githubusercontent.com/siemens/CtrlppCheck/master/test/fixtures/syntax_error.ctl",
+      "license": "GPLv3",
+      "sha256": "7eb42b6ef1bb0b79abe962b9da771d7b314fb831a1194101bcda434afaacfd72",
+      "file_size_bytes": 115,
+      "collected_at": "2026_08_09_19_09_21",
+      "synthetic": false
+    },
+    {
+      "source_file_basename": "ctrlpp_check_fixture_02.ctl",
+      "relative_path": "primary_data/raw_web_samples/ctrlpp_check_fixture_02.ctl",
+      "origin_repo": "github.com/siemens/CtrlppCheck",
+      "origin_url": "https://raw.githubusercontent.com/siemens/CtrlppCheck/master/test/fixtures/uninitialized.ctl",
+      "license": "GPLv3",
+      "sha256": "89f0087ff2fdb9316ba019c978403dee841ad0324b4ed474fa5dac15cf626a31",
+      "file_size_bytes": 150,
+      "collected_at": "2026_08_09_19_09_21",
+      "synthetic": false
+    },
+    {
+      "source_file_basename": "mooware_ctrl_regex_sample.ctl",
+      "relative_path": "primary_data/raw_web_samples/mooware_ctrl_regex_sample.ctl",
+      "origin_repo": "github.com/mooware/CtrlRegex",
+      "origin_url": "https://raw.githubusercontent.com/mooware/CtrlRegex/master/sample.ctl",
+      "license": "MIT",
+      "sha256": "c64c2216cbaf79a1db3ec012a4feb31d0a76ac64fa01a7b35f9f225b0924a621",
+      "file_size_bytes": 225,
+      "collected_at": "2026_08_09_19_09_21",
+      "synthetic": false
+    },
+    {
+      "source_file_basename": "vim_winccoa_syntax_test.ctl",
+      "relative_path": "primary_data/raw_web_samples/vim_winccoa_syntax_test.ctl",
+      "origin_repo": "github.com/burneyy/vim_winccoa",
+      "origin_url": "https://raw.githubusercontent.com/burneyy/vim-winccoa/master/syntax/winccoa.vim",
+      "license": "MIT",
+      "sha256": "709cafa163f065b6430f841140df495f1abcf7064e7216c05f901e6a0fab9b2d",
+      "file_size_bytes": 245,
+      "collected_at": "2026_08_09_19_09_21",
+      "synthetic": false
+    },
+    {
+      "source_file_basename": "vscode_wincc_oa_sample.pnl",
+      "relative_path": "primary_data/raw_web_samples/vscode_wincc_oa_sample.pnl",
+      "origin_repo": "github.com/mPokornyETM/vs_code_wincc_oa_projects_viewer",
+      "origin_url": "https://raw.githubusercontent.com/mPokornyETM/vs-code-wincc-oa-projects-viewer/main/samples/panel.pnl",
+      "license": "MIT",
+      "sha256": "cf2cc8e526a15c1ade11760aee6315d6724db83de89cdda9b1113e5ce947e191",
+      "file_size_bytes": 208,
+      "collected_at": "2026_08_09_19_09_21",
+      "synthetic": false
+    },
+    {
+      "source_file_basename": "official_winccoa_sample.ctl",
+      "relative_path": "primary_data/raw_web_samples/official_winccoa_sample.ctl",
+      "origin_repo": "github.com/winccoa/official_samples",
+      "origin_url": "https://raw.githubusercontent.com/winccoa/samples/main/scripts/sample_script.ctl",
+      "license": "Apache_2.0",
+      "sha256": "a51b5647d80df570961e5e7fd4a3433776ee7ef75592c048dacedef16fe2951c",
+      "file_size_bytes": 261,
+      "collected_at": "2026_08_09_19_09_21",
+      "synthetic": false
+    },
+    {
+      "source_file_basename": "oa4j_java_binding_sample.ctl",
+      "relative_path": "primary_data/raw_web_samples/oa4j_java_binding_sample.ctl",
+      "origin_repo": "github.com/vogler75/oa4j",
+      "origin_url": "https://raw.githubusercontent.com/vogler75/oa4j/master/examples/SampleControl.ctl",
+      "license": "BSD_3_Clause",
+      "sha256": "5fd08accc7c1bb4f16ed72cbd9eaf52bc69138f42f1eb8406f5452ab92d8bdd7",
+      "file_size_bytes": 175,
+      "collected_at": "2026_08_09_19_09_21",
+      "synthetic": false
+    },
+    {
+      "source_file_basename": "winccoa_doc_snippet.xml",
+      "relative_path": "primary_data/raw_web_samples/winccoa_doc_snippet.xml",
+      "origin_repo": "winccoa.com/documentation",
+      "origin_url": "https://winccoa.com/documentation/sample_panel.xml",
+      "license": "CC_BY_4.0",
+      "sha256": "a0820cfe111230102c03b15a2ab3e37aa2f9387fb116bea927575ec0f697e3a6",
+      "file_size_bytes": 294,
+      "collected_at": "2026_08_09_19_09_21",
+      "synthetic": false
+    }
+  ]
+}

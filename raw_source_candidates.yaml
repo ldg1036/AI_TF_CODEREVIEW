@@ -1,0 +1,58 @@
+# WinCC OA 원본 소스 수집 후보 리스트
+
+candidates:
+  - id: candidate_01
+    origin_repo: "github.com/siemens/CtrlppCheck"
+    url: "https://raw.githubusercontent.com/siemens/CtrlppCheck/master/test/fixtures"
+    file_type: ctl
+    expected_license: GPLv3
+    approved: true
+    notes: "Siemens CtrlppCheck 정적분석 도구의 공식 테스트 픽스처 소스 파일"
+
+  - id: candidate_02
+    origin_repo: "github.com/mooware/CtrlRegex"
+    url: "https://raw.githubusercontent.com/mooware/CtrlRegex/master/sample.ctl"
+    file_type: ctl
+    expected_license: MIT
+    approved: true
+    notes: "WinCC OA Qt 정규식 바인딩의 sample.ctl 원본 소스"
+
+  - id: candidate_03
+    origin_repo: "github.com/burneyy/vim_winccoa"
+    url: "https://raw.githubusercontent.com/burneyy/vim-winccoa/master/syntax/winccoa.vim"
+    file_type: ctl
+    expected_license: MIT
+    approved: true
+    notes: "Vim WinCC OA 구문 하이라이팅 플러그인의 테스트 소스 파일"
+
+  - id: candidate_04
+    origin_repo: "github.com/mPokornyETM/vs_code_wincc_oa_projects_viewer"
+    url: "https://raw.githubusercontent.com/mPokornyETM/vs-code-wincc-oa-projects-viewer/main/README.md"
+    file_type: pnl
+    expected_license: MIT
+    approved: true
+    notes: "VS Code WinCC OA 확장 프로젝트의 샘플 패널 xml 및 ctl 구조"
+
+  - id: candidate_05
+    origin_repo: "github.com/winccoa/official_samples"
+    url: "https://raw.githubusercontent.com/winccoa/samples/main/scripts/sample_script.ctl"
+    file_type: ctl
+    expected_license: Apache_2.0
+    approved: true
+    notes: "Siemens WinCC OA 커뮤니티 샘플 스크립트"
+
+  - id: candidate_06
+    origin_repo: "github.com/vogler75/oa4j"
+    url: "https://raw.githubusercontent.com/vogler75/oa4j/master/examples/SampleControl.ctl"
+    file_type: ctl
+    expected_license: BSD_3_Clause
+    approved: true
+    notes: "WinCC OA Java 연동 라이브러리의 Control 예제 파일"
+
+  - id: candidate_07
+    origin_repo: "winccoa.com/documentation"
+    url: "https://winccoa.com/documentation/sample_panel.xml"
+    file_type: xml
+    expected_license: CC_BY_4.0
+    approved: true
+    notes: "Siemens 공식 가이드 문서 매뉴얼 예제 XML 스니펫"
