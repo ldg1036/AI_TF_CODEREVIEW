@@ -342,7 +342,7 @@ class HTMLReportBuilder:
                             {diff_sbs_html}
 
                             <div style="margin-top: 6px;">
-                                <button onclick="if(window.parent && window.parent.pywebview) { window.parent.pywebview.api.report_false_positive('{rule_id}', '{file_id}', {v.line_start or 0}, '사용자 오탐 신고').then(res => { if(res.success) { alert(res.message); } else { alert('오류: ' + res.error); } }); } else { alert('이 환경에서는 오탐 신고를 지원하지 않습니다.'); } event.stopPropagation();" style="padding: 2px 8px; font-size: 0.8em; background: #e0e0e0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">🚨 오탐 신고</button>
+                                <button onclick="if(window.parent && window.parent.pywebview) {{ window.parent.pywebview.api.report_false_positive('{rule_id}', '{file_id}', {v.line_start or 0}, '사용자 오탐 신고').then(res => {{ if(res.success) {{ alert(res.message); }} else {{ alert('오류: ' + res.error); }} }}); }} else {{ alert('이 환경에서는 오탐 신고를 지원하지 않습니다.'); }} event.stopPropagation();" style="padding: 2px 8px; font-size: 0.8em; background: #e0e0e0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">🚨 오탐 신고</button>
                             </div>
                             </td>
                     </tr>
@@ -424,7 +424,7 @@ class HTMLReportBuilder:
                             {diff_sbs_html}
 
                             <div style="margin-top: 6px;">
-                                <button onclick="if(window.parent && window.parent.pywebview) { window.parent.pywebview.api.report_false_positive('{rule_id}', '{file_id}', {v.line_start or 0}, '사용자 오탐 신고').then(res => { if(res.success) { alert(res.message); } else { alert('오류: ' + res.error); } }); } else { alert('이 환경에서는 오탐 신고를 지원하지 않습니다.'); } event.stopPropagation();" style="padding: 2px 8px; font-size: 0.8em; background: #e0e0e0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">🚨 오탐 신고</button>
+                                <button onclick="if(window.parent && window.parent.pywebview) {{ window.parent.pywebview.api.report_false_positive('{rule_id}', '{file_id}', {v.line_start or 0}, '사용자 오탐 신고').then(res => {{ if(res.success) {{ alert(res.message); }} else {{ alert('오류: ' + res.error); }} }}); }} else {{ alert('이 환경에서는 오탐 신고를 지원하지 않습니다.'); }} event.stopPropagation();" style="padding: 2px 8px; font-size: 0.8em; background: #e0e0e0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">🚨 오탐 신고</button>
                             </div>
                             </td>
                     </tr>
