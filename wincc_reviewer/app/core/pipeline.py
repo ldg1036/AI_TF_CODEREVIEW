@@ -356,6 +356,7 @@ class Pipeline:
                 targets = sorted_violations
 
             import threading
+
             from app.core.ai.ai_queue_cache import AIQueueCacheManager
             ai_failed_count = 0
             _ai_fail_lock = threading.Lock()
@@ -449,6 +450,7 @@ class Pipeline:
         if self.config.diff_only:
             try:
                 import subprocess
+
                 from app.core.diff_filter import GitDiffFilter
                 diff_cmd = ["git", "diff", "HEAD"]
                 res = subprocess.run(diff_cmd, capture_output=True, text=True, timeout=10)

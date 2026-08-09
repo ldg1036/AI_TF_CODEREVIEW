@@ -10,13 +10,12 @@ from __future__ import annotations
 
 import hashlib
 import re
-
-from app.utils.encoding import SUPPORTED_ENCODINGS, decode_bytes_with_fallback
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from app.core.models import ParseStatus, ParseStatusType
 from app.core.parser.base_parser import ParsedFile, Parser, create_failed_parse
+from app.utils.encoding import decode_bytes_with_fallback
 
 
 @dataclass

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
+from typing import Any
 
 from app.core.models import RuleDefinition, SeverityLevel, Violation, ViolationStatus
 from app.core.parser.base_parser import ParsedFile
@@ -1378,7 +1379,7 @@ def check_unhandled_dp_query_error(parsed: ParsedFile, rule: RuleDefinition) -> 
     violations: list[Violation] = []
     lines = parsed.content.splitlines()
     for idx, line in enumerate(lines, start=1):
-        if "dpQuery(" in line and not any("getLastError" in l or "rc" in l or "err" in l for l in lines[max(0, idx-1):min(len(lines), idx+4)]):
+        if "dpQuery(" in line and not any("getLastError" in line_item or "rc" in line_item or "err" in line_item for line_item in lines[max(0, idx-1):min(len(lines), idx+4)]):
             violations.append(
                 Violation(
                     violation_id=f"V-{rule.rule_id}-{idx:03d}",

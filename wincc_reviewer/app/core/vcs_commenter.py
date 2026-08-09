@@ -78,10 +78,10 @@ class VCSCommenter:
         GitHub REST API (POST /repos/{owner}/{repo}/pulls/{pull_number}/comments)를 호출하여 PR에 실제 인라인 코멘트를 게시합니다.
         인증 토큰은 GITHUB_TOKEN 환경변수 또는 파라미터로 주입받습니다.
         """
-        import os
-        import urllib.request
         import json
         import logging
+        import os
+        import urllib.request
 
         logger = logging.getLogger(__name__)
         auth_token = token or os.environ.get("GITHUB_TOKEN")
@@ -132,10 +132,10 @@ class VCSCommenter:
         GitLab REST API (POST /projects/:id/merge_requests/:mr_id/discussions)를 호출하여 MR에 실제 코멘트를 게시합니다.
         인증 토큰은 GITLAB_TOKEN 환경변수 또는 파라미터로 주입받습니다.
         """
-        import os
-        import urllib.request
         import json
         import logging
+        import os
+        import urllib.request
 
         logger = logging.getLogger(__name__)
         auth_token = token or os.environ.get("GITLAB_TOKEN")
