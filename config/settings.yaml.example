@@ -1,0 +1,58 @@
+## WinCC OA Code Reviewer 시스템 설정 템플릿
+## 이 파일을 config/settings.yaml로 복사한 뒤 환경에 맞게 수정하세요.
+## API 키는 환경변수(WINCC_AI_API_KEY 또는 LOCAL_AI_API_KEY)로 설정하는 것을 권장합니다.
+
+app:
+  version: 0.1.0
+  log_level: INFO
+rule_sources:
+  client:
+    path: config/(코드리뷰결과서-Client) 코드 리뷰 결과서 양식_v2.0_20251201.xlsx
+    sheet_name: (클라이언트) 코드 리뷰 결과서
+    file_types:
+    - pnl
+    - xml
+  server:
+    path: config/(코드리뷰결과서-Server) 코드 리뷰 결과서 양식_v2.0_20251104.xlsx
+    sheet_name: (서버) 코드 리뷰 결과서
+    file_types:
+    - ctl
+excel_structure:
+  header_row: 17
+  data_start_row: 18
+  data_columns: B:H
+  client_data_rows:
+  - 18
+  - 32
+  server_data_rows:
+  - 18
+  - 37
+ai:
+  enabled: true
+  provider: local
+  allow_external_ai: false
+  timeout_seconds: 300
+  max_retries: 3
+  local_server:
+    host: 127.0.0.1
+    port: 8080
+    # API 키는 환경변수 WINCC_AI_API_KEY 또는 LOCAL_AI_API_KEY로 설정하세요.
+    # 보안 정책에 따라 설정 파일에 직접 기재하지 않습니다.
+    api_key: ""
+    endpoint: /api/chat/completions
+    model_id: gemma4:31b
+autofix:
+  enabled: true
+winmerge:
+  enabled: false
+  fallback_to_difflib: true
+output:
+  default_dir: ./output
+  formats:
+  - json
+  - html
+legacy_mapping:
+  client: config/legacy_mapping/client.yaml
+  server: config/legacy_mapping/server.yaml
+parser:
+  extract_scripts_only: true

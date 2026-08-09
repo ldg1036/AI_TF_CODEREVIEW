@@ -12,6 +12,7 @@ import logging
 from pathlib import Path
 
 from app.core.models import Violation
+from app.utils.encoding import read_text_with_fallback
 
 logger = logging.getLogger(__name__)
 
@@ -56,13 +57,7 @@ class AutofixEngine:
 
         fixed_path = orig_path.with_suffix(orig_path.suffix + ".autofixed")
         try:
-            content = ""
-            for enc in ["utf-8-sig", "utf-8", "cp949", "euc-kr"]:
-                try:
-                    content = orig_path.read_text(encoding=enc)
-                    break
-                except UnicodeDecodeError:
-                    continue
+            content = read_text_with_fallback(orig_path)
 
             lines = content.splitlines(keepends=True)
             modified_lines = list(lines)

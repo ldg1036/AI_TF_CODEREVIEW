@@ -15,6 +15,7 @@ from pathlib import Path
 
 from app.core.models import ParseStatus, ParseStatusType
 from app.core.parser.base_parser import ParsedFile, Parser, create_failed_parse
+from app.utils.encoding import SUPPORTED_ENCODINGS, decode_bytes_with_fallback
 
 
 @dataclass
@@ -39,7 +40,7 @@ class XMLParsedMetadata:
 class XMLParser(Parser):
     """XML 파일 파서 구현체."""
 
-    SUPPORTED_ENCODINGS = ["utf-8-sig", "utf-8", "cp949", "euc-kr", "latin1"]
+    # 인코딩 목록은 app.utils.encoding.SUPPORTED_ENCODINGS 사용
     MAX_NODES_TO_COLLECT = 1000
 
     def __init__(self, extract_scripts_only: bool = True) -> None:
@@ -68,17 +69,9 @@ class XMLParser(Parser):
 
         file_sha256 = hashlib.sha256(raw_bytes).hexdigest()
 
-        content = None
-        detected_encoding = ""
-        for enc in self.SUPPORTED_ENCODINGS:
-            try:
-                content = raw_bytes.decode(enc)
-                detected_encoding = enc
-                break
-            except (UnicodeDecodeError, ValueError):
-                continue
-
-        if content is None:
+        try:
+            content, detected_encoding, _ = decode_bytes_with_fallback(raw_bytes)
+        except UnicodeDecodeError:
             return create_failed_parse(path, "지원되는 인코딩으로 디코딩에 실패했습니다.")
 
         newline_style = "\r\n" if "\r\n" in content else "\n"
