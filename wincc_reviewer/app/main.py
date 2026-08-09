@@ -145,7 +145,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--accuracy-mode",
         action="store_true",
         default=False,
-        help="100% 딥리뷰 모드 (모든 위반에 대해 AI 질의, 가장 정확하지만 느림)",
+        help="100%% 딥리뷰 모드 (모든 위반에 대해 AI 질의, 가장 정확하지만 느림)",
     )
 
     return parser
