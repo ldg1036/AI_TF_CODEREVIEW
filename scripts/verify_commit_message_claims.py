@@ -56,6 +56,27 @@ def verify_commit_message(commit_msg: str) -> tuple[bool, list[str]]:
     percent_matches = re.findall(r"(\d+(?:\.\d+)?)\s*%", commit_msg)
     if percent_matches:
         ssot_cov = float(gov_metrics.get("automation_coverage_percent", 0.0))
+        
+        # 정밀도 대표값 탐색
+        rep_precision = None
+        
+        # representative_precision 후보군이 있는지 검사
+        rep_data = ssot_data.get("representative_precision", {})
+        if rep_data and "metrics_candidates" in rep_data:
+            for cand in rep_data["metrics_candidates"]:
+                if cand.get("is_representative_candidate") is True:
+                    rep_precision = float(cand.get("precision_percent", 0.0))
+                    break
+        
+        # 최상단 요소에서도 검색 (하위 호환성)
+        if rep_precision is None:
+            for key, val in ssot_data.items():
+                if isinstance(val, dict) and val.get("is_representative_candidate") is True:
+                    rep_precision = float(val.get("precision_percent", 0.0))
+                    break
+                    
+        has_precision_claim = bool(re.search(r"(정밀도|Precision|오탐률)", commit_msg, re.IGNORECASE))
+                    
         for p_str in percent_matches:
             val = float(p_str)
             if "커버리지" in commit_msg or "coverage" in commit_msg.lower():
@@ -63,6 +84,21 @@ def verify_commit_message(commit_msg: str) -> tuple[bool, list[str]]:
                     errors.append(
                         f"수치 주장 불일치: 커밋 메시지 주장({val}%) != SSOT 실측({ssot_cov}%)"
                     )
+            
+            # 정밀도 주장 검사
+            if has_precision_claim:
+                if rep_precision is None:
+                    errors.append("SSOT에 검증된 단일 대표 정밀도(is_representative_candidate=true)가 없습니다. (정밀도 주장을 할 수 없습니다)")
+                    has_precision_claim = False # 중복 에러 방지
+                elif abs(val - rep_precision) > 0.01 and ("정밀도" in commit_msg or "Precision" in commit_msg):
+                     # % 수치가 여러 개 있을 수 있으므로, 해당 수치가 정말 정밀도 값으로 쓰였는지 확신할 수 없지만, 
+                     # 최소한 메시지에 정밀도가 언급됐다면 그 중 하나는 일치해야 하므로 이 부분은 전체 유효성 검사로 대체
+                     pass
+                     
+        if has_precision_claim and rep_precision is not None:
+            # 주장된 퍼센트 중 하나라도 대표 정밀도와 일치하는지 검사
+            if not any(abs(float(p) - rep_precision) <= 0.01 for p in percent_matches):
+                errors.append(f"수치 주장 불일치: 커밋 메시지에 명시된 정밀도가 SSOT 대표값({rep_precision}%)과 일치하지 않습니다.")
 
     # 3. 체커 개수 수치 대조 검사
     checker_matches = re.findall(r"(\d+)\s*개\s*체커", commit_msg)

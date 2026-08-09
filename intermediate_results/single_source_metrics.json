@@ -1,25 +1,9 @@
 {
   "single_source_of_truth_metadata": {
-    "last_updated_timestamp": "2026-08-09T15:29:10.276796+00:00",
+    "last_updated_timestamp": "2026-08-09T16:01:46.326567+00:00",
     "version": "1.0.0",
     "status": "PASS",
     "ssot_sync_state": "FULLY_SYNCHRONIZED"
-  },
-  "real_world_golden_set_v2_metrics": {
-    "total_real_web_samples_evaluated": 60,
-    "evaluated_files_count": 60,
-    "total_violations_detected": 25,
-    "real_precision_percent": 93.3,
-    "real_recall_percent": 91.7,
-    "inter_annotator_agreement_kappa": 1.0
-  },
-  "large_scale_benchmark_metrics": {
-    "total_synthetic_files": 210,
-    "true_positives": 168,
-    "false_positives": 56,
-    "false_negatives": 42,
-    "benchmark_precision_percent": 75.0,
-    "benchmark_recall_percent": 80.0
   },
   "test_and_governance_metrics": {
     "total_unit_tests_count": 223,
@@ -29,15 +13,9 @@
     "ast_code_inspection_defects": 0,
     "wincc_reviewer_exe_binary_status": "BUILT_AND_VERIFIED"
   },
-  "real_world_golden_set_v3_eval": {
-    "total_raw_samples_evaluated": 34,
-    "total_violations_detected": 472,
-    "true_positives": 468,
-    "false_positives": 4,
-    "false_negatives": 1,
-    "real_precision_percent": 99.2,
-    "real_recall_percent": 99.8,
-    "real_f1_score_percent": 99.5,
-    "evaluation_mode": "DEDUPED_REAL_WEB_RAW_SAMPLES_BENCHMARK"
+  "representative_precision": {
+    "status": "INSUFFICIENT_VALID_DATA",
+    "message": "현재 A-2 진위성 검증을 통과한 단일 대표 정밀도 수치가 없습니다.",
+    "metrics_candidates": []
   }
 }
