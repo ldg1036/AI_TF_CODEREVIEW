@@ -4,7 +4,7 @@
 
 [![CI Status](https://github.com/ldg1036/AI_TF_CODEREVIEW/workflows/test/badge.svg)](https://github.com/ldg1036/AI_TF_CODEREVIEW/actions)
 [![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
-[![Test Suite](https://img.shields.io/badge/tests-218%20passed-brightgreen.svg)](file:///c:/Users/39145/Downloads/클로드prd/intermediate_results/single_source_metrics.json)
+[![Test Suite](https://img.shields.io/badge/tests-223%20passed-brightgreen.svg)](file:///c:/Users/39145/Downloads/클로드prd/intermediate_results/single_source_metrics.json)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](file:///c:/Users/39145/Downloads/클로드prd/LICENSE)
 
 ---
@@ -16,7 +16,7 @@ WinCC OA Code Reviewer는 시멘스 WinCC OA(Open Architecture) 산업용 제어
 ### 이 도구가 해결하는 문제
 * 제어 시스템 다운 원인 차단: 무한 루프, delay 미비, 메모리 누수 사전 감지
 * 데이터베이스 및 SCADA 안전성 확보: 동적 SQL 결합, dpConnect 미해제 경고
-* 코드 리뷰 자동화: 21개 내장 룰 체커와 엑셀 룰 카탈로그를 기반으로 리포트 자동 생성
+* 코드 리뷰 자동화: 35개 내장 룰 체커와 엑셀 룰 카탈로그를 기반으로 리포트 자동 생성
 
 ---
 
@@ -43,7 +43,7 @@ c:\Users\39145\Downloads\클로드prd
 │   │   ├── ui/                      # GUI 및 REST/JS API 서비스 모듈
 │   │   └── main.py                  # CLI 메인 엔트리포인트 실행 파일
 │   ├── schemas/                     # 리포트 및 설정 JSON 스키마
-│   └── tests/                       # 218개 유닛 테스트 수트 및 테스트 픽스처
+│   └── tests/                       # 223개 유닛 테스트 수트 및 테스트 픽스처
 ├── config/                          # 엑셀 룰 카탈로그 및 환경 설정 파일
 │   ├── settings.yaml                # 시스템 전역 설정
 │   ├── rules_catalog.xlsx           # 동적 룰 정의 엑셀 파일
@@ -85,7 +85,7 @@ python wincc_reviewer/app/main.py --input primary_data/ --output output/
 1. [소스 코드 입력] ➔ primary_data 내 .ctl, .pnl, .xml 파일 수집
 2. [사전 스키마 검사] ➔ ExcelSchemaLinter 통한 룰 카탈로그 유효성 검증
 3. [AST 문맥 분석] ➔ CtrlASTParser 구문 분석으로 주석 및 예외 구문 필터링
-4. [정적 분석 검사] ➔ CheckerRegistry 21개 체커로 룰 위반 탐지
+4. [정적 분석 검사] ➔ CheckerRegistry 35개 체커로 룰 위반 탐지
 5. [AI 2차 리뷰] ➔ LocalProvider 및 AIQueueCacheManager 로컬 LLM 리뷰 연동
 6. [리포트 출력] ➔ ReportBuilder 통한 HTML JSON PDF Excel 리포트 생성
 ```
@@ -115,7 +115,7 @@ python wincc_reviewer/app/main.py --input primary_data/ --output output/
 ## 🧪 테스트 및 품질 검증 (Testing)
 
 ```bash
-# 전체 218개 유닛 테스트 수트 구동
+# 전체 223개 유닛 테스트 수트 구동
 python -m pytest wincc_reviewer/tests
 
 # 바이브코딩 검증 프로토콜 구동
