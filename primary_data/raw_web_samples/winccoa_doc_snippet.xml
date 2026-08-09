@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<winccoa_panel version="3.18">
+  <properties>
+    <property name="Size" width="800" height="600"/>
+    <property name="Title" value="Overview Panel"/>
+  </properties>
+  <shapes>
+    <shape type="RECTANGLE" name="HeaderRect"/>
+  </shapes>
+</winccoa_panel>

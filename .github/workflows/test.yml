@@ -33,6 +33,7 @@ jobs:
         run: |
           python scripts/16_verify_agent_protocol.py
           python scripts/verify_ci_yaml.py
+          python scripts/verify_raw_sample_provenance.py
           python scripts/verify_commit_message_claims.py "${{ github.event.head_commit.message }}"
 
       - name: Run tests with coverage
