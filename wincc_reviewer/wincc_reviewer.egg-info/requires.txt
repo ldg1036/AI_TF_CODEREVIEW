@@ -1,0 +1,14 @@
+PyYAML
+openpyxl
+pywebview
+httpx
+charset-normalizer
+jinja2
+typing-extensions
+
+[dev]
+pytest
+pytest-cov
+ruff
+mypy
+pyinstaller

@@ -123,7 +123,7 @@ entries:
   automation_mode: auto_full
   condition_summary: 1) config 항목별 처리 로직이 올바른가? - 필수 항목 config → Error ...
   checker_type: builtin
-  checker_key: ctl.unmatched_lock_unlock
+  checker_key: ctl.config_integrity
 - source_key: 공통|스트립트 개선|하드코딩 지양
   rule_ids:
   - CTL_STYLE_001
@@ -137,7 +137,7 @@ entries:
   automation_mode: auto_full
   condition_summary: 1) 이력(INFO), 에러(WARN,ERR), 디버깅(DBG1, DBG2) 조건에 맞는 ...
   checker_type: builtin
-  checker_key: ctl.scada_security_exec
+  checker_key: ctl.debug_log_level
 - source_key: 공통|스트립트 개선|불필요한 코드 지양
   rule_ids:
   - CTL_RES_003

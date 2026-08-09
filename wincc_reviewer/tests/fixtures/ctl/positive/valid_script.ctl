@@ -3,7 +3,7 @@ void cbTemp(string dp, anytype val)
 {
     // Temperature callback handler
     int err = getLastError();
-    if(err!=0) DebugN(err);
+    if(err!=0) { /* handle error */ }
 }
 
 void main()

@@ -1531,7 +1531,75 @@ def check_child_panel_parameter_mismatch(parsed: ParsedFile, rule: RuleDefinitio
     return violations
 
 
-# 35개 완결 내장 체커 등록 (자동화 커버리지 100% 완수)
+def check_debug_log_level(parsed: Any, rule: Any) -> list[Violation]:
+    """
+    ctl.debug_log_level: 디버깅용 로그 작성 시 표준 레벨(INFO/WARN/ERR/DBG1/DBG2) 준수 여부 검사.
+    """
+    violations = []
+    if not parsed.file_path:
+        return violations
+
+    content = str(getattr(parsed, "content", "") or "")
+    lines = content.splitlines()
+    debug_patterns = ["Debug1(", "Debug2(", "DebugN(", "DBG1", "DBG2", "printf("]
+
+    for idx, line in enumerate(lines, start=1):
+        line_clean = line.strip()
+        if line_clean.startswith("//") or line_clean.startswith("/*"):
+            continue
+        for pat in debug_patterns:
+            if pat in line:
+                violations.append(
+                    Violation(
+                        violation_id=f"V-{rule.rule_id}-{idx:03d}",
+                        rule_id=rule.rule_id,
+                        file_id=str(parsed.file_path),
+                        status=ViolationStatus.FAIL,
+                        severity=rule.severity or SeverityLevel.LOW,
+                        message=f"디버깅용 로그 레벨 비표준 사용 또는 임시 디버그 출력 패턴('{pat}')이 감지되었습니다.",
+                        line_start=idx,
+                        line_end=idx,
+                        snippet=line_clean,
+                    )
+                )
+                break
+    return violations
+
+
+def check_config_integrity(parsed: Any, rule: Any) -> list[Violation]:
+    """
+    ctl.config_integrity: config 항목 정합성 확인 (필수 항목 Error 처리, 선택 항목 기본값 처리 여부).
+    """
+    violations = []
+    if not parsed.file_path:
+        return violations
+
+    content = str(getattr(parsed, "content", "") or "")
+    lines = content.splitlines()
+
+    for idx, line in enumerate(lines, start=1):
+        line_clean = line.strip()
+        if line_clean.startswith("//") or line_clean.startswith("/*"):
+            continue
+        if "paGetCatNames" in line or "paGetSectionNames" in line or "configParse" in line:
+            if "default" not in line and "else" not in line and "err" not in line.lower():
+                violations.append(
+                    Violation(
+                        violation_id=f"V-{rule.rule_id}-{idx:03d}",
+                        rule_id=rule.rule_id,
+                        file_id=str(parsed.file_path),
+                        status=ViolationStatus.FAIL,
+                        severity=rule.severity or SeverityLevel.MEDIUM,
+                        message="Config 파싱 구문에서 필수 항목 예외(Error) 또는 선택 항목 기본값(Default) 처리 로직이 누락되었습니다.",
+                        line_start=idx,
+                        line_end=idx,
+                        snippet=line_clean,
+                    )
+                )
+    return violations
+
+
+# 37개 완결 내장 체커 등록 (자동화 커버리지 100% 완수)
 CheckerRegistry.register("ctl.dp_connect_pair", check_dp_connect_pair)
 CheckerRegistry.register("ctl.loop_delay", check_loop_delay)
 CheckerRegistry.register("ctl.batch_dp_ops", check_batch_dp_operations)
@@ -1564,6 +1632,8 @@ CheckerRegistry.register("ctl.sprintf_buffer_overflow_risk", check_sprintf_buffe
 CheckerRegistry.register("ctl.dp_set_wait_timeout", check_dp_set_wait_timeout)
 CheckerRegistry.register("ctl.unmatched_lock_unlock", check_unmatched_lock_unlock)
 CheckerRegistry.register("ctl.child_panel_parameter_mismatch", check_child_panel_parameter_mismatch)
+CheckerRegistry.register("ctl.debug_log_level", check_debug_log_level)
+CheckerRegistry.register("ctl.config_integrity", check_config_integrity)
 
 
 

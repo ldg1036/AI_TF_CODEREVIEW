@@ -314,7 +314,9 @@ class Pipeline:
                 except Exception as e:
                     logger.error("settings.yaml AI 설정 로딩 실패, 기본 Gemini 사용: %s", e)
 
-            if ai_provider_type == "local":
+            if getattr(self, "ai_provider", None):
+                ai_provider = self.ai_provider
+            elif ai_provider_type == "local":
                 local_provider_inst = LocalAIProvider(local_cfg)
                 if not local_provider_inst.health_check(check_timeout=2.0):
                     logger.warning("로컬 AI 사전 헬스체크 실패 (서버 미가동): 빠른 폴백 모드로 정적 분석만 진행합니다.")
@@ -323,8 +325,13 @@ class Pipeline:
                     ai_provider = local_provider_inst
                     logger.info("로컬 AI 사전 헬스체크 성공! (%s:%s, 모델: %s) 2차 심층 리뷰를 실행합니다.", local_cfg.host, local_cfg.port, local_cfg.model_id)
             else:
-                ai_provider = GeminiAIProvider()
-                logger.info("Gemini AI 2차 심층 리뷰를 병렬 실행합니다 (대상 위반: %d건)", len(all_violations))
+                local_provider_inst = LocalAIProvider(local_cfg)
+                if not local_provider_inst.health_check(check_timeout=2.0):
+                    logger.warning("로컬 AI 사전 헬스체크 실패: 빠른 폴백 모드 전환")
+                    ai_provider = None
+                else:
+                    ai_provider = GeminiAIProvider()
+                    logger.info("Gemini AI 2차 심층 리뷰를 병렬 실행합니다 (대상 위반: %d건)", len(all_violations))
 
             # 심각도(Critical > High > Medium > Low) 우선순위로 정렬하여 AI 리뷰 대상 선정
             severity_order = {
@@ -349,21 +356,38 @@ class Pipeline:
                 targets = sorted_violations
 
             import threading
+            from app.core.ai.ai_queue_cache import AIQueueCacheManager
             ai_failed_count = 0
             _ai_fail_lock = threading.Lock()
+            if not hasattr(self, "_ai_cache_manager"):
+                self._ai_cache_manager = AIQueueCacheManager() if self.config.use_ai_queue_cache else None
+            ai_cache_manager = self._ai_cache_manager
 
             def _run_single_ai_review(v):
                 nonlocal ai_failed_count
                 try:
+                    code_payload = v.snippet or v.message
+                    model_id = ai_provider.__class__.__name__
+                    fingerprint = None
+                    if ai_cache_manager:
+                        fingerprint = ai_cache_manager.compute_fingerprint(code_payload, model_id)
+                        cached_text = ai_cache_manager.get_cached_response(fingerprint)
+                        if cached_text:
+                            logger.info("[AI CACHE HIT] 핑거프린트(%s) 캐시 히트 적용", fingerprint[:8])
+                            v.ai_analysis = cached_text
+                            return
+
                     enriched_context = WinCCDomainRAG.build_domain_prompt(v.snippet or "", v.message, [v.rule_id])
                     req = AIRequest(
-                        code=v.snippet or v.message,
+                        code=code_payload,
                         rule_id=v.rule_id,
                         context=enriched_context,
                     )
                     ai_resp = ai_provider.review(req)
                     if ai_resp.is_success:
                         v.ai_analysis = ai_resp.content
+                        if ai_cache_manager and fingerprint:
+                            ai_cache_manager.store_response(fingerprint, ai_resp.content)
                     else:
                         with _ai_fail_lock:
                             ai_failed_count += 1
@@ -433,7 +457,7 @@ class Pipeline:
                     all_violations = GitDiffFilter.filter_violations(all_violations, diff_map)
                     logger.info("Git diff 범위 필터링 완료: 남은 결함 %d건", len(all_violations))
             except Exception as ex:
-                logger.warning("Git diff 필터링 수행 중 예외 발생: %s", ex)
+                logger.warning("[GIT DIFF FILTER WARNING] Git diff 필터링 실패로 전체 파일 스캔 결과로 폴백합니다 (원인: %s)", ex)
 
         # 3.9. VCS PR/MR 인라인 코멘트 페이로드 내보내기 (VCSCommenter 연동)
         if self.config.post_pr_comment:
