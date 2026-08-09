@@ -44,9 +44,13 @@ class CheckerRegistry:
         return sorted(cls._registry.keys())
 
 
-# ────────────────────────────────────────────
-# 내장 체커 구현 샘플 (TRD §5.2)
-# ────────────────────────────────────────────
+# 서브 모듈에서 모든 검사 함수들을 현재 네임스페이스로 끌어오기
+from app.core.rules.checkers.resource import *
+from app.core.rules.checkers.security import *
+from app.core.rules.checkers.performance import *
+from app.core.rules.checkers.error_handling import *
+from app.core.rules.checkers.quality import *
+
 
 
 
