@@ -1,0 +1,13 @@
+WinCCOA_QualityChecks/bin/ctrlppcheck/
+ctrlppcheck/build/
+# astyle backup files
+*.ctl.orig
+
+# WinCC OA Tests
+WinCC_OA_Test/Projects/Running/
+WinCC_OA_Test/Projects/Stored/
+WinCC_OA_Test/Results/
+WinCC_OA_Test/Projects/TfCustomizedQG/log/
+WinCC_OA_Test/Projects/TfCustomizedQG/config/config
+*.dump
+WinCC_OA_Test/CoverageReports/
