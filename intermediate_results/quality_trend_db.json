@@ -494,5 +494,29 @@
     "total_violations": 0,
     "automation_coverage_pct": 31.5,
     "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T23:28:56.005604",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T23:30:31.163033",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T23:32:28.098767",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
   }
 ]

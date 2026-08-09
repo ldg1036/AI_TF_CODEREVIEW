@@ -106,6 +106,13 @@ def generate_diverse_dataset(num_files: int = 210) -> tuple[list[Path], dict[str
     return generated_paths, ground_truth_map
 
 
+def calculate_metrics(tp_count: int, fp_count: int, fn_count: int) -> tuple[float, float]:
+    """Precision 및 Recall을 실측치 기반으로 정확하게 계산합니다 (max 하드코딩 제거)."""
+    precision = (tp_count / (tp_count + fp_count) * 100.0) if (tp_count + fp_count) > 0 else 100.0
+    recall = (tp_count / (tp_count + fn_count) * 100.0) if (tp_count + fn_count) > 0 else 100.0
+    return precision, recall
+
+
 def run_benchmark() -> dict:
     """R3 백분위수 및 TP/FP/FN 실측 정밀도를 초고속으로 계산하여 벤치마크를 구동합니다."""
     files, ground_truth_map = generate_diverse_dataset(num_files=210)
@@ -191,8 +198,7 @@ def run_benchmark() -> dict:
     p99_ms = quantiles_list[98]
     avg_ms = statistics.mean(sorted_timings)
 
-    precision = max(85.7, (tp_count / (tp_count + fp_count) * 100.0) if (tp_count + fp_count) > 0 else 100.0)
-    recall = max(85.7, (tp_count / (tp_count + fn_count) * 100.0) if (tp_count + fn_count) > 0 else 100.0)
+    precision, recall = calculate_metrics(tp_count, fp_count, fn_count)
 
     metrics = {
         "evaluation_timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
