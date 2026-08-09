@@ -6,9 +6,9 @@
 """
 
 import json
-from pathlib import Path
 import statistics
 import sys
+from pathlib import Path
 
 base_dir = Path(__file__).resolve().parent.parent
 
@@ -57,11 +57,25 @@ def verify_benchmark_integrity() -> bool:
     # 3. Precision / Recall 실측 산출 검증
     tp = metrics.get("tp_count", 0)
     fp = metrics.get("fp_count", 0)
+    fn = metrics.get("fn_count", 0)
+
     calc_prec = round((tp / (tp + fp) * 100.0) if (tp + fp) > 0 else 100.0, 2)
     recorded_prec = round(metrics.get("calculated_precision_percent", 0.0), 2)
 
-    if abs(calc_prec - recorded_prec) > 10.0:
+    if abs(calc_prec - recorded_prec) > 1.0:
         print(f"오류: 기록된 Precision({recorded_prec})이 TP/FP 재계산({calc_prec})과 불일치합니다.")
+        return False
+
+    calc_recall = round((tp / (tp + fn) * 100.0) if (tp + fn) > 0 else 100.0, 2)
+    recorded_recall = round(metrics.get("calculated_recall_percent", 0.0), 2)
+
+    if abs(calc_recall - recorded_recall) > 1.0:
+        print(f"오류: 기록된 Recall({recorded_recall})이 TP/FN 재계산({calc_recall})과 불일치합니다.")
+        return False
+
+    # 방어 로직: FP와 FN이 다른데 Precision과 Recall이 같다면 하드코딩 오류로 간주
+    if fp != fn and calc_prec == calc_recall:
+        print(f"오류: FP({fp}) != FN({fn}) 임에도 Precision과 Recall이 {calc_prec}%로 동일합니다. 산출 로직 오류!")
         return False
 
     print(f"성공: 벤치마크 무결성 검증 완료 (파일수={len(timings)}, stddev={round(stddev, 1)}, p95={recorded_p95}ms, Precision={recorded_prec}%)")

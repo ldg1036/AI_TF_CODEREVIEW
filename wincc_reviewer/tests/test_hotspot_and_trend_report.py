@@ -4,11 +4,13 @@ WinCC OA 코드 리뷰 자동화 도구 — 기술 부채 핫스팟 히트맵 & 
 
 from __future__ import annotations
 
-from pathlib import Path
-
-import pytest
-
-from app.core.models import Metrics, ReviewReport, SeverityLevel, Violation, ViolationStatus
+from app.core.models import (
+    Metrics,
+    ReviewReport,
+    SeverityLevel,
+    Violation,
+    ViolationStatus,
+)
 from app.core.report.hotspot_calculator import HotspotCalculator
 from app.core.report.html_report_builder import HTMLReportBuilder
 

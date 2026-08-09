@@ -11,6 +11,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 base_dir = Path(__file__).resolve().parent.parent
 ssot_file = base_dir / "intermediate_results" / "single_source_metrics.json"

@@ -9,7 +9,6 @@ AutofixEngine 유닛 테스트 (TRD §5.5 & 08_ADR 계약 준수).
 from __future__ import annotations
 
 from pathlib import Path
-import pytest
 
 from app.core.autofix.engine import AutofixEngine
 from app.core.models import SeverityLevel, Violation, ViolationStatus

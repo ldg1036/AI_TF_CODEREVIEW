@@ -17,7 +17,7 @@ samples = []
 for i in range(1, 61):
     file_type = "ctl" if i <= 20 else ("pnl" if i <= 40 else "xml")
     fname = f"valid_{file_type}_sample_{i:02d}.{file_type}"
-    
+
     # 60개 중 6개(10%)에 대해 명시적 이견 설정
     if i in [5, 15, 25, 35, 45, 55]:
         dec_a = "PASS"

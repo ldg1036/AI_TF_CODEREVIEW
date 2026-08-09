@@ -2,17 +2,18 @@
 WinCC OA 실물 프로젝트 샘플 파일 전수 분석 및 파이프라인 검증 스크립트.
 """
 
-from pathlib import Path
-import sys
 import json
+import sys
+from pathlib import Path
 
 # wincc_reviewer 패키지 경로 추가
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "wincc_reviewer"))
 
 from app.core.input_normalization.service import NormalizationService
+from app.core.pipeline import Pipeline, PipelineConfig
 from app.core.rules.excel_rule_compiler import ExcelRuleCompiler
 from app.core.rules.rule_engine import RuleEngine
-from app.core.pipeline import Pipeline, PipelineConfig
+
 
 def run_real_sample_analysis():
     project_root = Path(__file__).resolve().parent.parent
@@ -20,7 +21,7 @@ def run_real_sample_analysis():
     config_dir = project_root / "config"
 
     print("=== WinCC OA 실물 샘플 데이터 검증 시작 ===")
-    
+
     # 1. 대상 파일 수집
     sample_files = sorted(list(primary_data_dir.glob("*")))
     print(f"수집된 실물 샘플 파일 수: {len(sample_files)}개")
@@ -45,7 +46,7 @@ def run_real_sample_analysis():
 
         print(f"\n[분석 대상] {file_path.name}")
         parsed = NormalizationService.normalize_and_parse(file_path)
-        
+
         status_str = parsed.parse_status.status.value if hasattr(parsed.parse_status.status, 'value') else str(parsed.parse_status.status)
         funcs = parsed.metadata.get("functions", [])
         gvars = parsed.metadata.get("global_variables", [])
@@ -60,7 +61,7 @@ def run_real_sample_analysis():
         # 확장자별 룰셋 라우팅
         target_name = RuleEngine.determine_target_ruleset(file_path)
         ruleset = client_ruleset.rules if target_name == "client" else server_ruleset.rules
-        
+
         violations = RuleEngine.execute(parsed, ruleset)
         print(f"  * 타겟 룰셋: {target_name}")
         print(f"  * 검출된 위반 수: {len(violations)}개")
@@ -95,7 +96,7 @@ def run_real_sample_analysis():
     )
     pipeline = Pipeline(pipeline_cfg)
     report = pipeline.run()
-    print(f"\n=== 전체 파이프라인 실행 결과 ===")
+    print("\n=== 전체 파이프라인 실행 결과 ===")
     print(f"수집 파일: {report.metrics.file_count}개")
     print(f"총 위반 수: {report.metrics.violation_count}개")
     print(f"소요 시간: {report.metrics.timings_ms.get('total', 0)} ms")

@@ -1,0 +1,18 @@
+V 8.4
+1
+LANG:1 0 
+0
+2 1
+"TextLabel"
+""
+1 20 20 E E E 1 E 1 E N "_WindowText" E N "_Window" E E
+ E E
+1 0 0 0 0 0
+E E E
+0
+1
+LANG:1 0 
+
+4 "SimplePanel"
+"main() { dpConnect(\"cb\", \"System1:Pump.status\"); }"
+0

@@ -2,10 +2,10 @@
 WinCC OA 실물 프로젝트 샘플 파일 룰 기반 코드 리뷰 검출 정밀 교차 검증 스크립트.
 """
 
-from pathlib import Path
-import sys
-import json
 import csv
+import json
+import sys
+from pathlib import Path
 
 # wincc_reviewer 패키지 경로 추가
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "wincc_reviewer"))
@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "wincc_reviewer"
 from app.core.input_normalization.service import NormalizationService
 from app.core.rules.excel_rule_compiler import ExcelRuleCompiler
 from app.core.rules.rule_engine import RuleEngine
+
 
 def verify_rule_detections():
     project_root = Path(__file__).resolve().parent.parent
@@ -45,7 +46,7 @@ def verify_rule_detections():
 
         parsed = NormalizationService.normalize_and_parse(file_path)
         status_str = parsed.parse_status.status.value if hasattr(parsed.parse_status.status, "value") else str(parsed.parse_status.status)
-        
+
         if status_str != "parsed":
             continue
 
@@ -62,7 +63,7 @@ def verify_rule_detections():
         for v in violations:
             r_id = v.rule_id
             sev = v.severity.value if hasattr(v.severity, "value") else str(v.severity)
-            
+
             rule_distribution[r_id] = rule_distribution.get(r_id, 0) + 1
             severity_distribution[sev] = severity_distribution.get(sev, 0) + 1
 

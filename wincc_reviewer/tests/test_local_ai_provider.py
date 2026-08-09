@@ -4,7 +4,7 @@ WinCC OA 사내 로컬 AI Provider 단위 테스트.
 
 import json
 from unittest.mock import MagicMock, patch
-from urllib.error import HTTPError, URLError
+from urllib.error import HTTPError
 
 from app.core.ai.local_provider import LocalAIConfig, LocalAIProvider
 from app.core.ai.provider_base import AIRequest

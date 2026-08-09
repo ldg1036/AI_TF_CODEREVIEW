@@ -9,8 +9,6 @@ import os
 import time
 from pathlib import Path
 
-import pytest
-
 from app.ui.api import JSApi
 
 

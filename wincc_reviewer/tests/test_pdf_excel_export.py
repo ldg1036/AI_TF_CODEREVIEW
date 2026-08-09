@@ -4,12 +4,16 @@
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 
 import pytest
-
-from app.core.models import Metrics, ParseStatus, ParseStatusType, ReviewReport, SeverityLevel, Violation, ViolationStatus
+from app.core.models import (
+    Metrics,
+    ReviewReport,
+    SeverityLevel,
+    Violation,
+    ViolationStatus,
+)
 from app.core.report.excel_report_builder import ExcelReportBuilder
 from app.core.report.pdf_report_builder import PDFReportBuilder
 

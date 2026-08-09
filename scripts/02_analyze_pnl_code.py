@@ -1,5 +1,4 @@
 import os
-import re
 
 file_path = os.path.join('secondary_data', 'extracted_pnl_code.txt')
 

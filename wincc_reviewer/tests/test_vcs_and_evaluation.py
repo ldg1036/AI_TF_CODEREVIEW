@@ -2,11 +2,9 @@
 Precision/Recall 평가기 및 VCS 인라인 코멘트 생성기 유닛 테스트.
 """
 
-from pathlib import Path
-import pytest
 
+from app.core.models import SeverityLevel, Violation, ViolationStatus
 from app.core.vcs_commenter import VCSCommenter
-from app.core.models import Violation, SeverityLevel, ViolationStatus
 
 
 def test_vcs_commenter_github():

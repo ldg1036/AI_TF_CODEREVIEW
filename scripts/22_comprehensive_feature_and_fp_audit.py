@@ -4,9 +4,10 @@
 전체 7대 기능 영역 전수 점검 및 오검출 오검증 정밀 감사 스크립트
 """
 
-import os
 import json
+import os
 import sys
+
 
 def audit_feature_subsystems():
     results = {}
@@ -50,7 +51,7 @@ def audit_feature_subsystems():
     results["rule_engine_exists"] = os.path.exists(rule_engine_file)
 
     all_passed = all(results.values())
-    
+
     audit_report = {
         "subsystem_audit_results": results,
         "all_subsystems_valid": all_passed,

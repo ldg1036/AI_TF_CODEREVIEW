@@ -4,9 +4,9 @@ verify_coverage_claim.py
 원천 매핑 데이터(client.yaml, server.yaml) 실시간 동적 파싱 기반 커버리지 및 내장 체커 수 자동 실측 검증 파이프라인
 """
 
-from pathlib import Path
 import sys
-import os
+from pathlib import Path
+
 import yaml
 
 base_dir = Path(__file__).resolve().parent.parent

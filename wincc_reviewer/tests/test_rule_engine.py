@@ -14,9 +14,15 @@ RuleEngine 및 확장자 라우터 유닛 테스트 (03_정적분석_룰카탈�
 from __future__ import annotations
 
 from pathlib import Path
-import pytest
 
-from app.core.models import CheckerType, ParseStatus, ParseStatusType, RuleDefinition, SeverityLevel, ViolationStatus
+from app.core.models import (
+    CheckerType,
+    ParseStatus,
+    ParseStatusType,
+    RuleDefinition,
+    SeverityLevel,
+    ViolationStatus,
+)
 from app.core.parser.base_parser import ParsedFile
 from app.core.rules.rule_engine import RuleEngine
 

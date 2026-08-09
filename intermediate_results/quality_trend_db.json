@@ -398,5 +398,125 @@
     "total_violations": 0,
     "automation_coverage_pct": 31.5,
     "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T19:27:29.424224",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T19:30:08.709268",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T19:30:53.612225",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T19:34:52.868845",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T19:36:28.347423",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T19:45:03.637931",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T19:51:58.025415",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T19:56:54.286718",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T20:00:06.544634",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T20:25:26.328081",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T22:37:30.105771",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T22:46:01.805446",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T23:28:56.005604",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T23:30:31.163033",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
+  },
+  {
+    "run_id": "run_test_001",
+    "timestamp": "2026-08-09T23:32:28.098767",
+    "scanned_files": 5,
+    "total_violations": 0,
+    "automation_coverage_pct": 31.5,
+    "hotspot_score": 0
   }
 ]

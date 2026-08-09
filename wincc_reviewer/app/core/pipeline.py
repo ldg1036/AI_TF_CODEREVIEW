@@ -434,10 +434,12 @@ class Pipeline:
         # 3.7. AI 허위 경보(False Positive) 필터링 및 신뢰도 점수 산출
         try:
             from app.core.ai.false_positive_filter import FalsePositiveFilter
-            parsed_files_map = {str(pf.file_path): pf for pf in parsed_files if pf.file_path}
+            parsed_files_map = {}
             for pf in parsed_files:
                 if pf.file_path:
+                    parsed_files_map[str(pf.file_path)] = pf
                     parsed_files_map[pf.file_path.name] = pf
+                    parsed_files_map[str(pf.file_path.resolve())] = pf
             FalsePositiveFilter.filter_violations(
                 all_violations,
                 parsed_files_map=parsed_files_map,

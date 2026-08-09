@@ -5,9 +5,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-import pytest
 
-from app.core.models import CheckerType, ParseStatus, ParseStatusType, RuleDefinition, SeverityLevel
+import pytest
+from app.core.models import (
+    CheckerType,
+    ParseStatus,
+    ParseStatusType,
+    RuleDefinition,
+    SeverityLevel,
+)
 from app.core.parser.base_parser import ParsedFile
 from app.core.rules.checker_registry import (
     check_callback_error_handling,
@@ -54,7 +60,7 @@ class TestAdvancedCheckers:
         )
         violations = check_dp_in_loop(parsed, mock_rule)
         assert len(violations) == 1
-        assert "dpGetMany" in violations[0].message
+        assert "dyn_string" in violations[0].message
 
     def test_dpe_hardcoding_detection(self, mock_rule: RuleDefinition):
         code = """void init() {

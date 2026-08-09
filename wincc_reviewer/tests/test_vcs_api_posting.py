@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import json
 from unittest.mock import MagicMock, patch
-import pytest
 
 from app.core.models import SeverityLevel, Violation, ViolationStatus
 from app.core.vcs_commenter import VCSCommenter

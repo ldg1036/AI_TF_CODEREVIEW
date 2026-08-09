@@ -10,9 +10,15 @@ HTMLReportBuilder 유닛 테스트 (TRD §5.7, TRD §7 & 05_개발로드맵 Phas
 from __future__ import annotations
 
 from pathlib import Path
-import pytest
 
-from app.core.models import ParseStatus, ParseStatusType, SeverityLevel, Violation, ViolationStatus
+import pytest
+from app.core.models import (
+    ParseStatus,
+    ParseStatusType,
+    SeverityLevel,
+    Violation,
+    ViolationStatus,
+)
 from app.core.parser.base_parser import ParsedFile
 from app.core.report.html_report_builder import HTMLReportBuilder
 from app.core.report.report_builder import ReportBuilder

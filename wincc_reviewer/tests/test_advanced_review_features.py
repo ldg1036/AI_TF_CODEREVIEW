@@ -3,17 +3,16 @@
 """
 
 from pathlib import Path
-import pytest
 
-from app.core.rules.excel_rule_compiler import RuleCompileResult
-from app.core.diff_filter import GitDiffFilter
-from app.core.cross_file_analyzer import CrossFileAnalyzer
-from app.core.accepted_risk import AcceptedRiskManager, AcceptedRiskEntry
+from app.core.accepted_risk import AcceptedRiskEntry, AcceptedRiskManager
 from app.core.complexity import ComplexityAnalyzer
-from app.rules.check_scada_security_exec import CheckScadaSecurityExec
-from app.core.review_summary import ReviewSummaryGenerator
+from app.core.cross_file_analyzer import CrossFileAnalyzer
+from app.core.diff_filter import GitDiffFilter
 from app.core.models import RuleDefinition, SeverityLevel, ViolationStatus
 from app.core.parser.base_parser import ParsedFile
+from app.core.review_summary import ReviewSummaryGenerator
+from app.core.rules.excel_rule_compiler import RuleCompileResult
+from app.rules.check_scada_security_exec import CheckScadaSecurityExec
 
 
 def test_automation_coverage_pct():
@@ -45,6 +44,7 @@ def test_git_diff_filter():
 
 
 from app.core.models import ParseStatus, ParseStatusType
+
 
 def test_cross_file_analyzer():
     """교차 파일 중복 스크립트 코드 탐지 테스트."""

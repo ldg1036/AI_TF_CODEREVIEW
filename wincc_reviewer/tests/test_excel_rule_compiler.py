@@ -12,9 +12,9 @@ ExcelRuleCompiler 유닛 테스트 (09_구현착수_패키지_계약.md §5 & §
 from __future__ import annotations
 
 from pathlib import Path
+
 import pytest
 import yaml
-
 from app.core.models import CheckerType, SeverityLevel
 from app.core.rules.excel_rule_compiler import ExcelCompileError, ExcelRuleCompiler
 

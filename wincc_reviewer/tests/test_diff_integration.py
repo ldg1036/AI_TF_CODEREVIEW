@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
-import pytest
 
 from app.core.diff_filter import GitDiffFilter
 from app.core.pipeline import Pipeline, PipelineConfig

@@ -11,9 +11,15 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import pytest
 
-from app.core.models import Metrics, ParseStatus, ParseStatusType, SeverityLevel, Violation, ViolationStatus
+import pytest
+from app.core.models import (
+    ParseStatus,
+    ParseStatusType,
+    SeverityLevel,
+    Violation,
+    ViolationStatus,
+)
 from app.core.parser.base_parser import ParsedFile
 from app.core.report.report_builder import ReportBuilder
 

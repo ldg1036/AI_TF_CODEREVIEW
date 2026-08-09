@@ -11,7 +11,6 @@ PNLParser 유닛 테스트 (TRD §5.1 & Phase 1 기준).
 from __future__ import annotations
 
 from pathlib import Path
-import pytest
 
 from app.core.models import ParseStatusType
 from app.core.parser.pnl_parser import PNLParser
@@ -105,7 +104,7 @@ Initialize()
 
         assert parsed.parse_status.status == ParseStatusType.PARSED
         assert parsed.detected_encoding in ["cp949", "euc-kr"]
-        assert "한글 패널 주석" in parsed.content
+        assert "한글 패널 주석" in parsed.metadata["raw_content"]
 
     def test_parse_non_existent_pnl(self):
         """존재하지 않는 파일에 대한 parse_failed 반환 검증."""

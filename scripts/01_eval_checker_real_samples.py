@@ -40,7 +40,7 @@ def eval_all_checkers() -> None:
     report = pipeline.run()
 
     checker_stats: dict[str, dict] = {}
-    
+
     # 18종 체커 목록 초기화
     all_checkers = [
         "ctl.dp_connect_pair", "ctl.batch_dp_ops", "ctl.try_catch", "ctl.loop_delay",
@@ -69,7 +69,7 @@ def eval_all_checkers() -> None:
         rid = v.rule_id
         rule_def = rule_map.get(rid)
         ckey = rule_def.checker_key if rule_def else "N/A"
-        
+
         if ckey in checker_stats:
             checker_stats[ckey]["detected_count"] += 1
             if len(checker_stats[ckey]["sample_violations"]) < 3:

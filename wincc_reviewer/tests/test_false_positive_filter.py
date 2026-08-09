@@ -6,10 +6,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from app.core.ai.false_positive_filter import FalsePositiveFilter
-from app.core.models import ParseStatus, ParseStatusType, SeverityLevel, Violation, ViolationStatus
+from app.core.models import (
+    ParseStatus,
+    ParseStatusType,
+    SeverityLevel,
+    Violation,
+    ViolationStatus,
+)
 from app.core.parser.base_parser import ParsedFile
 
 

@@ -9,7 +9,6 @@ WinMergeRunner 및 DiffProvider 유닛 테스트 (TRD §6 & Phase 6 기준).
 from __future__ import annotations
 
 from pathlib import Path
-import pytest
 
 from app.core.diff.winmerge_runner import WinMergeRunner
 

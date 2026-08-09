@@ -8,7 +8,10 @@ on:
 
 jobs:
   test:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
 
     steps:
       - name: Checkout repository
@@ -47,3 +50,9 @@ jobs:
         with:
           name: coverage-report
           path: coverage.xml
+
+      - name: Update SSOT Metrics
+        run: python scripts/verify_coverage_claim.py
+
+      - name: Verify SSOT Metrics Staleness
+        run: git diff --exit-code intermediate_results/single_source_metrics.json || (echo "[FAIL] single_source_metrics.json is stale. Please run scripts/verify_coverage_claim.py and commit the changes." && exit 1)

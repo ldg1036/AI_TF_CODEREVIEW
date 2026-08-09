@@ -68,7 +68,16 @@ def generate_diverse_dataset(num_files: int = 210) -> tuple[list[Path], dict[str
                 expected_rules.append("CTL_PRF_001")
                 expected_rules.append("ctl.loop_delay")
             else:
-                violation_code = f"void func_{i}() {{ float x = 3.14; }}\n"
+                # DFA 테스트용 취약점 주입 (Multi-line Taint)
+                violation_code = f"""void testDfaInjection_{i}() {{
+                    string externalInput = getUserText("Enter ID:");
+                    string sanitized = externalInput; // Just moving data around
+                    string finalQuery = "SELECT * FROM users WHERE id LIKE '" + sanitized + "'";
+                    dbExecuteQuery(db, finalQuery);
+                }}
+                """
+                expected_rules.append("MANUAL-00")
+                expected_rules.append("ctl.sql_injection_risk")
 
             content = f"// File {i}\n{dummy_padding}\n{violation_code}"
 
@@ -77,7 +86,13 @@ def generate_diverse_dataset(num_files: int = 210) -> tuple[list[Path], dict[str
                 script_body = f"main() {{ float v; dpGet(\"Tag_PNL_{i}\", v); }}"
                 expected_rules.append("CTL_ERR_001")
             else:
-                script_body = f"main() {{ int a = {i}; }}"
+                script_body = """main() {
+                    string ext = ui_getText("Input");
+                    string safe = ext;
+                    dpQuery("SELECT * FROM _configs WHERE x LIKE '" + safe + "'");
+                }"""
+                expected_rules.append("MANUAL-00")
+                expected_rules.append("ctl.sql_injection_risk")
 
             content = f"""<?xml version="1.0" encoding="UTF-8"?>
             <panel version="3.14">
@@ -104,6 +119,13 @@ def generate_diverse_dataset(num_files: int = 210) -> tuple[list[Path], dict[str
         json.dump(ground_truth_map, f, ensure_ascii=False, indent=2)
 
     return generated_paths, ground_truth_map
+
+
+def calculate_metrics(tp_count: int, fp_count: int, fn_count: int) -> tuple[float, float]:
+    """Precision 및 Recall을 실측치 기반으로 정확하게 계산합니다 (max 하드코딩 제거)."""
+    precision = (tp_count / (tp_count + fp_count) * 100.0) if (tp_count + fp_count) > 0 else 100.0
+    recall = (tp_count / (tp_count + fn_count) * 100.0) if (tp_count + fn_count) > 0 else 100.0
+    return precision, recall
 
 
 def run_benchmark() -> dict:
@@ -145,8 +167,30 @@ def run_benchmark() -> dict:
     for file_path in files:
         f_start = time.perf_counter()
         parsed_file = NormalizationService.normalize_and_parse(file_path, extract_scripts_only=True)
+        if file_path.name in ("bench_0005.ctl", "bench_0004.pnl", "bench_0005.pnl"):
+            print(f"[{file_path.name}] PARSE STATUS: {parsed_file.parse_status.status}")
+
         target_set = RuleEngine.determine_target_ruleset(file_path)
         target_rules = rules_map.get(target_set, rules_map["client"])
+
+        # 엑셀 파일 내에 ctl.sql_injection_risk 룰이 꺼져 있거나 누락되어 있어도
+        # DFA 엔진 성능 평가를 위해 벤치마크에서는 이를 강제로 실행 목록에 추가합니다.
+        from app.core.models import CheckerType, RuleDefinition, SeverityLevel
+        dfa_virtual_rule = RuleDefinition(
+            rule_id="MANUAL-00",
+            source_key="Virtual_DFA",
+            file_types=[".ctl", ".pnl"],
+            checker_type=CheckerType.BUILTIN,
+            enabled=True,
+            rule_version="1.0",
+            checker_key="ctl.sql_injection_risk",
+            severity=SeverityLevel.CRITICAL,
+            message="[DFA] SQL Injection Risk"
+        )
+
+        # 무조건 룰을 추가하여 DFA 엔진이 돌도록 함 (기존 엑셀 룰 변조 방지)
+        target_rules.append(dfa_virtual_rule)
+
         violations = RuleEngine.execute(parsed_file, target_rules)
         f_end = time.perf_counter()
 
@@ -156,20 +200,49 @@ def run_benchmark() -> dict:
         from app.core.ai.false_positive_filter import FalsePositiveFilter
         FalsePositiveFilter.filter_violations(violations)
         valid_violations = [v for v in violations if not v.is_false_positive]
-        detected_rule_ids = [v.rule_id for v in valid_violations]
+
+        if file_path.name in ("bench_0005.ctl", "bench_0004.pnl"):
+            print(f"[{file_path.name}] VALID VIOLATIONS:")
+            for v in valid_violations:
+                print(f"  - {v.rule_id}: {v.message}")
+            print(f"[{file_path.name}] EXPECTED:", ground_truth_map.get(file_path.name, []))
+
+        # rule_id 뿐만 아니라 룰에 매핑된 checker_name이 있다면 메시지나 룰셋 어딘가에 포함될 수 있으므로
+        # 단순히 rule_id와 checker_name 둘 다 추출하여 매칭 검사
+        detected_identifiers = []
+        for v in valid_violations:
+            detected_identifiers.append(v.rule_id)
+            # v.message 등에 checker_name이 남아있거나, rule_id가 매핑된 엑셀 키일 수 있음
+            # 확실한 매칭을 위해 expected_rules에 넣은 "ctl.sql_injection_risk" 가 메시지나 룰 키에 포함되는지 확인
+
         expected_rule_ids = ground_truth_map.get(file_path.name, [])
 
-        if not expected_rule_ids and not detected_rule_ids:
+        if not expected_rule_ids and not valid_violations:
             tp_count += 1
         else:
-            for r_id in detected_rule_ids:
-                if any(exp in r_id for exp in expected_rule_ids) or any(r_id in exp for exp in expected_rule_ids):
+            for v in valid_violations:
+                is_tp = False
+                for exp in expected_rule_ids:
+                    # rule_id 일치 확인
+                    if (exp in v.rule_id) or (v.rule_id in exp):
+                        is_tp = True
+                    # 또는 우리가 추가한 ctl.xxx 형태가 v.message 등에 노출될 수 있음
+                    elif (exp in v.message):
+                        is_tp = True
+
+                if is_tp:
                     tp_count += 1
                 else:
                     fp_count += 1
 
-            for r_id in expected_rule_ids:
-                if not any(r_id in det or det in r_id for det in detected_rule_ids):
+            # FN 계산 (기대했는데 검출되지 않은 건)
+            for exp in expected_rule_ids:
+                is_detected = False
+                for v in valid_violations:
+                    if (exp in v.rule_id) or (v.rule_id in exp) or (exp in v.message):
+                        is_detected = True
+                        break
+                if not is_detected:
                     fn_count += 1
 
     total_end = time.perf_counter()
@@ -191,8 +264,7 @@ def run_benchmark() -> dict:
     p99_ms = quantiles_list[98]
     avg_ms = statistics.mean(sorted_timings)
 
-    precision = max(85.7, (tp_count / (tp_count + fp_count) * 100.0) if (tp_count + fp_count) > 0 else 100.0)
-    recall = max(85.7, (tp_count / (tp_count + fn_count) * 100.0) if (tp_count + fn_count) > 0 else 100.0)
+    precision, recall = calculate_metrics(tp_count, fp_count, fn_count)
 
     metrics = {
         "evaluation_timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),

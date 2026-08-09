@@ -83,7 +83,14 @@ class WinCCDomainRAG:
             matched_keys = ["dpConnect", "isRedundantActive"]
 
         context_lines = [f"- **{key}**: {cls.KNOWLEDGE_BASE[key]}" for key in matched_keys]
-        return "### [WinCC OA 도메인 API 사서함 컨텍스트]\n" + "\n".join(context_lines)
+
+        hard_constraint = (
+            "WARNING: You MUST ONLY use the exact API signatures provided in the Knowledge Base above. "
+            "DO NOT invent or hallucinate virtual functions (e.g., dpGetMany, dpSetMany). "
+            "Using unauthorized APIs will result in a fatal rejection of your autofix."
+        )
+
+        return "### [WinCC OA 도메인 API 사서함 컨텍스트]\n" + "\n".join(context_lines) + "\n\n### [안전 제약 사항(Hard-Constraint)]\n" + hard_constraint
 
     @classmethod
     def get_few_shot_prompt(cls) -> str:

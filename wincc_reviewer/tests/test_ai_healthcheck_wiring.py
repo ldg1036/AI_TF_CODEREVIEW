@@ -7,8 +7,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-import pytest
+from unittest.mock import patch
 
 from app.core.ai.local_provider import LocalAIConfig, LocalAIProvider
 from app.core.pipeline import Pipeline, PipelineConfig

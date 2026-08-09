@@ -6,8 +6,8 @@ pytest, verify_agent_protocol.py, PyInstaller exe 검증 스크립트 실행 결
 """
 
 import io
-import sys
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -56,8 +56,8 @@ def generate_report():
 
     report_md = f"""# WinCC OA Code Reviewer 종합 개선 및 자동 검증 완료 보고서
 
-> **생성 시각**: {now_str}  
-> **생성 방식**: `scripts/build_automated_completion_report.py` 실시간 쉘 캡처  
+> **생성 시각**: {now_str}
+> **생성 방식**: `scripts/build_automated_completion_report.py` 실시간 쉘 캡처
 > **전체 검증 결과**: {"✅ SUCCESS (전체 검증통과)" if py_code == 0 and vap_code == 0 and vcc_code == 0 and vbi_code == 0 and exe_exists else "⚠️ ATTENTION"}
 
 ---

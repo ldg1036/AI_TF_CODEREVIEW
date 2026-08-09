@@ -1,7 +1,0 @@
-#!/usr/bin/env python
-# WinCC OA Code Reviewer Standalone Executable Binary v1.0.0
-import sys
-import os
-from wincc_reviewer.cli import main
-if __name__ == '__main__':
-    main()

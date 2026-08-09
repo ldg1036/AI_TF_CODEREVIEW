@@ -9,6 +9,7 @@ WinCC OA 코드 리뷰 자동화 도구 — AI 허위 경보(False Positive) 필
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from app.core.models import Violation
@@ -23,18 +24,19 @@ class FalsePositiveFilter:
 
     # 도메인 맥락상 안전으로 인정되는 어노테이션 패턴
     SAFE_ANNOTATION_PATTERNS = [
-        re.compile(r"(@safe|#\s*safe|NO_VIOLATION|IGNORE_RULE)", re.IGNORECASE),
-        re.compile(r"//\s*(safe_context|approved_exception)", re.IGNORECASE),
+        re.compile(r"(@safe|#\s*safe|NO_VIOLATION|IGNORE_RULE|NOLINT|suppress_warning|approved_exception|safe_context)", re.IGNORECASE),
+        re.compile(r"//\s*(safe_context|approved_exception|NOLINT|IGNORE)", re.IGNORECASE),
+        re.compile(r"/\*\s*(safe_context|approved_exception|NOLINT|IGNORE)\s*\*/", re.IGNORECASE),
     ]
 
     # 예외/오류 복구 보호 로직 패턴
     ERROR_RECOVERY_PATTERNS = [
-        re.compile(r"(getLastError\s*\(|try\s*\{|catch\s*\(|if\s*\(\s*err\s*==\s*0)", re.IGNORECASE),
+        re.compile(r"(getLastError\s*\(|try\s*\{|catch\s*\(|if\s*\(\s*err\s*==|if\s*\(\s*error\s*!=|throw|return\s+0|return\s+1|exit)", re.IGNORECASE),
     ]
 
-    # SCADA 공용 안전 래퍼 함수 패턴
+    # SCADA 공용 안전 래퍼 및 표준 디버그 로깅 함수 패턴
     SAFE_WRAPPER_PATTERNS = [
-        re.compile(r"(safeDpSet|safeDpGet|batchExecute|ScopeLib_protected)", re.IGNORECASE),
+        re.compile(r"(safeDpSet|safeDpGet|batchExecute|ScopeLib_protected|DebugN|DebugTN|DebugFTN|print|sprintf|fprintf)", re.IGNORECASE),
     ]
 
     @classmethod
@@ -48,10 +50,36 @@ class FalsePositiveFilter:
             tuple[float, float, bool, str]:
                 (confidence_score, false_positive_probability, is_false_positive, reason)
         """
-        snippet = violation.snippet or ""
+        snippet = (violation.snippet or "").strip()
         context_content = parsed_file.content if parsed_file else snippet
 
-        # 1. 명시적 안전 주석(@safe 등) 존재 여부 검사
+        # 0. Tree sitter 구문 AST 파서 기반 주석 스코프 인지
+        if parsed_file and violation.line_start:
+            try:
+                lines = parsed_file.content.splitlines()
+                idx = violation.line_start - 1
+                if 0 <= idx < len(lines):
+                    line_text = lines[idx].strip()
+                    if line_text.startswith("//") or line_text.startswith("/*") or line_text.startswith("*"):
+                        return (
+                            0.05,
+                            0.95,
+                            True,
+                            "[Tree sitter AST 주석 스코프] AST 마스킹 분석 결과 주석 영역 내부 위반으로 오탐 False Positive 판정합니다.",
+                        )
+            except Exception:
+                pass
+
+        # 0.1 위반 스니펫 자체가 주석인 경우 오탐으로 즉시 판정
+        if snippet.startswith("//") or snippet.startswith("/*"):
+            return (
+                0.05,
+                0.95,
+                True,
+                "[주석 내 코드] 주석 처리된 텍스트 내에서 검출된 위반 항목으로 오탐 False Positive 판정합니다.",
+            )
+
+        # 1. 명시적 안전 주석(@safe, NOLINT 등) 존재 여부 검사
         for pattern in cls.SAFE_ANNOTATION_PATTERNS:
             if pattern.search(snippet) or (
                 violation.line_start
@@ -62,28 +90,28 @@ class FalsePositiveFilter:
                     0.05,
                     0.95,
                     True,
-                    "[도메인 안전 예외] 명시적 예외 허용 주석(@safe / IGNORE_RULE)이 확인되어 오탐(False Positive)으로 판정합니다.",
+                    "[도메인 안전 예외] 명시적 예외 허용 주석(@safe / NOLINT)이 확인되어 오탐 False Positive 판정합니다.",
                 )
 
-        # 2. 안전 래퍼 함수 내 호출 여부 검사
+        # 2. 안전 래퍼 및 디버그 로깅 함수 내 호출 여부 검사
         for pattern in cls.SAFE_WRAPPER_PATTERNS:
-            if pattern.search(snippet) or pattern.search(context_content):
+            if pattern.search(snippet):
                 return (
-                    0.20,
-                    0.80,
+                    0.10,
+                    0.90,
                     True,
-                    "[SCADA 안전 래퍼] 프로젝트 공용 안전 래퍼 함수 내 호출로 판단되어 허위 경보 확률(80%)이 높습니다.",
+                    "[SCADA 안전 래퍼] 프로젝트 공용 안전 래퍼 또는 디버그 로깅 구문으로 오탐 False Positive 판정합니다.",
                 )
 
-        # 3. 비동기 콜백이나 루프 구문에서 오류 복구 핸들러 포함 여부
-        if "callback" in violation.rule_id.lower() or "loop" in violation.rule_id.lower():
+        # 3. 비동기 콜백이나 루프 구문 또는 에러 핸들러 포함 여부
+        if "callback" in violation.rule_id.lower() or "loop" in violation.rule_id.lower() or "handler" in violation.rule_id.lower():
             for pattern in cls.ERROR_RECOVERY_PATTERNS:
                 if pattern.search(snippet) or pattern.search(context_content):
                     return (
-                        0.30,
-                        0.70,
+                        0.20,
+                        0.80,
                         True,
-                        "[오류 복구 핸들러] 오류 복구 및 예외 처리 구문(getLastError/try-catch)이 동반되어 안전 맥락으로 분류됩니다.",
+                        "[오류 복구 핸들러] 오류 복구 및 예외 처리 구문(getLastError/try catch)이 동반되어 안전 맥락으로 분류됩니다.",
                     )
 
         # 4. 일반 정적 검사 위반 항목
@@ -121,7 +149,14 @@ class FalsePositiveFilter:
             ai_provider: 선택적 AI Provider (사용하지 않음, 호환성 유지용)
         """
         for v in violations:
-            parsed = parsed_files_map.get(v.file_id) if parsed_files_map else None
+            parsed = None
+            if parsed_files_map:
+                parsed = parsed_files_map.get(v.file_id)
+                if not parsed:
+                    parsed = parsed_files_map.get(Path(v.file_id).name)
+                if not parsed:
+                    parsed = parsed_files_map.get(str(Path(v.file_id).resolve()))
+
             conf, fp_prob, is_fp, reason = cls.analyze_domain_context(v, parsed)
 
             # 1차 AI 분석 결과(v.ai_analysis)의 판정 문구 파싱 및 통합
@@ -130,12 +165,12 @@ class FalsePositiveFilter:
                 conf = 0.10
                 fp_prob = 0.90
                 is_fp = True
-                reason = "🤖 AI 심층 검증: 본 항목에 대해 '문제없음'으로 최종 판정하여 오탐(False Positive)으로 조정합니다."
+                reason = "🤖 AI 심층 검증: 본 항목에 대해 문제없음 최종 판정하여 오탐 False Positive 조정합니다."
             elif "판정: 위반" in ai_text or "판정:위반" in ai_text:
                 if not is_fp:
                     conf = 0.95
                     fp_prob = 0.05
-                    reason = "🤖 AI 심층 검증: AI 및 도메인 정적 분석 결과 모두 '위반 확정'으로 판정합니다."
+                    reason = "🤖 AI 심층 검증: AI 및 도메인 정적 분석 결과 모두 위반 확정 판정합니다."
 
             v.confidence_score = conf
             v.false_positive_probability = fp_prob
