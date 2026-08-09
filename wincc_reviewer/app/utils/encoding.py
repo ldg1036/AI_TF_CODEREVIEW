@@ -18,66 +18,38 @@ SUPPORTED_ENCODINGS: list[str] = ["utf-8-sig", "utf-8", "cp949", "euc-kr", "lati
 
 def read_text_with_fallback(path: Path, encodings: list[str] | None = None) -> str:
     """
-    지정된 인코딩 순서대로 파일 읽기를 시도하여 최초 성공한 결과를 반환합니다.
-
-    Args:
-        path: 읽을 파일 경로
-        encodings: 시도할 인코딩 목록 (기본: SUPPORTED_ENCODINGS)
-
-    Returns:
-        디코딩된 파일 텍스트 내용
-
-    Raises:
-        FileNotFoundError: 파일이 존재하지 않을 때
-        UnicodeDecodeError: 모든 인코딩으로 디코딩에 실패했을 때
+    지정된 인코딩 순서대로 파일 읽기를 시도하며 fast-path 적용으로 디코딩 성능을 최적화합니다.
     """
     if not path.exists():
         raise FileNotFoundError(f"파일을 찾을 수 없습니다: {path}")
 
-    enc_list = encodings or SUPPORTED_ENCODINGS
-    last_error: UnicodeDecodeError | None = None
-
-    for enc in enc_list:
-        try:
-            return path.read_text(encoding=enc)
-        except UnicodeDecodeError as e:
-            last_error = e
-            continue
-
-    raise UnicodeDecodeError(
-        last_error.encoding if last_error else "unknown",
-        last_error.object if last_error else b"",
-        last_error.start if last_error else 0,
-        last_error.end if last_error else 0,
-        f"지원되는 모든 인코딩({', '.join(enc_list)})으로 디코딩에 실패했습니다: {path}",
-    )
+    raw_bytes = path.read_bytes()
+    content, _, _ = decode_bytes_with_fallback(raw_bytes, encodings)
+    return content
 
 
 def decode_bytes_with_fallback(
     raw_bytes: bytes, encodings: list[str] | None = None
 ) -> tuple[str, str, float]:
     """
-    바이트 데이터를 지정된 인코딩 순서대로 디코딩을 시도합니다.
-
-    Args:
-        raw_bytes: 디코딩 대상 바이트 데이터
-        encodings: 시도할 인코딩 목록 (기본: SUPPORTED_ENCODINGS)
-
-    Returns:
-        (디코딩된 텍스트, 감지된 인코딩명, 인코딩 신뢰도 0.0~1.0)
-
-    Raises:
-        UnicodeDecodeError: 모든 인코딩으로 디코딩에 실패했을 때
+    Fast-path 디코딩(ASCII/UTF-8 직행)을 통해 시도 횟수 및 지연 시간을 대폭 축소합니다.
     """
-    enc_list = encodings or SUPPORTED_ENCODINGS
+    # 1. ASCII / UTF-8 Fast-path (대부분의 스크립트 파일 대다수 커버)
+    try:
+        if raw_bytes.startswith(b"\xef\xbb\xbf"):
+            return raw_bytes[3:].decode("utf-8"), "utf-8-sig", 1.0
+        return raw_bytes.decode("utf-8"), "utf-8", 1.0
+    except UnicodeDecodeError:
+        pass
+
+    # 2. 비표준 다국어 인코딩 폴백 (CP949, EUC-KR 등)
+    enc_list = [e for e in (encodings or SUPPORTED_ENCODINGS) if e not in ("utf-8", "utf-8-sig")]
     last_error: UnicodeDecodeError | None = None
 
-    for idx, enc in enumerate(enc_list):
+    for enc in enc_list:
         try:
             content = raw_bytes.decode(enc)
-            # 비표준 인코딩(cp949, euc-kr 등)은 신뢰도를 낮게 설정
-            confidence = 1.0 if idx <= 1 else 0.65
-            return content, enc, confidence
+            return content, enc, 0.65
         except (UnicodeDecodeError, ValueError) as e:
             if isinstance(e, UnicodeDecodeError):
                 last_error = e
@@ -88,5 +60,5 @@ def decode_bytes_with_fallback(
         last_error.object if last_error else b"",
         last_error.start if last_error else 0,
         last_error.end if last_error else 0,
-        f"지원되는 모든 인코딩({', '.join(enc_list)})으로 디코딩에 실패했습니다.",
+        f"지원되는 모든 인코딩({', '.join(encodings or SUPPORTED_ENCODINGS)})으로 디코딩에 실패했습니다.",
     )

@@ -54,17 +54,19 @@ entries:
 - source_key: DB|DB Query 작성 기준|쿼리 주석 처리
   rule_ids:
   - CTL_DB_003
-  automation_mode: auto_full
+  automation_mode: manual
   condition_summary: 1) DB Query에 주석을 추가하였는가? - DB Query에 기능, 날짜, 작성 주체...
-  checker_type: builtin
-  checker_key: ctl.magic_number
+  checker_type: manual
+  checker_key: ""
+  mapping_note: DB 쿼리 내부 상세 주석 존재 및 의미 검증은 정적 룰 탐지가 아닌 수동 점검 대상
 - source_key: DB|DB Query 작성 기준|쿼리 검증
   rule_ids:
   - CTL_DB_004
-  automation_mode: auto_full
+  automation_mode: manual
   condition_summary: 1) 쿼리 검증 결과서를 작성하였는가? - Query 성능 확인 (첨부파일 참고)
-  checker_type: builtin
-  checker_key: ctl.file_open_mode_check
+  checker_type: manual
+  checker_key: ""
+  mapping_note: 별도 쿼리 검증 결과서 파일 작성 및 첨부 확인은 정적 코드 검사 불가능 항목
 - source_key: DB|예외처리|DB Query Error
   rule_ids:
   - CTL_DB_002

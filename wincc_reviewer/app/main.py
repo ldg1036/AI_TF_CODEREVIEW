@@ -121,6 +121,19 @@ def _build_parser() -> argparse.ArgumentParser:
         help="지정한 심각도 이상의 결함이 존재하면 exit code 1로 종료합니다.",
     )
 
+    parser.add_argument(
+        "--post-pr-comment",
+        choices=["github", "gitlab"],
+        help="리뷰 위반 항목을 GitHub PR 또는 GitLab MR 인라인 코멘트 JSON 페이로드 파일로 내보냅니다.",
+    )
+
+    parser.add_argument(
+        "--diff-only",
+        action="store_true",
+        default=False,
+        help="git diff 변경 라인 범위 내 위반 결함만 수집하여 리뷰합니다.",
+    )
+
     return parser
 
 

@@ -68,17 +68,19 @@ entries:
 - source_key: DB|DB Query 작성 기준|쿼리 주석 처리
   rule_ids:
   - CTL_SVR_002
-  automation_mode: auto_full
+  automation_mode: manual
   condition_summary: 1) DB Query에 주석을 추가하였는가? - DB Query에 기능, 날짜, 작성 주체...
-  checker_type: builtin
-  checker_key: ctl.magic_number
+  checker_type: manual
+  checker_key: ""
+  mapping_note: DB 쿼리 내부 주석 유무 및 품질 검증은 수동 점검 항목
 - source_key: DB|DB Query 작성 기준|쿼리 검증
   rule_ids:
   - CTL_SVR_003
-  automation_mode: auto_full
+  automation_mode: manual
   condition_summary: 1) 쿼리 검증 결과서를 작성하였는가? - Query 성능 확인 (첨부파일 참고)
-  checker_type: builtin
-  checker_key: ctl.sprintf_buffer_overflow_risk
+  checker_type: manual
+  checker_key: ""
+  mapping_note: 첨부 서류 작성 여부는 수동 점검 항목
 - source_key: DB|예외처리|DB Query Error
   rule_ids:
   - CTL_ERR_003
@@ -103,10 +105,11 @@ entries:
 - source_key: 공통|스트립트 개선|스크립트 이력 작성 확인
   rule_ids:
   - CTL_SVR_004
-  automation_mode: auto_full
+  automation_mode: manual
   condition_summary: 1) 스크립트 및 라이브러리 버전 이력을 작성하였는가?
-  checker_type: builtin
-  checker_key: ctl.dp_set_wait_timeout
+  checker_type: manual
+  checker_key: ""
+  mapping_note: 스크립트 버전 이력 문서 작성 확인은 수동 점검 항목
 - source_key: 공통|스트립트 개선|명명 규칙 및 코딩 스타일 준수 확인
   rule_ids:
   - CTL_STYLE_002

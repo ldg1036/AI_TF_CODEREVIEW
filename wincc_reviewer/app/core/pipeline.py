@@ -55,6 +55,9 @@ class PipelineConfig:
     max_ai_reviews: int | None = 10  # AI API 요청 건수 제한 (Rate limit 방어)
     use_cache: bool = True  # Phase 2: SHA256 해시 기반 점진적 검사 캐시 활성화
     extract_scripts_only: bool = True  # PNL/XML에서 레이아웃 노드를 제외하고 스크립트만 정제 파싱
+    diff_only: bool = False  # Git diff 변경분 전용 탐지 모드 (DiffFilter 연동)
+    post_pr_comment: str | None = None  # VCS (github/gitlab) 인라인 코멘트 내보내기 (VCSCommenter 연동)
+    use_ai_queue_cache: bool = True  # 로컬 AI 요청 동시성 세마포어 큐잉 및 TTL 응답 캐시 엔진 (AIQueueCacheManager 연동)
 
     log_level: str = "INFO"
 
@@ -417,6 +420,38 @@ class Pipeline:
             )
         except Exception as exc:
             logger.warning("AI 허위 경보(False Positive) 필터링 실행 중 오류: %s", exc)
+
+        # 3.8. Git diff 변경 범위 내 결함 필터링 (GitDiffFilter 연동)
+        if self.config.diff_only:
+            try:
+                import subprocess
+                from app.core.diff_filter import GitDiffFilter
+                diff_cmd = ["git", "diff", "HEAD"]
+                res = subprocess.run(diff_cmd, capture_output=True, text=True, timeout=10)
+                if res.returncode == 0 and res.stdout:
+                    diff_map = GitDiffFilter.parse_unified_diff(res.stdout)
+                    all_violations = GitDiffFilter.filter_violations(all_violations, diff_map)
+                    logger.info("Git diff 범위 필터링 완료: 남은 결함 %d건", len(all_violations))
+            except Exception as ex:
+                logger.warning("Git diff 필터링 수행 중 예외 발생: %s", ex)
+
+        # 3.9. VCS PR/MR 인라인 코멘트 페이로드 내보내기 (VCSCommenter 연동)
+        if self.config.post_pr_comment:
+            try:
+                from app.core.vcs_commenter import VCSCommenter
+                vcs_type = str(self.config.post_pr_comment).lower()
+                output_dir = Path(self.config.output_dir)
+                output_dir.mkdir(parents=True, exist_ok=True)
+                if vcs_type == "github":
+                    payload = VCSCommenter.build_github_inline_comments(all_violations)
+                    comment_file = output_dir / "github_pr_comments.json"
+                else:
+                    payload = VCSCommenter.build_gitlab_inline_comments(all_violations)
+                    comment_file = output_dir / "gitlab_mr_comments.json"
+                comment_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+                logger.info("VCS 인라인 코멘트 페이로드 내보내기 완료: %s (%d건)", comment_file, len(payload))
+            except Exception as ex:
+                logger.warning("VCS 코멘트 생성 중 예외 발생: %s", ex)
 
         end_time = time.time()
 

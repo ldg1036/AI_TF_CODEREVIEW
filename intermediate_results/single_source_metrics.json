@@ -1,6 +1,6 @@
 {
   "single_source_of_truth_metadata": {
-    "last_updated_timestamp": "2026-08-09T02:26:00Z",
+    "last_updated_timestamp": "2026-08-09T07:45:59.264392+00:00",
     "version": "1.0.0",
     "status": "PASS",
     "ssot_sync_state": "FULLY_SYNCHRONIZED"
@@ -24,8 +24,8 @@
   "test_and_governance_metrics": {
     "total_unit_tests_count": 223,
     "unit_tests_pass_rate_percent": 100.0,
-    "registered_checkers_count": 35,
-    "automation_coverage_percent": 100.0,
+    "registered_checkers_count": 31,
+    "automation_coverage_percent": 85.8,
     "ast_code_inspection_defects": 0,
     "wincc_reviewer_exe_binary_status": "BUILT_AND_VERIFIED"
   }

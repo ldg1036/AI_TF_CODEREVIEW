@@ -15,3 +15,5 @@ output/*
 coverage.xml
 *.log
 config/settings.yaml
+build/
+dist/

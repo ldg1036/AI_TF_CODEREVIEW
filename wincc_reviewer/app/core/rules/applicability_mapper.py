@@ -41,10 +41,10 @@ class ApplicabilityReport:
 
     @property
     def coverage_ratio(self) -> float:
-        """매핑 비율 (0.0 ~ 1.0)을 반환합니다."""
+        """자동화 매핑 비율 (0.0 ~ 1.0)을 반환합니다 (수동 검수 항목 제외)."""
         if self.total_items == 0:
             return 0.0
-        return (self.mapped_items + self.manual_items) / self.total_items
+        return self.mapped_items / self.total_items
 
 
 class ApplicabilityMapper:
