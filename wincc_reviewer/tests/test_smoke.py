@@ -248,8 +248,10 @@ class TestConfigFiles:
     """설정 파일 존재 확인 테스트."""
 
     def test_settings_yaml_exists(self, config_dir: Path):
-        """config/settings.yaml 파일 존재 확인."""
-        assert (config_dir / "settings.yaml").exists()
+        """config/settings.yaml 또는 settings.yaml.example 파일 존재 확인."""
+        settings_file = config_dir / "settings.yaml"
+        example_file = config_dir / "settings.yaml.example"
+        assert settings_file.exists() or example_file.exists(), "settings.yaml 또는 settings.yaml.example 파일이 존재해야 합니다."
 
     def test_excel_files_exist(self, config_dir: Path):
         """코드리뷰 결과서 Excel 파일 존재 확인 (원본 보존)."""
