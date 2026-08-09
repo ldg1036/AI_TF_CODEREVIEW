@@ -228,6 +228,37 @@ def main(argv: list[str] | None = None) -> int:
         report = pipeline.run()
         logger.info("코드 리뷰 성공적으로 완료. 리포트 저장 위치: %s", output_dir)
 
+        if args.post_pr_comment:
+            try:
+                from app.core.vcs_commenter import VCSCommenter
+                import os
+                
+                vcs_token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GITLAB_TOKEN") or ""
+                repo_slug = os.environ.get("GITHUB_REPOSITORY") or os.environ.get("CI_PROJECT_PATH") or "local/repo"
+                pr_id = int(os.environ.get("PR_ID") or os.environ.get("CI_MERGE_REQUEST_IID") or "1")
+                commit_id = os.environ.get("GITHUB_SHA") or os.environ.get("CI_COMMIT_SHA") or "HEAD"
+                
+                logger.info("VCS 인라인 코멘트 게시를 시작합니다... 대상: %s", args.post_pr_comment)
+                
+                if args.post_pr_comment == "github":
+                    res = VCSCommenter.post_github_comments(
+                        violations=getattr(report, "violations", []),
+                        repo_slug=repo_slug,
+                        pr_number=pr_id,
+                        commit_id=commit_id,
+                        github_token=vcs_token
+                    )
+                else:
+                    res = VCSCommenter.post_gitlab_discussions(
+                        violations=getattr(report, "violations", []),
+                        project_id=repo_slug,
+                        mr_iid=pr_id,
+                        gitlab_token=vcs_token
+                    )
+                logger.info("VCS 코멘트 게시 결과: %s", res)
+            except Exception as e:
+                logger.error("VCS 코멘트 게시 중 오류: %s", e)
+
         if args.fail_on_severity:
             sev_map = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
             target_rank = sev_map.get(str(args.fail_on_severity).lower(), 1)
