@@ -244,16 +244,17 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.post_pr_comment:
             try:
-                from app.core.vcs_commenter import VCSCommenter
                 import os
-                
+
+                from app.core.vcs_commenter import VCSCommenter
+
                 vcs_token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GITLAB_TOKEN") or ""
                 repo_slug = os.environ.get("GITHUB_REPOSITORY") or os.environ.get("CI_PROJECT_PATH") or "local/repo"
                 pr_id = int(os.environ.get("PR_ID") or os.environ.get("CI_MERGE_REQUEST_IID") or "1")
                 commit_id = os.environ.get("GITHUB_SHA") or os.environ.get("CI_COMMIT_SHA") or "HEAD"
-                
+
                 logger.info("VCS 인라인 코멘트 게시를 시작합니다... 대상: %s", args.post_pr_comment)
-                
+
                 if args.post_pr_comment == "github":
                     res = VCSCommenter.post_github_comments(
                         violations=getattr(report, "violations", []),

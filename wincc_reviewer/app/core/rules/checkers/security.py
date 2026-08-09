@@ -5,6 +5,7 @@ import re
 
 from app.core.models import RuleDefinition, SeverityLevel, Violation, ViolationStatus
 from app.core.parser.base_parser import ParsedFile
+from app.core.rules.dfa_engine import TaintTracker
 
 _PNL_INIT_CONTEXT_KEYWORDS = [
     "scopelib::",
@@ -127,9 +128,6 @@ def check_scada_security_exec(parsed: ParsedFile, rule: RuleDefinition) -> list[
                 break
     return violations
 
-
-
-from app.core.rules.dfa_engine import TaintTracker
 
 
 def check_sql_injection_risk(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
