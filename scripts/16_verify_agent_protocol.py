@@ -4,10 +4,14 @@
 11번 바이브코딩 실행 지침서 R1 Diff 증빙 및 R2 호출부 증명 자동 검증 스크립트
 """
 
+import io
 import os
 import re
 import sys
 import subprocess
+
+if hasattr(sys.stdout, "buffer"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 def check_git_diff():
     """

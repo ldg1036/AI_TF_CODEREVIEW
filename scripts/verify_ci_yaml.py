@@ -3,9 +3,13 @@ CI/CD YAML 워크플로우 정적 검증 스크립트 (IMP 01 검증).
 .github/workflows/test.yml 및 release.yml의 YAML 파싱, on 키 중복 (Norway Problem) 부재 및 스텝별 (uses XOR run) 단일화를 검증합니다.
 """
 
+import io
 from pathlib import Path
 import sys
 import yaml
+
+if hasattr(sys.stdout, "buffer"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 base_dir = Path(__file__).resolve().parent.parent
 
