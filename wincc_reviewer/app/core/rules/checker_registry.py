@@ -438,7 +438,7 @@ def check_batch_dp_operations(parsed: ParsedFile, rule: RuleDefinition) -> list[
 
 
 def check_try_catch_exception(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
-    """MANUAL-012: DP 함수 호출 시 try/catch 예외 처리 여부 구문 분석."""
+    """MANUAL-012: DP 함수 호출 시 try/catch 예외 처리 여부 구문 분석 (CFA 적용)."""
     violations: list[Violation] = []
     lines = parsed.content.splitlines()
     content = parsed.content
@@ -447,7 +447,57 @@ def check_try_catch_exception(parsed: ParsedFile, rule: RuleDefinition) -> list[
     if not dp_func_pattern.search(content):
         return []
 
-    # 주석 제거 후 try/catch 키워드 검사
+    # CFA AST 적용
+    from app.core.parser.tree_sitter_parser import TreeSitterASTParser
+    parser = TreeSitterASTParser()
+    ast_nodes = parser.parse_code_to_ast(parsed.content)
+    
+    if parser.ts_available:
+        reported_lines = set()
+        for node in ast_nodes:
+            if node.node_type == "call_expression":
+                func_node_text = ""
+                for child in node.children:
+                    if child.node_type == "identifier":
+                        func_node_text = child.text
+                        break
+                
+                if dp_func_pattern.search(func_node_text):
+                    in_try = False
+                    has_valid_catch = False
+                    curr = node.parent
+                    while curr:
+                        if curr.node_type == "try_statement":
+                            in_try = True
+                            for child in curr.children:
+                                if child.node_type == "catch_clause":
+                                    has_valid_catch = True
+                            break
+                        # 함수 정의 경계를 벗어나면 탐색 중지
+                        if curr.node_type == "function_definition":
+                            break
+                        curr = curr.parent
+                    
+                    if not (in_try and has_valid_catch):
+                        line_idx = node.line_start
+                        if line_idx not in reported_lines:
+                            violations.append(
+                                Violation(
+                                    violation_id=f"V-{rule.rule_id}-{line_idx:03d}",
+                                    rule_id=rule.rule_id,
+                                    file_id=str(parsed.file_path),
+                                    status=ViolationStatus.MANUAL_REVIEW,
+                                    severity=rule.severity or SeverityLevel.MEDIUM,
+                                    message=rule.message or f"[{rule.rule_id}] DP 함수 호출이 유효한 catch 절을 동반한 try/catch 블록에 래핑되지 않았습니다. (AST CFA 검출)",
+                                    line_start=line_idx,
+                                    line_end=node.line_end,
+                                    snippet=lines[line_idx - 1].strip() if line_idx <= len(lines) else "",
+                                )
+                            )
+                            reported_lines.add(line_idx)
+        return violations
+
+    # 주석 제거 후 try/catch 키워드 검사 (Fallback)
     clean_lines: list[str] = []
     for line in lines:
         l_strip = line.strip()
@@ -951,8 +1001,8 @@ def check_dp_in_loop(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation
         elif in_loop:
             brace_depth += clean_line.count("{") - clean_line.count("}")
 
-            # 루프 블록 내 개별 dpGet / dpSet 감지 (dpGetMany, dpSetMany는 제외)
-            if re.search(r'\bdpGet\s*\(', clean_line) and not re.search(r'\bdpGetMany\s*\(', clean_line):
+            # 루프 블록 내 개별 dpGet / dpSet 감지 (dyn_string 배열 기반의 dpGet/dpSet 활용 권고)
+            if re.search(r'\bdpGet\s*\(', clean_line):
                 violations.append(
                     Violation(
                         violation_id=f"V-{rule.rule_id}-{idx:03d}",
@@ -960,13 +1010,13 @@ def check_dp_in_loop(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation
                         file_id=str(parsed.file_path),
                         status=ViolationStatus.FAIL,
                         severity=rule.severity or SeverityLevel.HIGH,
-                        message=f"[{rule.rule_id}] 루프문(L{loop_start_line}) 내부에서 개별 'dpGet' 통신 연산이 호출되었습니다. Event Manager 과부하 방지를 위해 dpGetMany 배치 연산을 사용하세요.",
+                        message=f"[{rule.rule_id}] 루프문(L{loop_start_line}) 내부에서 개별 'dpGet' 통신 연산이 호출되었습니다. Event Manager 과부하 방지를 위해 루프 외부에서 dyn_string 배열을 구성한 후 단일 dpGet으로 일괄 처리하세요.",
                         line_start=idx,
                         line_end=idx,
                         snippet=line.strip(),
                     )
                 )
-            if re.search(r'\bdpSet\s*\(', clean_line) and not re.search(r'\bdpSetMany\s*\(', clean_line):
+            if re.search(r'\bdpSet\s*\(', clean_line):
                 violations.append(
                     Violation(
                         violation_id=f"V-{rule.rule_id}-{idx:03d}",
@@ -974,7 +1024,7 @@ def check_dp_in_loop(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation
                         file_id=str(parsed.file_path),
                         status=ViolationStatus.FAIL,
                         severity=rule.severity or SeverityLevel.HIGH,
-                        message=f"[{rule.rule_id}] 루프문(L{loop_start_line}) 내부에서 개별 'dpSet' 통신 연산이 호출되었습니다. Event Manager 과부하 방지를 위해 dpSetMany 배치 연산을 사용하세요.",
+                        message=f"[{rule.rule_id}] 루프문(L{loop_start_line}) 내부에서 개별 'dpSet' 통신 연산이 호출되었습니다. Event Manager 과부하 방지를 위해 루프 외부에서 dyn_string 배열을 구성한 후 단일 dpSet으로 일괄 처리하세요.",
                         line_start=idx,
                         line_end=idx,
                         snippet=line.strip(),
@@ -1146,7 +1196,15 @@ def check_duplicated_code(parsed: ParsedFile, rule: RuleDefinition) -> list[Viol
     block_size = 5
 
     clean_lines = [(idx, line.split("//")[0].strip()) for idx, line in enumerate(lines, start=1)]
-    meaningful = [(idx, line_text) for idx, line_text in clean_lines if line_text and line_text not in ("{", "}")]
+    meaningful = [
+        (idx, line_text)
+        for idx, line_text in clean_lines
+        if line_text
+        and line_text not in ("{", "}", "E E")
+        and not line_text.startswith(('E"', 'LANG:', '}"', 'shape '))
+        and not re.match(r'^"[a-zA-Z0-9_]+"\s+"', line_text)  # UI 속성 ("key" "value") 패턴 필터링
+        and not re.match(r"^\d+(\s+\d+)*$", line_text)
+    ]
 
     for i in range(len(meaningful) - block_size + 1):
         block_lines = tuple(line_text for _, line_text in meaningful[i : i + block_size])

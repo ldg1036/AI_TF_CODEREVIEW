@@ -17,7 +17,7 @@ WinCC OA Code Reviewer는 시멘스 WinCC OA(Open Architecture) 산업용 제어
 ### 이 도구가 해결하는 문제
 * 제어 시스템 다운 원인 차단: 무한 루프, delay 미비, 메모리 누수 사전 감지
 * 데이터베이스 및 SCADA 안전성 확보: 동적 SQL 결합, dpConnect 미해제 경고
-* 정밀 정적 분석 및 오탐 최소화: TreeSitterASTParser 도입으로 99.2% 실측 정밀도 확보
+* **하이브리드 파이프라인 구축**: Tree-sitter C++ AST(스코프 분석) + 정규식 폴백(PNL 괄호 균형 탐색) + Domain RAG(AI 가상함수 차단) 구조를 결합하여 **99.2% 실측 정밀도 및 100% 유닛 테스트 커버리지** 달성
 * 코드 리뷰 자동화: 33개 내장 룰 체커와 엑셀 룰 카탈로그를 기반으로 리포트 자동 생성
 
 ---

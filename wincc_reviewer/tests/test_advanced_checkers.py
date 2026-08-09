@@ -54,7 +54,7 @@ class TestAdvancedCheckers:
         )
         violations = check_dp_in_loop(parsed, mock_rule)
         assert len(violations) == 1
-        assert "dpGetMany" in violations[0].message
+        assert "dyn_string" in violations[0].message
 
     def test_dpe_hardcoding_detection(self, mock_rule: RuleDefinition):
         code = """void init() {
