@@ -9,13 +9,13 @@ from __future__ import annotations
 import importlib
 import sys
 from pathlib import Path
-import pytest
 
 base_dir = Path(__file__).resolve().parent.parent.parent
 if str(base_dir) not in sys.path:
     sys.path.insert(0, str(base_dir))
 
 from app.core.pipeline import Pipeline, PipelineConfig
+
 from scripts.verify_benchmark_integrity import verify_benchmark_integrity
 
 bench_module = importlib.import_module("scripts.15_run_large_scale_benchmark")

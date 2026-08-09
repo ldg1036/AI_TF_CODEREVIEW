@@ -7,7 +7,7 @@ AIQueueCacheManager AI 큐 및 캐시 유닛 테스트 (R2 호출부 증명)
 from __future__ import annotations
 
 import asyncio
-import pytest
+
 from app.core.ai.ai_queue_cache import AIQueueCacheManager
 
 

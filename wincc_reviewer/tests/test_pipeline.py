@@ -12,8 +12,8 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-import pytest
 
+import pytest
 from app.core.pipeline import Pipeline, PipelineConfig
 
 

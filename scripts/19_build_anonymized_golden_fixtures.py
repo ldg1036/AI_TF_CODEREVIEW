@@ -8,6 +8,7 @@ import os
 import re
 import sys
 
+
 def build_anonymized_fixtures():
     primary_dir = "primary_data"
     target_dir = os.path.join("wincc_reviewer", "tests", "fixtures", "anonymized")

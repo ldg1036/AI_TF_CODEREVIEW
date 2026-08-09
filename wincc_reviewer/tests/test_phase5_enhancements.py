@@ -1,7 +1,7 @@
-import pytest
 from pathlib import Path
-from app.core.dp_variable_tracker import DPVariableTracker
+
 from app.core.autofix_validator import AutofixValidator
+from app.core.dp_variable_tracker import DPVariableTracker
 from app.core.report.quality_trend_db import QualityTrendDB
 
 

@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 
@@ -51,18 +50,18 @@ class TreeSitterASTParser:
         try:
             import tree_sitter
             import tree_sitter_cpp
-            
+
             try:
                 # v0.22+ API
                 self.ts_language = tree_sitter.Language(tree_sitter_cpp.language())
             except TypeError:
                 # v0.21 API
                 self.ts_language = tree_sitter.Language(tree_sitter_cpp.language(), "cpp")
-            
+
             self.parser = tree_sitter.Parser()
             self.parser.set_language(self.ts_language)
             self.ts_available = True
-        except Exception as e:
+        except Exception:
             self.ts_available = False
             self.parser = None
 
@@ -75,24 +74,24 @@ class TreeSitterASTParser:
     def parse_code_to_ast(self, content: str) -> list[ASTNodeInfo]:
         """
         소스 코드 텍스트를 AST 구문 노드 리스트로 구조화 파싱합니다.
-        
+
         Args:
             content: 소스 코드 문자열
-            
+
         Returns:
             list[ASTNodeInfo]: 추출된 구문 노드 목록
         """
         nodes: list[ASTNodeInfo] = []
-        
+
         # 1. Tree-sitter가 사용 가능하면 순회하여 노드를 생성합니다.
         if self.ts_available and self.parser:
             tree = self.parser.parse(bytes(content, "utf8"))
-            
+
             def traverse(node, parent_ast: ASTNodeInfo | None = None):
                 # 0-indexed line to 1-indexed line
                 line_start = node.start_point[0] + 1
                 line_end = node.end_point[0] + 1
-                
+
                 ast_node = ASTNodeInfo(
                     node_type=node.type,
                     text=node.text.decode("utf8") if node.text else "",
@@ -101,13 +100,13 @@ class TreeSitterASTParser:
                     parent=parent_ast
                 )
                 nodes.append(ast_node)
-                
+
                 if parent_ast:
                     parent_ast.children.append(ast_node)
-                    
+
                 for child in node.children:
                     traverse(child, ast_node)
-                    
+
             traverse(tree.root_node)
             return nodes
 
@@ -115,7 +114,6 @@ class TreeSitterASTParser:
         lines = content.splitlines()
 
         in_multi_comment = False
-        multi_comment_start = 1
 
         for idx, line in enumerate(lines, start=1):
             stripped = line.strip()
@@ -123,7 +121,6 @@ class TreeSitterASTParser:
             # 1. 블록 주석 감지
             if "/*" in stripped and "*/" not in stripped:
                 in_multi_comment = True
-                multi_comment_start = idx
                 nodes.append(
                     ASTNodeInfo(
                         node_type="Comment",
@@ -189,10 +186,10 @@ class TreeSitterASTParser:
     def extract_scopes(self, content: str) -> list[ScopeInfo]:
         """
         소스 코드에서 함수, 블록, 주석 스코프 정보를 추출합니다.
-        
+
         Args:
             content: 소스 코드 문자열
-            
+
         Returns:
             list[ScopeInfo]: 스코프 범위 정보 목록
         """

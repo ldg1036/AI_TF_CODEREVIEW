@@ -4,8 +4,6 @@ WinCC OA 코드 리뷰 자동화 도구 — Tree sitter 기반 구문 AST 파서
 
 from __future__ import annotations
 
-import pytest
-
 from app.core.parser.tree_sitter_parser import TreeSitterASTParser
 
 
@@ -36,7 +34,7 @@ class TestTreeSitterASTParser:
     def test_extract_scopes_and_is_line_in_comment_scope(self):
         """스코프 정보 추출 및 라인 범위 인지 기능 검증."""
         code = """line 1
-        /* 
+        /*
            주석 스코프 테스트
         */
         void runProcess() {

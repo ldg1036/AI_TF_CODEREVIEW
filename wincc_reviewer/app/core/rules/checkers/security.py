@@ -1,11 +1,10 @@
 """Builtin Checker Registry & Modules"""
 from __future__ import annotations
+
 import re
-from typing import Any
 
 from app.core.models import RuleDefinition, SeverityLevel, Violation, ViolationStatus
 from app.core.parser.base_parser import ParsedFile
-
 
 _PNL_INIT_CONTEXT_KEYWORDS = [
     "scopelib::",
@@ -132,13 +131,14 @@ def check_scada_security_exec(parsed: ParsedFile, rule: RuleDefinition) -> list[
 
 from app.core.rules.dfa_engine import TaintTracker
 
+
 def check_sql_injection_risk(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
     """동적 문자열 조합 기반 쿼리 실행 보안 위험을 DFA(Taint 추적) 기반으로 정밀 검사합니다."""
     if parsed.file_path and parsed.file_path.name in ("bench_0005.pnl", "bench_0004.pnl", "bench_0005.ctl", "bench_0001.ctl"):
         print(f"[DEBUG-SECURITY-ENTER] check_sql_injection_risk entered for {parsed.file_path.name}")
-    
+
     violations: list[Violation] = []
-    
+
     # 주석 제거된 코드 라인 추출
     clean_lines: list[tuple[int, str]] = []
     in_block_comment = False
@@ -157,7 +157,7 @@ def check_sql_injection_risk(parsed: ParsedFile, rule: RuleDefinition) -> list[V
         code_part = line.split("//")[0].strip()
         if code_part:
             clean_lines.append((idx, code_part))
-            
+
     # DFA 엔진(TaintTracker) 초기화
     # 소스(위험 외부 입력): dpGet, ui_getText 등 외부 값 반환 함수 가정
     # 싱크(쿼리 실행부): dpQuery, dbOpenNames, dbExecuteQuery
@@ -165,10 +165,10 @@ def check_sql_injection_risk(parsed: ParsedFile, rule: RuleDefinition) -> list[V
         sources=["getUserText", "dpGet", "ui_getText", "recv"],
         sinks=["dpQuery", "dbOpenNames", "dbExecuteQuery", "dbExecute"]
     )
-    
+
     # 1차적으로 Taint 추적 실행
     dfa_violations = tracker.track(clean_lines)
-    
+
     for idx, snippet in dfa_violations:
         violations.append(
             Violation(
@@ -183,7 +183,7 @@ def check_sql_injection_risk(parsed: ParsedFile, rule: RuleDefinition) -> list[V
                 snippet=snippet,
             )
         )
-        
+
     # 기존 레거시: 동적 결합(+) 기반 검출 로직 (정규식 기반 보완)
     # TaintTracker가 놓친 단순 리터럴 인젝션 등 방어용
     dfa_idx_set = {v[0] for v in dfa_violations}

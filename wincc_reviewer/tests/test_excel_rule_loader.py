@@ -12,8 +12,8 @@ ExcelRuleLoader 및 Excel 파싱 검증 테스트.
 from __future__ import annotations
 
 from pathlib import Path
-import pytest
 
+import pytest
 from app.core.rules.excel_rule_loader import ExcelRuleLoader
 
 

@@ -11,9 +11,9 @@ Legacy Mapping Profile 검증 테스트.
 from __future__ import annotations
 
 from pathlib import Path
+
 import pytest
 import yaml
-
 from app.core.rules.excel_rule_loader import calculate_file_sha256
 
 

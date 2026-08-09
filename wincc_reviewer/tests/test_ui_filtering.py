@@ -5,7 +5,6 @@ UI 위반 필터링 및 파일 트리 요약 API 단위 테스트.
 from __future__ import annotations
 
 import pytest
-
 from app.ui.api import JSApi
 
 

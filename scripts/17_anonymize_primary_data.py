@@ -8,6 +8,7 @@ import os
 import re
 import sys
 
+
 def scan_sensitive_patterns():
     primary_dir = "primary_data"
     if not os.path.exists(primary_dir):
@@ -16,7 +17,7 @@ def scan_sensitive_patterns():
 
     ip_pattern = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
     user_path_pattern = re.compile(r"[C|c]:\\Users\\[a-zA-Z0-9_]+")
-    
+
     sensitive_findings = 0
     total_files = 0
 
@@ -26,10 +27,10 @@ def scan_sensitive_patterns():
             fpath = os.path.join(root, f)
             with open(fpath, "r", encoding="utf-8", errors="ignore") as fp:
                 content = fp.read()
-                
+
                 ips = ip_pattern.findall(content)
                 user_paths = user_path_pattern.findall(content)
-                
+
                 if ips or user_paths:
                     sensitive_findings += 1
                     print(f"민감 패턴 검출 파일: {fpath} (IP: {len(ips)}건, 사용자경로: {len(user_paths)}건)")

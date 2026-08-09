@@ -4,10 +4,10 @@
 PyInstaller 기반 WinCC OA Code Reviewer 독립 실행 가능 dist/wincc_reviewer.exe 실제 빌드 파이프라인
 """
 
-import os
-import sys
-import subprocess
 import hashlib
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 base_dir = Path(__file__).resolve().parent.parent
@@ -31,15 +31,15 @@ def build_executable():
             "--workpath=" + str(base_dir / "build"),
             str(base_dir / "wincc_reviewer" / "cli.py"),
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-        
+        subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+
         # standalone launcher 생성
         launcher_cmd = "@echo off\npython %~dp0..\\wincc_reviewer\\cli.py %*\n"
         launcher_bat = dist_dir / "wincc_reviewer.bat"
         with open(launcher_bat, "w", encoding="utf-8") as fp:
             fp.write(launcher_cmd)
 
-        exe_content = f"#!/usr/bin/env python\n# WinCC OA Code Reviewer Standalone Executable Binary v1.0.0\nimport sys\nimport os\nfrom wincc_reviewer.cli import main\nif __name__ == '__main__':\n    main()\n"
+        exe_content = "#!/usr/bin/env python\n# WinCC OA Code Reviewer Standalone Executable Binary v1.0.0\nimport sys\nimport os\nfrom wincc_reviewer.cli import main\nif __name__ == '__main__':\n    main()\n"
         with open(target_exe, "w", encoding="utf-8") as fp:
             fp.write(exe_content)
 

@@ -9,7 +9,6 @@ UI JSApi 브리지 유닛 테스트 (TRD §5.9 & Phase 8 기준).
 from __future__ import annotations
 
 from pathlib import Path
-import pytest
 
 from app.ui.api import JSApi
 

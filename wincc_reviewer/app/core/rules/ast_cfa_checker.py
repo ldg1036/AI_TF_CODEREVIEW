@@ -12,7 +12,13 @@ from __future__ import annotations
 import logging
 import re
 
-from app.core.models import ParseStatusType, SeverityLevel, Violation, ViolationStatus, RuleDefinition
+from app.core.models import (
+    ParseStatusType,
+    RuleDefinition,
+    SeverityLevel,
+    Violation,
+    ViolationStatus,
+)
 from app.core.parser.base_parser import ParsedFile
 from app.core.parser.tree_sitter_parser import TreeSitterASTParser
 
@@ -204,7 +210,7 @@ class ASTControlFlowChecker:
 
 def check_ast_bulk_dp_operations(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
     """CTL-PRF-002: AST 기반 이벤트 교환 횟수 최소화 (일괄 dpGet/dpSet 처리 여부 구문 분석).
-    
+
     1. 함수(스코프) 단위 독립 평가 (전역 면죄부 폐지).
     2. 루프 내 통신 직격 탐지.
     3. 연속 단건 호출 클러스터링(3회 이상).
@@ -244,7 +250,7 @@ def check_ast_bulk_dp_operations(parsed: ParsedFile, rule: RuleDefinition) -> li
         func_text = func_node.text.decode("utf8").lower() if func_node.text else ""
         if "dpget" not in func_text and "dpset" not in func_text:
             continue
-        
+
         # 1. 함수 스코프 내 배치 패턴 존재 확인 ( dynAppend + setDpValue_block )
         # 이 스코프 안에서 배치를 썼다면 이 함수는 정상적인 일괄 처리 구현체로 간주
         has_batch = False
@@ -256,7 +262,7 @@ def check_ast_bulk_dp_operations(parsed: ParsedFile, rule: RuleDefinition) -> li
                 if m.group(2).count(',') >= 3:
                     has_batch = True
                     break
-        
+
         if has_batch:
             continue
 
@@ -264,7 +270,7 @@ def check_ast_bulk_dp_operations(parsed: ParsedFile, rule: RuleDefinition) -> li
         loop_nodes = []
         find_nodes(func_node, "for_statement", loop_nodes)
         find_nodes(func_node, "while_statement", loop_nodes)
-        
+
         for loop in loop_nodes:
             call_nodes = []
             find_nodes(loop, "call_expression", call_nodes)
@@ -290,7 +296,7 @@ def check_ast_bulk_dp_operations(parsed: ParsedFile, rule: RuleDefinition) -> li
         # 3. compound_statement (중괄호 블록) 내부 연속 3회 이상 단건 호출 감지
         compound_nodes = []
         find_nodes(func_node, "compound_statement", compound_nodes)
-        
+
         for comp in compound_nodes:
             dp_call_lines = []
             for child in comp.children:
@@ -301,7 +307,7 @@ def check_ast_bulk_dp_operations(parsed: ParsedFile, rule: RuleDefinition) -> li
                         call_text = call.text.decode("utf8") if call.text else ""
                         if re.search(r'^(dpGet|dpSet)\s*\(', call_text):
                             dp_call_lines.append(call.start_point[0] + 1)
-            
+
             # 연속 호출 카운팅 로직
             if len(dp_call_lines) >= 3:
                 # 중첩 클러스터 처리
@@ -317,7 +323,7 @@ def check_ast_bulk_dp_operations(parsed: ParsedFile, rule: RuleDefinition) -> li
                         current_cluster = [dp_call_lines[i]]
                 if len(current_cluster) >= 3:
                     consecutive_clusters.extend(current_cluster)
-                
+
                 for lno in consecutive_clusters:
                     snippet = lines[lno - 1].strip()
                     violations.append(
@@ -343,7 +349,7 @@ def _fallback_bulk_dp_operations(parsed: ParsedFile, rule: RuleDefinition) -> li
     """Tree-sitter를 사용할 수 없는 환경에 대비한 구조적 텍스트 폴백 (단, 전역 면죄부는 폐지됨)."""
     violations: list[Violation] = []
     lines = parsed.content.splitlines()
-    
+
     # 텍스트 기반으로 함수 블록을 나누지 못하더라도, 15라인이 아닌 5라인 초근접성에 대해서만 엄격하게 검출하여 오탐 최소화
     single_call_lines: list[tuple[int, str]] = []
     for idx, line in enumerate(lines, start=1):
@@ -364,7 +370,7 @@ def _fallback_bulk_dp_operations(parsed: ParsedFile, rule: RuleDefinition) -> li
         l1, s1 = single_call_lines[i]
         l2, s2 = single_call_lines[i+1]
         l3, s3 = single_call_lines[i+2]
-        
+
         # 3번의 호출이 10줄 이내에 몰려있으면
         if l3 - l1 <= 10:
             region_text = "\n".join(lines[l1-1:l3]).lower()

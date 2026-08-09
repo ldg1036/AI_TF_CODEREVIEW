@@ -6,9 +6,9 @@
 """
 
 from pathlib import Path
-import pytest
 
-from app.core.rules.applicability_mapper import ApplicabilityMapper, ApplicabilityReport
+import pytest
+from app.core.rules.applicability_mapper import ApplicabilityMapper
 
 
 class TestApplicabilityMapper:

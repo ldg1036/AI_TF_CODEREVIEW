@@ -4,11 +4,10 @@ test_additional_checkers.py
 신규 10대 내장 정적 체커 유닛 테스트 수트
 """
 
-from pathlib import Path
-import pytest
-from app.core.models import RuleDefinition, SeverityLevel, CheckerType
+from app.core.models import CheckerType, RuleDefinition, SeverityLevel
 from app.core.parser.ctl_parser import CTLParser
 from app.core.rules.checker_registry import CheckerRegistry
+
 
 class TestAdditionalCheckers:
     """신규 체커 유닛 테스트"""

@@ -8,6 +8,7 @@ import ast
 import os
 import sys
 
+
 def inspect_python_file(file_path: str) -> dict:
     """단일 파이썬 파일 AST 정밀 검사"""
     with open(file_path, "r", encoding="utf-8", errors="ignore") as f:

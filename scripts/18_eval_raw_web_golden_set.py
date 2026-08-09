@@ -7,9 +7,8 @@
 
 import io
 import json
-import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 if hasattr(sys.stdout, "buffer"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -18,7 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 WINCC_REVIEWER_DIR = BASE_DIR / "wincc_reviewer"
 sys.path.insert(0, str(WINCC_REVIEWER_DIR))
 
-from app.core.pipeline import PipelineConfig, Pipeline
+from app.core.pipeline import Pipeline, PipelineConfig
 
 PRIMARY_DATA_DIR = BASE_DIR / "primary_data"
 SSOT_METRICS_FILE = BASE_DIR / "intermediate_results" / "single_source_metrics.json"

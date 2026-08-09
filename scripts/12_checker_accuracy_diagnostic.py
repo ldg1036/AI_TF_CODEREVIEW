@@ -9,9 +9,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "wincc_reviewer"))
 
+from app.core.models import CheckerType, RuleDefinition
 from app.core.parser.base_parser import ParsedFile, ParseStatus, ParseStatusType
 from app.core.rules.rule_engine import RuleEngine
-from app.core.models import RuleDefinition, CheckerType
 
 # ──────────────── 헬퍼 ────────────────
 

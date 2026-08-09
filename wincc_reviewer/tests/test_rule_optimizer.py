@@ -7,7 +7,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from app.core.ai.rule_optimizer import RuleOptimizer
 from app.main import main
 

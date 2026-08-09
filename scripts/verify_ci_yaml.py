@@ -4,8 +4,9 @@ CI/CD YAML 워크플로우 정적 검증 스크립트 (IMP 01 검증).
 """
 
 import io
-from pathlib import Path
 import sys
+from pathlib import Path
+
 import yaml
 
 if hasattr(sys.stdout, "buffer"):

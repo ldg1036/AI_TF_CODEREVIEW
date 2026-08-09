@@ -6,8 +6,8 @@ from pathlib import Path
 sys.path.insert(0, os.path.abspath('wincc_reviewer'))
 
 from app.core.pipeline import Pipeline, PipelineConfig
-from app.core.rules.excel_rule_compiler import ExcelRuleCompiler
 from app.core.rules.checker_registry import CheckerRegistry
+from app.core.rules.excel_rule_compiler import ExcelRuleCompiler
 
 pnl_path = r'C:\Users\39145\Downloads\Coder_Wincc-main\CodeReview_Data\새 폴더\CA2_Na2SO3_VALVE.pnl'
 

@@ -9,6 +9,7 @@ WinCC OA 코드 리뷰 자동화 도구 — AI 허위 경보(False Positive) 필
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from app.core.models import Violation

@@ -294,8 +294,9 @@ class HTMLReportBuilder:
                 </div>
                 """
 
+            file_id_esc = cls._escape(v.file_id).replace('\\', '\\\\')
             violation_rows += f"""
-            <tr class="v-row" data-sev="{sev_val}" data-stat="{stat_val}" style="cursor: pointer;" onclick="if(window.parent && window.parent.openCodeViewer){{ window.parent.openCodeViewer('{cls._escape(v.file_id).replace('\\', '\\\\')}', {v.line_start or 1}, '{rule_id}'); }}" title="클릭하여 소스 코드 및 위반 라인 팝업 열기">
+            <tr class="v-row" data-sev="{sev_val}" data-stat="{stat_val}" style="cursor: pointer;" onclick="if(window.parent && window.parent.openCodeViewer){{ window.parent.openCodeViewer('{file_id_esc}', {v.line_start or 1}, '{rule_id}'); }}" title="클릭하여 소스 코드 및 위반 라인 팝업 열기">
                 <td><span class="badge {stat_class}">{stat_val}</span></td>
                 <td><span class="badge {sev_class}">{sev_val}</span></td>
                 <td><strong>{rule_id}</strong><br/>{rule_confidence_badge}</td>
@@ -341,9 +342,10 @@ class HTMLReportBuilder:
                 stat_class = f"stat-{stat_val.lower()}"
                 line_str = f"L{v.line_start}" if v.line_start else "-"
                 v_rule = cls._escape(v.rule_id)
+                file_id_esc = cls._escape(v.file_id).replace('\\', '\\\\')
 
                 tbl_rows += f"""
-                <tr style="cursor: pointer;" onclick="if(window.parent && window.parent.openCodeViewer){{ window.parent.openCodeViewer('{cls._escape(v.file_id).replace('\\', '\\\\')}', {v.line_start or 1}, '{v_rule}'); }}" title="클릭하여 소스 코드 및 위반 라인 팝업 열기">
+                <tr style="cursor: pointer;" onclick="if(window.parent && window.parent.openCodeViewer){{ window.parent.openCodeViewer('{file_id_esc}', {v.line_start or 1}, '{v_rule}'); }}" title="클릭하여 소스 코드 및 위반 라인 팝업 열기">
                     <td><span class="badge {stat_class}">{stat_val}</span></td>
                     <td><span class="badge {sev_class}">{sev_val}</span></td>
                     <td><strong>{v_rule}</strong></td>

@@ -3,13 +3,10 @@
 """
 
 from pathlib import Path
-import os
-import openpyxl
-import pytest
 
+import openpyxl
 from app.core.rules.excel_rule_loader import ExcelRuleLoader
 from app.utils.log_masker import mask_api_key, mask_code_snippet
-from app.core.pipeline import Pipeline, PipelineConfig
 
 
 def test_log_masker():

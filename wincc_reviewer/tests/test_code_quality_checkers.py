@@ -5,9 +5,15 @@ Phase 12 (ctl.magic_number) 및 Phase 13 (ctl.duplicated_code) 정적 체커 단
 from __future__ import annotations
 
 from pathlib import Path
-import pytest
 
-from app.core.models import CheckerType, ParseStatus, ParseStatusType, RuleDefinition, SeverityLevel
+import pytest
+from app.core.models import (
+    CheckerType,
+    ParseStatus,
+    ParseStatusType,
+    RuleDefinition,
+    SeverityLevel,
+)
 from app.core.parser.base_parser import ParsedFile
 from app.core.rules.checker_registry import check_duplicated_code, check_magic_number
 
