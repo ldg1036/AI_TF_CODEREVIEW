@@ -13,6 +13,7 @@ from typing import Any
 
 from app.core.models import RuleDefinition, SeverityLevel, Violation, ViolationStatus
 from app.core.parser.base_parser import ParsedFile
+from app.core.rules.ast_cfa_checker import check_ast_bulk_dp_operations
 
 CheckerFn = Callable[[ParsedFile, RuleDefinition], list[Violation]]
 
@@ -336,105 +337,11 @@ def check_loop_delay(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation
 
 
 def check_batch_dp_operations(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
-    """MANUAL-003: 이벤트 교환 횟수 최소화 (일괄 dpGet/dpSet 처리 여부 구문 분석).
-
-    분석 논리:
-    - dpGet/dpSet 호출이 존재하는지 확인
-    - 일괄 처리 패턴이 있으면 PASS: (1) 여러 인자를 한 번에 전달하는 dpGet(dp1,v1,dp2,v2,...) 패턴
-      또는 (2) dynAppend(dpSet_dps,...) + setDpValue_block 배치 패턴
-    - 인접한 15라인 이내의 코드 블록에서 단건 dpGet/dpSet만 3회 이상 연속 호출 시에만 FAIL (독립 단건 호출은 PASS)
+    """MANUAL-003: 이벤트 교환 횟수 최소화 (일괄 dpGet/dpSet 처리 여부).
+    *해당 룰은 AST 기반 스코프 체커(ast_cfa_checker.py의 check_ast_bulk_dp_operations)로 이관되었습니다.
+    *여기서는 더 이상 텍스트 기반 검사를 수행하지 않고 빈 리스트를 반환합니다.
     """
-    violations: list[Violation] = []
-    lines = parsed.content.splitlines()
-    content_lower = parsed.content.lower()
-
-    # dpGet/dpSet 호출이 아예 없으면 검사 불필요
-    if "dpget(" not in content_lower and "dpset(" not in content_lower:
-        return []
-
-    # 일괄 처리 패턴 탐지
-    has_batch_pattern = False
-
-    # 패턴 1: dynAppend 배치 수집 + setDpValue_block 또는 dpSetTimedWait 일괄 호출
-    if "dynappend(" in content_lower and ("setdpvalue_block" in content_lower or "dpsettimedwait" in content_lower):
-        has_batch_pattern = True
-
-    # 패턴 2: 다중 인자 dpGet/dpSet (한 호출에 인자 콤마 3개 이상 = 최소 2 DP 일괄)
-    if not has_batch_pattern:
-        for idx, line in enumerate(lines, start=1):
-            l_strip = line.strip()
-            if l_strip.startswith("//") or l_strip.startswith("/*"):
-                continue
-            if re.search(r'\bdpGet\s*\(', line) or re.search(r'\bdpSet\s*\(', line):
-                stmt = ""
-                for j in range(idx - 1, min(idx + 5, len(lines))):
-                    stmt += lines[j]
-                    if ";" in lines[j]:
-                        break
-                if stmt.count(",") >= 3:
-                    has_batch_pattern = True
-                    break
-
-    if has_batch_pattern:
-        # 일괄 처리가 잘 구현되어 있으므로 PASS (정상 준수 코드)
-        return []
-
-    # 단건 호출 라인 위치 및 내용 수집
-    single_call_lines: list[tuple[int, str]] = []
-    for idx, line in enumerate(lines, start=1):
-        l_strip = line.strip()
-        if l_strip.startswith("//") or l_strip.startswith("/*"):
-            continue
-        if re.search(r'\b(dpGet|dpSet)\s*\(', line):
-            stmt = ""
-            for j in range(idx - 1, min(idx + 3, len(lines))):
-                stmt += lines[j]
-                if ";" in lines[j]:
-                    break
-            if stmt.count(",") <= 2:
-                single_call_lines.append((idx, l_strip))
-
-    if not single_call_lines:
-        return []
-
-    # 인접 15라인 이내에 3회 이상 단건 호출이 나열된 연속 블록(클러스터) 그룹만 추출
-    consecutive_clusters: set[int] = set()
-    n = len(single_call_lines)
-    for i in range(n):
-        cluster_lines = [single_call_lines[i][0]]
-        for j in range(i + 1, n):
-            if single_call_lines[j][0] - cluster_lines[-1] <= 15:
-                cluster_lines.append(single_call_lines[j][0])
-            else:
-                break
-        if len(cluster_lines) >= 3:
-            # cluster 내부에 if / else / case 등 조건문 분기로 나누어진 독립 호출인 경우 오매핑 제외
-            start_l = max(0, cluster_lines[0] - 2)
-            end_l = min(len(lines), cluster_lines[-1] + 1)
-            region_text = "\n".join(lines[start_l:end_l]).lower()
-            if region_text.count("else") >= 2 or region_text.count("case ") >= 2:
-                continue
-            for lno in cluster_lines:
-                consecutive_clusters.add(lno)
-
-    # 15라인 이내 3회 이상 연속 나열된 비효율 블록만 수동 검토 위반 지적
-    for l_no, snip in single_call_lines:
-        if l_no in consecutive_clusters:
-            violations.append(
-                Violation(
-                    violation_id=f"V-{rule.rule_id}-{l_no:03d}",
-                    rule_id=rule.rule_id,
-                    file_id=str(parsed.file_path),
-                    status=ViolationStatus.MANUAL_REVIEW,
-                    severity=rule.severity or SeverityLevel.MEDIUM,
-                    message=rule.message or f"[{rule.rule_id}] 인접 블록 내 단건 dpGet/dpSet 연속 3회 이상 호출로 이벤트 교환 횟수 과다. 일괄 처리(다중 인자 또는 dynAppend 배치)를 권장합니다.",
-                    line_start=l_no,
-                    line_end=l_no,
-                    snippet=snip,
-                )
-            )
-
-    return violations
+    return []
 
 
 def check_try_catch_exception(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
@@ -1072,20 +979,29 @@ def check_dpe_hardcoding(parsed: ParsedFile, rule: RuleDefinition) -> list[Viola
 def check_callback_error_handling(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
     """
     [ctl.callback_error_handling] 비동기 콜백 함수 내 에러 처리(getLastError/try-catch) 누락 탐지.
+    괄호 균형(Brace Balancing) 알고리즘으로 중첩 블록이 있는 함수 본문도 정확히 추출합니다.
     """
     violations: list[Violation] = []
     content = parsed.content
-    # dpConnect 사용 탐지
     dp_connects = re.finditer(r'\bdpConnect\s*\(\s*"([^"]+)"', content)
 
     for match in dp_connects:
         cb_name = match.group(1)
         line_no = content[: match.start()].count("\n") + 1
 
-        # 콜백 함수 본문 탐지
-        cb_func_match = re.search(r'\bvoid\s+' + re.escape(cb_name) + r'\s*\([^)]*\)\s*\{([^}]+)\}', content)
-        if cb_func_match:
-            cb_body = cb_func_match.group(1)
+        # 콜백 함수 헤더 탐지 후 괄호 균형으로 본문 전체 추출
+        header_pat = re.search(r'\bvoid\s+' + re.escape(cb_name) + r'\s*\([^)]*\)\s*\{', content)
+        if header_pat:
+            body_start = header_pat.end()
+            brace_count = 1
+            pos = body_start
+            while pos < len(content) and brace_count > 0:
+                if content[pos] == '{':
+                    brace_count += 1
+                elif content[pos] == '}':
+                    brace_count -= 1
+                pos += 1
+            cb_body = content[body_start:pos - 1]
             if "getlasterror" not in cb_body.lower() and "try" not in cb_body.lower():
                 violations.append(
                     Violation(
@@ -1272,27 +1188,64 @@ def check_scada_security_exec(parsed: ParsedFile, rule: RuleDefinition) -> list[
 
 
 def check_file_handle_leak(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
-    """fopen 호출 시 fclose 자원 해제 누락 리크를 검사합니다."""
+    """fopen 호출 시 fclose 자원 해제 누락 리크를 스코프(함수) 단위로 검사합니다.
+
+    개선: 파일 전역이 아닌, 각 함수 블록 안에서 fopen이 있으면
+    해당 블록 안에 fclose가 있는지 독립적으로 확인합니다.
+    """
     violations: list[Violation] = []
     content = parsed.content
     lines = content.splitlines()
 
-    if "fopen(" in content.lower() and "fclose(" not in content.lower():
-        for idx, line in enumerate(lines, start=1):
-            if "fopen(" in line.lower():
-                violations.append(
-                    Violation(
-                        violation_id=f"V-{rule.rule_id}-{idx}",
-                        rule_id=rule.rule_id,
-                        file_id=str(parsed.file_path),
-                        status=ViolationStatus.FAIL,
-                        severity=rule.severity or SeverityLevel.HIGH,
-                        message=rule.message or "fopen() 파일 핸들 오픈 후 fclose() 누락 자원 누수 위험",
-                        line_start=idx,
-                        line_end=idx,
-                        snippet=line.strip(),
+    if "fopen(" not in content.lower():
+        return []
+
+    # 함수 블록 경계를 간이 추출 (void/int/string... funcName(...) { 패턴)
+    func_pattern = re.compile(
+        r'\b(?:void|int|bool|string|float|dyn_\w+|anytype)\s+([a-zA-Z_]\w*)\s*\([^)]*\)\s*\{',
+        re.IGNORECASE,
+    )
+    func_regions: list[tuple[str, int, int]] = []  # (func_name, start_line, end_line)
+
+    for m in func_pattern.finditer(content):
+        func_name = m.group(1)
+        brace_start = m.end()
+        start_line = content[:m.start()].count('\n') + 1
+        brace_count = 1
+        pos = brace_start
+        while pos < len(content) and brace_count > 0:
+            if content[pos] == '{':
+                brace_count += 1
+            elif content[pos] == '}':
+                brace_count -= 1
+            pos += 1
+        end_line = content[:pos].count('\n') + 1
+        func_regions.append((func_name, start_line, end_line))
+
+    # 함수 영역이 없으면 전체를 하나의 스코프로 취급
+    if not func_regions:
+        func_regions = [("<global>", 1, len(lines))]
+
+    for func_name, s_line, e_line in func_regions:
+        region_lines = lines[s_line - 1 : e_line]
+        region_text = "\n".join(region_lines).lower()
+        if "fopen(" in region_text and "fclose(" not in region_text:
+            for offset, line in enumerate(region_lines):
+                abs_line = s_line + offset
+                if "fopen(" in line.lower():
+                    violations.append(
+                        Violation(
+                            violation_id=f"V-{rule.rule_id}-{abs_line}",
+                            rule_id=rule.rule_id,
+                            file_id=str(parsed.file_path),
+                            status=ViolationStatus.FAIL,
+                            severity=rule.severity or SeverityLevel.HIGH,
+                            message=rule.message or f"함수 '{func_name}' 내 fopen() 파일 핸들 오픈 후 동일 스코프에 fclose() 누락 (자원 누수 위험)",
+                            line_start=abs_line,
+                            line_end=abs_line,
+                            snippet=line.strip(),
+                        )
                     )
-                )
     return violations
 
 
@@ -1388,11 +1341,41 @@ def check_pnl_scope_leak(parsed: ParsedFile, rule: RuleDefinition) -> list[Viola
 
 
 def check_dyn_array_out_of_bounds(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
-    """ctl.dyn_array_out_of_bounds: WinCC OA 1 기반 동적 배열 인덱스 0 참조 경고."""
+    """ctl.dyn_array_out_of_bounds: WinCC OA 1 기반 동적 배열 인덱스 0 참조 경고.
+
+    개선: dyn_ 접두사가 붙은 변수에 대해서만 [0] 접근을 위반으로 잡고,
+    일반 C 스타일 배열(int arr[10] 등)은 0 기반이므로 PASS 처리합니다.
+    """
     violations: list[Violation] = []
     lines = parsed.content.splitlines()
+    # dyn_ 타입으로 선언된 변수명 수집
+    dyn_vars: set[str] = set()
+    for line in lines:
+        decl_match = re.search(r'\bdyn_\w+\s+([a-zA-Z_]\w*)', line)
+        if decl_match:
+            dyn_vars.add(decl_match.group(1))
+
     for idx, line in enumerate(lines, start=1):
-        if re.search(r'\b\w+\[\s*0\s*\]', line) or re.search(r'\bdyn_\w+', line) and "[0]" in line:
+        clean = line.split("//")[0]
+        # 패턴 1: dyn_ 타입 변수로 선언된 변수의 [0] 접근
+        for var_name in dyn_vars:
+            if re.search(re.escape(var_name) + r'\[\s*0\s*\]', clean):
+                violations.append(
+                    Violation(
+                        violation_id=f"V-{rule.rule_id}-{idx:03d}",
+                        rule_id=rule.rule_id,
+                        file_id=str(parsed.file_path),
+                        status=ViolationStatus.FAIL,
+                        severity=rule.severity or SeverityLevel.HIGH,
+                        message=f"WinCC OA 동적 배열 변수 '{var_name}'은 1 기반 인덱스입니다. [0] 참조는 인덱스 범위 초과 오류를 발생시킵니다.",
+                        line_start=idx,
+                        line_end=idx,
+                        snippet=line.strip(),
+                    )
+                )
+                break
+        # 패턴 2: 인라인 dyn_ 타입에 직접 [0] (예: dyn_string items; items[0])
+        if re.search(r'\bdyn_\w+\b.*\[\s*0\s*\]', clean) and idx not in {v.line_start for v in violations}:
             violations.append(
                 Violation(
                     violation_id=f"V-{rule.rule_id}-{idx:03d}",
@@ -1400,7 +1383,7 @@ def check_dyn_array_out_of_bounds(parsed: ParsedFile, rule: RuleDefinition) -> l
                     file_id=str(parsed.file_path),
                     status=ViolationStatus.FAIL,
                     severity=rule.severity or SeverityLevel.HIGH,
-                    message="WinCC OA 동적 배열(dyn_*)은 1 기반 인덱스입니다. 0번 인덱스 참조는 인덱스 범위 초과 오류를 발생시킵니다.",
+                    message="WinCC OA 동적 배열(dyn_*)은 1 기반 인덱스입니다. [0] 참조는 인덱스 범위 초과 오류를 발생시킵니다.",
                     line_start=idx,
                     line_end=idx,
                     snippet=line.strip(),
@@ -1499,8 +1482,66 @@ def check_file_open_mode_check(parsed: ParsedFile, rule: RuleDefinition) -> list
 
 
 def check_unused_function_param(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
-    """ctl.unused_function_param: 미사용 파라미터 경고."""
-    return []
+    """ctl.unused_function_param: 함수 파라미터가 본문 내에서 한 번도 사용되지 않는 경우 경고."""
+    violations: list[Violation] = []
+    content = parsed.content
+    lines = content.splitlines()
+
+    # 함수 선언 패턴: returnType funcName(type1 param1, type2 param2, ...)
+    func_pattern = re.compile(
+        r'\b(?:void|int|bool|string|float|dyn_\w+|anytype)\s+([a-zA-Z_]\w*)\s*\(([^)]+)\)\s*\{',
+    )
+
+    for m in func_pattern.finditer(content):
+        func_name = m.group(1)
+        params_str = m.group(2).strip()
+        func_line = content[:m.start()].count('\n') + 1
+
+        if not params_str:
+            continue
+
+        # 파라미터 이름 추출 (type paramName 쌍에서 paramName)
+        param_names: list[str] = []
+        for param in params_str.split(','):
+            parts = param.strip().split()
+            if len(parts) >= 2:
+                p_name = parts[-1].strip('&')
+                if p_name and len(p_name) > 1:  # 단일 문자 관례 변수 제외
+                    param_names.append(p_name)
+
+        if not param_names:
+            continue
+
+        # 함수 본문 추출 (괄호 균형)
+        brace_start = m.end()
+        brace_count = 1
+        pos = brace_start
+        while pos < len(content) and brace_count > 0:
+            if content[pos] == '{':
+                brace_count += 1
+            elif content[pos] == '}':
+                brace_count -= 1
+            pos += 1
+        func_body = content[brace_start:pos - 1]
+
+        for p_name in param_names:
+            usage_pat = re.compile(r'\b' + re.escape(p_name) + r'\b')
+            if not usage_pat.search(func_body):
+                violations.append(
+                    Violation(
+                        violation_id=f"V-{rule.rule_id}-{func_line:03d}",
+                        rule_id=rule.rule_id,
+                        file_id=str(parsed.file_path),
+                        status=ViolationStatus.FAIL,
+                        severity=rule.severity or SeverityLevel.LOW,
+                        message=f"[{rule.rule_id}] 함수 '{func_name}'의 파라미터 '{p_name}'(이)가 본문 내에서 사용되지 않습니다.",
+                        line_start=func_line,
+                        line_end=func_line,
+                        snippet=lines[func_line - 1].strip() if func_line <= len(lines) else "",
+                    )
+                )
+
+    return violations
 
 
 def check_sprintf_buffer_overflow_risk(parsed: ParsedFile, rule: RuleDefinition) -> list[Violation]:
@@ -1592,7 +1633,10 @@ def check_child_panel_parameter_mismatch(parsed: ParsedFile, rule: RuleDefinitio
 
 def check_debug_log_level(parsed: Any, rule: Any) -> list[Violation]:
     """
-    ctl.debug_log_level: 디버깅용 로그 작성 시 표준 레벨(INFO/WARN/ERR/DBG1/DBG2) 준수 여부 검사.
+    ctl.debug_log_level: 디버깅용 로그 작성 시 표준 레벨 준수 여부 검사.
+
+    개선: WinCC OA 표준 로깅 함수(DebugN, DebugFTN)는 프로덕션에서 허용되므로
+    INFO 수준 안내로 완화하고, 임시 디버그 출력(printf, Debug1, Debug2)만 FAIL 유지.
     """
     violations = []
     if not parsed.file_path:
@@ -1600,13 +1644,17 @@ def check_debug_log_level(parsed: Any, rule: Any) -> list[Violation]:
 
     content = str(getattr(parsed, "content", "") or "")
     lines = content.splitlines()
-    debug_patterns = ["Debug1(", "Debug2(", "DebugN(", "DBG1", "DBG2", "printf("]
+
+    # FAIL 대상: 임시 디버그 출력 (프로덕션 코드에 남으면 안 되는 패턴)
+    fail_patterns = ["printf(", "Debug1(", "Debug2("]
+    # INFO 대상: 표준 로깅 (프로덕션 허용, 참고 안내만)
+    info_patterns = ["DebugN(", "DebugFTN("]
 
     for idx, line in enumerate(lines, start=1):
         line_clean = line.strip()
         if line_clean.startswith("//") or line_clean.startswith("/*"):
             continue
-        for pat in debug_patterns:
+        for pat in fail_patterns:
             if pat in line:
                 violations.append(
                     Violation(
@@ -1614,14 +1662,31 @@ def check_debug_log_level(parsed: Any, rule: Any) -> list[Violation]:
                         rule_id=rule.rule_id,
                         file_id=str(parsed.file_path),
                         status=ViolationStatus.FAIL,
-                        severity=rule.severity or SeverityLevel.LOW,
-                        message=f"디버깅용 로그 레벨 비표준 사용 또는 임시 디버그 출력 패턴('{pat}')이 감지되었습니다.",
+                        severity=rule.severity or SeverityLevel.MEDIUM,
+                        message=f"임시 디버그 출력 함수 '{pat.rstrip('(')}' 호출이 프로덕션 코드에 잔존합니다. 제거하거나 DebugN으로 교체하세요.",
                         line_start=idx,
                         line_end=idx,
                         snippet=line_clean,
                     )
                 )
                 break
+        else:
+            for pat in info_patterns:
+                if pat in line:
+                    violations.append(
+                        Violation(
+                            violation_id=f"V-{rule.rule_id}-{idx:03d}",
+                            rule_id=rule.rule_id,
+                            file_id=str(parsed.file_path),
+                            status=ViolationStatus.MANUAL_REVIEW,
+                            severity=SeverityLevel.INFO,
+                            message=f"[INFO] 표준 로깅 함수 '{pat.rstrip('(')}' 사용이 감지되었습니다. 운영 환경 로그 레벨 설정을 확인하세요.",
+                            line_start=idx,
+                            line_end=idx,
+                            snippet=line_clean,
+                        )
+                    )
+                    break
     return violations
 
 
@@ -1661,7 +1726,7 @@ def check_config_integrity(parsed: Any, rule: Any) -> list[Violation]:
 # 37개 완결 내장 체커 등록 (자동화 커버리지 100% 완수)
 CheckerRegistry.register("ctl.dp_connect_pair", check_dp_connect_pair)
 CheckerRegistry.register("ctl.loop_delay", check_loop_delay)
-CheckerRegistry.register("ctl.batch_dp_ops", check_batch_dp_operations)
+CheckerRegistry.register("ctl.batch_dp_ops", check_ast_bulk_dp_operations)
 CheckerRegistry.register("ctl.try_catch", check_try_catch_exception)
 CheckerRegistry.register("ctl.hardcoding", check_hardcoding)
 CheckerRegistry.register("ctl.dp_error_handling", check_dp_function_error_handling)
