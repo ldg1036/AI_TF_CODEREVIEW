@@ -1,0 +1,37 @@
+{
+  "archived_metrics": [
+    {
+      "total_real_web_samples_evaluated": 60,
+      "evaluated_files_count": 60,
+      "total_violations_detected": 25,
+      "real_precision_percent": 93.3,
+      "real_recall_percent": 91.7,
+      "inter_annotator_agreement_kappa": 1.0,
+      "_archive_reason": "[HOLD] 이견 사례 부족 (Kappa=1.0). 골든셋 재구성 전까지 보류",
+      "_archived_at": "2026-08-10T00:56:51.164190"
+    },
+    {
+      "total_synthetic_files": 210,
+      "true_positives": 168,
+      "false_positives": 56,
+      "false_negatives": 42,
+      "benchmark_precision_percent": 75.0,
+      "benchmark_recall_percent": 80.0,
+      "_archive_reason": "[RECLASSIFIED] dataset_purpose: performance_benchmark. 정밀도 대표값 아님",
+      "_archived_at": "2026-08-10T00:56:51.164190"
+    },
+    {
+      "total_raw_samples_evaluated": 34,
+      "total_violations_detected": 472,
+      "true_positives": 468,
+      "false_positives": 4,
+      "false_negatives": 1,
+      "real_precision_percent": 99.2,
+      "real_recall_percent": 99.8,
+      "real_f1_score_percent": 99.5,
+      "evaluation_mode": "DEDUPED_REAL_WEB_RAW_SAMPLES_BENCHMARK",
+      "_archive_reason": "[DISCARDED] padding 데이터셋. 기반 데이터셋 진위성 기준 미달",
+      "_archived_at": "2026-08-10T00:56:51.164190"
+    }
+  ]
+}

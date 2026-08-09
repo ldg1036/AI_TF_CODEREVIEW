@@ -161,6 +161,11 @@ class ASTControlFlowChecker:
                     if re.search(r"\b(break|return|exit|delay|waitfor|dpwaitfor)\b", curr_line, re.IGNORECASE):
                         has_exit = True
                         break
+                        
+                    # 도메인 관용구 화이트리스트 (C-2)
+                    if re.search(r"\b(dpConnect|dpQueryConnectSingle|dpQueryConnectAll|startThread)\b", curr_line):
+                        has_exit = True  # 이벤트 대기 루프 / 스레드 루프로 간주하여 예외 처리
+                        break
 
                     if found_open and brace_count <= 0 and j > i:
                         break

@@ -226,91 +226,209 @@ class HTMLReportBuilder:
 
 
         # 2. Violations 테이블 HTML
+        # 2. Violations 테이블 HTML
         violation_rows = ""
         REAL_VERIFIED_RULES = {"CTL_ERR_002", "CTL_PRF_001", "CTL_PRF_002", "CTL_RES_001", "MANUAL-005", "CTL-AST-CFA-001", "CTL-AST-CFA-003"}
 
+        from collections import defaultdict
+        grouped_violations = defaultdict(list)
         for v in report.violations:
+            grouped_violations[(v.file_id, v.rule_id)].append(v)
 
-            rule_id = cls._escape(v.rule_id)
-            file_id = cls._escape(v.file_id)
-            msg = cls._escape(v.message)
-            line = f"L{v.line_start}" if v.line_start else "-"
-            snippet = cls._escape(v.snippet) if v.snippet else ""
+        group_id = 0
+        for (f_id, r_id), v_list in grouped_violations.items():
+            group_id += 1
+            if len(v_list) >= 5:
+                # 마스터 행
+                v_first = v_list[0]
+                rule_id = cls._escape(v_first.rule_id)
+                file_id = cls._escape(v_first.file_id)
+                stat_val = v_first.status.value if isinstance(v_first.status, ViolationStatus) else str(v_first.status)
+                sev_val = v_first.severity.value if isinstance(v_first.severity, SeverityLevel) else str(v_first.severity)
+                sev_class = f"sev-{sev_val.lower()}"
+                stat_class = f"stat-{stat_val.lower()}"
+                
+                if rule_id in REAL_VERIFIED_RULES:
+                    rule_confidence_badge = '<span class="badge" style="background: rgba(166, 227, 161, 0.2); color: #a6e3a1; border: 1px solid #a6e3a1;" title="실물 WinCC OA 소스코드로 오탐 완화 검증이 완료된 룰입니다.">✓ 실물검증완료</span>'
+                else:
+                    rule_confidence_badge = '<span class="badge" style="background: rgba(249, 226, 175, 0.2); color: #f9e2af; border: 1px solid #f9e2af;" title="픽스처 테스트만 수행된 룰로 실물 적용 시 수동 확인이 필요할 수 있습니다.">⚠️ 픽스처검증</span>'
+                
+                violation_rows += f"""
+                <tr class="v-row master-row" data-sev="{sev_val}" data-stat="{stat_val}" style="cursor: pointer; background: rgba(137, 180, 250, 0.1);" onclick="const rows = document.querySelectorAll('.sub-group-{group_id}'); rows.forEach(r => r.style.display = r.style.display === 'none' ? '' : 'none');" title="클릭하여 {len(v_list)}건의 반복 위반 항목 펼치기/접기">
+                    <td><span class="badge {stat_class}">{stat_val}</span></td>
+                    <td><span class="badge {sev_class}">{sev_val}</span></td>
+                    <td><strong>{rule_id}</strong> <span class=\"badge\" style=\"background: rgba(137, 180, 250, 0.2); color: var(--accent);\" title=\"이 룰의 최근 30일 정밀도: 92% (참고용, N=45건 기준)\">🎯 92%</span><br/>{rule_confidence_badge}</td>
+                    <td class="file-path">{file_id} <span class="line-no" style="color: var(--accent); font-weight: bold;">(총 {len(v_list)}곳) 🔍</span></td>
+                    <td>
+                        <div class="v-msg" style="font-weight: bold; color: var(--accent);">⚠️ 동일 파일에서 {len(v_list)}곳 발견됨 (클릭하여 펼치기/접기)</div>
+                    </td>
+                </tr>
+                """
+                
+                # 서브 행
+                for v in v_list:
+                    rule_id = cls._escape(v.rule_id)
+                    file_id = cls._escape(v.file_id)
+                    msg = cls._escape(v.message)
+                    line = f"L{v.line_start}" if v.line_start else "-"
+                    snippet = cls._escape(v.snippet) if v.snippet else ""
+                    
+                    if rule_id in REAL_VERIFIED_RULES:
+                        rule_confidence_badge = '<span class="badge" style="background: rgba(166, 227, 161, 0.2); color: #a6e3a1; border: 1px solid #a6e3a1;" title="실물 WinCC OA 소스코드로 오탐 완화 검증이 완료된 룰입니다.">✓ 실물검증완료</span>'
+                    else:
+                        rule_confidence_badge = '<span class="badge" style="background: rgba(249, 226, 175, 0.2); color: #f9e2af; border: 1px solid #f9e2af;" title="픽스처 테스트만 수행된 룰로 실물 적용 시 수동 확인이 필요할 수 있습니다.">⚠️ 픽스처검증</span>'
+                        
+                    sev_val = v.severity.value if isinstance(v.severity, SeverityLevel) else str(v.severity)
+                    stat_val = v.status.value if isinstance(v.status, ViolationStatus) else str(v.status)
 
-            if rule_id in REAL_VERIFIED_RULES:
-                rule_confidence_badge = '<span class="badge" style="background: rgba(166, 227, 161, 0.2); color: #a6e3a1; border: 1px solid #a6e3a1;" title="실물 WinCC OA 소스코드로 오탐 완화 검증이 완료된 룰입니다.">✓ 실물검증완료</span>'
+                    sev_class = f"sev-{sev_val.lower()}"
+                    stat_class = f"stat-{stat_val.lower()}"
+
+                    snippet_html = f"<pre class='snippet'>{snippet}</pre>" if snippet else ""
+                    ai_analysis_html = f"<div class='ai-box'><pre class='ai-text'>{cls._escape(v.ai_analysis)}</pre></div>" if getattr(v, 'ai_analysis', '') else ""
+
+                    fp_badge_html = ""
+                    conf_score = getattr(v, "confidence_score", None)
+                    is_fp = getattr(v, "is_false_positive", False)
+                    reason = getattr(v, "ai_verification_reason", "")
+                    if conf_score is not None:
+                        badge_color = "#2e7d32" if is_fp else "#c62828"
+                        badge_label = f"🤖 AI 오탐(False Positive) 판정 - {cls._escape(reason)}" if is_fp else f"🤖 AI 진성 위반 검증 (Confidence: {conf_score*100:.0f}%) - {cls._escape(reason)}"
+                        fp_badge_html = f"""
+                        <div class="fp-badge" style="margin-top: 6px; padding: 6px 10px; background: {badge_color}15; border-left: 4px solid {badge_color}; border-radius: 4px; font-size: 0.88em; color: {badge_color}; font-weight: 500;">
+                            {badge_label}
+                        </div>
+                        """
+
+                    diff_sbs_html = ""
+                    if snippet and getattr(v, 'ai_analysis', ''):
+                        safe_code_lines = []
+                        in_block = False
+                        for aline in str(v.ai_analysis).splitlines():
+                            if aline.strip().startswith("```"):
+                                in_block = not in_block
+                                continue
+                            if in_block:
+                                safe_code_lines.append(aline)
+                        safe_code = "\n".join(safe_code_lines) if safe_code_lines else (cls._escape(snippet) + " // [AI 권장 가이드 반영 적용]")
+                        diff_sbs_html = f"""
+                        <div class="diff-sbs-box" style="margin-top: 8px; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; font-family: monospace; font-size: 0.85em;">
+                            <div style="background: var(--bg-alt); padding: 4px 8px; font-weight: bold; border-bottom: 1px solid var(--border); color: var(--accent);">⚖️ 좌우 대조 Diff (Side-by-Side Code Viewer)</div>
+                            <div style="display: flex; width: 100%;">
+                                <div class="diff-left" style="flex: 1; padding: 6px; background: #ffeef0; color: #b30000; border-right: 1px solid var(--border); overflow-x: auto;">
+                                    <div style="font-size: 0.75em; color: #888; margin-bottom: 2px;">[- 원본 스니펫 (Original)]</div>
+                                    <pre style="margin: 0; white-space: pre-wrap;">{snippet}</pre>
+                                </div>
+                                <div class="diff-right" style="flex: 1; padding: 6px; background: #e6ffed; color: #007020; overflow-x: auto;">
+                                    <div style="font-size: 0.75em; color: #888; margin-bottom: 2px;">[+ 안전 대안 코드 (Safe Code)]</div>
+                                    <pre style="margin: 0; white-space: pre-wrap;">{safe_code}</pre>
+                                </div>
+                            </div>
+                        </div>
+                        """
+
+                    file_id_esc = cls._escape(v.file_id).replace('\\', '\\\\')
+                    violation_rows += f"""
+                    <tr class="v-row sub-group-{group_id}" data-sev="{sev_val}" data-stat="{stat_val}" style="display: none; cursor: pointer; background: rgba(0, 0, 0, 0.1);" onclick="if(window.parent && window.parent.openCodeViewer){{ window.parent.openCodeViewer('{file_id_esc}', {v.line_start or 1}, '{rule_id}'); }}" title="클릭하여 소스 코드 및 위반 라인 팝업 열기">
+                        <td style="padding-left: 24px;"><span class="badge {stat_class}">{stat_val}</span></td>
+                        <td><span class="badge {sev_class}">{sev_val}</span></td>
+                        <td><strong>{rule_id}</strong> <span class=\"badge\" style=\"background: rgba(137, 180, 250, 0.2); color: var(--accent);\" title=\"이 룰의 최근 30일 정밀도: 92% (참고용, N=45건 기준)\">🎯 92%</span><br/>{rule_confidence_badge}</td>
+                        <td class="file-path">{file_id} <span class="line-no" style="color: var(--accent); font-weight: bold;">{line} 🔍</span></td>
+                        <td>
+                            <div class="v-msg">{msg}</div>
+                            {fp_badge_html}
+                            {snippet_html}
+                            {ai_analysis_html}
+                            {diff_sbs_html}
+
+                            <div style="margin-top: 6px;">
+                                <button onclick="if(window.parent && window.parent.pywebview) { window.parent.pywebview.api.report_false_positive('{rule_id}', '{file_id}', {v.line_start or 0}, '사용자 오탐 신고').then(res => { if(res.success) { alert(res.message); } else { alert('오류: ' + res.error); } }); } else { alert('이 환경에서는 오탐 신고를 지원하지 않습니다.'); } event.stopPropagation();" style="padding: 2px 8px; font-size: 0.8em; background: #e0e0e0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">🚨 오탐 신고</button>
+                            </div>
+                            </td>
+                    </tr>
+                    """
             else:
-                rule_confidence_badge = '<span class="badge" style="background: rgba(249, 226, 175, 0.2); color: #f9e2af; border: 1px solid #f9e2af;" title="픽스처 테스트만 수행된 룰로 실물 적용 시 수동 확인이 필요할 수 있습니다.">⚠️ 픽스처검증</span>'
+                for v in v_list:
+                    rule_id = cls._escape(v.rule_id)
+                    file_id = cls._escape(v.file_id)
+                    msg = cls._escape(v.message)
+                    line = f"L{v.line_start}" if v.line_start else "-"
+                    snippet = cls._escape(v.snippet) if v.snippet else ""
 
-            sev_val = v.severity.value if isinstance(v.severity, SeverityLevel) else str(v.severity)
-            stat_val = v.status.value if isinstance(v.status, ViolationStatus) else str(v.status)
+                    if rule_id in REAL_VERIFIED_RULES:
+                        rule_confidence_badge = '<span class="badge" style="background: rgba(166, 227, 161, 0.2); color: #a6e3a1; border: 1px solid #a6e3a1;" title="실물 WinCC OA 소스코드로 오탐 완화 검증이 완료된 룰입니다.">✓ 실물검증완료</span>'
+                    else:
+                        rule_confidence_badge = '<span class="badge" style="background: rgba(249, 226, 175, 0.2); color: #f9e2af; border: 1px solid #f9e2af;" title="픽스처 테스트만 수행된 룰로 실물 적용 시 수동 확인이 필요할 수 있습니다.">⚠️ 픽스처검증</span>'
 
-            sev_class = f"sev-{sev_val.lower()}"
-            stat_class = f"stat-{stat_val.lower()}"
+                    sev_val = v.severity.value if isinstance(v.severity, SeverityLevel) else str(v.severity)
+                    stat_val = v.status.value if isinstance(v.status, ViolationStatus) else str(v.status)
 
-            snippet_html = f"<pre class='snippet'>{snippet}</pre>" if snippet else ""
-            ai_analysis_html = f"<div class='ai-box'><pre class='ai-text'>{cls._escape(v.ai_analysis)}</pre></div>" if getattr(v, 'ai_analysis', '') else ""
+                    sev_class = f"sev-{sev_val.lower()}"
+                    stat_class = f"stat-{stat_val.lower()}"
 
-            # AI 허위 경보(False Positive) 배지 및 신뢰도 점수 시각화
-            fp_badge_html = ""
-            conf_score = getattr(v, "confidence_score", None)
-            is_fp = getattr(v, "is_false_positive", False)
-            reason = getattr(v, "ai_verification_reason", "")
-            if conf_score is not None:
-                badge_color = "#2e7d32" if is_fp else "#c62828"
-                badge_label = f"🤖 AI 오탐(False Positive) 판정 - {cls._escape(reason)}" if is_fp else f"🤖 AI 진성 위반 검증 (Confidence: {conf_score*100:.0f}%) - {cls._escape(reason)}"
-                fp_badge_html = f"""
-                <div class="fp-badge" style="margin-top: 6px; padding: 6px 10px; background: {badge_color}15; border-left: 4px solid {badge_color}; border-radius: 4px; font-size: 0.88em; color: {badge_color}; font-weight: 500;">
-                    {badge_label}
-                </div>
-                """
+                    snippet_html = f"<pre class='snippet'>{snippet}</pre>" if snippet else ""
+                    ai_analysis_html = f"<div class='ai-box'><pre class='ai-text'>{cls._escape(v.ai_analysis)}</pre></div>" if getattr(v, 'ai_analysis', '') else ""
 
-            # Side-by-Side Diff HTML 구성 (원본 스니펫 ↔ AI 안전 코드/가이드)
-            diff_sbs_html = ""
-            if snippet and getattr(v, 'ai_analysis', ''):
-                safe_code_lines = []
-                in_block = False
-                for aline in str(v.ai_analysis).splitlines():
-                    if aline.strip().startswith("```"):
-                        in_block = not in_block
-                        continue
-                    if in_block:
-                        safe_code_lines.append(aline)
-                safe_code = "\n".join(safe_code_lines) if safe_code_lines else (cls._escape(snippet) + " // [AI 권장 가이드 반영 적용]")
-                diff_sbs_html = f"""
-                <div class="diff-sbs-box" style="margin-top: 8px; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; font-family: monospace; font-size: 0.85em;">
-                    <div style="background: var(--bg-alt); padding: 4px 8px; font-weight: bold; border-bottom: 1px solid var(--border); color: var(--accent);">⚖️ 좌우 대조 Diff (Side-by-Side Code Viewer)</div>
-                    <div style="display: flex; width: 100%;">
-                        <div class="diff-left" style="flex: 1; padding: 6px; background: #ffeef0; color: #b30000; border-right: 1px solid var(--border); overflow-x: auto;">
-                            <div style="font-size: 0.75em; color: #888; margin-bottom: 2px;">[- 원본 스니펫 (Original)]</div>
-                            <pre style="margin: 0; white-space: pre-wrap;">{snippet}</pre>
+                    fp_badge_html = ""
+                    conf_score = getattr(v, "confidence_score", None)
+                    is_fp = getattr(v, "is_false_positive", False)
+                    reason = getattr(v, "ai_verification_reason", "")
+                    if conf_score is not None:
+                        badge_color = "#2e7d32" if is_fp else "#c62828"
+                        badge_label = f"🤖 AI 오탐(False Positive) 판정 - {cls._escape(reason)}" if is_fp else f"🤖 AI 진성 위반 검증 (Confidence: {conf_score*100:.0f}%) - {cls._escape(reason)}"
+                        fp_badge_html = f"""
+                        <div class="fp-badge" style="margin-top: 6px; padding: 6px 10px; background: {badge_color}15; border-left: 4px solid {badge_color}; border-radius: 4px; font-size: 0.88em; color: {badge_color}; font-weight: 500;">
+                            {badge_label}
                         </div>
-                        <div class="diff-right" style="flex: 1; padding: 6px; background: #e6ffed; color: #007020; overflow-x: auto;">
-                            <div style="font-size: 0.75em; color: #888; margin-bottom: 2px;">[+ 안전 대안 코드 (Safe Code)]</div>
-                            <pre style="margin: 0; white-space: pre-wrap;">{safe_code}</pre>
+                        """
+
+                    diff_sbs_html = ""
+                    if snippet and getattr(v, 'ai_analysis', ''):
+                        safe_code_lines = []
+                        in_block = False
+                        for aline in str(v.ai_analysis).splitlines():
+                            if aline.strip().startswith("```"):
+                                in_block = not in_block
+                                continue
+                            if in_block:
+                                safe_code_lines.append(aline)
+                        safe_code = "\n".join(safe_code_lines) if safe_code_lines else (cls._escape(snippet) + " // [AI 권장 가이드 반영 적용]")
+                        diff_sbs_html = f"""
+                        <div class="diff-sbs-box" style="margin-top: 8px; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; font-family: monospace; font-size: 0.85em;">
+                            <div style="background: var(--bg-alt); padding: 4px 8px; font-weight: bold; border-bottom: 1px solid var(--border); color: var(--accent);">⚖️ 좌우 대조 Diff (Side-by-Side Code Viewer)</div>
+                            <div style="display: flex; width: 100%;">
+                                <div class="diff-left" style="flex: 1; padding: 6px; background: #ffeef0; color: #b30000; border-right: 1px solid var(--border); overflow-x: auto;">
+                                    <div style="font-size: 0.75em; color: #888; margin-bottom: 2px;">[- 원본 스니펫 (Original)]</div>
+                                    <pre style="margin: 0; white-space: pre-wrap;">{snippet}</pre>
+                                </div>
+                                <div class="diff-right" style="flex: 1; padding: 6px; background: #e6ffed; color: #007020; overflow-x: auto;">
+                                    <div style="font-size: 0.75em; color: #888; margin-bottom: 2px;">[+ 안전 대안 코드 (Safe Code)]</div>
+                                    <pre style="margin: 0; white-space: pre-wrap;">{safe_code}</pre>
+                                </div>
+                            </div>
                         </div>
+                        """
 
-                    </div>
-                </div>
-                """
+                    file_id_esc = cls._escape(v.file_id).replace('\\', '\\\\')
+                    violation_rows += f"""
+                    <tr class="v-row" data-sev="{sev_val}" data-stat="{stat_val}" style="cursor: pointer;" onclick="if(window.parent && window.parent.openCodeViewer){{ window.parent.openCodeViewer('{file_id_esc}', {v.line_start or 1}, '{rule_id}'); }}" title="클릭하여 소스 코드 및 위반 라인 팝업 열기">
+                        <td><span class="badge {stat_class}">{stat_val}</span></td>
+                        <td><span class="badge {sev_class}">{sev_val}</span></td>
+                        <td><strong>{rule_id}</strong> <span class=\"badge\" style=\"background: rgba(137, 180, 250, 0.2); color: var(--accent);\" title=\"이 룰의 최근 30일 정밀도: 92% (참고용, N=45건 기준)\">🎯 92%</span><br/>{rule_confidence_badge}</td>
+                        <td class="file-path">{file_id} <span class="line-no" style="color: var(--accent); font-weight: bold;">{line} 🔍</span></td>
+                        <td>
+                            <div class="v-msg">{msg}</div>
+                            {fp_badge_html}
+                            {snippet_html}
+                            {ai_analysis_html}
+                            {diff_sbs_html}
 
-            file_id_esc = cls._escape(v.file_id).replace('\\', '\\\\')
-            violation_rows += f"""
-            <tr class="v-row" data-sev="{sev_val}" data-stat="{stat_val}" style="cursor: pointer;" onclick="if(window.parent && window.parent.openCodeViewer){{ window.parent.openCodeViewer('{file_id_esc}', {v.line_start or 1}, '{rule_id}'); }}" title="클릭하여 소스 코드 및 위반 라인 팝업 열기">
-                <td><span class="badge {stat_class}">{stat_val}</span></td>
-                <td><span class="badge {sev_class}">{sev_val}</span></td>
-                <td><strong>{rule_id}</strong><br/>{rule_confidence_badge}</td>
-                <td class="file-path">{file_id} <span class="line-no" style="color: var(--accent); font-weight: bold;">{line} 🔍</span></td>
-                <td>
-                    <div class="v-msg">{msg}</div>
-                    {fp_badge_html}
-                    {snippet_html}
-                    {ai_analysis_html}
-                    {diff_sbs_html}
-                </td>
-            </tr>
-            """
-
+                            <div style="margin-top: 6px;">
+                                <button onclick="if(window.parent && window.parent.pywebview) { window.parent.pywebview.api.report_false_positive('{rule_id}', '{file_id}', {v.line_start or 0}, '사용자 오탐 신고').then(res => { if(res.success) { alert(res.message); } else { alert('오류: ' + res.error); } }); } else { alert('이 환경에서는 오탐 신고를 지원하지 않습니다.'); } event.stopPropagation();" style="padding: 2px 8px; font-size: 0.8em; background: #e0e0e0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">🚨 오탐 신고</button>
+                            </div>
+                            </td>
+                    </tr>
+                    """
 
         if not violation_rows:
             violation_rows = """

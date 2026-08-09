@@ -34,6 +34,7 @@ jobs:
 
       - name: Run agent protocol and CI integrity checks
         run: |
+          python scripts/validate_dataset_authenticity.py intermediate_results/
           python scripts/16_verify_agent_protocol.py
           python scripts/verify_ci_yaml.py
           python scripts/verify_raw_sample_provenance.py
@@ -53,6 +54,9 @@ jobs:
 
       - name: Update SSOT Metrics
         run: python scripts/verify_coverage_claim.py
+
+      - name: Verify Metric Variance
+        run: python scripts/check_metric_variance.py
 
       - name: Verify SSOT Metrics Staleness
         run: git diff --exit-code intermediate_results/single_source_metrics.json || (echo "[FAIL] single_source_metrics.json is stale. Please run scripts/verify_coverage_claim.py and commit the changes." && exit 1)

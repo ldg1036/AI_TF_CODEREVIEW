@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Precision Report Schema",
+  "type": "object",
+  "properties": {
+    "dataset_id": {
+      "type": "string"
+    },
+    "dataset_purpose": {
+      "enum": [
+        "accuracy_measurement",
+        "performance_benchmark"
+      ]
+    },
+    "sample_count": {
+      "type": "integer"
+    },
+    "real_code_line_ratio": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "authenticity_check_status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "precision_percent": {
+      "type": "number"
+    },
+    "recall_percent": {
+      "type": "number"
+    },
+    "methodology": {
+      "type": "string"
+    },
+    "is_representative_candidate": {
+      "type": "boolean"
+    },
+    "superseded_by": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "computed_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "dataset_id",
+    "dataset_purpose",
+    "sample_count",
+    "real_code_line_ratio",
+    "authenticity_check_status",
+    "precision_percent",
+    "recall_percent",
+    "is_representative_candidate"
+  ]
+}

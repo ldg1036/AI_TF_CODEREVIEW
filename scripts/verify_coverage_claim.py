@@ -63,6 +63,19 @@ def verify_coverage_claim():
         except Exception as e:
             print(f"single_source_metrics.json 동기화 중 경고: {e}")
 
+    readme_path = base_dir / "README.md"
+    if readme_path.exists():
+        import re
+        content = readme_path.read_text(encoding="utf-8")
+        new_content = re.sub(
+            r'\[!\[Coverage\]\(https://img\.shields\.io/badge/coverage-[\d\.]+%25-[a-z]+\.svg\)\]',
+            f'[![Coverage](https://img.shields.io/badge/coverage-{overall_coverage}%25-green.svg)]',
+            content
+        )
+        if content != new_content:
+            readme_path.write_text(new_content, encoding="utf-8")
+            print("README.md 커버리지 배지 자동 주입 완료")
+
     print("정직한 실측 지표 산출 완료")
     return True
 

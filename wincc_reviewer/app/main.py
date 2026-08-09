@@ -134,6 +134,20 @@ def _build_parser() -> argparse.ArgumentParser:
         help="git diff 변경 라인 범위 내 위반 결함만 수집하여 리뷰합니다.",
     )
 
+    parser.add_argument(
+        "--benchmark-mode",
+        action="store_true",
+        default=False,
+        help="빠른 정적 분석 및 실측 정밀도(Precision) 산출용 모드 (CI 환경용)",
+    )
+
+    parser.add_argument(
+        "--accuracy-mode",
+        action="store_true",
+        default=False,
+        help="100% 딥리뷰 모드 (모든 위반에 대해 AI 질의, 가장 정확하지만 느림)",
+    )
+
     return parser
 
 
