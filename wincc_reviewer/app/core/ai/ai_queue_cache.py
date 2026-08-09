@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import time
 import sqlite3
-from pathlib import Path
+import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable
 
 
@@ -32,7 +32,7 @@ class AIQueueCacheManager:
         self.max_concurrent_requests = max_concurrent_requests
         self.default_ttl_seconds = default_ttl_seconds
         self.semaphore = asyncio.Semaphore(max_concurrent_requests)
-        
+
         if db_path is None:
             # 기본 경로: CWD 하위 cache 디렉터리
             cache_dir = Path.cwd() / "cache"
@@ -40,7 +40,7 @@ class AIQueueCacheManager:
             self.db_path = cache_dir / "ai_review_cache.db"
         else:
             self.db_path = db_path
-            
+
         self._init_db()
 
     def _init_db(self) -> None:
@@ -68,17 +68,17 @@ class AIQueueCacheManager:
             cursor = conn.cursor()
             cursor.execute("SELECT response_text, created_at, ttl_seconds FROM ai_cache WHERE fingerprint = ?", (fingerprint,))
             row = cursor.fetchone()
-            
+
             if not row:
                 return None
-            
+
             response_text, created_at, ttl_seconds = row
             now = time.time()
             if now - created_at > ttl_seconds:
                 cursor.execute("DELETE FROM ai_cache WHERE fingerprint = ?", (fingerprint,))
                 conn.commit()
                 return None
-            
+
             return response_text
 
     def store_response(self, fingerprint: str, response_text: str) -> None:

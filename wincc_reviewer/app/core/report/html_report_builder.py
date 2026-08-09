@@ -247,12 +247,12 @@ class HTMLReportBuilder:
                 sev_val = v_first.severity.value if isinstance(v_first.severity, SeverityLevel) else str(v_first.severity)
                 sev_class = f"sev-{sev_val.lower()}"
                 stat_class = f"stat-{stat_val.lower()}"
-                
+
                 if rule_id in REAL_VERIFIED_RULES:
                     rule_confidence_badge = '<span class="badge" style="background: rgba(166, 227, 161, 0.2); color: #a6e3a1; border: 1px solid #a6e3a1;" title="실물 WinCC OA 소스코드로 오탐 완화 검증이 완료된 룰입니다.">✓ 실물검증완료</span>'
                 else:
                     rule_confidence_badge = '<span class="badge" style="background: rgba(249, 226, 175, 0.2); color: #f9e2af; border: 1px solid #f9e2af;" title="픽스처 테스트만 수행된 룰로 실물 적용 시 수동 확인이 필요할 수 있습니다.">⚠️ 픽스처검증</span>'
-                
+
                 violation_rows += f"""
                 <tr class="v-row master-row" data-sev="{sev_val}" data-stat="{stat_val}" style="cursor: pointer; background: rgba(137, 180, 250, 0.1);" onclick="const rows = document.querySelectorAll('.sub-group-{group_id}'); rows.forEach(r => r.style.display = r.style.display === 'none' ? '' : 'none');" title="클릭하여 {len(v_list)}건의 반복 위반 항목 펼치기/접기">
                     <td><span class="badge {stat_class}">{stat_val}</span></td>
@@ -264,7 +264,7 @@ class HTMLReportBuilder:
                     </td>
                 </tr>
                 """
-                
+
                 # 서브 행
                 for v in v_list:
                     rule_id = cls._escape(v.rule_id)
@@ -272,12 +272,12 @@ class HTMLReportBuilder:
                     msg = cls._escape(v.message)
                     line = f"L{v.line_start}" if v.line_start else "-"
                     snippet = cls._escape(v.snippet) if v.snippet else ""
-                    
+
                     if rule_id in REAL_VERIFIED_RULES:
                         rule_confidence_badge = '<span class="badge" style="background: rgba(166, 227, 161, 0.2); color: #a6e3a1; border: 1px solid #a6e3a1;" title="실물 WinCC OA 소스코드로 오탐 완화 검증이 완료된 룰입니다.">✓ 실물검증완료</span>'
                     else:
                         rule_confidence_badge = '<span class="badge" style="background: rgba(249, 226, 175, 0.2); color: #f9e2af; border: 1px solid #f9e2af;" title="픽스처 테스트만 수행된 룰로 실물 적용 시 수동 확인이 필요할 수 있습니다.">⚠️ 픽스처검증</span>'
-                        
+
                     sev_val = v.severity.value if isinstance(v.severity, SeverityLevel) else str(v.severity)
                     stat_val = v.status.value if isinstance(v.status, ViolationStatus) else str(v.status)
 
