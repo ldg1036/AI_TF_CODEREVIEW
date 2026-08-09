@@ -312,9 +312,14 @@ class JSApi:
                 return {"success": True, "settings": {}, "config_path": str(cfg_path)}
 
             with open(cfg_path, "r", encoding="utf_8_sig") as f:
-                data = yaml.safe_load(f)
+                data = yaml.safe_load(f) or {}
 
-            return {"success": True, "settings": data or {}, "config_path": str(cfg_path)}
+            import os
+            env_key = os.environ.get("WINCC_AI_API_KEY") or os.environ.get("LOCAL_AI_API_KEY")
+            if env_key and "ai" in data and "local_server" in data["ai"]:
+                data["ai"]["local_server"]["api_key"] = env_key
+
+            return {"success": True, "settings": data, "config_path": str(cfg_path)}
         except Exception as e:
             logger.error("설정 파일 로딩 실패: %s", e)
             return {"success": False, "error": str(e)}

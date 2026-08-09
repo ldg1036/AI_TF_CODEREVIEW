@@ -16,6 +16,7 @@ validate_golden_set_integrity.py
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import sys
@@ -116,6 +117,20 @@ def validate_golden_set_v3_dataset(dataset_file: Path) -> tuple[bool, list[str]]
     avg_duration = total_duration_sec / len(samples)
     if avg_duration < 30.0:
         reasons.append(f"[FAIL 7] 비정상적 고속 라벨링: 샘플당 평균 소요시간 {avg_duration:.1f}초 < 30.0초")
+
+    # Condition 8: Manifest Hash match
+    if manifest_file.exists():
+        with open(manifest_file, "r", encoding="utf-8") as fm:
+            manifest = json.load(fm)
+        manifest_hash = manifest.get("pre_registration_metadata", {}).get("sha256_hash")
+        
+        with open(dataset_file, "rb") as fs:
+            actual_hash = hashlib.sha256(fs.read()).hexdigest()
+        
+        if manifest_hash != actual_hash:
+            reasons.append(f"[FAIL 8] 봉인 무결성 위반: 매니페스트 해시({manifest_hash})와 실제 파일 해시({actual_hash})가 불일치합니다.")
+    else:
+        reasons.append("[FAIL 8] 매니페스트 파일(golden_set_v3_manifest.json)이 존재하지 않습니다.")
 
     return len(reasons) == 0, reasons
 
