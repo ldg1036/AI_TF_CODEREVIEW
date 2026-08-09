@@ -3,7 +3,9 @@ Data Flow Analysis (DFA) Engine.
 AST 파싱을 보조하여 데이터 흐름(Taint)을 추적하는 초경량 엔진입니다.
 """
 from __future__ import annotations
+
 import re
+
 
 class TaintTracker:
     def __init__(self, sources: list[str], sinks: list[str]):
@@ -13,7 +15,7 @@ class TaintTracker:
 
     def track(self, code_lines: list[tuple[int, str]]) -> list[tuple[int, str]]:
         violations: list[tuple[int, str]] = []
-        
+
         for idx, line in code_lines:
             line_clean = line.strip()
             if not line_clean:
@@ -32,7 +34,7 @@ class TaintTracker:
                     if src in right:
                         is_tainted = True
                         break
-                
+
                 if not is_tainted:
                     for tvar in self.tainted_vars:
                         if re.search(rf'\b{tvar}\b', right):
@@ -53,5 +55,5 @@ class TaintTracker:
                         if re.search(rf'\b{tvar}\b', line_clean):
                             violations.append((idx, line_clean))
                             break
-                            
+
         return violations

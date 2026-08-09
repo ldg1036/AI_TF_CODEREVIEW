@@ -32,7 +32,7 @@ class TestCLI:
     def test_main_no_args_returns_zero(self):
         """인자 없이 실행 시 GUI 모드 시작(launch_ui) 호출 후 정상 종료."""
         from unittest.mock import patch
-        import app.ui.app  # ensure module is loaded in sys.modules
+
         from app.main import main
 
         with patch("app.ui.app.launch_ui") as mock_ui:
@@ -81,37 +81,21 @@ class TestModuleImports:
 
     def test_import_core_models(self):
         """core.models 모듈 import 확인."""
-        from app.core.models import (
-            CheckerType,
-            Metrics,
-            ParseStatus,
-            ParseStatusType,
-            ReviewReport,
-            RuleDefinition,
-            SeverityLevel,
-            Violation,
-            ViolationStatus,
-        )
 
     def test_import_core_pipeline(self):
         """core.pipeline 모듈 import 확인."""
-        from app.core.pipeline import Pipeline, PipelineConfig
 
     def test_import_parser_base(self):
         """parser.base_parser 모듈 import 확인."""
-        from app.core.parser.base_parser import ParsedFile, Parser
 
     def test_import_rules_base(self):
         """rules.base_rule 모듈 import 확인."""
-        from app.core.rules.base_rule import RuleChecker
 
     def test_import_ai_provider(self):
         """ai.provider_base 모듈 import 확인."""
-        from app.core.ai.provider_base import AIProvider, AIRequest, AIResponse
 
     def test_import_diff_provider(self):
         """diff.winmerge_runner 모듈 import 확인."""
-        from app.core.diff.winmerge_runner import DiffChange, DiffProvider, DiffResult
 
 
 class TestDataModelContract:

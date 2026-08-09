@@ -1,4 +1,5 @@
 import os
+
 import yaml
 
 client_path = os.path.join('config', 'legacy_mapping', 'client.yaml')

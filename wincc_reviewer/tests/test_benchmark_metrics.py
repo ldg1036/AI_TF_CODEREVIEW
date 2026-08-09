@@ -1,7 +1,6 @@
-import pytest
 import importlib.util
-from pathlib import Path
 import sys
+from pathlib import Path
 
 base_dir = Path(__file__).resolve().parent.parent.parent
 script_path = base_dir / 'scripts' / '15_run_large_scale_benchmark.py'

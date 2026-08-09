@@ -1,11 +1,10 @@
 """Builtin Checker Registry & Modules"""
 from __future__ import annotations
+
 import re
-from typing import Any
 
 from app.core.models import RuleDefinition, SeverityLevel, Violation, ViolationStatus
 from app.core.parser.base_parser import ParsedFile
-
 
 _PNL_INIT_CONTEXT_KEYWORDS = [
     "scopelib::",

@@ -9,10 +9,9 @@ HTTP 200 OK 웹 실존성, 중복 SHA256 미존재성, 사람 승인 서명 유�
 import hashlib
 import io
 import json
-import os
-from pathlib import Path
 import sys
 import urllib.request
+from pathlib import Path
 
 if hasattr(sys.stdout, "buffer"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")

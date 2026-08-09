@@ -10,9 +10,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+
 import pytest
 import yaml
-
 from app.core.models import ParseStatusType, ViolationStatus
 from app.core.pipeline import Pipeline, PipelineConfig
 
@@ -76,7 +76,7 @@ class TestGoldenSamples:
         pipeline = Pipeline(config)
 
         # temporary server.yaml 경로를 이용하기 위해 파이프라인 _load_rulesets 내부 오버라이드 시뮬레이션
-        parsed_files = [pipeline.run().files]
+        [pipeline.run().files]
         # 직접 pipeline의 룰 검사 정밀 확인
         from app.core.input_normalization.service import NormalizationService
         from app.core.rules.excel_rule_compiler import ExcelRuleCompiler

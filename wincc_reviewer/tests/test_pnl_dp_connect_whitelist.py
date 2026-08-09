@@ -12,11 +12,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
-from app.core.models import RuleDefinition, CheckerType, SeverityLevel, ViolationStatus
+from app.core.models import CheckerType, RuleDefinition, SeverityLevel, ViolationStatus
 from app.core.parser.base_parser import ParsedFile, ParseStatus, ParseStatusType
-from app.core.rules.checker_registry import check_dp_connect_pair, _is_pnl_init_context
+from app.core.rules.checker_registry import _is_pnl_init_context, check_dp_connect_pair
 
 
 def _make_parsed(content: str, file_type: str, file_path: str = "test_file") -> ParsedFile:

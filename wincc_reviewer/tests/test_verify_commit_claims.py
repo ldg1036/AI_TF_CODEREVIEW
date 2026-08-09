@@ -5,7 +5,6 @@ verify_commit_message_claims.py 유닛 테스트 수트.
 
 from __future__ import annotations
 
-import pytest
 from scripts.verify_commit_message_claims import verify_commit_message
 
 

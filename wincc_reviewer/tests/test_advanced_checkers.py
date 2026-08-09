@@ -5,9 +5,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-import pytest
 
-from app.core.models import CheckerType, ParseStatus, ParseStatusType, RuleDefinition, SeverityLevel
+import pytest
+from app.core.models import (
+    CheckerType,
+    ParseStatus,
+    ParseStatusType,
+    RuleDefinition,
+    SeverityLevel,
+)
 from app.core.parser.base_parser import ParsedFile
 from app.core.rules.checker_registry import (
     check_callback_error_handling,

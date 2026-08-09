@@ -1,6 +1,4 @@
 import os
-import json
-import re
 
 pnl_path = r'C:\Users\39145\Downloads\Coder_Wincc-main\CodeReview_Data\새 폴더\CA2_Na2SO3_VALVE.pnl'
 

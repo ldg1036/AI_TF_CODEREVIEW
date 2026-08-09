@@ -8,7 +8,6 @@ import codecs
 from pathlib import Path
 
 from app.core.models import SeverityLevel, Violation, ViolationStatus
-from app.core.parser.base_parser import ParsedFile
 from app.core.report.csv_report_builder import CSVReportBuilder
 from app.core.report.report_builder import ReportBuilder
 

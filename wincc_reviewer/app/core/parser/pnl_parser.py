@@ -172,7 +172,7 @@ class PNLParser(Parser):
                             start_line = content[:match.start()].count("\n")
                             end_line = content[:end_idx + 1].count("\n")
                             script_regions.append((start_line, end_line))
-                            
+
                             line_no = start_line + 1
                             metadata.event_handlers.append(
                                 PNLEventHandlerInfo(

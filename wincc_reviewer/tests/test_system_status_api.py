@@ -11,8 +11,6 @@ get_system_status() API 단위 테스트.
 
 from __future__ import annotations
 
-import pytest
-
 from app.ui.api import JSApi
 
 

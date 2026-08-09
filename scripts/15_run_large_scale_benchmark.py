@@ -86,11 +86,11 @@ def generate_diverse_dataset(num_files: int = 210) -> tuple[list[Path], dict[str
                 script_body = f"main() {{ float v; dpGet(\"Tag_PNL_{i}\", v); }}"
                 expected_rules.append("CTL_ERR_001")
             else:
-                script_body = f"""main() {{ 
+                script_body = """main() {
                     string ext = ui_getText("Input");
                     string safe = ext;
                     dpQuery("SELECT * FROM _configs WHERE x LIKE '" + safe + "'");
-                }}"""
+                }"""
                 expected_rules.append("MANUAL-00")
                 expected_rules.append("ctl.sql_injection_risk")
 
@@ -172,22 +172,22 @@ def run_benchmark() -> dict:
 
         target_set = RuleEngine.determine_target_ruleset(file_path)
         target_rules = rules_map.get(target_set, rules_map["client"])
-        
+
         # 엑셀 파일 내에 ctl.sql_injection_risk 룰이 꺼져 있거나 누락되어 있어도
         # DFA 엔진 성능 평가를 위해 벤치마크에서는 이를 강제로 실행 목록에 추가합니다.
-        from app.core.models import RuleDefinition, SeverityLevel, CheckerType
+        from app.core.models import CheckerType, RuleDefinition, SeverityLevel
         dfa_virtual_rule = RuleDefinition(
-            rule_id="MANUAL-00", 
+            rule_id="MANUAL-00",
             source_key="Virtual_DFA",
             file_types=[".ctl", ".pnl"],
             checker_type=CheckerType.BUILTIN,
             enabled=True,
             rule_version="1.0",
-            checker_key="ctl.sql_injection_risk", 
-            severity=SeverityLevel.CRITICAL, 
+            checker_key="ctl.sql_injection_risk",
+            severity=SeverityLevel.CRITICAL,
             message="[DFA] SQL Injection Risk"
         )
-        
+
         # 무조건 룰을 추가하여 DFA 엔진이 돌도록 함 (기존 엑셀 룰 변조 방지)
         target_rules.append(dfa_virtual_rule)
 
@@ -200,7 +200,7 @@ def run_benchmark() -> dict:
         from app.core.ai.false_positive_filter import FalsePositiveFilter
         FalsePositiveFilter.filter_violations(violations)
         valid_violations = [v for v in violations if not v.is_false_positive]
-        
+
         if file_path.name in ("bench_0005.ctl", "bench_0004.pnl"):
             print(f"[{file_path.name}] VALID VIOLATIONS:")
             for v in valid_violations:
@@ -229,7 +229,7 @@ def run_benchmark() -> dict:
                     # 또는 우리가 추가한 ctl.xxx 형태가 v.message 등에 노출될 수 있음
                     elif (exp in v.message):
                         is_tp = True
-                        
+
                 if is_tp:
                     tp_count += 1
                 else:

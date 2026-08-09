@@ -8,8 +8,6 @@ MockAIProvider 유닛 테스트 (TRD §5.8 & Phase 3 기준).
 
 from __future__ import annotations
 
-import pytest
-
 from app.core.ai.mock_provider import MockAIProvider
 from app.core.ai.provider_base import AIRequest
 

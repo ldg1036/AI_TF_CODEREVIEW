@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import pytest
+
 from scripts.validate_golden_set_integrity import validate_golden_set_v3_dataset
 
 

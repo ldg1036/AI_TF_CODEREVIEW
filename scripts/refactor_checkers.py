@@ -32,19 +32,19 @@ helper_functions = []
 for block in functions:
     if not block.strip().startswith('def '):
         continue
-    
+
     match = re.match(r'^def ([a-zA-Z0-9_]+)\(', block)
     if not match:
         continue
     func_name = match.group(1)
-    
+
     matched = False
     for mod, funcs in groups.items():
         if func_name in funcs:
             module_contents[mod] += '\n' + block
             matched = True
             break
-            
+
     if not matched:
         helper_functions.append(block)
 
@@ -69,9 +69,9 @@ _PNL_INIT_CONTEXT_KEYWORDS = [
 shared_helpers = global_vars + '\n' + '\n'.join(helper_functions)
 for mod in module_contents:
     module_contents[mod] = module_contents[mod].replace(header, header + '\n' + shared_helpers + '\n')
-    
+
 for mod, text in module_contents.items():
     with open(os.path.join(dest_dir, f'{mod}.py'), 'w', encoding='utf-8') as f:
         f.write(text)
-        
+
 print('Split into modules complete.')

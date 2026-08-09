@@ -11,7 +11,6 @@ PNLParser 유닛 테스트 (TRD §5.1 & Phase 1 기준).
 from __future__ import annotations
 
 from pathlib import Path
-import pytest
 
 from app.core.models import ParseStatusType
 from app.core.parser.pnl_parser import PNLParser

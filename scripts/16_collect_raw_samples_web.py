@@ -11,12 +11,12 @@ intermediate_results/raw_samples_manifest.json에 출처 메타데이터를 기�
 import hashlib
 import io
 import json
-import os
+import sys
+import urllib.error
+import urllib.request
 from datetime import datetime
 from pathlib import Path
-import sys
-import urllib.request
-import urllib.error
+
 import yaml
 
 if hasattr(sys.stdout, "buffer"):

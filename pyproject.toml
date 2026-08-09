@@ -37,4 +37,4 @@ addopts = "-v --tb=short"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
-ignore = ["BLE001", "G201", "S110", "PIE810", "E501"]
+ignore = ["BLE001", "G201", "S110", "PIE810", "E501", "E402", "F403"]

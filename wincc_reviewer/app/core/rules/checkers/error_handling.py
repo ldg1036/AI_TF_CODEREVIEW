@@ -1,11 +1,10 @@
 """Builtin Checker Registry & Modules"""
 from __future__ import annotations
+
 import re
-from typing import Any
 
 from app.core.models import RuleDefinition, SeverityLevel, Violation, ViolationStatus
 from app.core.parser.base_parser import ParsedFile
-
 
 _PNL_INIT_CONTEXT_KEYWORDS = [
     "scopelib::",
@@ -113,7 +112,7 @@ def check_try_catch_exception(parsed: ParsedFile, rule: RuleDefinition) -> list[
     from app.core.parser.tree_sitter_parser import TreeSitterASTParser
     parser = TreeSitterASTParser()
     ast_nodes = parser.parse_code_to_ast(parsed.content)
-    
+
     if parser.ts_available:
         reported_lines = set()
         for node in ast_nodes:
@@ -123,7 +122,7 @@ def check_try_catch_exception(parsed: ParsedFile, rule: RuleDefinition) -> list[
                     if child.node_type == "identifier":
                         func_node_text = child.text
                         break
-                
+
                 if dp_func_pattern.search(func_node_text):
                     in_try = False
                     has_valid_catch = False
@@ -139,7 +138,7 @@ def check_try_catch_exception(parsed: ParsedFile, rule: RuleDefinition) -> list[
                         if curr.node_type == "function_definition":
                             break
                         curr = curr.parent
-                    
+
                     if not (in_try and has_valid_catch):
                         line_idx = node.line_start
                         if line_idx not in reported_lines:

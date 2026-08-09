@@ -7,10 +7,16 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-import pytest
 import yaml
-
-from app.core.models import CheckerType, ParseStatus, ParseStatusType, RuleDefinition, SeverityLevel, Violation, ViolationStatus
+from app.core.models import (
+    CheckerType,
+    ParseStatus,
+    ParseStatusType,
+    RuleDefinition,
+    SeverityLevel,
+    Violation,
+    ViolationStatus,
+)
 from app.core.parser.base_parser import ParsedFile
 from app.core.rules.checker_registry import CheckerRegistry
 from app.core.rules.excel_rule_compiler import ExcelRuleCompiler

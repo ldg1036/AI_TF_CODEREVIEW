@@ -45,14 +45,11 @@ class CheckerRegistry:
 
 
 # 서브 모듈에서 모든 검사 함수들을 현재 네임스페이스로 끌어오기
+from app.core.rules.checkers.error_handling import *
+from app.core.rules.checkers.performance import *
+from app.core.rules.checkers.quality import *
 from app.core.rules.checkers.resource import *
 from app.core.rules.checkers.security import *
-from app.core.rules.checkers.performance import *
-from app.core.rules.checkers.error_handling import *
-from app.core.rules.checkers.quality import *
-
-
-
 
 # PNL 화면 초기화 이벤트 컨텍스트 키워드 목록 (화면 종료 시 자동 해제되는 dpConnect 허용 대상)
 _PNL_INIT_CONTEXT_KEYWORDS = [
@@ -362,7 +359,7 @@ def check_try_catch_exception(parsed: ParsedFile, rule: RuleDefinition) -> list[
     from app.core.parser.tree_sitter_parser import TreeSitterASTParser
     parser = TreeSitterASTParser()
     ast_nodes = parser.parse_code_to_ast(parsed.content)
-    
+
     if parser.ts_available:
         reported_lines = set()
         for node in ast_nodes:
@@ -372,7 +369,7 @@ def check_try_catch_exception(parsed: ParsedFile, rule: RuleDefinition) -> list[
                     if child.node_type == "identifier":
                         func_node_text = child.text
                         break
-                
+
                 if dp_func_pattern.search(func_node_text):
                     in_try = False
                     has_valid_catch = False
@@ -388,7 +385,7 @@ def check_try_catch_exception(parsed: ParsedFile, rule: RuleDefinition) -> list[
                         if curr.node_type == "function_definition":
                             break
                         curr = curr.parent
-                    
+
                     if not (in_try and has_valid_catch):
                         line_idx = node.line_start
                         if line_idx not in reported_lines:

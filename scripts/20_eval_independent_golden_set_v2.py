@@ -5,9 +5,10 @@ Phase 1 외부 독립 교차 검증 골든셋 v2 정밀도 및 Cohen Kappa 일�
 하드코딩 수치 전면 제거 및 reviewer_labels.json 실측 대조 연산 구현
 """
 
-import os
 import json
+import os
 import sys
+
 
 def calculate_cohen_kappa(eval_a: list[bool], eval_b: list[bool]) -> float:
     """2인 라벨러 간 Cohen Kappa 일치도 수식 산출"""

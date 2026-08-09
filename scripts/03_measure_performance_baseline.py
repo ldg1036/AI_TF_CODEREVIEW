@@ -2,17 +2,18 @@
 WinCC OA 실물 샘플 8종 대상 파이프라인 5회 연속 실행 및 p95 성능 Baseline 측정 스크립트.
 """
 
-from pathlib import Path
-import sys
-import json
-import time
 import csv
+import json
 import statistics
+import sys
+import time
+from pathlib import Path
 
 # wincc_reviewer 패키지 경로 추가
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "wincc_reviewer"))
 
 from app.core.pipeline import Pipeline, PipelineConfig
+
 
 def measure_p95_baseline():
     project_root = Path(__file__).resolve().parent.parent
@@ -50,7 +51,7 @@ def measure_p95_baseline():
     max_ms = sorted_timings[-1]
     mean_ms = int(statistics.mean(sorted_timings))
     median_ms = int(statistics.median(sorted_timings))
-    
+
     # p95 계산 (5회 중 95백분위수: 가장 높은 값 근사 또는 인덱스 계산)
     idx_p95 = int(len(sorted_timings) * 0.95)
     idx_p95 = min(idx_p95, len(sorted_timings) - 1)

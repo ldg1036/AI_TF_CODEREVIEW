@@ -6,6 +6,7 @@
 
 import os
 
+
 def generate_60_real_samples():
     output_dir = os.path.join("intermediate_results", "real_samples")
     os.makedirs(output_dir, exist_ok=True)

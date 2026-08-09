@@ -1,7 +1,8 @@
 # AI 심층 리뷰 병렬 처리(ThreadPoolExecutor) 단위 테스트
 
 from unittest.mock import MagicMock, patch
-from app.core.models import Violation, ViolationStatus, SeverityLevel
+
+from app.core.models import SeverityLevel, Violation, ViolationStatus
 from app.core.pipeline import Pipeline, PipelineConfig
 
 
@@ -12,7 +13,7 @@ def test_ai_parallel_review_execution():
         no_ai=False,
         max_ai_reviews=5,
     )
-    pipeline = Pipeline(config=config)
+    Pipeline(config=config)
 
 
     # 모의 Violation 3건 생성
@@ -39,9 +40,10 @@ def test_ai_parallel_review_execution():
     with patch("app.core.ai.gemini_provider.GeminiAIProvider.review", return_value=mock_resp) as mock_review:
         # pipeline._run_single_ai_review를 테스트하기 위해 pipeline run에서 호출되는 블록 시뮬레이션
         import concurrent.futures
+
         from app.core.ai.domain_rag import WinCCDomainRAG
-        from app.core.ai.provider_base import AIRequest
         from app.core.ai.gemini_provider import GeminiAIProvider
+        from app.core.ai.provider_base import AIRequest
 
         ai_provider = GeminiAIProvider()
 
