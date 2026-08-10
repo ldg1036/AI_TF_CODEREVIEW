@@ -13,8 +13,8 @@ import sys
 import urllib.request
 from pathlib import Path
 
-if hasattr(sys.stdout, "buffer"):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MANIFEST_PATH = BASE_DIR / "intermediate_results" / "raw_samples_manifest.json"

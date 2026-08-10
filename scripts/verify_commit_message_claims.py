@@ -115,9 +115,8 @@ def verify_commit_message(commit_msg: str) -> tuple[bool, list[str]]:
 
 
 def main() -> None:
-    import io
-    if hasattr(sys.stdout, "buffer"):
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
     if len(sys.argv) < 2:
         print("사용법: python scripts/verify_commit_message_claims.py <commit_msg_file|text>")
