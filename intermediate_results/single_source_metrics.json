@@ -6,7 +6,7 @@
     "ssot_sync_state": "FULLY_SYNCHRONIZED"
   },
   "test_and_governance_metrics": {
-    "total_unit_tests_count": 223,
+    "total_unit_tests_count": 239,
     "unit_tests_pass_rate_percent": 100.0,
     "registered_checkers_count": 33,
     "automation_coverage_percent": 85.8,

@@ -27,6 +27,8 @@ def test_ai_queue_cache_reduces_provider_calls(tmp_path):
         use_ai_queue_cache=True,
     )
     pipeline = Pipeline(config)
+    from app.core.ai.ai_queue_cache import AIQueueCacheManager
+    pipeline._ai_cache_manager = AIQueueCacheManager(db_path=tmp_path / "test_cache.db")
     pipeline.ai_provider = mock_ai_provider
 
     # 1차 실행: AI 프로바이더 호출 발생
