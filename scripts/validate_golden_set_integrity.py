@@ -119,16 +119,24 @@ def validate_golden_set_v3_dataset(dataset_file: Path) -> tuple[bool, list[str]]
         reasons.append(f"[FAIL 7] 비정상적 고속 라벨링: 샘플당 평균 소요시간 {avg_duration:.1f}초 < 30.0초")
 
     # Condition 8: Manifest Hash match
-    if manifest_file.exists():
-        with open(manifest_file, "r", encoding="utf-8") as fm:
+    target_manifest = dataset_file.parent.parent / "golden_set_v3_manifest.json"
+    if not target_manifest.exists():
+        target_manifest = manifest_file
+
+    if target_manifest.exists():
+        with open(target_manifest, "r", encoding="utf-8") as fm:
             manifest = json.load(fm)
         manifest_hash = manifest.get("pre_registration_metadata", {}).get("sha256_hash")
-        
-        with open(dataset_file, "rb") as fs:
-            actual_hash = hashlib.sha256(fs.read()).hexdigest()
-        
-        if manifest_hash != actual_hash:
-            print(f"[WARNING] 봉인 무결성 위반: 매니페스트 해시({manifest_hash})와 실제 파일 해시({actual_hash}) 불일치 (OS 개행 차이 가능성)")
+
+        actual_hash_raw = hashlib.sha256(dataset_file.read_bytes()).hexdigest()
+        actual_hash_lf = hashlib.sha256(
+            dataset_file.read_text(encoding="utf-8").replace("\r\n", "\n").encode("utf-8")
+        ).hexdigest()
+
+        if manifest_hash not in (actual_hash_raw, actual_hash_lf):
+            reasons.append(
+                f"[FAIL 8] 봉인 무결성 위반: 매니페스트 해시({manifest_hash[:16]}...)와 실제 해시({actual_hash_raw[:16]}...) 불일치"
+            )
     else:
         reasons.append("[FAIL 8] 매니페스트 파일(golden_set_v3_manifest.json)이 존재하지 않습니다.")
 
