@@ -163,25 +163,23 @@ copy config\settings.yaml.example config\settings.yaml
 * **실측 F1 Score**: **99.5%**
 * **단위 테스트 수트**: 239개 유닛 테스트 100% 통과 (PASSED)
 
-* ctl.uninitialized_var: 초기화되지 않은 변수 참조 탐지
-
 ---
 
 ## 🛠 엑셀 룰 카탈로그 동적 변경 방법
 
 개발팀이나 현업 리뷰어는 별도의 소스 코드 수정 없이 엑셀 파일을 수정하여 룰을 추가하거나 난이도를 변경할 수 있습니다.
 
-1. `config/` 폴더 내 `(코드리뷰결과서-Client) ...xlsx` 또는 `(코드리뷰결과서-Server) ...xlsx` 파일 열기
+1. config/ 폴더 내 (코드리뷰결과서_Client).xlsx 또는 (코드리뷰결과서_Server).xlsx 파일 열기
 2. Rule ID, Severity(Critical, High, Medium, Low), 탐지 패턴 수정 후 저장
-3. `ExcelSchemaLinter` 가 자동으로 스키마를 검증하고 파이프라인에 반영합니다.
+3. ExcelSchemaLinter 가 자동으로 스키마를 검증하고 파이프라인에 반영합니다.
 
 ---
 
 ## 🧪 테스트 및 품질 검증 (Testing)
 
 ```bash
-# 전체 223개 유닛 테스트 수트 구동
-python -m pytest wincc_reviewer/tests
+# 전체 239개 유닛 테스트 수트 구동
+pytest wincc_reviewer/tests
 
 # 바이브코딩 검증 프로토콜 구동
 python scripts/16_verify_agent_protocol.py
