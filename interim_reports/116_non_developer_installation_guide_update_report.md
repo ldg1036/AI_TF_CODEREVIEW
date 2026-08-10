@@ -95,3 +95,7 @@ README.md 파일 내에 비개발자용 설치 가이드를 직접 포함시키�
 
 프로젝트 루트 디렉터리의 가독성과 정리 정돈을 위해 README.md 를 제외한 5대 핵심 표준 문서(00_INDEX.md, 01_PRD.md, 02_TRD_아키텍처설계서.md, 03_정적분석_룰카탈로그.md, USER_MANUAL.md)를 docs/ 디렉터리로 이동하고 상대 경로 링크를 모두 동기화하였습니다.
 
+## 9. 루트 파일 클리닝 및 coverage 잔재 제거 완료
+
+깃허브 저장소 루트에 노출되었던 테스트 커버리지 부산물(.coverage, coverage.xml)을 추적에서 제거 및 삭제 조치하고, raw_source_candidates.yaml 파일을 config/ 디렉터리로 이동하여 클린한 루트 구성을 완료하였습니다.
+

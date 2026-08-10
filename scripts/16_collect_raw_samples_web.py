@@ -23,7 +23,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-CANDIDATES_YAML = BASE_DIR / "raw_source_candidates.yaml"
+CANDIDATES_YAML = BASE_DIR / "config" / "raw_source_candidates.yaml"
 OUTPUT_DIR = BASE_DIR / "primary_data" / "raw_web_samples"
 MANIFEST_PATH = BASE_DIR / "intermediate_results" / "raw_samples_manifest.json"
 
