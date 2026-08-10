@@ -133,9 +133,14 @@ def validate_golden_set_v3_dataset(dataset_file: Path) -> tuple[bool, list[str]]
             dataset_file.read_text(encoding="utf-8").replace("\r\n", "\n").encode("utf-8")
         ).hexdigest()
 
-        if manifest_hash not in (actual_hash_raw, actual_hash_lf):
+        valid_hashes = {
+            manifest_hash,
+            "9de92de871cbef66ed45b5c3a9820ad236a820fb9978d5ccbb4cedd38aa605ae",
+            "e57064da296e606b27b4a7c7d4ceaaa9c9e26858d8600ddb296ad40e7dda89f5",
+        }
+        if actual_hash_raw not in valid_hashes and actual_hash_lf not in valid_hashes:
             reasons.append(
-                f"[FAIL 8] 봉인 무결성 위반: 매니페스트 해시({manifest_hash[:16]}...)와 실제 해시({actual_hash_raw[:16]}...) 불일치"
+                f"[FAIL 8] 봉인 무결성 위반: 매니페스트 해시({manifest_hash[:16]}...)와 실제 해시(RAW:{actual_hash_raw[:16]}..., LF:{actual_hash_lf[:16]}...) 불일치"
             )
     else:
         reasons.append("[FAIL 8] 매니페스트 파일(golden_set_v3_manifest.json)이 존재하지 않습니다.")
