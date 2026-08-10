@@ -4,8 +4,14 @@ verify_coverage_claim.py
 원천 매핑 데이터(client.yaml, server.yaml) 실시간 동적 파싱 기반 커버리지 및 내장 체커 수 자동 실측 검증 파이프라인
 """
 
+import io
 import sys
 from pathlib import Path
+
+if hasattr(sys.stdout, "buffer"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "buffer"):
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 import yaml
 
