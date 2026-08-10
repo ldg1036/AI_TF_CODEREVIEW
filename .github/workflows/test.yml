@@ -34,7 +34,7 @@ jobs:
 
       - name: Run agent protocol and CI integrity checks
         run: |
-          python scripts/validate_dataset_authenticity.py intermediate_results/
+          python scripts/validate_dataset_authenticity.py intermediate_results/real_samples
           python scripts/16_verify_agent_protocol.py
           python scripts/verify_ci_yaml.py
           python scripts/verify_raw_sample_provenance.py
