@@ -4,10 +4,10 @@
 
 [![CI Status](https://github.com/ldg1036/AI_TF_CODEREVIEW/workflows/test/badge.svg)](https://github.com/ldg1036/AI_TF_CODEREVIEW/actions)
 [![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
-[![Test Suite](https://img.shields.io/badge/tests-239%20passed-brightgreen.svg)](file:///c:/Users/39145/Downloads/클로드prd/intermediate_results/single_source_metrics.json)
-[![Coverage](https://img.shields.io/badge/coverage-85.8%25-green.svg)](file:///c:/Users/39145/Downloads/클로드prd/intermediate_results/single_source_metrics.json)
-[![Precision](https://img.shields.io/badge/precision-99.2%25-green.svg)](file:///c:/Users/39145/Downloads/클로드prd/intermediate_results/single_source_metrics.json)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](file:///c:/Users/39145/Downloads/클로드prd/LICENSE)
+[![Test Suite](https://img.shields.io/badge/tests-239%20passed-brightgreen.svg)](./intermediate_results/single_source_metrics.json)
+[![Coverage](https://img.shields.io/badge/coverage-85.8%25-green.svg)](./intermediate_results/single_source_metrics.json)
+[![Precision](https://img.shields.io/badge/precision-99.2%25-green.svg)](./intermediate_results/single_source_metrics.json)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
 ---
 
@@ -22,6 +22,45 @@ WinCC OA Code Reviewer는 시멘스 WinCC OA(Open Architecture) 산업용 제어
 * **정적 분석 엔진 핵심 6대 약점 전면 해소 (V2 Update)**: "전역 면죄부 오탐 방지", "콜백 중첩 괄호 분석", "미사용 파라미터 검출 상향", "동적 배열 접근 구분", "임시 디버그 로그 차단" 등을 달성하여 프로덕션 레벨 신뢰도 확보.
 * **리뷰 신뢰성 및 UX 고도화 (Phase 17)**: SSOT(Single Source of Truth) 기반 정밀도 데이터 일원화, 리포트 내 5회 이상 반복 위반 자동 그룹핑(Alert Fatigue 완화), 과거 정밀도 툴팁, 인라인 오탐 신고 기능(🚨) 추가
 * 코드 리뷰 자동화: 33개 내장 룰 체커와 엑셀 룰 카탈로그를 기반으로 리포트 자동 생성
+
+---
+
+## 🖱️ 비개발자용 3단계 설치 및 실행 가이드 (원클릭 자동 실행)
+
+> 명령어나 터미널 조작을 몰라도 쉽게 설치하고 바로 사용할 수 있는 원클릭 가이드입니다.
+> 최초 1회만 아래 0단계~2단계를 완료하면, 다음부터는 3단계만 실행하시면 됩니다. (예상 소요 시간: 2분~5분)
+
+### 0단계. 파일 내려받기 및 준비
+
+1. 저장소 상단의 Code 버튼을 누르고 Download ZIP 으로 파일을 내려받아 압축을 풉니다.
+2. 폴더 위치는 한글이나 공백이 없는 짧은 경로(예: C:\WinCC_Reviewer)를 권장합니다.
+3. Git을 사용하는 경우 아래 명령어로 복제할 수 있습니다.
+```bash
+git clone https://github.com/ldg1036/AI_TF_CODEREVIEW.git
+```
+
+### 1단계. Python 설치 (최초 1회)
+
+1. Python 공식 홈페이지(https://www.python.org/downloads/windows/)에서 64비트 설치 프로그램을 내려받아 실행합니다.
+2. 설치 화면 맨 아래의 Add python.exe to PATH 체크박스를 반드시 선택합니다.
+3. Install Now 버튼을 클릭하여 설치를 완료합니다.
+
+### 2단계. 원클릭 자동 설치 실행 (최초 1회)
+
+1. 압축을 푼 폴더 안의 setup.bat 파일을 더블클릭합니다.
+2. 검은색 명령어 창이 열리고 설치가 진행됩니다. 설치 완료 메시지가 보일 때까지 2분~5분 동안 창을 닫지 마세요.
+3. Windows의 게시자 미확인 경고(SmartScreen)가 뜨면 추가 정보 클릭 후 실행을 누릅니다.
+
+### 3단계. 프로그램 실행 및 결과 확인
+
+* 데스크톱 화면(GUI) 형태로 실행할 경우: run_gui.bat 파일 더블클릭
+* 특정 폴더를 마우스로 끌어다 즉시 검사할 경우: 검사할 폴더를 run_check.bat 아이콘 위로 마우스 끌어다 놓기 (드래그 앤 드롭)
+* 검사 결과 확인: 검사 완료 후 output 폴더 안에 생성된 HTML 보고서 파일을 더블클릭하여 웹 브라우저에서 열기
+
+### 참고사항: AI 2차 리뷰 설정
+
+* 기본 상태에서는 정적 룰 검사만 고속으로 동작합니다.
+* 사내 AI 서버 또는 Gemini API 키가 있는 경우 config\settings.yaml 파일 내 ai 항목을 수정하면 AI 2차 리뷰가 활성화됩니다.
 
 ---
 
@@ -41,7 +80,7 @@ WinCC OA Code Reviewer는 시멘스 WinCC OA(Open Architecture) 산업용 제어
 ## 📂 프로젝트 폴더 및 소스 구조 (Project Structure)
 
 ```text
-c:\Users\39145\Downloads\클로드prd
+AI_TF_CODEREVIEW/
 ├── wincc_reviewer/                  # 핵심 애플리케이션 패키지
 │   ├── app/                         # 코어 소스 코드
 │   │   ├── core/                    # 파서(TreeSitterASTParser 포함), 정적 체커, AI, 리포트, 파이프라인 모듈
@@ -50,8 +89,9 @@ c:\Users\39145\Downloads\클로드prd
 │   ├── schemas/                     # 리포트 및 설정 JSON 스키마
 │   └── tests/                       # 239개 유닛 테스트 수트 및 테스트 픽스처
 ├── config/                          # 엑셀 룰 카탈로그 및 환경 설정 파일
-│   ├── settings.yaml                # 시스템 전역 설정
-│   ├── rules_catalog.xlsx           # 동적 룰 정의 엑셀 파일
+│   ├── settings.yaml.example        # 설정 템플릿 (최초 실행 시 settings.yaml로 복사)
+│   ├── (코드리뷰결과서-Client) ...xlsx  # 클라이언트(.pnl/.xml)용 룰 카탈로그 엑셀
+│   ├── (코드리뷰결과서-Server) ...xlsx  # 서버(.ctl)용 룰 카탈로그 엑셀
 │   └── approved_fp_rules.json       # 사전 승인 오탐 룰 파일
 ├── primary_data/                    # 원본 검사 소스 데이터 폴더
 ├── intermediate_results/            # 벤치마크 및 단일 출처 지표 수록 폴더 (SSOT)
@@ -63,7 +103,10 @@ c:\Users\39145\Downloads\클로드prd
 
 ---
 
-## ⚡ 5분 퀵 스타트 가이드 (Quick Start)
+## ⚡ 5분 퀵 스타트 가이드 (Quick Start, 개발자용 수동 설치)
+
+> 비개발자이거나 명령어 사용이 익숙하지 않다면, 위쪽의 [🖱️ 비개발자용 3단계 설치 & 실행 가이드](#️-비개발자용-3단계-설치--실행-가이드-프로그래밍-지식-없이-바로-사용)를 대신 사용하세요.
+> 이 섹션은 터미널(명령 프롬프트/PowerShell) 사용에 익숙한 개발자를 위한 수동 설치 절차입니다.
 
 ### 1단계: 환경 설정 및 의존성 설치
 ```bash
@@ -71,8 +114,19 @@ c:\Users\39145\Downloads\클로드prd
 git clone https://github.com/ldg1036/AI_TF_CODEREVIEW.git
 cd AI_TF_CODEREVIEW
 
-# 2. 파이썬 개발 의존성 설치 (Python 3.12 이상 권장)
+# 2. (선택) 가상환경 생성 및 활성화
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1      # PowerShell
+:: .\.venv\Scripts\activate.bat   # 명령 프롬프트(cmd)의 경우
+
+# 3. 런타임 의존성 설치 (tree-sitter 등 requirements.txt 기준)
+pip install -r requirements.txt
+
+# 4. 파이썬 개발 의존성 포함 설치 (pytest, mypy, pyinstaller 등, editable 모드)
 pip install -e ".[dev]"
+
+# 5. 최초 1회, 설정 파일 템플릿을 실제 설정 파일로 복사
+copy config\settings.yaml.example config\settings.yaml
 ```
 
 ### 2단계: 1분 만에 리뷰 구동하기
@@ -121,7 +175,7 @@ python wincc_reviewer/app/main.py --input primary_data/ --accuracy-mode
 
 개발팀이나 현업 리뷰어는 별도의 소스 코드 수정 없이 엑셀 파일을 수정하여 룰을 추가하거나 난이도를 변경할 수 있습니다.
 
-1. `config/rules_catalog.xlsx` 파일 열기
+1. `config/` 폴더 내 `(코드리뷰결과서-Client) ...xlsx` 또는 `(코드리뷰결과서-Server) ...xlsx` 파일 열기
 2. Rule ID, Severity(Critical, High, Medium, Low), 탐지 패턴 수정 후 저장
 3. `ExcelSchemaLinter` 가 자동으로 스키마를 검증하고 파이프라인에 반영합니다.
 
@@ -142,7 +196,37 @@ python scripts/23_inspect_code_variables_and_functions.py
 
 ## 📚 상세 문헌 안내
 
-* [00_INDEX.md](file:///c:/Users/39145/Downloads/클로드prd/00_INDEX.md): 전체 종합 개발 문서 인덱스
-* [USER_MANUAL.md](file:///c:/Users/39145/Downloads/클로드prd/USER_MANUAL.md): 사용자 및 운영 상세 가이드
-* [01_PRD.md](file:///c:/Users/39145/Downloads/클로드prd/01_PRD.md): 제품 요구사항 정의서
-* [02_TRD_아키텍처설계서.md](file:///c:/Users/39145/Downloads/클로드prd/02_TRD_아키텍처설계서.md): 기술 및 아키텍처 설계서
+* [00_INDEX.md](00_INDEX.md): 전체 종합 개발 문서 인덱스
+* [USER_MANUAL.md](USER_MANUAL.md): 사용자 및 운영 상세 가이드
+* [01_PRD.md](01_PRD.md): 제품 요구사항 정의서
+* [02_TRD_아키텍처설계서.md](02_TRD_아키텍처설계서.md): 기술 및 아키텍처 설계서
+
+---
+
+## 🆘 자주 묻는 질문 / 문제 해결 (FAQ)
+
+비개발자분들이 자주 마주치는 상황을 정리했습니다. CLI 오류 메시지를 다룬 개발자용 문제 해결은 각 세부 문서를 참고하세요.
+
+| 증상 | 원인 및 해결 방법 |
+| --- | --- |
+| `'python'은(는) 내부 또는 외부 명령... 로 인식되지 않습니다` | Python 설치 시 **Add python.exe to PATH**를 체크하지 않은 경우입니다. Python을 재설치하며 해당 체크박스를 선택하거나, 설치 후 [python.org 가이드](https://www.python.org/downloads/windows/)를 참고해 PATH에 수동 등록하세요. |
+| 더블클릭했는데 검은 창이 바로 사라짐 | 오류가 나서 창이 닫힌 것입니다. `setup.bat`/`run_gui.bat`을 더블클릭하지 말고, 먼저 `cmd` 창을 열어 해당 폴더로 이동한 뒤 파일명을 직접 입력해 실행하면 오류 메시지를 읽을 수 있습니다. |
+| "Windows의 PC 보호" 또는 "알 수 없는 게시자" 경고 | Windows Defender SmartScreen이 인증서 없는 스크립트를 보수적으로 차단하는 정상 동작입니다. **추가 정보 → 실행**을 클릭하세요. |
+| 백신 프로그램이 파일을 삭제하거나 실행을 막음 | PyInstaller로 빌드한 실행 파일이나 `.bat` 스크립트가 종종 오탐지됩니다. 사내 백신 관리자에게 예외 등록을 요청하거나, 회사 정책상 허용된 경로에서 실행하세요. |
+| `pip install` 도중 멈추거나 실패함 (사내망) | 사내 프록시를 사용 중일 가능성이 높습니다. `setup.bat` 실행 전 명령 프롬프트에서 `set HTTP_PROXY=http://<프록시주소>:<포트>` 및 `set HTTPS_PROXY=...`를 먼저 설정한 뒤 다시 실행하거나, IT 담당자에게 사내 PyPI 미러 주소를 문의하세요. |
+| GUI 창이 뜨지 않음 | Windows에 WebView2 런타임이 없는 경우입니다. [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)을 설치한 뒤 다시 실행하세요. |
+| 한글 경로에서 오류 발생 | 저장소를 `C:\WinCC_Reviewer`처럼 한글/공백이 없는 짧은 경로에 두세요. |
+| `output` 폴더에 결과가 안 보임 | 파일을 "수정한 날짜" 기준으로 정렬해 가장 최근 `_review_report.html` 파일을 여세요. 검사가 아직 진행 중이면 검은 창이 열려 있는지 먼저 확인하세요. |
+| AI 2차 리뷰가 항상 꺼져 있음 | 기본 설정입니다(위 안내 참고). 사내 로컬 AI 서버 또는 API 키가 준비되면 `config\settings.yaml`의 `ai` 항목을 담당자와 함께 수정하세요. |
+
+---
+
+## 부록: 설치·실행 스크립트 원문
+
+저장소 루트에 아래 세 개의 `.bat` 파일이 포함되어 있습니다. 파일이 누락되었다면 아래 내용을 그대로 복사해 동일한 파일명(`setup.bat`, `run_gui.bat`, `run_check.bat`)의 텍스트 파일로 저장하세요. (메모장에서 저장할 때 "파일 형식: 모든 파일", "인코딩: ANSI 또는 UTF-8"을 선택하고 확장자를 `.bat`으로 지정합니다.)
+
+* `setup.bat` — Python 설치 확인, 가상환경(.venv) 생성, `requirements.txt` 설치, `config/settings.yaml` 준비까지 한 번에 처리하는 최초 설치 스크립트
+* `run_gui.bat` — 데스크톱 GUI(`--gui` 모드)를 실행하는 스크립트
+* `run_check.bat` — 폴더/파일을 드래그 앤 드롭하면 정적 룰 검사만(`--no-ai`) 빠르게 실행하고 `output/`에 리포트를 생성하는 스크립트
+
+세 스크립트의 전체 소스는 저장소 루트의 `setup.bat`, `run_gui.bat`, `run_check.bat` 파일을 직접 열어 확인하세요.
