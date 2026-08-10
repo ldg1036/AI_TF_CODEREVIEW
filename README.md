@@ -195,6 +195,7 @@ python scripts/23_inspect_code_variables_and_functions.py
 * [01_PRD.md](docs/01_PRD.md): 제품 요구사항 정의서
 * [02_TRD_아키텍처설계서.md](docs/02_TRD_아키텍처설계서.md): 기술 및 아키텍처 설계서
 * [03_정적분석_룰카탈로그.md](docs/03_정적분석_룰카탈로그.md): 정적 분석 룰 카탈로그 명세서
+* [CONTRIBUTING.md](docs/CONTRIBUTING.md): 개발자 기여 및 신규 룰 체커 추가 지침서
 
 ---
 
