@@ -99,3 +99,7 @@ README.md 파일 내에 비개발자용 설치 가이드를 직접 포함시키�
 
 깃허브 저장소 루트에 노출되었던 테스트 커버리지 부산물(.coverage, coverage.xml)을 추적에서 제거 및 삭제 조치하고, raw_source_candidates.yaml 파일을 config/ 디렉터리로 이동하여 클린한 루트 구성을 완료하였습니다.
 
+## 10. README.md 프로젝트 소스 구조 트리 최신화
+
+docs/ 디렉터리 생성 및 원클릭 스크립트 3종(setup.bat, run_gui.bat, run_check.bat), config/raw_source_candidates.yaml 이동 반영 사항을 README.md 내 프로젝트 소스 구조 트리에 완벽하게 반영하여 최신화하였습니다.
+

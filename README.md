@@ -81,24 +81,30 @@ git clone https://github.com/ldg1036/AI_TF_CODEREVIEW.git
 
 ```text
 AI_TF_CODEREVIEW/
+├── setup.bat                        # 파이썬 및 가상환경 원클릭 자동 설치 스크립트
+├── run_gui.bat                      # 데스크톱 화면(GUI) 원클릭 실행 스크립트
+├── run_check.bat                    # 드래그 앤 드롭 정적 룰 검사 실행 스크립트
+├── docs/                            # 5대 핵심 기술 및 사용자 문서 수록 폴더
+│   ├── 00_INDEX.md                  # 종합 개발 문서 인덱스 및 목차
+│   ├── 01_PRD.md                    # 제품 요구사항 정의서
+│   ├── 02_TRD_아키텍처설계서.md     # 기술 및 아키텍처 설계서
+│   ├── 03_정적분석_룰카탈로그.md    # 33개 정적 분석 체커 명세서
+│   └── USER_MANUAL.md               # 사용자 매뉴얼 및 운영 가이드
 ├── wincc_reviewer/                  # 핵심 애플리케이션 패키지
-│   ├── app/                         # 코어 소스 코드
-│   │   ├── core/                    # 파서(TreeSitterASTParser 포함), 정적 체커, AI, 리포트, 파이프라인 모듈
-│   │   ├── ui/                      # GUI 및 REST/JS API 서비스 모듈
-│   │   └── main.py                  # CLI 메인 엔트리포인트 실행 파일
+│   ├── app/                         # 코어 소스 코드 (core, ui, main.py)
 │   ├── schemas/                     # 리포트 및 설정 JSON 스키마
 │   └── tests/                       # 239개 유닛 테스트 수트 및 테스트 픽스처
 ├── config/                          # 엑셀 룰 카탈로그 및 환경 설정 파일
 │   ├── settings.yaml.example        # 설정 템플릿 (최초 실행 시 settings.yaml로 복사)
-│   ├── (코드리뷰결과서-Client) ...xlsx  # 클라이언트(.pnl/.xml)용 룰 카탈로그 엑셀
-│   ├── (코드리뷰결과서-Server) ...xlsx  # 서버(.ctl)용 룰 카탈로그 엑셀
+│   ├── raw_source_candidates.yaml   # 원천 수집 후보군 정의 YAML
+│   ├── (코드리뷰결과서_Client).xlsx # 클라이언트(.pnl/.xml)용 룰 카탈로그 엑셀
+│   ├── (코드리뷰결과서_Server).xlsx # 서버(.ctl)용 룰 카탈로그 엑셀
 │   └── approved_fp_rules.json       # 사전 승인 오탐 룰 파일
 ├── primary_data/                    # 원본 검사 소스 데이터 폴더
 ├── intermediate_results/            # 벤치마크 및 단일 출처 지표 수록 폴더 (SSOT)
 ├── interim_reports/                 # 개발 및 검증 중간 보고서 문서 세트
 ├── scripts/                         # 프로토콜 검증, 벤치마크, 바이너리 빌드 스크립트
-├── output/                          # 생성된 HTML JSON 리포트 저장 폴더
-└── dist/                            # PyInstaller 빌드 결과물 저장 폴더
+└── output/                          # 생성된 HTML JSON 리포트 저장 폴더
 ```
 
 ---
