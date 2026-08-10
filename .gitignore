@@ -17,3 +17,10 @@ coverage.xml
 config/settings.yaml
 build/
 dist/
+*.egg*
+*.tmp
+temp_*
+temp_out/
+replace.txt
+msg.txt
+15_out.txt

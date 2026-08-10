@@ -87,3 +87,7 @@ README.md 파일 내에 비개발자용 설치 가이드를 직접 포함시키�
 * 최종 제안
   현재 적용된 방식처럼 README.md 상단 최우선 위치에 비개발자용 가이드를 표기하고, 바로 아래 FAQ를 연결하는 통합 구조가 현업 접근성을 최대화하는 가장 객관적이고 효율적인 방법입니다.
 
+## 7. 저장소 클리닝 및 불필요 임시 파일 정리
+
+깃허브 저장소 무결성 확보를 위해 불필요한 일회성 잔재 파일 7종(15_out.txt, msg.txt, replace.txt, temp_github.json, temp_test.ctl, temp_out 폴더, wincc_reviewer/test_dfa_only.py)을 제거하고, .gitignore 파일에 임시 파일 제외 패턴을 추가 보강하였습니다.
+
