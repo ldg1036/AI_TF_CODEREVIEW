@@ -194,12 +194,13 @@ python scripts/23_inspect_code_variables_and_functions.py
 
 ---
 
-## 📚 상세 문헌 안내
+## 📚 상세 문헌 안내 (docs/ 폴더 수록)
 
-* [00_INDEX.md](00_INDEX.md): 전체 종합 개발 문서 인덱스
-* [USER_MANUAL.md](USER_MANUAL.md): 사용자 및 운영 상세 가이드
-* [01_PRD.md](01_PRD.md): 제품 요구사항 정의서
-* [02_TRD_아키텍처설계서.md](02_TRD_아키텍처설계서.md): 기술 및 아키텍처 설계서
+* [00_INDEX.md](docs/00_INDEX.md): 전체 종합 개발 문서 인덱스
+* [USER_MANUAL.md](docs/USER_MANUAL.md): 사용자 및 운영 상세 가이드
+* [01_PRD.md](docs/01_PRD.md): 제품 요구사항 정의서
+* [02_TRD_아키텍처설계서.md](docs/02_TRD_아키텍처설계서.md): 기술 및 아키텍처 설계서
+* [03_정적분석_룰카탈로그.md](docs/03_정적분석_룰카탈로그.md): 정적 분석 룰 카탈로그 명세서
 
 ---
 

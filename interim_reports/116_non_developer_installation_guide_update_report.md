@@ -91,3 +91,7 @@ README.md 파일 내에 비개발자용 설치 가이드를 직접 포함시키�
 
 깃허브 저장소 무결성 확보를 위해 불필요한 일회성 잔재 파일 7종(15_out.txt, msg.txt, replace.txt, temp_github.json, temp_test.ctl, temp_out 폴더, wincc_reviewer/test_dfa_only.py)을 제거하고, .gitignore 파일에 임시 파일 제외 패턴을 추가 보강하였습니다.
 
+## 8. 문서 전용 docs 디렉터리 체계 구축 및 이동 완료
+
+프로젝트 루트 디렉터리의 가독성과 정리 정돈을 위해 README.md 를 제외한 5대 핵심 표준 문서(00_INDEX.md, 01_PRD.md, 02_TRD_아키텍처설계서.md, 03_정적분석_룰카탈로그.md, USER_MANUAL.md)를 docs/ 디렉터리로 이동하고 상대 경로 링크를 모두 동기화하였습니다.
+
