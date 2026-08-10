@@ -4,7 +4,7 @@
 
 [![CI Status](https://github.com/ldg1036/AI_TF_CODEREVIEW/workflows/test/badge.svg)](https://github.com/ldg1036/AI_TF_CODEREVIEW/actions)
 [![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
-[![Test Suite](https://img.shields.io/badge/tests-237%20passed-brightgreen.svg)](file:///c:/Users/39145/Downloads/클로드prd/intermediate_results/single_source_metrics.json)
+[![Test Suite](https://img.shields.io/badge/tests-239%20passed-brightgreen.svg)](file:///c:/Users/39145/Downloads/클로드prd/intermediate_results/single_source_metrics.json)
 [![Coverage](https://img.shields.io/badge/coverage-85.8%25-green.svg)](file:///c:/Users/39145/Downloads/클로드prd/intermediate_results/single_source_metrics.json)
 [![Precision](https://img.shields.io/badge/precision-99.2%25-green.svg)](file:///c:/Users/39145/Downloads/클로드prd/intermediate_results/single_source_metrics.json)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](file:///c:/Users/39145/Downloads/클로드prd/LICENSE)
@@ -48,7 +48,7 @@ c:\Users\39145\Downloads\클로드prd
 │   │   ├── ui/                      # GUI 및 REST/JS API 서비스 모듈
 │   │   └── main.py                  # CLI 메인 엔트리포인트 실행 파일
 │   ├── schemas/                     # 리포트 및 설정 JSON 스키마
-│   └── tests/                       # 237개 유닛 테스트 수트 및 테스트 픽스처
+│   └── tests/                       # 239개 유닛 테스트 수트 및 테스트 픽스처
 ├── config/                          # 엑셀 룰 카탈로그 및 환경 설정 파일
 │   ├── settings.yaml                # 시스템 전역 설정
 │   ├── rules_catalog.xlsx           # 동적 룰 정의 엑셀 파일
@@ -111,7 +111,7 @@ python wincc_reviewer/app/main.py --input primary_data/ --accuracy-mode
 * **실측 정밀도 (Precision)**: **99.2%**
 * **실측 재현율 (Recall)**: **99.8%**
 * **실측 F1 Score**: **99.5%**
-* **단위 테스트 수트**: 237개 유닛 테스트 100% 통과 (PASSED)
+* **단위 테스트 수트**: 239개 유닛 테스트 100% 통과 (PASSED)
 
 * ctl.uninitialized_var: 초기화되지 않은 변수 참조 탐지
 
