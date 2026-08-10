@@ -70,5 +70,5 @@ class TestGoldenSetIntegrity:
         base_dir = Path(__file__).resolve().parent.parent.parent
         ds_file = base_dir / "intermediate_results" / "golden_set_v3" / "golden_set_v3_samples.json"
         is_valid, errors = validate_golden_set_v3_dataset(ds_file)
-        assert is_valid is True
+        assert is_valid is True, f"Validation failed with errors: {errors}"
         assert len(errors) == 0

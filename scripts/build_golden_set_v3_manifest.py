@@ -16,10 +16,8 @@ manifest_file = base_dir / "intermediate_results" / "golden_set_v3_manifest.json
 
 
 def compute_sha256(file_path: Path) -> str:
-    hasher = hashlib.sha256()
-    with open(file_path, "rb") as f:
-        hasher.update(f.read())
-    return hasher.hexdigest()
+    content = file_path.read_text(encoding="utf-8").replace("\r\n", "\n").encode("utf-8")
+    return hashlib.sha256(content).hexdigest()
 
 
 def create_manifest() -> str:

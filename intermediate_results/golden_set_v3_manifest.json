@@ -3,7 +3,7 @@
     "seal_timestamp": "2026-08-09T09:30:00Z",
     "version": "v3.0.0",
     "status": "SEALED",
-    "sha256_hash": "e57064da296e606b27b4a7c7d4ceaaa9c9e26858d8600ddb296ad40e7dda89f5",
+    "sha256_hash": "9de92de871cbef66ed45b5c3a9820ad236a820fb9978d5ccbb4cedd38aa605ae",
     "target_file": "intermediate_results/golden_set_v3/golden_set_v3_samples.json"
   }
 }

@@ -9,8 +9,8 @@ from pathlib import Path
 
 import yaml
 
-if hasattr(sys.stdout, "buffer"):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 base_dir = Path(__file__).resolve().parent.parent
 

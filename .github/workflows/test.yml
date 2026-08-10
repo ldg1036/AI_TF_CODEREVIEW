@@ -42,7 +42,7 @@ jobs:
 
       - name: Run tests with coverage
         env:
-          PYTHONPATH: wincc_reviewer;.
+          PYTHONPATH: wincc_reviewer:.
         run: |
           python -m pytest wincc_reviewer/tests/ --cov=wincc_reviewer/app --cov-report=term-missing --cov-report=xml
 
