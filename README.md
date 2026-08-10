@@ -111,42 +111,32 @@ AI_TF_CODEREVIEW/
 
 ## ⚡ 5분 퀵 스타트 가이드 (Quick Start, 개발자용 수동 설치)
 
-> 비개발자이거나 명령어 사용이 익숙하지 않다면, 위쪽의 [🖱️ 비개발자용 3단계 설치 & 실행 가이드](#️-비개발자용-3단계-설치--실행-가이드-프로그래밍-지식-없이-바로-사용)를 대신 사용하세요.
-> 이 섹션은 터미널(명령 프롬프트/PowerShell) 사용에 익숙한 개발자를 위한 수동 설치 절차입니다.
+> 비개발자이거나 명령어 사용이 익숙하지 않다면 위쪽의 [🖱️ 비개발자용 3단계 설치 및 실행 가이드](#️-비개발자용-3단계-설치-및-실행-가이드-원클릭-자동-실행)를 이용해 주세요.
+> 본 섹션은 터미널 및 명령 프롬프트 사용에 익숙한 개발자를 위한 수동 환경 구축 절차입니다.
 
-### 1단계: 환경 설정 및 의존성 설치
+### 1단계. 개발 환경 구축 및 의존성 설치
+
+1. 저장소 복제 및 폴더 이동
 ```bash
-# 1. 저장소 복제 및 이동
 git clone https://github.com/ldg1036/AI_TF_CODEREVIEW.git
 cd AI_TF_CODEREVIEW
+```
 
-# 2. (선택) 가상환경 생성 및 활성화
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1      # PowerShell
-:: .\.venv\Scripts\activate.bat   # 명령 프롬프트(cmd)의 경우
+2. 자동 환경 구축 또는 수동 의존성 설치
+   * 원클릭 설치: setup.bat 더블클릭 (가상환경 생성 및 필요 의존성 자동 설치)
 
-# 3. 런타임 의존성 설치 (tree-sitter 등 requirements.txt 기준)
-pip install -r requirements.txt
-
-# 4. 파이썬 개발 의존성 포함 설치 (pytest, mypy, pyinstaller 등, editable 모드)
-pip install -e ".[dev]"
-
-# 5. 최초 1회, 설정 파일 템플릿을 실제 설정 파일로 복사
+3. 기본 설정 파일 준비
+```cmd
 copy config\settings.yaml.example config\settings.yaml
 ```
 
-### 2단계: 1분 만에 리뷰 구동하기
-```bash
-# primary_data 폴더의 샘플 코드를 정적 분석하여 리포트 생성
-python wincc_reviewer/app/main.py --input primary_data/ --output output/
+### 2단계. 정적 분석 검사 실행 및 결과 확인
 
-# (옵션) 벤치마크 전용 고속 모드 (실측 지표 산출용)
-python wincc_reviewer/app/main.py --input primary_data/ --benchmark-mode
+1. 원클릭 GUI 실행: run_gui.bat 더블클릭
+2. 원클릭 바로 검사: 검사할 폴더를 run_check.bat 아이콘 위로 끌어다 놓기
+3. CLI 엔트리포인트 구동: wincc_reviewer/app/main.py 실행
 
-# (옵션) 100% 딥 리뷰 모드 (모든 항목 AI 리뷰)
-python wincc_reviewer/app/main.py --input primary_data/ --accuracy-mode
-```
-구동이 완료되면 `output/` 폴더에 세련된 HTML 리포트와 JSON 리포트가 자동으로 생성됩니다.
+검사가 완료되면 output 폴더 내에 HTML 보고서와 JSON 데이터가 자동으로 생성됩니다.
 
 ---
 

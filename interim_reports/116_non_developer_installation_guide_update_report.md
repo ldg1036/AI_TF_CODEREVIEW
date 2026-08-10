@@ -103,3 +103,7 @@ README.md 파일 내에 비개발자용 설치 가이드를 직접 포함시키�
 
 docs/ 디렉터리 생성 및 원클릭 스크립트 3종(setup.bat, run_gui.bat, run_check.bat), config/raw_source_candidates.yaml 이동 반영 사항을 README.md 내 프로젝트 소스 구조 트리에 완벽하게 반영하여 최신화하였습니다.
 
+## 11. README.md 퀵 스타트 가이드 앵커 링크 및 설명 보강
+
+비개발자 3단계 설치 가이드 앵커 링크 연결을 최신화하고 개발자 수동 및 자동 환경 구축 절차를 보강 반영하였습니다.
+
